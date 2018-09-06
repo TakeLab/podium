@@ -35,3 +35,5 @@ The project is packaged according to official Python packaging
 
 - The project still needs a to have a license picked. 
 - Windows and OSX instructions on installation and building
+
+This is from a feature branch. Should I push?
