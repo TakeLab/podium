@@ -23,7 +23,7 @@ python -m pytest
 
 ## Adding new dependencies
 
-Adding a new framework to a project should be done via ```pip install
+Adding a new library to a project should be done via ```pip install
 <new_framework>```. **Don't forget to add it to requirements.txt** 
 
 ## Details
