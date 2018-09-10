@@ -11,13 +11,14 @@ Home of the **TakeLab Podium** project.
 You will work in a virtual environment and keep a list of required
 dependencies in a ```requirements.txt``` file. The master branch of the 
 project **must** be buildable with passing tests **all the time**. 
+Code coverage should be kept as high as possible. 
 
 ```
 
 virtualenv -p python3.6 env
 source env/bin/activate
 pip install -r requirements.txt
-python -m pytest
+py.test --cov=takepod test
 
 ```
 
@@ -35,5 +36,3 @@ The project is packaged according to official Python packaging
 
 - The project still needs a to have a license picked. 
 - Windows and OSX instructions on installation and building
-
-This is from a feature branch. Should I push?
