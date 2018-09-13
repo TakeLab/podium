@@ -21,23 +21,9 @@ import os
 
 
 class CroatianStemmer:
-    __stop = set(
-        ['biti', 'jesam', 'budem', 'sam', 'jesi', 'budeš', 'si', 'jesmo',
-         'budemo', 'smo', 'jeste', 'budete', 'ste',
-         'jesu',
-         'budu', 'su', 'bih', 'bijah', 'bjeh', 'bijaše', 'bi', 'bje', 'bješe',
-         'bijasmo', 'bismo', 'bjesmo', 'bijaste',
-         'biste', 'bjeste', 'bijahu', 'biste', 'bjeste', 'bijahu', 'bi', 'biše',
-         'bjehu', 'bješe', 'bio', 'bili',
-         'budimo',
-         'budite', 'bila', 'bilo', 'bile', 'ću', 'ćeš', 'će', 'ćemo', 'ćete',
-         'želim', 'želiš', 'želi', 'želimo',
-         'želite',
-         'žele', 'moram', 'moraš', 'mora', 'moramo', 'morate', 'moraju',
-         'trebam', 'trebaš', 'treba', 'trebamo',
-         'trebate',
-         'trebaju', 'mogu', 'možeš', 'može', 'možemo', 'možete'])
 
+    # list of words that are it's own stem
+    __stop = None
     __transformations = None
     __rules = None
 
@@ -45,56 +31,79 @@ class CroatianStemmer:
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
         self.__rules = [
-            re.compile(r'^(' + osnova + ')(' + nastavak + r')$') for
-            osnova, nastavak in [e.strip().split(' ') for e in
-                                 open(os.path.join(dir_path,
-                                                   "rules.txt"), encoding='utf-8')]]
+            re.compile(r'^(' + base + ')(' + suffix + r')$') for
+            base, suffix in [
+                e.strip().split(' ')
+                for e in
+                open(os.path.join(dir_path, "rules.txt"), encoding='utf-8')]
+        ]
         self.__transformations = [e.strip().split(
             '\t') for e in open(os.path.join(dir_path,
                                              'transformations.txt'),
                                 encoding='utf-8')]
+        self.__stop = set([
+            e.strip()
+            for e in
+            open(os.path.join(dir_path, 'nostem-hr.txt'), encoding='utf-8')
+        ])
 
-    # TODO make this a private method
-    def istakniSlogotvornoR(self, niz):
-        return re.sub(r'(^|[^aeiou])r($|[^aeiou])', r'\1R\2', niz)
+    def _determine_r_vowel(self, string):
+        '''
+        Determines if 'r' is a vowel or not
+        If it is => uppercase it.
 
-    # TODO make this a private method
-    def imaSamoglasnik(self, niz):
-        if re.search(r'[aeiouR]',
-                     self.istakniSlogotvornoR(
-                             niz)) is None:
-            return False
-        else:
+        Parameters
+        ----------
+        string : str
+            word in Croatian
+
+        Returns
+        -------
+        string : str
+            Croatian word with 'r' vowel uppercased
+        '''
+        return re.sub(r'(^|[^aeiou])r($|[^aeiou])', r'\1R\2', string)
+
+    def _has_vowel(self, string):
+        if re.search(r'[aeiouR]', self._determine_r_vowel(string)):
             return True
+        else:
+            return False
 
-    def transformiraj(self, pojavnica):
-        for trazi, zamijeni in self.__transformations:
-            if pojavnica.endswith(trazi):
-                return pojavnica[:-len(trazi)] + zamijeni
-        return pojavnica
+    def transform(self, word):
+        for seek, replace in self.__transformations:
+            if word.endswith(seek):
+                return word[:-len(seek)] + replace
+        return word
 
-    # TODO write pydoc for this + rename to english
-    def korjenuj(self, pojavnica):
-        for pravilo in self.__rules:
-            dioba = pravilo.match(pojavnica)
-            if dioba is not None:
-                if self.imaSamoglasnik(
-                        dioba.group(1)) and len(dioba.group(1)) > 1:
-                    return dioba.group(1)
-        return pojavnica
+    def root_word(self, word):
+        for rule in self.__rules:
+            division = rule.match(word)
+            if division:
+                root = division.group(1)
+                if self._has_vowel(root) and len(root) > 1:
+                    return root
+        return word
 
-    # TODO IMHO this does too much (lower case, stopword check...)
     def stem_word(self, word):
+        '''
+        Returns the root or roots of a word,
+        together with any derivational affixes
+
+        Parameters
+        ----------
+        word : str
+            word in Croatian
+
+        Returns
+        -------
+        string : str
+            Croatian word root plus derivational morphemes
+        '''
+
         if word.lower() in self.__stop:
             return word
-        stem = self.korjenuj(self.transformiraj(word.lower()))
+        stem = self.root_word(self.transform(word.lower()))
         return "".join(list(
             stem[i].upper() if c.isupper() else stem[i] for i, c in
             zip(range(len(stem)), word)))
-
-    # TODO could be deleted all together 
-    def stem_doc(self, doc_string):
-        stemmed_string = " ".join(
-            [self.stem_word(word) for word in
-             doc_string.split(" ")])
-        return stemmed_string

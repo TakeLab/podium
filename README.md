@@ -27,6 +27,13 @@ py.test --cov=takepod test
 Adding a new library to a project should be done via ```pip install
 <new_framework>```. **Don't forget to add it to requirements.txt** 
 
+The best thing to do is to manually add dependencies to the
+```requirements.txt``` file instead of using 
+```pip freeze > requirements.txt```. 
+See [here](https://medium.com/@tomagee/pip-freeze-requirements-txt-considered-harmful-f0bce66cf895)
+why.
+
+
 ## Details
 
 The project is packaged according to official Python packaging
