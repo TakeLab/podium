@@ -11,13 +11,14 @@ Home of the **TakeLab Podium** project.
 You will work in a virtual environment and keep a list of required
 dependencies in a ```requirements.txt``` file. The master branch of the 
 project **must** be buildable with passing tests **all the time**. 
+Code coverage should be kept as high as possible. 
 
 ```
 
 virtualenv -p python3.6 env
 source env/bin/activate
 pip install -r requirements.txt
-python -m pytest
+py.test --cov=takepod test
 
 ```
 
@@ -25,6 +26,13 @@ python -m pytest
 
 Adding a new library to a project should be done via ```pip install
 <new_framework>```. **Don't forget to add it to requirements.txt** 
+
+The best thing to do is to manually add dependencies to the
+```requirements.txt``` file instead of using 
+```pip freeze > requirements.txt```. 
+See [here](https://medium.com/@tomagee/pip-freeze-requirements-txt-considered-harmful-f0bce66cf895)
+why.
+
 
 ## Details
 
