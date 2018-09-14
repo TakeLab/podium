@@ -1,5 +1,8 @@
 from takepod.models.base_model import SupervisedModel
-from takepod.dataload.load_imdb import load_data
+from takepod.preproc.transform import (
+    make_bow_vector,
+    categories_to_int
+)
 import torch.nn.functional as F
 import torch.optim as optim
 import torch.nn as nn
@@ -48,16 +51,20 @@ class SimpleSentimentAnalysisModel(SupervisedModel):
         word_to_ix = kwargs["word_to_ix"]
         # randomly take stuff from the train set instead of
         # something sensible like batch or online sequential
+
+        y = categories_to_int(y)
+        iternum = min(len(X), 1000)
         for ep in range(5):
             total_loss = 0
-            for i in range(1000):
+            for i in range(iternum):
 
                 self.model.zero_grad()
-                j = random.randint(0, len(X))
+                j = random.randint(0, len(X) - 1)
                 vector = make_bow_vector(X[j], word_to_ix)
+                vector = torch.Tensor(vector).view(1, -1)
 
                 log_probs = self.model(vector)
-                target = torch.LongTensor([round(y[j])])
+                target = torch.LongTensor([y[j]])
                 loss = loss_function(log_probs, target)
                 total_loss += loss
 
@@ -86,6 +93,7 @@ class SimpleSentimentAnalysisModel(SupervisedModel):
         with torch.no_grad():
             for i in range(len(X)):
                 bow_vec = make_bow_vector(X[i], word_to_ix)
+                bow_vec = torch.Tensor(bow_vec).view(1, -1)
                 log_probs = self.model(bow_vec)
                 predicted[i] = torch.argmax(log_probs)
         return predicted
@@ -105,45 +113,3 @@ class RNN(nn.Module):
 
     def forward(self, x):
         return F.log_softmax(self.fc(x), dim=1)
-
-
-# TODO move to preprocessing
-def make_bow_vector(document, word_to_ix):
-    vec = torch.zeros(len(word_to_ix))
-    for word in document.split(' '):
-
-        vec[word_to_ix[word]] += 1
-    return vec.view(1, -1)
-
-
-# TODO this should be a part of preprocessing
-# this should be a pre
-def create_word_to_index(data):
-    word_to_ix = {}
-    for document in data:
-        for word in document.split(' '):
-            if word not in word_to_ix:
-                word_to_ix[word] = len(word_to_ix)
-    return word_to_ix
-
-
-def test_run():
-    # TODO there should be an execution model pattern of
-    # 1. preprocess
-    # 2. train
-    # 3. test
-    # 4. evaluate
-    # ML models should adhere to this interface
-    # preprocess
-    # delete this once established
-    X_train, y_train = load_data(train=True)
-    X_test, y_test = load_data(train=False)
-    word_to_ix = create_word_to_index(X_train + X_test)
-    # init
-    sa = SimpleSentimentAnalysisModel(vocab_size=len(word_to_ix))
-    # train
-    sa.train(X_train, y_train, word_to_ix=word_to_ix)
-    # test
-    predicted = sa.test(X_test[0:100], word_to_ix=word_to_ix)
-    # evaluate below
-    return predicted
