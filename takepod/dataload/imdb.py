@@ -13,11 +13,11 @@ class Imdb(IMDB):
             self._data_dir, text_field, label_field, **kwargs
         )
 
-
     def download_and_extract(self):
         # TODO this is very slow even when it
         # doesn't download, find a way to speed this up
-        self.download(root="downloaded_datasets", check="downloaded_datasets/imdb")
+        self.download(root="downloaded_datasets",
+                      check="downloaded_datasets/imdb")
 
     def _read_text_file(self, path):
         """
@@ -54,9 +54,8 @@ class Imdb(IMDB):
         train_test_path = "train" if train else "test"
 
         # Base-directory where the extracted data is located.
-        print(self._data_dir)
-        dir_base = os.path.join(self._data_dir, "imdb", "aclImdb", train_test_path)
-        print(dir_base)
+        dir_base = os.path.join(self._data_dir,
+                                "imdb", "aclImdb", train_test_path)
 
         # Filename-patterns for the data-files.
         path_pattern_pos = os.path.join(dir_base, "pos", "*.txt")
