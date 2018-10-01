@@ -43,3 +43,51 @@ The project is packaged according to official Python packaging
 
 - The project still needs a to have a license picked. 
 - Windows and OSX instructions on installation and building
+
+
+##Windows specifics
+1. install python 3.6 64 bit with pip
+(if needed update pip ``` python3 -m pip install --upgrade pip ```)
+2. install and create virtual environment
+
+```
+
+pip3 install virtualenv
+virtualenv -p python3 env
+
+```
+
+3. Activate environment
+
+```
+
+\path\to\env\Scripts\activate.bat -- using CMD
+\path\to\env\Scripts\activate.ps1 -- using PowerShell
+
+```
+
+Note: To create a virtualenv under a path with spaces in it on Windows, you’ll need the win32api library installed.
+
+3. Install requirements and run tests
+Install pytorch, when changing pytorch version update url.
+
+```
+
+pip3 install http://download.pytorch.org/whl/cu90/torch-0.4.1-cp36-cp36m-win_amd64.whl
+
+```
+
+```
+pip install -r requirements.txt
+python setup.py install
+
+```
+
+4. Deactivate environment when needed
+
+```
+
+.\env\Scripts\deactivate.bat
+
+```
+
