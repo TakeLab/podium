@@ -45,7 +45,7 @@ The project is packaged according to official Python packaging
 - Windows and OSX instructions on installation and building
 
 
-##Windows specifics
+## Windows specifics
 1. install python 3.6 64 bit with pip
 (if needed update pip ``` python3 -m pip install --upgrade pip ```)
 2. install and create virtual environment
