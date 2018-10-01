@@ -23,7 +23,6 @@ simplegeneric==0.8.1
 six==1.11.0
 sklearn==0.0
 spacy==2.0.12
-takepod==0.1
 torch==0.4.1
 torchtext==0.2.3
 tqdm==4.25.0
