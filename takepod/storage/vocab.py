@@ -108,7 +108,7 @@ class Vocab(object):
     return np.array([self.stoi[token] for token in data])
 
   def __len__(self):
-    if finalized:
+    if self.finalized:
       return len(self.itos)
     else:
       return len(self.freqs)
