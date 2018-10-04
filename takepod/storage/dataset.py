@@ -8,8 +8,8 @@ import csv
 import requests
 import six
 
-from takepod.storage.functools import partial
-from takepod.storage.tqdm import tqdm
+from functools import partial
+from tqdm import tqdm
 
 from takepod.storage.example import Example
 from takepod.storage.util import RandomShuffler
