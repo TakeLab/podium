@@ -2,7 +2,7 @@ import math
 import random
 
 import numpy as np
-import util
+from takepod.storage import util
 
 class Iterator(object):
   """An iterator that batches data from a dataset post numericalization

@@ -8,11 +8,11 @@ import csv
 import requests
 import six
 
-from functools import partial
-from tqdm import tqdm
+from takepod.storage.functools import partial
+from takepod.storage.tqdm import tqdm
 
-from example import Example
-from util import RandomShuffler
+from takepod.storage.example import Example
+from takepod.storage.util import RandomShuffler
 
 class Dataset(object):
   """General purpose container for datasets defining some common methods.

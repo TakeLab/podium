@@ -1,7 +1,7 @@
 import numpy as np
 from collections import OrderedDict
 
-from vocab import Vocab
+from takepod.storage.vocab import Vocab
 
 class Field(object):
   """ Preprocessing class for processing text data contained in columns
@@ -43,7 +43,7 @@ class Field(object):
     self.pre_tokenize_hooks = OrderedDict()
     self.post_tokenize_hooks = OrderedDict()
 
-  def add_pretokenize_hook(hook):
+  def add_pretokenize_hook(self, hook):
     """Add a pre-tokenization hook to the Field
 
     Pretokenize hooks have the following signature:
@@ -62,7 +62,7 @@ class Field(object):
     return HookControl(h, self.pre_tokenize_hooks)
 
 
-  def add_posttokenize_hook(hook):
+  def add_posttokenize_hook(self, hook):
     """Add a post-tokenization hook to the Field
 
     Posttokenize hooks have the following signature:
