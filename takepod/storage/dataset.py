@@ -13,6 +13,7 @@ from tqdm import tqdm
 
 from takepod.storage.example import Example
 from takepod.storage.util import RandomShuffler
+from takepod.storage.downloader import HttpDownloader
 
 from abc import ABC, abstractmethod
 
@@ -70,7 +71,7 @@ class Dataset(ABC):
                     if not os.path.exists(os.path.dirname(zpath)):
                         os.makedirs(os.path.dirname(zpath))
                     print('downloading {}'.format(filename))
-                    download_from_url(url, zpath)
+                    HttpDownloader.getDownloader(url).download(url, zpath)
                 zroot, ext = os.path.splitext(zpath)
                 _, ext_inner = os.path.splitext(zroot)
                 if ext == '.zip':

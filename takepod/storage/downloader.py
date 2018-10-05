@@ -1,14 +1,15 @@
-from abc import ABC, abstractmethod
+from abc import ABC,abstractclassmethod
 import requests
 from tqdm import tqdm
 
 class BaseDownloader(ABC):
-    @abstractmethod
-    def download (self, url, path):
+    @abstractclassmethod
+    def download (cls, url, path):
         pass
 
 class HttpDownloader(BaseDownloader, ABC):
-    def _process_response(self, path, http_response):
+    @classmethod
+    def _process_response(cls, path, http_response):
         chunk_size = 16 * 1024
         total_size = int(http_response.headers.get('Content-length', 0))
         with open(path, "wb") as file:
@@ -18,14 +19,22 @@ class HttpDownloader(BaseDownloader, ABC):
                     if chunk:
                         file.write(chunk)
                         t.update(len(chunk))
+    @staticmethod
+    def getDownloader(url):
+        if 'drive.google.com' in url:
+            return GoogleDriveDownloader
+        else:
+            return UrlDownloader
 
 class UrlDownloader(HttpDownloader):
-    def download(self, url, path):
+    @classmethod
+    def download(cls, url, path):
         response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, stream=True)
-        self._process_response(path, response)
+        cls._process_response(path, response)
 
 class GoogleDriveDownloader(HttpDownloader):
-    def download(self, url, path):
+    @classmethod
+    def download(cls, url, path):
         if 'drive.google.com' not in url:
             raise ValueError("not supported url type")
         confirm_token = None
@@ -39,6 +48,6 @@ class GoogleDriveDownloader(HttpDownloader):
             url = url + "&confirm=" + confirm_token
             response = session.get(url, stream=True)
 
-        self._process_response(path, response)
+        cls._process_response(path, response)
 
     
