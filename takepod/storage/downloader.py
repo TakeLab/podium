@@ -24,9 +24,9 @@ class HttpDownloader(BaseDownloader, ABC):
         if 'drive.google.com' in url:
             return GoogleDriveDownloader
         else:
-            return UrlDownloader
+            return SimpleHttpDownloader
 
-class UrlDownloader(HttpDownloader):
+class SimpleHttpDownloader(HttpDownloader):
     @classmethod
     def download(cls, url, path):
         response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, stream=True)
