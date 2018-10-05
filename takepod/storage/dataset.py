@@ -14,7 +14,11 @@ from tqdm import tqdm
 from takepod.storage.example import Example
 from takepod.storage.util import RandomShuffler
 
-class Dataset(object):
+from abc import ABC, abstractmethod
+
+
+
+class Dataset(ABC):
   """General purpose container for datasets defining some common methods.
     A dataset is a list of `Example` classes, along with the corresponding
     `Field` classes, which process the columns of each example.
@@ -138,7 +142,7 @@ class Dataset(object):
         return splits
 
 
-class TabularDataset(Dataset):
+class TabularDataset(Dataset, ABC):
     """Defines a Dataset of columns stored in CSV, TSV, or JSON format."""
 
     def __init__(self, path, format, fields, skip_header=False,
@@ -205,6 +209,8 @@ class TabularDataset(Dataset):
         super(TabularDataset, self).__init__(examples, fields, **kwargs)
 
 
+
+
 # TODO: Check if we need these in py3 (probably not) and remove them
 def unicode_csv_reader(unicode_csv_data, **kwargs):
     """Since the standard csv library does not handle unicode in Python 2, we need a wrapper.
@@ -225,38 +231,7 @@ def utf_8_encoder(unicode_csv_data):
     for line in unicode_csv_data:
         yield line.encode('utf-8')
 
-# TODO: Move this to some general-purpose util file
-def download_from_url(url, path):
-    """Download file, with logic (from tensor2tensor) for Google Drive"""
-    def process_response(r):
-        chunk_size = 16 * 1024
-        total_size = int(r.headers.get('Content-length', 0))
-        with open(path, "wb") as file:
-            with tqdm(total=total_size, unit='B',
-                      unit_scale=1, desc=path.split('/')[-1]) as t:
-                for chunk in r.iter_content(chunk_size):
-                    if chunk:
-                        file.write(chunk)
-                        t.update(len(chunk))
 
-    if 'drive.google.com' not in url:
-        response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, stream=True)
-        process_response(response)
-        return
-
-    print('downloading from Google Drive; may take a few minutes')
-    confirm_token = None
-    session = requests.Session()
-    response = session.get(url, stream=True)
-    for k, v in response.cookies.items():
-        if k.startswith("download_warning"):
-            confirm_token = v
-
-    if confirm_token:
-        url = url + "&confirm=" + confirm_token
-        response = session.get(url, stream=True)
-
-    process_response(response)
 
 
 
