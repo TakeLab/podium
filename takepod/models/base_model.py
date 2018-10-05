@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 class ExportableModel(ABC):
 
     @abstractmethod
-    def export(weights):
+    def export(self, weights):
         pass
 
 

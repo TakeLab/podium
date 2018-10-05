@@ -29,7 +29,7 @@ class PauzaHR():
         zip_ref.extractall(download_location)
         zip_ref.close()
 
-    def load_data(self, train=True):
+    def load_data(self, train=True, verbose=False):
         """
         Load all the data from the Cropinion Review data-set
         for sentiment analysis.
@@ -66,7 +66,8 @@ class PauzaHR():
             review_text = root.find('Text').text
             source = root.find('Source').text
             rating = root.find('Rating').text
-            print(source, rating, review_text)
+            if verbose:
+                print(source, rating, review_text)
             data.append((review_text, source))
             labels.append(float(rating))
         return data, labels
