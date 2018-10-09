@@ -11,4 +11,5 @@ setup(name='takepod',
       url="https://git.takelab.fer.hr/TakeLab/Podium",
       setup_requires=["pytest-runner"],
       tests_require=["pytest"],
+      package_data={'takepod': ['preproc/stemmer/data/*.txt']},
       zip_safe=False)
