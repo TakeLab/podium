@@ -35,16 +35,16 @@ class CroatianStemmer:
             base, suffix in [
                 e.strip().split(' ')
                 for e in
-                open(os.path.join(dir_path, "rules.txt"), encoding='utf-8')]
+                open(os.path.join(dir_path, "data/rules.txt"), encoding='utf-8')]
         ]
         self.__transformations = [e.strip().split(
             '\t') for e in open(os.path.join(dir_path,
-                                             'transformations.txt'),
+                                             'data/transformations.txt'),
                                 encoding='utf-8')]
         self.__stop = set([
             e.strip()
             for e in
-            open(os.path.join(dir_path, 'nostem-hr.txt'), encoding='utf-8')
+            open(os.path.join(dir_path, 'data/nostem-hr.txt'), encoding='utf-8')
         ])
 
     def _determine_r_vowel(self, string):
