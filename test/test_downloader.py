@@ -111,7 +111,10 @@ def _mock_response(base_path, url, data_bytes, status_code = 200, status_reason=
     resp.status_code = status_code
     resp._content = False
     
-    original_response = response.HTTPResponse(body=resp._content, headers=None, status =status_code, reason=status_reason)
+    original_response = response.HTTPResponse(body=resp._content, 
+                                        headers=None, 
+                                        status =status_code,
+                                        reason=status_reason)
     response_fp = open(original_file_path, "rb")
     original_response.read = response_fp.read
     resp.raw = original_response
