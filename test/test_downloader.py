@@ -109,8 +109,6 @@ def _mock_response(base_path, url, data_bytes,
     # mocking urllib response
 
     resp = requests.models.Response()
-    resp.encoding = 'UTF-8'
-    resp.history = '[]'
     resp.reason = status_reason
     resp.url = url
     resp.status_code = status_code
