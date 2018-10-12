@@ -30,6 +30,7 @@ def test_simple_url_downloader_small_file():
 
     # testing download
     result_file_path = os.path.join(base, "result.txt")
+    assert not os.path.exists(result_file_path)
     dl = downloader.SimpleHttpDownloader
     returnValue = dl.download(path=result_file_path, uri=URL)
     assert returnValue

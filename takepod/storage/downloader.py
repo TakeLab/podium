@@ -66,10 +66,12 @@ class HttpDownloader(BaseDownloader, ABC):
 
         """
         if response is None or output_file is None:
-            raise ValueError("Response object and output file object mustn't" +
+            raise ValueError("Response object and output file object mustn't"
                              " be None.")
         if response.status_code >= 300:
-            raise RuntimeError("Given file is not accessible. HTTP response code {} {}".format(str(response.status_code), str(response.reason)))
+            raise RuntimeError("Given file is not accessible because {},"
+                               "HTTP response code {}"
+                               .format(response.reason, response.status_code))
         shutil.copyfileobj(response.raw, output_file)
         return True
 
@@ -84,11 +86,13 @@ class SimpleHttpDownloader(HttpDownloader):
     def download(cls, uri, path, overwrite=False):
         if path is None or uri is None:
             raise ValueError(
-                "Path and url mustn't be None. Given path: {}, {}".format(str(path), str(uri)))
+                            "Path and url mustn't be None."
+                            "Given path: {}, {}".format(str(path), str(uri)))
         if not overwrite and os.path.exists(path):
             return False
 
-        with requests.get(url=uri, headers={'User-Agent': 'Mozilla/5.0'}, stream=True) as response,
+        with requests.get(url=uri, headers={'User-Agent': 'Mozilla/5.0'},
+                          stream=True) as response,
             open(path, 'wb') as output_file:
                 success = cls._process_response(response, output_file)
                 return success
