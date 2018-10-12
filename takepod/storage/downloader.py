@@ -6,9 +6,9 @@ is SimpleHttpDownloader.
 
 """
 from abc import ABC, abstractclassmethod
-import shutil
 import os
 import requests
+from takepod.storage.utility import copyfileobj_with_tqdm
 
 
 class BaseDownloader(ABC):
@@ -52,11 +52,14 @@ class HttpDownloader(BaseDownloader, ABC):
         outputfile. Data is processed in chunks of given length.
         Parameters
         ----------
-        response:
+        response :
             HTTP response obtained by requests.get method.
             Response should be streamed.
-        output_file:
+        output_file :
             file like object where to copy response content
+        chunck_lenght : int
+            buffer size used while copying response to the output_file,
+            default value is taken from shutil.copyfileobj
         Raises
         ------
         ValueError
@@ -72,7 +75,10 @@ class HttpDownloader(BaseDownloader, ABC):
             raise RuntimeError("Given file is not accessible because {},"
                                "HTTP response code {}"
                                .format(response.reason, response.status_code))
-        shutil.copyfileobj(response.raw, output_file)
+        copyfileobj_with_tqdm(response.raw, output_file,
+                              total_size=int(response.headers.get(
+                                  'Content-length', 0)),
+                              buffer_size=chuck_length)
         return True
 
 
@@ -86,13 +92,13 @@ class SimpleHttpDownloader(HttpDownloader):
     def download(cls, uri, path, overwrite=False):
         if path is None or uri is None:
             raise ValueError(
-                            "Path and url mustn't be None."
-                            "Given path: {}, {}".format(str(path), str(uri)))
+                "Path and url mustn't be None."
+                "Given path: {}, {}".format(str(path), str(uri)))
         if not overwrite and os.path.exists(path):
             return False
 
         with requests.get(url=uri, headers={'User-Agent': 'Mozilla/5.0'},
-                          stream=True) as response,
-            open(path, 'wb') as output_file:
-                success = cls._process_response(response, output_file)
-                return success
+                          stream=True) as response,\
+             open(path, 'wb') as output_file:
+            success = cls._process_response(response, output_file)
+            return success
