@@ -48,4 +48,4 @@ popd
 source activate testenv
 
 # Install requirements via pip in our conda environment
-pip install -r requirements.txt
+pip install -r requirements.txt &> /dev/null
