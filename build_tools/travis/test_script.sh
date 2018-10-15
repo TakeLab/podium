@@ -10,9 +10,9 @@ python --version
 
 run_tests() {
     if [[ "$RUN_SLOW" == "true" ]]; then
-        TEST_CMD="py.test --runslow -s -v --cov=takepod --durations=20"
+        TEST_CMD="py.test --cov-report term-missing --runslow -s -v --cov=takepod --durations=20"
     else
-        TEST_CMD="py.test -v --cov=takepod --durations=20"
+        TEST_CMD="py.test --cov-report term-missing -v --cov=takepod --durations=20"
     fi
     $TEST_CMD
 }
