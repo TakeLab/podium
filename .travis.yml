@@ -1,11 +1,21 @@
+dist: trusty
+
 language: python
-python:
-  - "3.6"
 
-# command to install dependencies
-install:
-  - pip install -r requirements.txt
+cache:
+  directories:
+  - /home/travis/download
+  - /home/travis/.cache/pip
 
-# command to run tests
-script:
-  - pytest
+matrix:
+  fast_finish: true
+  include:
+    - env: PYTHON_VERSION="3.6" COVERAGE="true" RUN_FLAKE8="true"
+      sudo: required
+
+notifications:
+  email: false
+
+install: source build_tools/travis/install.sh
+script: bash build_tools/travis/test_script.sh
+after_success: source build_tools/travis/after_success.sh
