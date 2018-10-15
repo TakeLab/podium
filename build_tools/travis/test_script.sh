@@ -17,10 +17,11 @@ run_tests() {
     $TEST_CMD
 }
 
+if [[ "$SKIP_TESTS" != "true" ]]; then
+    run_tests
+fi
+
 if [[ "$RUN_FLAKE8" == "true" ]]; then
     flake8
 fi
 
-if [[ "$SKIP_TESTS" != "true" ]]; then
-    run_tests
-fi
