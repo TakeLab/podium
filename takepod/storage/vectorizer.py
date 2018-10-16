@@ -5,7 +5,6 @@
 import os
 from abc import ABC, abstractmethod
 import six
-from tqdm import tqdm
 import numpy as np
 
 
@@ -63,13 +62,13 @@ class VectorStorage(ABC):
 
         Parameters
         ----------
-        path : str
-            path to stored vectors
+        vocab : iterable object
+            vocabulary with unique words
 
         Raises
         ------
         IOError
-            if there was a problem while reading vectors from given path
+            if there was a problem while reading vectors from instance path
         ValueError
             if given path is not a valid path or given vocab is none
         RuntimeError
@@ -99,7 +98,6 @@ class VectorStorage(ABC):
             vector function is not defined (None)
         ValueError
             if given token is None
-
         """
         pass
 
@@ -110,6 +108,13 @@ class VectorStorage(ABC):
 class BasicVectorStorage(VectorStorage):
     """ Basic implementation of VectorStorage that handles loading vectors from
     system storage.
+
+    Attributes
+    ----------
+    vectors : dict
+        dictionary offering word to vector mapping
+    dim : int
+        vector dimension
 
     """
 
@@ -137,10 +142,25 @@ class BasicVectorStorage(VectorStorage):
         return self.vectors[token]
 
     def _cache_vectors(self):
-        pass # TODO implement function
+        """Method for caching loaded vectors to cache_dir."""
+        with open(self.cache_path, "wb") as cache_file:
+            for word in self.vectors:
+                cache_file.write("{} {}".format(word, self.vectors[word]))
 
     @staticmethod
     def _decode_word(word):
+        """Method tryies to decode binary word as utf-8, returns None if fails.
+
+        Parameters
+        ----------
+        word : str
+            binary type string that needs to be decoded
+
+        Returns
+        -------
+        decoded : str or None
+            decoded word or None if process failed
+        """
         try:
             if isinstance(word, six.binary_type):
                 decoded = word.decode('utf-8')
@@ -150,17 +170,25 @@ class BasicVectorStorage(VectorStorage):
         return None
 
     def _load_vectors(self, vocab=None):
+        """Internal method for loading vectors. It combines vocab vectors
+        loading and all vectors loading.
+
+        Parameters
+        ----------
+        vocab : iterable object
+            vocabulary with unique words
+        """
         self._check_path()
-        curr_path = self.path if self.path is not None else self.cache_path
+        curr_path = self.path if self.cache_path is None else self.cache_path
 
         with open(curr_path, 'rb') as vector_file:
-            num_lines = 10  # TODO calculate number of lines
-            if not self.max_vectors or self.max_vectors > num_lines:
-                self.max_vectors = num_lines
 
             vectors_loaded = 0
-            for line in tqdm(vector_file, total=num_lines):
-                line_entries = line.rstrip().split(b" ")
+            for line in vector_file:
+                stripped_line = line.rstrip()
+                if not stripped_line:
+                    continue
+                line_entries = stripped_line.split(b" ")
                 word, vector_entry = line_entries[0], line_entries[1:]
 
                 if self.dim is None and len(vector_entry) > 1:
@@ -190,6 +218,10 @@ class BasicVectorStorage(VectorStorage):
                 self._cache_vectors()
 
     def _check_path(self):
+        """Internal method for determining if instance paths are in supported
+        state. It enforces that both paths cannot be None and that not None
+        path must exist unless if it is used for caching loaded vectors.
+        """
         if self.path is None and self.cache_path is None:
             raise ValueError("Given vectors and cache paths mustn't"
                              " be both None")
@@ -197,5 +229,6 @@ class BasicVectorStorage(VectorStorage):
         if self.path is not None and not os.path.exists(self.path):
             raise ValueError("Given vectors path doesn't exist.")
 
-        if self.cache_path is not None and not os.path.exists(self.path):
+        if self.path is None and self.cache_path is not None\
+           and not os.path.exists(self.path):
             raise ValueError("Given cache path doesn't exist.")
