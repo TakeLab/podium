@@ -18,6 +18,14 @@ class MockField:
                 {"text": (MockField("words"), MockField("chars")),
                  "rating": MockField("label"),
                  "sentiment": (MockField("sentiment"), MockField("polarity"))}
+        ), (
+            {"text": "this is a review", "rating": 4.5, "sentiment": 1,
+             "source": "www.source.hr"},
+            {"text": (MockField("words"), MockField("chars")),
+             "rating": MockField("label"),
+             "sentiment": (MockField("sentiment"), MockField("polarity")),
+             "source": None
+             }
         ),
         (
                 {"x": "data"},
@@ -29,38 +37,28 @@ class MockField:
     ]
 )
 def test_fromdict_ok(data_dict, fields_dict):
-    ex = Example.fromdict(data_dict, fields_dict)
+    received_example = Example.fromdict(data_dict, fields_dict)
 
-    for data_key, data_val in data_dict.items():
-        fields = fields_dict[data_key]
+    field_data_tuples = ((fields_dict[k], v) for k, v in data_dict.items())
+    expected_example = create_expected_example(field_data_tuples)
 
-        if not isinstance(fields, tuple):
-            fields = (fields,)
-
-        for field in fields:
-            assert ex.__getattribute__(field.name)[0] == data_dict[data_key]
-            assert ex.__getattribute__(field.name)[1][0] == data_dict[data_key]
+    assert examples_equal(received_example, expected_example)
 
 
 @pytest.mark.parametrize(
-    "data_dict, fields_dict, exception_type",
+    "data_dict, fields_dict",
     [
         (
                 {"text": "this is a review", "rating": 4.5, "sentiment": 1},
                 {"not_text": (MockField("words"), MockField("chars")),
                  "rating": MockField("label"),
                  "sentiment": (MockField("sentiment"), MockField("polarity"))},
-                ValueError
         ),
     ]
 )
-def test_fromdict_exception(data_dict, fields_dict, exception_type):
-    try:
+def test_fromdict_exception(data_dict, fields_dict):
+    with pytest.raises(ValueError):
         Example.fromdict(data_dict, fields_dict)
-    except Exception as e:
-        t = type(e)
-
-    assert t == exception_type
 
 
 @pytest.mark.parametrize(
@@ -85,40 +83,29 @@ def test_fromdict_exception(data_dict, fields_dict, exception_type):
     ]
 )
 def test_fromJSON_ok(json_data, fields_dict, expected_data_dict):
-    ex = Example.fromJSON(json_data, fields_dict)
+    received_example = Example.fromJSON(json_data, fields_dict)
 
-    for data_key, data_val in expected_data_dict.items():
-        fields = fields_dict[data_key]
+    field_data_tuples = ((fields_dict[k], v) for k, v in
+                         expected_data_dict.items())
+    expected_example = create_expected_example(field_data_tuples)
 
-        if not isinstance(fields, tuple):
-            fields = (fields,)
-
-        for field in fields:
-            assert ex.__getattribute__(field.name)[0] == expected_data_dict[
-                data_key]
-            assert ex.__getattribute__(field.name)[1][0] == expected_data_dict[
-                data_key]
+    assert examples_equal(received_example, expected_example)
 
 
 @pytest.mark.parametrize(
-    "json_data, fields_dict, exception_type",
+    "json_data, fields_dict",
     [
         (
                 '{"text": "this is a review", "rating": 4.5, "sentiment": 1}',
                 {"not_text": (MockField("words"), MockField("chars")),
                  "rating": MockField("label"),
                  "sentiment": (MockField("sentiment"), MockField("polarity"))},
-                ValueError
         ),
     ]
 )
-def test_fromJSON_exception(json_data, fields_dict, exception_type):
-    try:
+def test_fromJSON_exception(json_data, fields_dict):
+    with pytest.raises(ValueError):
         Example.fromJSON(json_data, fields_dict)
-    except Exception as e:
-        t = type(e)
-
-    assert t == exception_type
 
 
 @pytest.mark.parametrize(
@@ -137,18 +124,18 @@ def test_fromJSON_exception(json_data, fields_dict, exception_type):
                 [(MockField("words"), MockField("chars")), MockField("label"),
                  (MockField("sentiment"), MockField("polarity"))]
         ),
+        (
+                ["this is a review", 4.5, 1, "this should be ignored"],
+                [(MockField("words"), MockField("chars")), MockField("label"),
+                 (MockField("sentiment"), MockField("polarity")), None]
+        ),
     ]
 )
 def test_fromlist(data_list, fields_list):
-    ex = Example.fromlist(data_list, fields_list)
+    received_example = Example.fromlist(data_list, fields_list)
+    expected_example = create_expected_example(zip(fields_list, data_list))
 
-    for data, fields in zip(data_list, fields_list):
-        if not isinstance(fields, tuple):
-            fields = (fields,)
-
-        for field in fields:
-            assert ex.__getattribute__(field.name)[0] == data
-            assert ex.__getattribute__(field.name)[1][0] == data
+    assert examples_equal(received_example, expected_example)
 
 
 @pytest.mark.parametrize(
@@ -164,7 +151,7 @@ def test_fromlist(data_list, fields_list):
                 {"text": "this is a review", "rating": "4.5", "sentiment": "1"}
         ),
         (
-                "||".join(["this is a review", "bla"]),
+                "|".join(["this is a review", "bla"]),
                 {
                     "text": (MockField("words"), MockField("chars")),
                     "sentiment": (
@@ -172,30 +159,25 @@ def test_fromlist(data_list, fields_list):
                     )
                 },
                 {"text": 0, "sentiment": 1},
-                "||",
+                "|",
                 {"text": "this is a review", "sentiment": "bla"}
         )
     ]
 )
 def test_fromCSV_fields_is_dict(csv_line, fields_dict, field_to_index,
                                 delimiter, expected_data_dict):
-    ex = Example.fromCSV(csv_line, fields_dict, field_to_index, delimiter)
+    received_example = Example.fromCSV(csv_line, fields_dict, field_to_index,
+                                       delimiter)
 
-    for data_key, data_val in expected_data_dict.items():
-        fields = fields_dict[data_key]
+    field_data_tuples = ((fields_dict[k], v) for k, v in
+                         expected_data_dict.items())
+    expected_example = create_expected_example(field_data_tuples)
 
-        if not isinstance(fields, tuple):
-            fields = (fields,)
-
-        for field in fields:
-            assert ex.__getattribute__(field.name)[0] == expected_data_dict[
-                data_key]
-            assert ex.__getattribute__(field.name)[1][0] == expected_data_dict[
-                data_key]
+    assert examples_equal(received_example, expected_example)
 
 
 @pytest.mark.parametrize(
-    "csv_line, fields_list, delimiter",
+    "csv_line, fields_list, delimiter, expected_data_list",
     [
         (
                 "blabla",
@@ -203,34 +185,41 @@ def test_fromCSV_fields_is_dict(csv_line, fields_dict, field_to_index,
                         MockField("docs"), MockField("paragraphs"),
                         MockField("sents"),
                         MockField("words"),
-                        MockField("syllables"), MockField("chars"))],
-                ","
+                        MockField("syllables"), MockField("chars")
+                )],
+                ",",
+                ["blabla"]
         ),
         (
                 ",".join(["this is a review", "4.5", "1"]),
                 [(MockField("words"), MockField("chars")), MockField("label"),
                  (MockField("sentiment"), MockField("polarity"))],
-                ","
+                ",",
+                ["this is a review", "4.5", "1"]
+        ),
+        (
+                ",".join(["\"this is, \"\"a\"\" review\"", "4.5", "1"]),
+                [(MockField("words"), MockField("chars")), MockField("label"),
+                 (MockField("sentiment"), MockField("polarity"))],
+                ",",
+                ["this is, \"a\" review", "4.5", "1"]
         ),
         (
                 "\t".join(["this is a review", "4.5", "1"]),
                 [(MockField("words"), MockField("chars")), MockField("label"),
                  (MockField("sentiment"), MockField("polarity"))],
-                "\t"
+                "\t",
+                ["this is a review", "4.5", "1"]
         )
     ]
 )
-def test_fromCSV_fields_is_list(csv_line, fields_list, delimiter):
-    ex = Example.fromCSV(csv_line, fields_list, None, delimiter)
+def test_fromCSV_fields_is_list(csv_line, fields_list, delimiter,
+                                expected_data_list):
+    received_example = Example.fromCSV(csv_line, fields_list, None, delimiter)
+    expected_example = create_expected_example(
+        zip(fields_list, expected_data_list))
 
-    elements = map(lambda s: s.strip(), csv_line.split(delimiter))
-    for data, fields in zip(elements, fields_list):
-        if not isinstance(fields, tuple):
-            fields = (fields,)
-
-        for field in fields:
-            assert ex.__getattribute__(field.name)[0] == data
-            assert ex.__getattribute__(field.name)[1][0] == data
+    assert examples_equal(received_example, expected_example)
 
 
 @pytest.mark.parametrize(
@@ -239,21 +228,16 @@ def test_fromCSV_fields_is_list(csv_line, fields_list, delimiter):
         (
                 "(S (NP I) (VP (V saw) (NP him)))",
                 [(MockField("text"), MockField("chars")), MockField("label")],
-                {"text": "I saw him", "chars": "I saw him", "label": "S"}
+                ["I saw him", "S"]
         )
     ]
 )
 def test_fromtree_no_subtrees(data, fields_list, expected_attributes):
-    ex = Example.fromtree(data, fields_list, subtrees=False)
-    for fields in fields_list:
-        if not isinstance(fields, tuple):
-            fields = (fields,)
+    received_example = Example.fromtree(data, fields_list, subtrees=False)
+    expected_example = create_expected_example(
+        zip(fields_list, expected_attributes))
 
-        for f in fields:
-            assert ex.__getattribute__(f.name)[0] == expected_attributes[
-                f.name]
-            assert ex.__getattribute__(f.name)[1][0] == expected_attributes[
-                f.name]
+    assert examples_equal(received_example, expected_example)
 
 
 @pytest.mark.parametrize(
@@ -263,26 +247,54 @@ def test_fromtree_no_subtrees(data, fields_list, expected_attributes):
                 "(S (NP I) (VP (V saw) (NP him)))",
                 [(MockField("text"), MockField("chars")), MockField("label")],
                 [
-                    {"text": "I saw him", "chars": "I saw him", "label": "S"},
-                    {"text": "I", "chars": "I", "label": "NP"},
-                    {"text": "saw him", "chars": "saw him", "label": "VP"},
-                    {"text": "saw", "chars": "saw", "label": "V"},
-                    {"text": "him", "chars": "him", "label": "NP"},
+                    ["I saw him", "S"],
+                    ["I", "NP"],
+                    ["saw him", "VP"],
+                    ["saw", "V"],
+                    ["him", "NP"],
                 ]
         )
     ]
 )
 def test_fromtree_with_subtrees(data, fields_list, expected_attributes_list):
-    examples = Example.fromtree(data, fields_list, subtrees=True)
+    received_examples = Example.fromtree(data, fields_list, subtrees=True)
+    assert len(received_examples) == len(expected_attributes_list)
 
-    assert len(examples) == len(expected_attributes_list)
-    for ex, expected_attributes in zip(examples, expected_attributes_list):
-        for fields in fields_list:
-            if not isinstance(fields, tuple):
-                fields = (fields,)
+    for received_example, expected_attributes in zip(received_examples,
+                                                     expected_attributes_list):
+        expected_example = create_expected_example(
+            zip(fields_list, expected_attributes))
 
-            for f in fields:
-                assert ex.__getattribute__(f.name)[0] == expected_attributes[
-                    f.name]
-                assert ex.__getattribute__(f.name)[1][0] == \
-                    expected_attributes[f.name]
+        assert examples_equal(received_example, expected_example)
+
+
+def examples_equal(ex1, ex2):
+    if ex1.__dict__.keys() != ex2.__dict__.keys():
+        return False
+
+    for attr in ex1.__dict__.keys():
+        if getattr(ex1, attr) != getattr(ex2, attr):
+            return False
+
+    return True
+
+
+def create_expected_example(field_data_tuples):
+    expected_example = Example()
+
+    for fields, data_val in field_data_tuples:
+        # the way MockField preprocesses data (raw, tokenized)
+        expected_attribute = (data_val, [data_val])
+
+        # None fields means that we ignore the corresponding column
+        if fields is None:
+            continue
+
+        if not isinstance(fields, tuple):
+            fields = (fields,)
+
+        for field in fields:
+            # set the column value to the field.name attribute of example
+            setattr(expected_example, field.name, expected_attribute)
+
+    return expected_example

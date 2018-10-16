@@ -1,3 +1,4 @@
+import csv
 import json
 
 
@@ -61,7 +62,7 @@ class Example(object):
             given column values. These Fields can be accessed by their names.
         """
 
-        elements = [s.strip() for s in data.split(delimiter)]
+        elements = next(csv.reader([data], delimiter=delimiter))
 
         if isinstance(fields, list):
             return cls.fromlist(elements, fields)
