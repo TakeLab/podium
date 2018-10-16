@@ -4,6 +4,7 @@ ipython-genutils==0.2.0
 mccabe==0.6.1
 more-itertools==4.3.0
 msgpack-numpy==0.4.3.1
+nltk==3.3
 numpy==1.15.1
 plac==0.9.6
 pluggy==0.7.1
