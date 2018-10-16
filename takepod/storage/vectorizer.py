@@ -2,11 +2,14 @@
  Interface of implemented concrete vectorizers is given in Vectorizer class.
 
 """
-
+import os
 from abc import ABC, abstractmethod
+import six
+from tqdm import tqdm
+import numpy as np
 
 
-class Vectorizer(ABC):
+class VectorStorage(ABC):
     """Interface for classes that can vectorize token. One example of such
     vectorizer is word2vec.
 
@@ -100,29 +103,99 @@ class Vectorizer(ABC):
         """
         pass
 
-    @abstractmethod
-    def vector_to_token(self, vector):
-        """Method obtains token for given vector.
-
-        Parameters
-        ----------
-        vector : array_like
-            vector representation of a token
-
-        Returns
-        -------
-        token : str
-            token from vocabulary
-
-        Raises
-        ------
-        ValueError
-            if given vector is None
-        KeyError
-            if given vector doesn't have token representation
-
-        """
-        pass
-
     def __getitem__(self, key):
         return self.token_to_vector(key)
+
+
+class BasicVectorStorage(VectorStorage):
+    """ Basic implementation of VectorStorage that handles loading vectors from
+    system storage.
+
+    """
+
+    def __init__(self, path, default_vector_function=None,
+                 cache_path=None, max_vectors=None):
+        super(BasicVectorStorage, self).__init__(
+            path=path,
+            default_vector_function=default_vector_function,
+            cache_path=cache_path,
+            max_vectors=max_vectors)
+        self.vectors = dict()
+        self.dim = None
+
+    def load_all(self):
+        self._load_vectors()
+
+    def load_vocab(self, vocab):
+        if vocab is None:
+            raise ValueError("Vocab mustn't be None")
+        self._load_vectors(vocab=vocab)
+
+    def token_to_vector(self, token):
+        if token is None:
+            raise ValueError("Token mustn't be None")
+        return self.vectors[token]
+
+    def _cache_vectors(self):
+        pass # TODO implement function
+
+    @staticmethod
+    def _decode_word(word):
+        try:
+            if isinstance(word, six.binary_type):
+                decoded = word.decode('utf-8')
+                return decoded
+        except UnicodeDecodeError:
+            pass
+        return None
+
+    def _load_vectors(self, vocab=None):
+        self._check_path()
+        curr_path = self.path if self.path is not None else self.cache_path
+
+        with open(curr_path, 'rb') as vector_file:
+            num_lines = 10  # TODO calculate number of lines
+            if not self.max_vectors or self.max_vectors > num_lines:
+                self.max_vectors = num_lines
+
+            vectors_loaded = 0
+            for line in tqdm(vector_file, total=num_lines):
+                line_entries = line.rstrip().split(b" ")
+                word, vector_entry = line_entries[0], line_entries[1:]
+
+                if self.dim is None and len(vector_entry) > 1:
+                    self.dim = len(vector_entry)
+                elif len(vector_entry) == 1:
+                    continue  # probably a header, reference torch text
+                elif self.dim != len(vector_entry):
+                    raise RuntimeError(
+                        "Vector for token {} has {} dimensions, "
+                        "but previously read vectors have {} dimensions. "
+                        "All vectors must have the same "
+                        "number of dimensions.".format(word,
+                                                       len(vector_entry),
+                                                       self.dim))
+
+                word = self._decode_word(word)
+                if word is None:
+                    continue
+                if vocab is not None and word not in vocab:
+                    continue
+                self.vectors[word] = np.array([float(i) for i in vector_entry])
+                vectors_loaded += 1
+                if vectors_loaded == self.max_vectors:
+                    break
+            if self.path is not None and self.cache_path is not None\
+               and not os.path.exists(self.cache_path):
+                self._cache_vectors()
+
+    def _check_path(self):
+        if self.path is None and self.cache_path is None:
+            raise ValueError("Given vectors and cache paths mustn't"
+                             " be both None")
+
+        if self.path is not None and not os.path.exists(self.path):
+            raise ValueError("Given vectors path doesn't exist.")
+
+        if self.cache_path is not None and not os.path.exists(self.path):
+            raise ValueError("Given cache path doesn't exist.")
