@@ -161,7 +161,7 @@ class BasicVectorStorage(VectorStorage):
 
     @staticmethod
     def _decode_word(word):
-        """Method tryies to decode binary word as utf-8, returns None if fails.
+        """Method tries to decode binary word as utf-8, returns None if fails.
 
         Parameters
         ----------
@@ -204,9 +204,8 @@ class BasicVectorStorage(VectorStorage):
                 stripped_line = line.rstrip()
                 if not stripped_line:
                     continue
-                line_entries = stripped_line.split(b" ")
-                word, vector_entry = line_entries[0], line_entries[1:]
-
+                word, vector_entry  = stripped_line.split(b" ", 1)
+                
                 if self.dim is None and len(vector_entry) > 1:
                     self.dim = len(vector_entry)
                 elif len(vector_entry) == 1:
@@ -229,7 +228,7 @@ class BasicVectorStorage(VectorStorage):
                 vectors_loaded += 1
                 if vectors_loaded == self.max_vectors:
                     break
-            if self.path is not None and self.cache_path is not None\
+            if self.cache_path is not None\
                and not os.path.exists(self.cache_path):
                 self._cache_vectors()
         self.initialized = True
