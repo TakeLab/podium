@@ -98,6 +98,8 @@ class VectorStorage(ABC):
             vector function is not defined (None)
         ValueError
             if given token is None
+        RuntimeError
+            if vector storage is not initialized
         """
         pass
 
@@ -127,6 +129,7 @@ class BasicVectorStorage(VectorStorage):
             max_vectors=max_vectors)
         self.vectors = dict()
         self.dim = None
+        self.initialized = False
 
     def load_all(self):
         self._load_vectors()
@@ -137,15 +140,24 @@ class BasicVectorStorage(VectorStorage):
         self._load_vectors(vocab=vocab)
 
     def token_to_vector(self, token):
+        if not self.initialized:
+            raise RuntimeError("VectorStorage is not initialized."
+                               "Use load_all or load_vocab function"
+                               " to initialize.")
         if token is None:
             raise ValueError("Token mustn't be None")
+        if token not in self.vectors \
+           and self.default_vector_function is not None:
+            return self.default_vector_function(token, self.dim)
         return self.vectors[token]
 
     def _cache_vectors(self):
         """Method for caching loaded vectors to cache_dir."""
         with open(self.cache_path, "wb") as cache_file:
             for word in self.vectors:
-                cache_file.write("{} {}".format(word, self.vectors[word]))
+                vector_values_string = " ".join(map(str, self.vectors[word]))
+                cache_file.write("{} {}\n".format(word, vector_values_string)
+                                 .encode('utf-8'))
 
     @staticmethod
     def _decode_word(word):
@@ -179,7 +191,11 @@ class BasicVectorStorage(VectorStorage):
             vocabulary with unique words
         """
         self._check_path()
-        curr_path = self.path if self.cache_path is None else self.cache_path
+        curr_path = self.path if self.cache_path is None \
+            or not os.path.exists(self.cache_path) else self.cache_path
+
+        if vocab is not None:
+            vocab = set(vocab)
 
         with open(curr_path, 'rb') as vector_file:
 
@@ -216,6 +232,7 @@ class BasicVectorStorage(VectorStorage):
             if self.path is not None and self.cache_path is not None\
                and not os.path.exists(self.cache_path):
                 self._cache_vectors()
+        self.initialized = True
 
     def _check_path(self):
         """Internal method for determining if instance paths are in supported
@@ -230,5 +247,27 @@ class BasicVectorStorage(VectorStorage):
             raise ValueError("Given vectors path doesn't exist.")
 
         if self.path is None and self.cache_path is not None\
-           and not os.path.exists(self.path):
+           and not os.path.exists(self.cache_path):
             raise ValueError("Given cache path doesn't exist.")
+
+
+def zeros_default_vector(token, dim):
+    """Function for creating default vector for given token in form of zeros
+    array. Dimension of returned array is equal to given dim.
+
+    Parameters
+    ----------
+    token : str
+        string token from vocabulary
+    dim : int
+        vector dimension
+
+    Returns
+    -------
+    vector : array-like
+        zeros vector with given dimension
+    """
+    if token is None or dim is None:
+        raise ValueError("Token and dim mustn't be None,"
+                         " given token={}, dim={}".format(token, dim))
+    return np.zeros(dim)
