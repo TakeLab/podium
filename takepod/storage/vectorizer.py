@@ -8,6 +8,28 @@ import six
 import numpy as np
 
 
+def zeros_default_vector(token, dim):
+    """Function for creating default vector for given token in form of zeros
+    array. Dimension of returned array is equal to given dim.
+
+    Parameters
+    ----------
+    token : str
+        string token from vocabulary
+    dim : int
+        vector dimension
+
+    Returns
+    -------
+    vector : array-like
+        zeros vector with given dimension
+    """
+    if dim is None:
+        raise ValueError("Dim mustn't be None,"
+                         " given token={}, dim={}".format(token, dim))
+    return np.zeros(dim)
+
+
 class VectorStorage(ABC):
     """Interface for classes that can vectorize token. One example of such
     vectorizer is word2vec.
@@ -34,10 +56,10 @@ class VectorStorage(ABC):
                 maximal number of vectors to load in the memory
 
         """
-        self.path = path
-        self.default_vector_function = default_vector_function
-        self.cache_path = cache_path
-        self.max_vectors = max_vectors
+        self._path = path
+        self._default_vector_function = default_vector_function
+        self._cache_path = cache_path
+        self._max_vectors = max_vectors
 
     @abstractmethod
     def load_all(self):
@@ -113,23 +135,25 @@ class BasicVectorStorage(VectorStorage):
 
     Attributes
     ----------
-    vectors : dict
+    _vectors : dict
         dictionary offering word to vector mapping
-    dim : int
+    _dim : int
         vector dimension
+    _initialized : bool
+        has the vector storage been initialized by loading vectors
 
     """
 
-    def __init__(self, path, default_vector_function=None,
+    def __init__(self, path, default_vector_function=zeros_default_vector,
                  cache_path=None, max_vectors=None):
-        super(BasicVectorStorage, self).__init__(
+        self._vectors = dict()
+        self._dim = None
+        self._initialized = False
+        super().__init__(
             path=path,
             default_vector_function=default_vector_function,
             cache_path=cache_path,
             max_vectors=max_vectors)
-        self.vectors = dict()
-        self.dim = None
-        self.initialized = False
 
     def load_all(self):
         self._load_vectors()
@@ -140,22 +164,22 @@ class BasicVectorStorage(VectorStorage):
         self._load_vectors(vocab=vocab)
 
     def token_to_vector(self, token):
-        if not self.initialized:
+        if not self._initialized:
             raise RuntimeError("VectorStorage is not initialized."
                                "Use load_all or load_vocab function"
                                " to initialize.")
         if token is None:
             raise ValueError("Token mustn't be None")
-        if token not in self.vectors \
-           and self.default_vector_function is not None:
-            return self.default_vector_function(token, self.dim)
-        return self.vectors[token]
+        if token not in self._vectors \
+           and self._default_vector_function is not None:
+            return self._default_vector_function(token, self._dim)
+        return self._vectors[token]
 
     def _cache_vectors(self):
         """Method for caching loaded vectors to cache_dir."""
-        with open(self.cache_path, "wb") as cache_file:
-            for word in self.vectors:
-                vector_values_string = " ".join(map(str, self.vectors[word]))
+        with open(self._cache_path, "wb") as cache_file:
+            for word in self._vectors:
+                vector_values_string = " ".join(map(str, self._vectors[word]))
                 cache_file.write("{} {}\n".format(word, vector_values_string)
                                  .encode('utf-8'))
 
@@ -191,10 +215,10 @@ class BasicVectorStorage(VectorStorage):
             vocabulary with unique words
         """
         self._check_path()
-        curr_path = self.path if self.cache_path is None \
-            or not os.path.exists(self.cache_path) else self.cache_path
+        curr_path = self._path if self._cache_path is None \
+            or not os.path.exists(self._cache_path) else self._cache_path
 
-        if vocab is not None:
+        if vocab is not None and not isinstance(vocab, set):
             vocab = set(vocab)
 
         with open(curr_path, 'rb') as vector_file:
@@ -204,69 +228,53 @@ class BasicVectorStorage(VectorStorage):
                 stripped_line = line.rstrip()
                 if not stripped_line:
                     continue
-                word, vector_entry  = stripped_line.split(b" ", 1)
-                
-                if self.dim is None and len(vector_entry) > 1:
-                    self.dim = len(vector_entry)
+
+                # word, vector_entry_string = stripped_line.split(b" ",1)
+                line_entries = stripped_line.split(b" ")
+                word, vector_entry = line_entries[0], line_entries[1:]
+
+                if self._dim is None and len(vector_entry) > 1:
+                    self._dim = len(vector_entry)
                 elif len(vector_entry) == 1:
                     continue  # probably a header, reference torch text
-                elif self.dim != len(vector_entry):
+                elif self._dim != len(vector_entry):
                     raise RuntimeError(
                         "Vector for token {} has {} dimensions, "
                         "but previously read vectors have {} dimensions. "
                         "All vectors must have the same "
                         "number of dimensions.".format(word,
                                                        len(vector_entry),
-                                                       self.dim))
+                                                       self._dim))
 
                 word = self._decode_word(word)
                 if word is None:
                     continue
                 if vocab is not None and word not in vocab:
                     continue
-                self.vectors[word] = np.array([float(i) for i in vector_entry])
+                self._vectors[word] = np.array([float(i) for i in vector_entry]
+                                               )
+                # self._vectors[word] = np.fromstring(string=vector_entry,
+                #                                    dtype=float, sep=' ')
                 vectors_loaded += 1
-                if vectors_loaded == self.max_vectors:
+                if vectors_loaded == self._max_vectors:
                     break
-            if self.cache_path is not None\
-               and not os.path.exists(self.cache_path):
+            if self._cache_path is not None\
+               and not os.path.exists(self._cache_path):
                 self._cache_vectors()
-        self.initialized = True
+        self._initialized = True
 
     def _check_path(self):
         """Internal method for determining if instance paths are in supported
         state. It enforces that both paths cannot be None and that not None
         path must exist unless if it is used for caching loaded vectors.
         """
-        if self.path is None and self.cache_path is None:
+        if self._path is None and self._cache_path is None:
             raise ValueError("Given vectors and cache paths mustn't"
                              " be both None")
 
-        if self.path is not None and not os.path.exists(self.path):
+        if self._path is not None and not os.path.exists(self._path):
             raise ValueError("Given vectors path doesn't exist.")
 
-        if self.path is None and self.cache_path is not None\
-           and not os.path.exists(self.cache_path):
+        if self._path is None and self._cache_path is not None\
+           and not os.path.exists(self._cache_path):
             raise ValueError("Given cache path doesn't exist.")
-
-
-def zeros_default_vector(token, dim):
-    """Function for creating default vector for given token in form of zeros
-    array. Dimension of returned array is equal to given dim.
-
-    Parameters
-    ----------
-    token : str
-        string token from vocabulary
-    dim : int
-        vector dimension
-
-    Returns
-    -------
-    vector : array-like
-        zeros vector with given dimension
-    """
-    if token is None or dim is None:
-        raise ValueError("Token and dim mustn't be None,"
-                         " given token={}, dim={}".format(token, dim))
-    return np.zeros(dim)
