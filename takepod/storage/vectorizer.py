@@ -185,7 +185,8 @@ class BasicVectorStorage(VectorStorage):
 
     @staticmethod
     def _decode_word(word):
-        """Method tries to decode binary word as utf-8, returns None if fails.
+        """Method tries to decode binary word as utf-8 raises UnicodeError if
+        fails.
 
         Parameters
         ----------
@@ -194,16 +195,17 @@ class BasicVectorStorage(VectorStorage):
 
         Returns
         -------
-        decoded : str or None
-            decoded word or None if process failed
+        decoded : str
+            decoded word
+
+        Raises
+        ------
+        UnicodeDecodeError
+            if given word cannot be decoded in unicode
         """
-        try:
-            if isinstance(word, six.binary_type):
-                decoded = word.decode('utf-8')
-                return decoded
-        except UnicodeDecodeError:
-            pass
-        return None
+        if isinstance(word, six.binary_type):
+            decoded = word.decode('utf-8')
+            return decoded
 
     def _load_vectors(self, vocab=None):
         """Internal method for loading vectors. It combines vocab vectors
@@ -213,6 +215,14 @@ class BasicVectorStorage(VectorStorage):
         ----------
         vocab : iterable object
             vocabulary with unique words
+
+        Raises
+        ------
+        UnicodeDecodeError
+            if given word cannot be decoded in unicode
+        RuntimeError
+            if file contains empty line or if it contains more that
+            one header line
         """
         self._check_path()
         curr_path = self._path if self._cache_path is None \
@@ -224,10 +234,11 @@ class BasicVectorStorage(VectorStorage):
         with open(curr_path, 'rb') as vector_file:
 
             vectors_loaded = 0
+            header_lines = 0
             for line in vector_file:
                 stripped_line = line.rstrip()
                 if not stripped_line:
-                    continue
+                    raise RuntimeError("File contains empty lines")
 
                 # word, vector_entry_string = stripped_line.split(b" ",1)
                 line_entries = stripped_line.split(b" ")
@@ -236,6 +247,9 @@ class BasicVectorStorage(VectorStorage):
                 if self._dim is None and len(vector_entry) > 1:
                     self._dim = len(vector_entry)
                 elif len(vector_entry) == 1:
+                    header_lines += 1
+                    if header_lines > 1:
+                        raise RuntimeError("Found more than one header line")
                     continue  # probably a header, reference torch text
                 elif self._dim != len(vector_entry):
                     raise RuntimeError(
@@ -247,8 +261,7 @@ class BasicVectorStorage(VectorStorage):
                                                        self._dim))
 
                 word = self._decode_word(word)
-                if word is None:
-                    continue
+
                 if vocab is not None and word not in vocab:
                     continue
                 self._vectors[word] = np.array([float(i) for i in vector_entry]
