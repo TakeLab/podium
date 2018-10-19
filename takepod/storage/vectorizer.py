@@ -93,6 +93,7 @@ class VectorStorage(ABC):
             if there was a problem while reading vectors from instance path
         ValueError
             if given path is not a valid path or given vocab is none
+            or if the vector values in vector storage cannot be casted to float
         RuntimeError
             if different vector size is detected while loading vectors
 
@@ -223,6 +224,9 @@ class BasicVectorStorage(VectorStorage):
         RuntimeError
             if file contains empty line or if it contains more that
             one header line
+        ValueError
+            if given path is not a valid path or if the line in vector storage
+            cannot be casted to float
         """
         self._check_path()
         curr_path = self._path if self._cache_path is None \
@@ -240,9 +244,10 @@ class BasicVectorStorage(VectorStorage):
                 if not stripped_line:
                     raise RuntimeError("File contains empty lines")
 
-                # word, vector_entry_string = stripped_line.split(b" ",1)
-                line_entries = stripped_line.split(b" ")
-                word, vector_entry = line_entries[0], line_entries[1:]
+                word, vector_entries_str = stripped_line.split(b" ", 1)
+                vector_entry = np.fromstring(string=vector_entries_str,
+                                             dtype=float, sep=' ')
+                # will throw ValueError if vector_entries_str cannot be casted
 
                 if self._dim is None and len(vector_entry) > 1:
                     self._dim = len(vector_entry)
@@ -251,6 +256,8 @@ class BasicVectorStorage(VectorStorage):
                     if header_lines > 1:
                         raise RuntimeError("Found more than one header line")
                     continue  # probably a header, reference torch text
+                # second reference:
+                # https://radimrehurek.com/gensim/scripts/glove2word2vec.html
                 elif self._dim != len(vector_entry):
                     raise RuntimeError(
                         "Vector for token {} has {} dimensions, "
@@ -261,16 +268,14 @@ class BasicVectorStorage(VectorStorage):
                                                        self._dim))
 
                 word = self._decode_word(word)
-
                 if vocab is not None and word not in vocab:
                     continue
-                self._vectors[word] = np.array([float(i) for i in vector_entry]
-                                               )
-                # self._vectors[word] = np.fromstring(string=vector_entry,
-                #                                    dtype=float, sep=' ')
+
+                self._vectors[word] = vector_entry
                 vectors_loaded += 1
                 if vectors_loaded == self._max_vectors:
                     break
+
             if self._cache_path is not None\
                and not os.path.exists(self._cache_path):
                 self._cache_vectors()
