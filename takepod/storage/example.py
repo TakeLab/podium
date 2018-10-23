@@ -1,3 +1,4 @@
+"""Example module that defines mapping for single data instance."""
 import csv
 import json
 
@@ -75,6 +76,8 @@ class Example(object):
         """ Creates an Example from a dict of Fields and a dict of
         corresponding values.
 
+        Parameters
+        ----------
         data : dict
             A dict containing the values of a single row of data, that are
             to be mapped to Fields.
@@ -105,10 +108,50 @@ class Example(object):
         return example
 
     @classmethod
+    def fromxmlstr(cls, data, fields):
+        """Method creates and Example from xml string.
+
+        Parameters
+        ----------
+        data : str
+            XML formated string that contains the values of a single data
+            instance, that are to be mapped to Fields.
+        fields : dict
+            A dict mapping column names to Fields (or tuples of Fields).
+            Columns that map to None will be ignored.
+
+        Returns
+        -------
+        Example
+            An Example whose attributes are the given Fields created with the
+            given column values. These Fields can be accessed by their names.
+        """
+        import xml.etree.ElementTree as ET
+        example = cls()
+
+        # we ignore columns with field mappings set to None
+        items = filter(lambda el: el[1] is not None, fields.items())
+        root = ET.fromstring(data)
+
+        for name, field in items:
+            node = root.find(name)
+            if node is None:
+                raise ValueError(
+                    "Specified name {} was not found in the input data"
+                    .format(name))
+
+            val = node.text
+            set_example_attributes(example, field, val)
+
+        return example
+
+    @classmethod
     def fromlist(cls, data, fields):
         """ Creates an Example from a list of Fields and a list of
         corresponding values.
 
+        Parameters
+        ----------
         data : list
             A list containing the values of a single row of data, that are
             to be mapped to Fields.
@@ -137,6 +180,8 @@ class Example(object):
         """ Creates an Example (or multiple Examples) from a string
         representing an nltk tree and a list of corresponding values.
 
+        Parameters
+        ----------
         data : str
             A string containing an nltk tree whose values are to be mapped
             to Fields.
@@ -172,10 +217,33 @@ class Example(object):
 
 
 def tree_to_list(tree):
+    """Method joins tree leaves and label in one list.
+
+    Parameters
+    ----------
+    tree : tree
+        nltk tree instance
+
+    Returns
+    -------
+    tree_list : list
+        tree represented as list with its label
+    """
     return [' '.join(tree.leaves()), tree.label()]
 
 
 def set_example_attributes(example, field, val):
+    """Method sets example attributes with given values.
+
+    Parameters
+    ----------
+    example : Example
+        example instance to which we are setting attributes
+    field : (Field|tuple(Field))
+        field instance or instances that we are mapping
+    val : str
+        field value
+    """
     if isinstance(field, tuple):
         for f in field:
             setattr(example, f.name, f.preprocess(val))
