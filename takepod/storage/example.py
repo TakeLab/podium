@@ -1,0 +1,183 @@
+import csv
+import json
+
+
+class Example(object):
+    """Defines a single training or test example.
+
+    An Example object (or multiple objects) is created by mapping each
+    column to zero or more Field objects and setting those Fields as
+    attributes of the Example.
+    """
+
+    @classmethod
+    def fromJSON(cls, data, fields):
+        """ Creates an Example from a JSON object and the
+        corresponding fields.
+
+
+        Parameters
+        ----------
+        data : str
+            A string containing a single JSON object
+            (key-value pairs surrounded by curly braces).
+        fields : dict
+            A dict mapping column names to Fields (or tuples of Fields).
+            Columns that map to None will be ignored.
+
+        Returns
+        -------
+        Example
+            An Example whose attributes are the given Fields created with the
+            given column values. These Fields can be accessed by their names.
+        """
+
+        return cls.fromdict(json.loads(data), fields)
+
+    @classmethod
+    def fromCSV(cls, data, fields, field_to_index=None, delimiter=","):
+        """ Creates an Example from a CSV line and a corresponding
+        list or dict of Fields.
+
+        Parameters
+        ----------
+        data : str
+            A string containing a single row of values separated by the
+            given delimiter.
+        fields : (dict | list)
+            Can be either a dict mapping column names to Fields
+            (or tuples of Fields), or a list of Fields (or tuples of Fields).
+            A Field value of None means the corresponding column will
+            be ignored.
+        field_to_index : dict
+            A dict that maps column names to their indices in the line of data.
+            Only needed if fields is a dict, otherwise ignored.
+        delimiter : str
+            The delimiter that separates the values in the line of data.
+
+        Returns
+        -------
+        Example
+            An Example whose attributes are the given Fields created with the
+            given column values. These Fields can be accessed by their names.
+        """
+
+        elements = next(csv.reader([data], delimiter=delimiter))
+
+        if isinstance(fields, list):
+            return cls.fromlist(elements, fields)
+        else:
+            data_dict = {f: elements[idx] for f, idx in field_to_index.items()}
+            return cls.fromdict(data_dict, fields)
+
+    @classmethod
+    def fromdict(cls, data, fields):
+        """ Creates an Example from a dict of Fields and a dict of
+        corresponding values.
+
+        data : dict
+            A dict containing the values of a single row of data, that are
+            to be mapped to Fields.
+        fields : dict
+            A dict mapping column names to Fields (or tuples of Fields).
+            Columns that map to None will be ignored.
+
+        Returns
+        -------
+        Example
+            An Example whose attributes are the given Fields created with the
+            given column values. These Fields can be accessed by their names.
+        """
+
+        example = cls()
+
+        # we ignore columns with field mappings set to None
+        items = filter(lambda el: el[1] is not None, fields.items())
+        for key, field in items:
+            if key not in data:
+                raise ValueError(
+                    "Specified key {} was not found in the input data"
+                    .format(key))
+
+            val = data[key]
+            set_example_attributes(example, field, val)
+
+        return example
+
+    @classmethod
+    def fromlist(cls, data, fields):
+        """ Creates an Example from a list of Fields and a list of
+        corresponding values.
+
+        data : list
+            A list containing the values of a single row of data, that are
+            to be mapped to Fields.
+        fields : list
+            A list of Fields (or tuples of Fields). A None value means that
+            the corresponding column will be ignored.
+
+        Returns
+        -------
+        Example
+            An Example whose attributes are the given Fields created with the
+            given column values. These Fields can be accessed by their names.
+        """
+
+        example = cls()
+
+        # we ignore columns with field mappings set to None
+        data_fields = filter(lambda el: el[1] is not None, zip(data, fields))
+        for val, field in data_fields:
+            set_example_attributes(example, field, val)
+
+        return example
+
+    @classmethod
+    def fromtree(cls, data, fields, subtrees=False):
+        """ Creates an Example (or multiple Examples) from a string
+        representing an nltk tree and a list of corresponding values.
+
+        data : str
+            A string containing an nltk tree whose values are to be mapped
+            to Fields.
+        fields : list
+            A list of Fields (or tuples of Fields). A None value means that
+            the corresponding column will be ignored.
+        subtrees : bool
+            A flag denoting whether an example will be created from every
+            subtree in the tree (when set to True), or just from the whole
+            tree (when set to False).
+
+        Returns
+        -------
+        (Example | list)
+            If subtrees was False, returns an Example whose attributes are
+            the given Fields created with the given column values.
+            These Fields can be accessed by their names.
+
+            If subtrees was True, returns a list of such Examples for every
+            subtree in the given tree.
+        """
+        from nltk.tree import Tree
+
+        tree = Tree.fromstring(data)
+        if subtrees:
+            subtree_lists = map(tree_to_list, tree.subtrees())
+
+            # an example is created for each subtree
+            return [cls.fromlist(subtree_list, fields) for subtree_list in
+                    subtree_lists]
+        else:
+            return cls.fromlist(tree_to_list(tree), fields)
+
+
+def tree_to_list(tree):
+    return [' '.join(tree.leaves()), tree.label()]
+
+
+def set_example_attributes(example, field, val):
+    if isinstance(field, tuple):
+        for f in field:
+            setattr(example, f.name, f.preprocess(val))
+    else:
+        setattr(example, field.name, field.preprocess(val))
