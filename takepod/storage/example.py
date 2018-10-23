@@ -125,6 +125,13 @@ class Example(object):
         Example
             An Example whose attributes are the given Fields created with the
             given column values. These Fields can be accessed by their names.
+
+        Raises
+        ------
+        ValueError
+            if the name is not contained in the xml string
+        ParseError
+            if there was a problem while parsing xml sting, invalid xml
         """
         import xml.etree.ElementTree as ET
         example = cls()
@@ -135,10 +142,14 @@ class Example(object):
 
         for name, field in items:
             node = root.find(name)
+
             if node is None:
-                raise ValueError(
-                    "Specified name {} was not found in the input data"
-                    .format(name))
+                if root.tag == name:
+                    node = root
+                else:
+                    raise ValueError(
+                        "Specified name {} was not found in the input data"
+                        .format(name))
 
             val = node.text
             set_example_attributes(example, field, val)
