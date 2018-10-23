@@ -42,7 +42,7 @@ def test_fromdict_ok(data_dict, fields_dict):
     field_data_tuples = ((fields_dict[k], v) for k, v in data_dict.items())
     expected_example = create_expected_example(field_data_tuples)
 
-    assert examples_equal(received_example, expected_example)
+    assert received_example.__dict__ == expected_example.__dict__
 
 
 @pytest.mark.parametrize(
@@ -89,7 +89,7 @@ def test_fromJSON_ok(json_data, fields_dict, expected_data_dict):
                          expected_data_dict.items())
     expected_example = create_expected_example(field_data_tuples)
 
-    assert examples_equal(received_example, expected_example)
+    assert received_example.__dict__ == expected_example.__dict__
 
 
 @pytest.mark.parametrize(
@@ -135,7 +135,7 @@ def test_fromlist(data_list, fields_list):
     received_example = Example.fromlist(data_list, fields_list)
     expected_example = create_expected_example(zip(fields_list, data_list))
 
-    assert examples_equal(received_example, expected_example)
+    assert received_example.__dict__ == expected_example.__dict__
 
 
 @pytest.mark.parametrize(
@@ -173,7 +173,7 @@ def test_fromCSV_fields_is_dict(csv_line, fields_dict, field_to_index,
                          expected_data_dict.items())
     expected_example = create_expected_example(field_data_tuples)
 
-    assert examples_equal(received_example, expected_example)
+    assert received_example.__dict__ == expected_example.__dict__
 
 
 @pytest.mark.parametrize(
@@ -219,7 +219,7 @@ def test_fromCSV_fields_is_list(csv_line, fields_list, delimiter,
     expected_example = create_expected_example(
         zip(fields_list, expected_data_list))
 
-    assert examples_equal(received_example, expected_example)
+    assert received_example.__dict__ == expected_example.__dict__
 
 
 @pytest.mark.parametrize(
@@ -237,7 +237,7 @@ def test_fromtree_no_subtrees(data, fields_list, expected_attributes):
     expected_example = create_expected_example(
         zip(fields_list, expected_attributes))
 
-    assert examples_equal(received_example, expected_example)
+    assert received_example.__dict__ == expected_example.__dict__
 
 
 @pytest.mark.parametrize(
@@ -265,18 +265,7 @@ def test_fromtree_with_subtrees(data, fields_list, expected_attributes_list):
         expected_example = create_expected_example(
             zip(fields_list, expected_attributes))
 
-        assert examples_equal(received_example, expected_example)
-
-
-def examples_equal(ex1, ex2):
-    if ex1.__dict__.keys() != ex2.__dict__.keys():
-        return False
-
-    for attr in ex1.__dict__.keys():
-        if getattr(ex1, attr) != getattr(ex2, attr):
-            return False
-
-    return True
+        assert received_example.__dict__ == expected_example.__dict__
 
 
 def create_expected_example(field_data_tuples):
