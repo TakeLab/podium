@@ -31,6 +31,11 @@ class Example(object):
         Example
             An Example whose attributes are the given Fields created with the
             given column values. These Fields can be accessed by their names.
+        
+        Raises
+        ------
+        ValueError
+            if JSON doesn't contain key name
         """
 
         return cls.fromdict(json.loads(data), fields)
@@ -90,6 +95,11 @@ class Example(object):
         Example
             An Example whose attributes are the given Fields created with the
             given column values. These Fields can be accessed by their names.
+        
+        Raises
+        ------
+        ValueError
+            if name mapping for a field is not present in dictionary
         """
 
         example = cls()
