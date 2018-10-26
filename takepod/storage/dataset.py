@@ -1,14 +1,15 @@
 import csv
 import io
+import itertools
 import os
 import random
-from collections import defaultdict
 from functools import partial
+from abc import ABC
 
 from takepod.storage.example import Example
 
 
-class Dataset(object):
+class Dataset(ABC):
     """General purpose container for datasets defining some common methods.
 
      A dataset is a list of `Example` classes, along with the corresponding
@@ -129,6 +130,8 @@ class Dataset(object):
                 the train-test split is returned (valid is taken to be 0.0).
                 Also, the relative sizes don't have to sum up to 1.0 (they are
                 normalized automatically).
+                The ratio must not be so unbalanced that it would result in
+                either of the splits being empty (having zero elements).
                 Default is 0.7 (for the train set).
             stratified : bool
                 Whether the split should be stratified. A stratified split
@@ -156,6 +159,8 @@ class Dataset(object):
         ------
         ValueError
             If the given split ratio is not in one of the valid forms.
+            If the given split ratio is in a valid form, but wrong in the
+            sense that it would result with at least one empty split.
             If stratified is True and the field with the given
             strata_field_name doesn't exist.
         """
@@ -179,7 +184,7 @@ class Dataset(object):
                     f"Invalid field name for strata_field: "
                     f"{strata_field_name}")
 
-            test_data, train_data, val_data = stratified_split(
+            train_data, val_data, test_data = stratified_split(
                 self.examples, train_ratio, val_ratio, test_ratio,
                 strata_field_name, shuffle)
 
@@ -216,7 +221,6 @@ class TabularDataset(Dataset):
                 The format of the data file. Has to be either "CSV", "TSV", or
                 "JSON" (case-insensitive).
             fields : (list | dict)
-
                 A mapping from data columns to example fields.
                 This allows the user to rename columns from the data file,
                 to create multiple fields from the same column and also to
@@ -387,9 +391,10 @@ def check_split_ratio(split_ratio):
     Parameters
     ----------
     split_ratio : (float | list[float] | tuple[float])
-        The split_ratio should either be a float in (0.0, 1.0) (size of train)
-        or a list / tuple of floats of length 2 (or 3) that represent the
-        relative sizes of train, (val), test splits.
+        The split_ratio should either be a float in the interval (0.0, 1.0)
+        (size of train) or a list / tuple of floats of length 2 (or 3) that
+        are all larger than 0 and that represent the relative sizes of train,
+        (val), test splits.
         If given as a list / tuple, the relative sizes don't have to sum  up
         to 1.0 (they are normalized automatically).
 
@@ -408,10 +413,11 @@ def check_split_ratio(split_ratio):
     if isinstance(split_ratio, float):
         # Only the train set relative ratio is provided
         if not (0. < split_ratio < 1.):
-            raise ValueError(f"Split ratio {split_ratio} not between 0 and 1")
+            raise ValueError(f'Split ratio {split_ratio} not between 0 and 1')
 
-        valid_size = 0.0
-        split_ratio = split_ratio, valid_size, 1.0 - split_ratio
+        train_ratio = split_ratio
+        val_ratio = None
+        test_ratio = 1.0 - split_ratio
     elif isinstance(split_ratio, list) or isinstance(split_ratio, tuple):
         # A list/tuple of relative ratios is provided
         split_ratio = tuple(split_ratio)
@@ -419,8 +425,14 @@ def check_split_ratio(split_ratio):
 
         if length not in {2, 3}:
             raise ValueError(
-                f"Split ratio list/tuple should be of length 2 or 3, "
-                f"got {length}.")
+                f'Split ratio list/tuple should be of length 2 or 3, '
+                f'got {length}.')
+
+        for i, ratio in enumerate(split_ratio):
+            if float(ratio) <= 0.0:
+                raise ValueError(
+                    f'Elements of ratio tuple/list must be > 0.0 '
+                    f'(got value {ratio} at index {i}).')
 
         # Normalize if necessary
         ratio_sum = sum(split_ratio)
@@ -428,14 +440,19 @@ def check_split_ratio(split_ratio):
             split_ratio = tuple(
                 float(ratio) / ratio_sum for ratio in split_ratio)
 
+        train_ratio = split_ratio[0]
         if length == 2:
-            valid_size = 0.0
-            split_ratio = split_ratio[0], valid_size, split_ratio[1]
+            val_ratio = None
+            test_ratio = split_ratio[1]
+        else:
+            val_ratio = split_ratio[1]
+            test_ratio = split_ratio[2]
     else:
-        raise ValueError('Split ratio must be float or a list, got {}'
-                         .format(type(split_ratio)))
+        raise ValueError(
+            f'Split ratio must be a float, a list or a tuple, '
+            f'got {type(split_ratio)}')
 
-    return split_ratio
+    return train_ratio, val_ratio, test_ratio
 
 
 def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
@@ -462,33 +479,51 @@ def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
     -------
     tuple
         The train, valid and test splits, each as a list of examples.
+
+    Raises
+    ------
+    ValueError
+        If the given split ratio is wrong in the sense that it would result
+        with at least one empty split.
     """
 
     # Create a random permutation of examples, then split them
     # by ratio x length slices for each of the train/test/dev? splits
     N = len(examples)
 
-    randperm = list(range(N))
+    indices = list(range(N))
     if shuffle:
-        random.shuffle(randperm)
+        random.shuffle(indices)
 
     train_len = int(round(train_ratio * N))
 
     # Due to possible rounding problems
-    if not val_ratio:
-        val_len = 0
+    if val_ratio is None:
+        if train_len == 0 or (N - train_len) == 0:
+            raise ValueError(
+                "Bad ratio: both splits should have at least 1 element.")
+
+        indices_tuple = (
+            indices[:train_len],
+            [],
+            indices[train_len:]
+        )
     else:
         test_len = int(round(test_ratio * N))
         val_len = N - train_len - test_len
 
-    indices_tuple = (
-        randperm[:train_len],  # Train
-        randperm[train_len:train_len + val_len],  # Validation
-        randperm[train_len + val_len:]  # Test
-    )
+        if train_len * test_len * val_len == 0:
+            raise ValueError(
+                "Bad ratio: all splits should have at least 1 element.")
 
-    # Create a tuple of 3 lists
-    # There's a possibly empty list for the validation set
+        indices_tuple = (
+            indices[:train_len],  # Train
+            indices[train_len:train_len + val_len],  # Validation
+            indices[train_len + val_len:]  # Test
+        )
+
+    # Create a tuple of 3 lists, the middle of which is empty if only the
+    # train and test ratios were provided
     data = tuple(
         [examples[idx] for idx in indices] for indices in indices_tuple
     )
@@ -531,7 +566,10 @@ def stratified_split(examples, train_ratio, val_ratio, test_ratio,
     """
 
     # group the examples by the strata_field
-    strata = get_all_strata(examples, strata_field_name)
+    # strata = get_all_strata(examples, strata_field_name)
+    strata = itertools.groupby(examples,
+                               key=lambda ex: getattr(ex, strata_field_name))
+    strata = (list(group) for _, group in strata)
 
     train_split, val_split, test_split = [], [], []
     for group in strata:
@@ -539,8 +577,8 @@ def stratified_split(examples, train_ratio, val_ratio, test_ratio,
         group_train_split, group_val_split, group_test_split = rationed_split(
             group,
             train_ratio,
-            test_ratio,
             val_ratio,
+            test_ratio,
             shuffle
         )
 
@@ -552,30 +590,3 @@ def stratified_split(examples, train_ratio, val_ratio, test_ratio,
     # now, for each concrete label value (stratum) - as well as for the whole
     # list of examples - the ratios are preserved
     return train_split, val_split, test_split
-
-
-def get_all_strata(examples, strata_field_name):
-    """Splits a list of examples into groups of example that have the same
-    value of the given strata field. Returns the groups as a list of lists.
-
-    Parameters
-    ----------
-    examples : list
-        List of examples that is to be split into groups.
-    strata_field_name : str
-        Name of the field by which examples are to be grouped (stratified).
-        The field must be hashable.
-    Returns
-    -------
-    list
-        A list of lists of examples, where each sublist holds one group of
-        examples (grouped by the strata field).
-    """
-
-    strata_maps = defaultdict(list)
-
-    # The strata field has to be hashable otherwise this doesn't work.
-    for example in examples:
-        strata_maps[getattr(example, strata_field_name)].append(example)
-
-    return list(strata_maps.values())
