@@ -1,5 +1,5 @@
-import pytest
 from xml.etree.ElementTree import ParseError
+import pytest
 from takepod.storage.example import Example
 
 

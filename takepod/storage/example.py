@@ -1,6 +1,7 @@
 """Example module that defines mapping for single data instance."""
 import csv
 import json
+import xml.etree.ElementTree as ET
 
 
 class Example(object):
@@ -31,7 +32,7 @@ class Example(object):
         Example
             An Example whose attributes are the given Fields created with the
             given column values. These Fields can be accessed by their names.
-        
+
         Raises
         ------
         ValueError
@@ -95,7 +96,7 @@ class Example(object):
         Example
             An Example whose attributes are the given Fields created with the
             given column values. These Fields can be accessed by their names.
-        
+
         Raises
         ------
         ValueError
@@ -143,7 +144,6 @@ class Example(object):
         ParseError
             if there was a problem while parsing xml sting, invalid xml
         """
-        import xml.etree.ElementTree as ET
         example = cls()
 
         # we ignore columns with field mappings set to None
