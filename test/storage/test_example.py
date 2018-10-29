@@ -1,5 +1,6 @@
-from takepod.storage.example import Example
+from xml.etree.ElementTree import ParseError
 import pytest
+from takepod.storage.example import Example
 
 
 class MockField:
@@ -14,10 +15,10 @@ class MockField:
     "data_dict, fields_dict",
     [
         (
-                {"text": "this is a review", "rating": 4.5, "sentiment": 1},
-                {"text": (MockField("words"), MockField("chars")),
-                 "rating": MockField("label"),
-                 "sentiment": (MockField("sentiment"), MockField("polarity"))}
+            {"text": "this is a review", "rating": 4.5, "sentiment": 1},
+            {"text": (MockField("words"), MockField("chars")),
+             "rating": MockField("label"),
+             "sentiment": (MockField("sentiment"), MockField("polarity"))}
         ), (
             {"text": "this is a review", "rating": 4.5, "sentiment": 1,
              "source": "www.source.hr"},
@@ -28,11 +29,11 @@ class MockField:
              }
         ),
         (
-                {"x": "data"},
-                {"x": (MockField("docs"), MockField("paragraphs"),
-                       MockField("sents"), MockField("words"),
-                       MockField("syllables"), MockField("chars"))
-                 }
+            {"x": "data"},
+            {"x": (MockField("docs"), MockField("paragraphs"),
+                   MockField("sents"), MockField("words"),
+                   MockField("syllables"), MockField("chars"))
+             }
         ),
     ]
 )
@@ -49,10 +50,10 @@ def test_fromdict_ok(data_dict, fields_dict):
     "data_dict, fields_dict",
     [
         (
-                {"text": "this is a review", "rating": 4.5, "sentiment": 1},
-                {"not_text": (MockField("words"), MockField("chars")),
-                 "rating": MockField("label"),
-                 "sentiment": (MockField("sentiment"), MockField("polarity"))},
+            {"text": "this is a review", "rating": 4.5, "sentiment": 1},
+            {"not_text": (MockField("words"), MockField("chars")),
+             "rating": MockField("label"),
+             "sentiment": (MockField("sentiment"), MockField("polarity"))},
         ),
     ]
 )
@@ -65,20 +66,20 @@ def test_fromdict_exception(data_dict, fields_dict):
     "json_data, fields_dict, expected_data_dict",
     [
         (
-                '{"text": "this is a review", "rating": 4.5, "sentiment": 1}',
-                {"text": (MockField("words"), MockField("chars")),
-                 "rating": MockField("label"),
-                 "sentiment": (MockField("sentiment"), MockField("polarity"))},
-                {"text": "this is a review", "rating": 4.5, "sentiment": 1},
+            '{"text": "this is a review", "rating": 4.5, "sentiment": 1}',
+            {"text": (MockField("words"), MockField("chars")),
+             "rating": MockField("label"),
+             "sentiment": (MockField("sentiment"), MockField("polarity"))},
+            {"text": "this is a review", "rating": 4.5, "sentiment": 1},
         ),
         (
-                '{"x": "data"}',
-                {"x": (
-                        MockField("docs"), MockField("paragraphs"),
-                        MockField("sents"),
-                        MockField("words"),
-                        MockField("syllables"), MockField("chars"))},
-                {"x": "data"},
+            '{"x": "data"}',
+            {"x": (
+                MockField("docs"), MockField("paragraphs"),
+                MockField("sents"),
+                MockField("words"),
+                MockField("syllables"), MockField("chars"))},
+            {"x": "data"},
         ),
     ]
 )
@@ -96,10 +97,10 @@ def test_fromJSON_ok(json_data, fields_dict, expected_data_dict):
     "json_data, fields_dict",
     [
         (
-                '{"text": "this is a review", "rating": 4.5, "sentiment": 1}',
-                {"not_text": (MockField("words"), MockField("chars")),
-                 "rating": MockField("label"),
-                 "sentiment": (MockField("sentiment"), MockField("polarity"))},
+            '{"text": "this is a review", "rating": 4.5, "sentiment": 1}',
+            {"not_text": (MockField("words"), MockField("chars")),
+             "rating": MockField("label"),
+             "sentiment": (MockField("sentiment"), MockField("polarity"))},
         ),
     ]
 )
@@ -109,25 +110,123 @@ def test_fromJSON_exception(json_data, fields_dict):
 
 
 @pytest.mark.parametrize(
+    "xml_str, fields_dict, expected_data_dict",
+    [
+        (
+            "<example><text>this is a review</text><rating>4.5</rating>"
+            "<sentiment>1</sentiment></example>",
+            {"text": (MockField("words"), MockField("chars")),
+             "rating": MockField("label"),
+             "sentiment": (MockField("sentiment"), MockField("polarity"))},
+            {"text": "this is a review", "rating": "4.5", "sentiment": "1"},
+        ),
+        (
+            "<example><x>data</x></example>",
+            {"x": (
+                MockField("docs"), MockField("paragraphs"),
+                MockField("sents"),
+                MockField("words"),
+                MockField("syllables"), MockField("chars"))},
+            {"x": "data"},
+        ),
+        (
+            "<x>data</x>",
+            {"x": (
+                MockField("docs"), MockField("paragraphs"),
+                MockField("sents"),
+                MockField("words"),
+                MockField("syllables"), MockField("chars"))},
+            {"x": "data"},
+        ),
+    ]
+)
+def test_fromxmlstr_ok(xml_str, fields_dict, expected_data_dict):
+    received_example = Example.fromxmlstr(data=xml_str,
+                                          fields=fields_dict)
+
+    field_data_tuples = ((fields_dict[k], v) for k, v in
+                         expected_data_dict.items())
+    expected_example = create_expected_example(field_data_tuples)
+
+    assert received_example.__dict__ == expected_example.__dict__
+
+
+@pytest.mark.parametrize(
+    "xml_str, fields_dict",
+    [
+        (
+            "<example><text>this is a review</text>"
+            "<rating>4.5</rating><sentiment>1</sentiment></example>",
+            {"not_text": (MockField("words"), MockField("chars")),
+             "rating": MockField("label"),
+             "sentiment": (MockField("sentiment"), MockField("polarity"))},
+        ),
+        (
+            "<x>data</x>",
+            {"y": (
+                MockField("docs"), MockField("paragraphs"),
+                MockField("sents"),
+                MockField("words"),
+                MockField("syllables"), MockField("chars"))},
+        )
+    ]
+)
+def test_fromxmlstr_value_error(xml_str, fields_dict):
+    with pytest.raises(ValueError):
+        Example.fromxmlstr(xml_str, fields_dict)
+
+
+@pytest.mark.parametrize(
+    "xml_str, fields_dict",
+    [
+        (
+            "<example><text>this is a review</text>"
+            "<rating>4.5</rating><sentiment>1</sentiment>",
+            {"not_text": (MockField("words"), MockField("chars")),
+             "rating": MockField("label"),
+             "sentiment": (MockField("sentiment"), MockField("polarity"))},
+        ),
+        (
+            "<example><text>this is a review</text>"
+            "<rating>4.5<sentiment>1</sentiment>",
+            {"rating": MockField("label"),
+             "sentiment": (MockField("sentiment"), MockField("polarity"))},
+        ),
+        (
+            "data</x>",
+            {"x": (
+                MockField("docs"), MockField("paragraphs"),
+                MockField("sents"),
+                MockField("words"),
+                MockField("syllables"), MockField("chars"))},
+        )
+    ]
+)
+def test_fromxmlstr_invalid_xml(xml_str, fields_dict):
+    with pytest.raises(ParseError):
+        Example.fromxmlstr(xml_str, fields_dict)
+
+
+@pytest.mark.parametrize(
     "data_list, fields_list",
     [
         (
-                ["data"],
-                [(
-                        MockField("docs"), MockField("paragraphs"),
-                        MockField("sents"),
-                        MockField("words"),
-                        MockField("syllables"), MockField("chars"))]
+            ["data"],
+            [(
+                MockField("docs"), MockField("paragraphs"),
+                MockField("sents"),
+                MockField("words"),
+                MockField("syllables"), MockField("chars"))]
         ),
         (
-                ["this is a review", 4.5, 1],
-                [(MockField("words"), MockField("chars")), MockField("label"),
-                 (MockField("sentiment"), MockField("polarity"))]
+            ["this is a review", 4.5, 1],
+            [(MockField("words"), MockField("chars")), MockField("label"),
+             (MockField("sentiment"), MockField("polarity"))]
         ),
         (
-                ["this is a review", 4.5, 1, "this should be ignored"],
-                [(MockField("words"), MockField("chars")), MockField("label"),
-                 (MockField("sentiment"), MockField("polarity")), None]
+            ["this is a review", 4.5, 1, "this should be ignored"],
+            [(MockField("words"), MockField("chars")), MockField("label"),
+             (MockField("sentiment"), MockField("polarity")), None]
         ),
     ]
 )
@@ -142,25 +241,25 @@ def test_fromlist(data_list, fields_list):
     "csv_line, fields_dict, field_to_index, delimiter, expected_data_dict",
     [
         (
-                ",".join(["this is a review", "4.5", "1"]),
-                {"text": (MockField("words"), MockField("chars")),
-                 "rating": MockField("label"),
-                 "sentiment": (MockField("sentiment"), MockField("polarity"))},
-                {"text": 0, "rating": 1, "sentiment": 2},
-                ",",
-                {"text": "this is a review", "rating": "4.5", "sentiment": "1"}
+            ",".join(["this is a review", "4.5", "1"]),
+            {"text": (MockField("words"), MockField("chars")),
+             "rating": MockField("label"),
+             "sentiment": (MockField("sentiment"), MockField("polarity"))},
+            {"text": 0, "rating": 1, "sentiment": 2},
+            ",",
+            {"text": "this is a review", "rating": "4.5", "sentiment": "1"}
         ),
         (
-                "|".join(["this is a review", "bla"]),
-                {
-                    "text": (MockField("words"), MockField("chars")),
-                    "sentiment": (
-                            MockField("sentiment"), MockField("polarity")
-                    )
-                },
-                {"text": 0, "sentiment": 1},
-                "|",
-                {"text": "this is a review", "sentiment": "bla"}
+            "|".join(["this is a review", "bla"]),
+            {
+                "text": (MockField("words"), MockField("chars")),
+                "sentiment": (
+                    MockField("sentiment"), MockField("polarity")
+                )
+            },
+            {"text": 0, "sentiment": 1},
+            "|",
+            {"text": "this is a review", "sentiment": "bla"}
         )
     ]
 )
@@ -180,36 +279,36 @@ def test_fromCSV_fields_is_dict(csv_line, fields_dict, field_to_index,
     "csv_line, fields_list, delimiter, expected_data_list",
     [
         (
-                "blabla",
-                [(
-                        MockField("docs"), MockField("paragraphs"),
-                        MockField("sents"),
-                        MockField("words"),
-                        MockField("syllables"), MockField("chars")
-                )],
-                ",",
-                ["blabla"]
+            "blabla",
+            [(
+                MockField("docs"), MockField("paragraphs"),
+                MockField("sents"),
+                MockField("words"),
+                MockField("syllables"), MockField("chars")
+            )],
+            ",",
+            ["blabla"]
         ),
         (
-                ",".join(["this is a review", "4.5", "1"]),
-                [(MockField("words"), MockField("chars")), MockField("label"),
-                 (MockField("sentiment"), MockField("polarity"))],
-                ",",
-                ["this is a review", "4.5", "1"]
+            ",".join(["this is a review", "4.5", "1"]),
+            [(MockField("words"), MockField("chars")), MockField("label"),
+             (MockField("sentiment"), MockField("polarity"))],
+            ",",
+            ["this is a review", "4.5", "1"]
         ),
         (
-                ",".join(["\"this is, \"\"a\"\" review\"", "4.5", "1"]),
-                [(MockField("words"), MockField("chars")), MockField("label"),
-                 (MockField("sentiment"), MockField("polarity"))],
-                ",",
-                ["this is, \"a\" review", "4.5", "1"]
+            ",".join(["\"this is, \"\"a\"\" review\"", "4.5", "1"]),
+            [(MockField("words"), MockField("chars")), MockField("label"),
+             (MockField("sentiment"), MockField("polarity"))],
+            ",",
+            ["this is, \"a\" review", "4.5", "1"]
         ),
         (
-                "\t".join(["this is a review", "4.5", "1"]),
-                [(MockField("words"), MockField("chars")), MockField("label"),
-                 (MockField("sentiment"), MockField("polarity"))],
-                "\t",
-                ["this is a review", "4.5", "1"]
+            "\t".join(["this is a review", "4.5", "1"]),
+            [(MockField("words"), MockField("chars")), MockField("label"),
+             (MockField("sentiment"), MockField("polarity"))],
+            "\t",
+            ["this is a review", "4.5", "1"]
         )
     ]
 )
@@ -226,9 +325,9 @@ def test_fromCSV_fields_is_list(csv_line, fields_list, delimiter,
     "data, fields_list, expected_attributes",
     [
         (
-                "(S (NP I) (VP (V saw) (NP him)))",
-                [(MockField("text"), MockField("chars")), MockField("label")],
-                ["I saw him", "S"]
+            "(S (NP I) (VP (V saw) (NP him)))",
+            [(MockField("text"), MockField("chars")), MockField("label")],
+            ["I saw him", "S"]
         )
     ]
 )
@@ -244,15 +343,15 @@ def test_fromtree_no_subtrees(data, fields_list, expected_attributes):
     "data, fields_list, expected_attributes_list",
     [
         (
-                "(S (NP I) (VP (V saw) (NP him)))",
-                [(MockField("text"), MockField("chars")), MockField("label")],
-                [
-                    ["I saw him", "S"],
-                    ["I", "NP"],
-                    ["saw him", "VP"],
-                    ["saw", "V"],
-                    ["him", "NP"],
-                ]
+            "(S (NP I) (VP (V saw) (NP him)))",
+            [(MockField("text"), MockField("chars")), MockField("label")],
+            [
+                ["I saw him", "S"],
+                ["I", "NP"],
+                ["saw him", "VP"],
+                ["saw", "V"],
+                ["him", "NP"],
+            ]
         )
     ]
 )
