@@ -269,7 +269,7 @@ class TabularDataset(Dataset):
             elif format == "json":
                 reader = f
             else:
-                raise ValueError('Invalid format: %s'.format(format))
+                raise ValueError(f'Invalid format: {format}')
 
             # create a list of examples
             examples = create_examples(reader, format, fields, skip_header)
@@ -501,7 +501,7 @@ def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
     if val_ratio is None:
         if train_len == 0 or (N - train_len) == 0:
             raise ValueError(
-                "Bad ratio: both splits should have at least 1 element.")
+                'Bad ratio: both splits should have at least 1 element.')
 
         indices_tuple = (
             indices[:train_len],
@@ -514,7 +514,7 @@ def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
 
         if train_len * test_len * val_len == 0:
             raise ValueError(
-                "Bad ratio: all splits should have at least 1 element.")
+                'Bad ratio: all splits should have at least 1 element.')
 
         indices_tuple = (
             indices[:train_len],  # Train
@@ -566,7 +566,6 @@ def stratified_split(examples, train_ratio, val_ratio, test_ratio,
     """
 
     # group the examples by the strata_field
-    # strata = get_all_strata(examples, strata_field_name)
     strata = itertools.groupby(examples,
                                key=lambda ex: getattr(ex, strata_field_name))
     strata = (list(group) for _, group in strata)

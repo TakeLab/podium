@@ -135,9 +135,11 @@ def test_split_float_ratio(float_ratio, expected_train_len, expected_test_len,
     expected_total_len = expected_train_len + expected_test_len
 
     dataset = create_dataset(data, field_list)
+    assert len(dataset.examples) == expected_total_len
+
     train_d, test_d = dataset.split(float_ratio)
 
-    assert len(dataset.examples) == expected_total_len
+    assert len(train_d) + len(test_d) == expected_total_len
     assert len(train_d.examples) == expected_train_len
     assert len(test_d.examples) == expected_test_len
 
@@ -158,9 +160,11 @@ def test_split_train_test_ratio(train_test_ratio, expected_train_len,
     expected_total_len = expected_train_len + expected_test_len
 
     dataset = create_dataset(data, field_list)
+    assert len(dataset.examples) == expected_total_len
+
     train_d, test_d = dataset.split(train_test_ratio)
 
-    assert len(dataset.examples) == expected_total_len
+    assert len(train_d) + len(test_d) == expected_total_len
     assert len(train_d.examples) == expected_train_len
     assert len(test_d.examples) == expected_test_len
 
@@ -183,9 +187,11 @@ def test_split_train_val_test_ratio(
     exp_total_len = exp_train_len + exp_val_len + exp_test_len
 
     dataset = create_dataset(data, field_list)
+    assert len(dataset.examples) == exp_total_len
+
     train_d, val_d, test_d = dataset.split(train_val_test_ratio)
 
-    assert len(dataset.examples) == exp_total_len
+    assert len(train_d) + len(val_d) + len(test_d) == exp_total_len
     assert len(train_d.examples) == exp_train_len
     assert len(val_d.examples) == exp_val_len
     assert len(test_d.examples) == exp_test_len
@@ -224,10 +230,10 @@ def test_split_non_overlap(split_ratio, data, field_list):
         1.5,
         -0.2,
         [0.3, 0.0, 0.7],
-        [0.998, 0.001, 0.001],
-        (0.998, 0.001, 0.001),
-        [0.999, 0.001],
-        0.999,
+        [0.998, 0.001, 0.001],   # these are incorrect ratios because for the
+        (0.998, 0.001, 0.001),   # given dataset they would result in some
+        [0.999, 0.001],          # splits having 0 (the same ratios could be
+        0.999,                   # valid with larger datasets)
     ]
 )
 def test_split_wrong_ratio(data, field_list, ratio):
@@ -249,6 +255,7 @@ def test_split_stratified_ok(data_for_stratified, field_list):
 
     assert len(train_d) == len(test_d)
     assert len(train_d) == len(val_d)
+    assert len(train_d) + len(val_d) + len(test_d) == len(dataset)
 
     train_label_counter = Counter(ex.label[0] for ex in train_d.examples)
     val_label_counter = Counter(ex.label[0] for ex in val_d.examples)
