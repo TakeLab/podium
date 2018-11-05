@@ -111,15 +111,14 @@ class Vocab:
 
         Raises
         ------
-        ValueError
+        RuntimeError
             if the user stated that he doesn't want to keep frequencies
         """
         if not self._keep_freqs:
-            raise ValueError("User specified that the frequencies "
-                             "are not kept")
+            raise RuntimeError("User specified that the frequencies "
+                               "are not kept")
         return self._freqs
 
-    @property
     def pad_symbol(self):
         """Method returns padding symbol index.
 
@@ -211,7 +210,7 @@ class Vocab:
         for word, freq in words_and_freqs:
             if freq < self._min_freq or len(self.itos) >= self._max_size:
                 break
-            if word in self._stop_words:
+            if self._stop_words and word in self._stop_words:
                 continue
             self.itos.append(word)
             self.stoi[word] = len(self.stoi)
@@ -236,12 +235,12 @@ class Vocab:
 
         Raises
         ------
-        ValueError
+        RuntimeError
             if the vocabulary is not finalized
         """
         if not self.finalized:
-            raise ValueError('Cannot numericalize if the vocabulary has not'
-                             ' been finalized call `.finalize() on the Field`')
+            raise RuntimeError('Cannot numericalize if the vocabulary has not '
+                               'been finalized call .finalize() on the Field')
         return np.array([self.stoi[token] for token in data])
 
     def __len__(self):
