@@ -42,7 +42,7 @@ class Vocab:
             maximal vocab size
         min_freq : int
             words with frequency lower than this will be removed
-        specials : iter(str)
+        specials : iter(SpecialVocabSymbols)
             collection of special symbols
         keep_freqs : bool
             if true word frequencies will be saved for later use on
@@ -54,7 +54,7 @@ class Vocab:
         self._keep_freqs = keep_freqs
         self._min_freq = min_freq
 
-        self.itos = list(specials)
+        self.itos = [s.value for s in specials]
         self._default_unk_index = self._init_default_unk_index(specials)
         self.stoi = defaultdict(self._default_unk)
         self.stoi.update({k: v for v, k in enumerate(self.itos)})
@@ -132,9 +132,9 @@ class Vocab:
         ValueError
             if the padding symbol is not pressent in the vocabulary
         """
-        if SpecialVocabSymbols.PAD not in self.stoi:
+        if SpecialVocabSymbols.PAD.value not in self.stoi:
             raise ValueError("Padding symbol is not in the vocabulary")
-        return self.stoi[SpecialVocabSymbols.PAD]
+        return self.stoi[SpecialVocabSymbols.PAD.value]
 
     def __add__(self, values):
         """Method allows a vocabulary to be added to current vocabulary or
@@ -142,7 +142,7 @@ class Vocab:
 
         Parameters
         ----------
-        values : set or Vocab
+        values : iter or Vocab
             values to be added to the vocabulary
 
         Returns
@@ -158,8 +158,13 @@ class Vocab:
         if self.finalized:
             raise RuntimeError("Finalized vocabulary cannot be changed.")
 
+        if isinstance(values, str):
+            raise TypeError("Values mustn't be string.")
+            # if it is a string characters of a string will be added to counter
+            # instead of whole string
+
         if isinstance(values, Vocab):
-            self._freqs += values.freqs  # add freqs to this instance
+            self._freqs += values._freqs  # add freqs to this instance
         else:
             try:
                 self._freqs.update(values)
@@ -174,7 +179,7 @@ class Vocab:
 
         Parameters
         ----------
-        values : set or Vocab
+        values : iter or Vocab
             values to be added to the vocabulary
 
         Returns
@@ -273,7 +278,7 @@ class Vocab:
             return False
         if self.finalized != other.finalized:
             return False
-        if self._freqs != other.freqs:
+        if self._freqs != other._freqs:
             return False
         if self.stoi != other.stoi:
             return False
