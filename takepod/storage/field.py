@@ -172,7 +172,8 @@ class Field(object):
             # (such as floating point data Fields)
             return np.array([self.custom_numericalize(tok) for tok in data])
 
-    def pad_to_length(self, row, length, custom_pad_symbol=None):
+    def pad_to_length(self, row, length, custom_pad_symbol=None,
+                      pad_left=False, truncate_left=False):
         """Either pads the given row with pad symbols, or truncates the row
         to be of given length. The vocab provides the pad symbol for all
         fields that have vocabs, otherwise the pad symbol has to be given as
@@ -197,9 +198,16 @@ class Field(object):
         """
 
         if len(row) > length:
-            row = row[:length]
+            # truncating
 
-        if len(row) < length:
+            if truncate_left:
+                row = row[len(row) - length:]
+            else:
+                row = row[:length]
+
+        elif len(row) < length:
+            # padding
+
             if self.use_vocab:
                 pad_symbol = self.vocab.pad_symbol
             else:
@@ -210,7 +218,11 @@ class Field(object):
                                  'field has no vocab.')
 
             diff = length - len(row)
-            row = np.append(row, [pad_symbol] * diff)
+
+            if pad_left:
+                row = np.append([pad_symbol] * diff, row)
+            else:
+                row = np.append(row, [pad_symbol] * diff)
 
         return row
 

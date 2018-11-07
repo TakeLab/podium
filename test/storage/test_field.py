@@ -4,13 +4,15 @@ import pytest
 
 from takepod.storage.field import Field
 
+PAD_NUM = 42
+
 
 class MockVocab:
     def __init__(self):
         self.values = []
         self.finalized = False
         self.numericalized = False
-        self.pad_symbol = 42
+        self.pad_symbol = PAD_NUM
 
     def __add__(self, values):
         if type(values) == type(self):
@@ -131,19 +133,26 @@ def test_field_numericalize_vocab(use_vocab, expected_numericalized, vocab):
 
 
 @pytest.mark.parametrize(
-    "row, length, expected_row",
+    "row, length, expected_row, pad_left, truncate_left",
     [
-        ([1, 2, 3, 4, 5], 3, [1, 2, 3]),
-        ([1, 2, 3, 4, 5], 7, [1, 2, 3, 4, 5, 42, 42]),  # 42 is the pad symbol
-        ([1, 2, 3, 4, 5], 5, [1, 2, 3, 4, 5]),  # (see MockVocab)
-        ([1, 2, 3, 4, 5], 0, [])
+        ([1, 2, 3, 4, 5], 3, [1, 2, 3], False, False),
+        ([1, 2, 3, 4, 5], 3, [3, 4, 5], False, True),
+        ([1, 2, 3, 4, 5], 7, [1, 2, 3, 4, 5, PAD_NUM, PAD_NUM], False, False),
+        ([1, 2, 3, 4, 5], 7, [PAD_NUM, PAD_NUM, 1, 2, 3, 4, 5], True, False),
+        ([1, 2, 3, 4, 5], 5, [1, 2, 3, 4, 5], False, False),
+        ([1, 2, 3, 4, 5], 5, [1, 2, 3, 4, 5], True, True),
+        ([1, 2, 3, 4, 5], 0, [], False, False),
+        ([1, 2, 3, 4, 5], 0, [], False, True)
     ]
 )
-def test_field_pad_to_length(row, length, expected_row, vocab):
+def test_field_pad_to_length(row, length, expected_row, vocab, pad_left,
+                             truncate_left):
     f = Field(name="F", vocab=vocab)
-    received_row = f.pad_to_length(np.array(row), length).tolist()
 
-    assert received_row == expected_row
+    received_row = f.pad_to_length(np.array(row), length, pad_left=pad_left,
+                                   truncate_left=truncate_left)
+
+    assert received_row.tolist() == expected_row
 
 
 @pytest.mark.parametrize(
