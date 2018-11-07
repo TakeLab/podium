@@ -31,8 +31,16 @@ def test_get_frequency():
     assert voc.get_freqs()["plant"] == 2
 
 
-def test_get_frequency_not_kept():
-    voc = vocab.Vocab()
+def test_get_frequency_not_kept_not_finalized():
+    voc = vocab.Vocab(keep_freqs=False)
+    voc = (voc + {"tree", "plant", "grass"})+{"plant"}
+    assert voc.get_freqs()["tree"] == 1
+    assert voc.get_freqs()["plant"] == 2
+
+
+def test_get_frequency_not_kept_finalized():
+    voc = vocab.Vocab(keep_freqs=False)
+    voc.finalize()
     with pytest.raises(RuntimeError):
         voc.get_freqs()
 

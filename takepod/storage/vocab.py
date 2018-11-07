@@ -113,8 +113,9 @@ class Vocab:
         ------
         RuntimeError
             if the user stated that he doesn't want to keep frequencies
+            and the vocab is finalized
         """
-        if not self._keep_freqs:
+        if self.finalized and not self._keep_freqs:
             raise RuntimeError("User specified that the frequencies "
                                "are not kept")
         return self._freqs
@@ -156,10 +157,10 @@ class Vocab:
             if the current vocab is finalized
         """
         if self.finalized:
-            raise RuntimeError("Finalized vocabulary cannot be changed.")
+            raise RuntimeError("Once finalized, vocabulary cannot be changed.")
 
         if isinstance(values, str):
-            raise TypeError("Values mustn't be string.")
+            raise TypeError("Values mustn't be a string.")
             # if it is a string characters of a string will be added to counter
             # instead of whole string
 
@@ -169,7 +170,7 @@ class Vocab:
             try:
                 self._freqs.update(values)
             except TypeError:
-                raise TypeError("Vocab supports only adding vocab or set"
+                raise TypeError("Vocab supports only adding vocab or iterable"
                                 "to vocab")
         return self
 
@@ -245,7 +246,8 @@ class Vocab:
         """
         if not self.finalized:
             raise RuntimeError('Cannot numericalize if the vocabulary has not '
-                               'been finalized call .finalize() on the Field')
+                               'been finalized call `.finalize()`'
+                               ' on the Field')
         return np.array([self.stoi[token] for token in data])
 
     def __len__(self):
