@@ -1,3 +1,4 @@
+"""Module contains base classes for datasets."""
 import csv
 import io
 import itertools

@@ -1,5 +1,1 @@
-from sklearn.metrics import f1_score
-
-
-def f1(true, pred):
-    return f1_score(true, pred)
+"""Package contains functionalities related to model metrics."""
