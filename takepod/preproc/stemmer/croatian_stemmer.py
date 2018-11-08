@@ -1,3 +1,4 @@
+"""Module contains simple stemmer for Croatian"""
 # -*-coding:utf-8-*-
 #
 #    Simple stemmer for Croatian v0.1
@@ -21,7 +22,7 @@ import os
 
 
 class CroatianStemmer:
-
+    """Simple stemmer for Croatian language"""
     # list of words that are it's own stem
     __stop = None
     __transformations = None
@@ -35,7 +36,8 @@ class CroatianStemmer:
             base, suffix in [
                 e.strip().split(' ')
                 for e in
-                open(os.path.join(dir_path, "data/rules.txt"), encoding='utf-8')]
+                open(os.path.join(dir_path, "data/rules.txt"),
+                     encoding='utf-8')]
         ]
         self.__transformations = [e.strip().split(
             '\t') for e in open(os.path.join(dir_path,
@@ -44,7 +46,8 @@ class CroatianStemmer:
         self.__stop = set([
             e.strip()
             for e in
-            open(os.path.join(dir_path, 'data/nostem-hr.txt'), encoding='utf-8')
+            open(os.path.join(dir_path, 'data/nostem-hr.txt'),
+                 encoding='utf-8')
         ])
 
     def _determine_r_vowel(self, string):
@@ -71,12 +74,36 @@ class CroatianStemmer:
             return False
 
     def transform(self, word):
+        """Method transforms given word.
+
+        Parameters
+        ----------
+        word : str
+            word string
+
+        Returns
+        -------
+        transformed_word : str
+            transformed word
+        """
         for seek, replace in self.__transformations:
             if word.endswith(seek):
                 return word[:-len(seek)] + replace
         return word
 
     def root_word(self, word):
+        """Method returns root of a word.
+
+        Parameters
+        ----------
+        word : str
+            word string
+
+        Returns
+        -------
+        root : str
+            root of a word
+        """
         for rule in self.__rules:
             division = rule.match(word)
             if division:
