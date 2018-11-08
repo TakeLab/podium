@@ -1,3 +1,4 @@
+"""Simple PauzaHR dataset module."""
 import os
 import glob
 import zipfile
@@ -6,13 +7,31 @@ import xml.etree.ElementTree as ET
 
 
 class PauzaHR():
+    """Simple PauzaHR dataset class
 
+    Attributes
+    ----------
+    URL : str
+        url to PauzaHR dataset storage
+
+    """
     URL = "http://takelab.fer.hr/data/cropinion/CropinionDataset.zip"
 
-    def __init__(self, path="downloaded_datasets/", **kwargs):
+    def __init__(self, path="downloaded_datasets/"):
+        """IMDB dataset constructor.
+
+        Parameters
+        ----------
+        path : str
+            path to folder where the dataset should be downloaded or loaded
+            from if it is already downloaded
+
+        """
         self._data_dir = path
 
     def download_and_extract(self):
+        """Method downloadeds and unzips dataset
+           archive if it doesn't exist."""
         download_location = os.path.join(self._data_dir, "croopinion")
         if not os.path.isdir(download_location):
             os.makedirs(download_location)
@@ -43,10 +62,10 @@ class PauzaHR():
 
         Returns
         -------
-        x : list of 2-tuple of (str, str)
+        data : list of 2-tuple of (str, str)
             List of 2-tuple strings of pairs of reviews and
             corresponding source
-        y : list of float
+        labels : list of float
             list of the review corresponding ratings [0.0, 6.0]
         """
         datalocation = os.path.join(
