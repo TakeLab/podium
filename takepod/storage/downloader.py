@@ -98,7 +98,7 @@ class SimpleHttpDownloader(HttpDownloader):
             return False
 
         with requests.get(url=uri, headers={'User-Agent': 'Mozilla/5.0'},
-                          stream=True) as response,\
-             open(path, 'wb') as output_file:
+                          stream=True) as response, \
+                open(path, 'wb') as output_file:
             success = cls._process_response(response, output_file)
             return success
