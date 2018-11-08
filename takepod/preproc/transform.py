@@ -1,3 +1,6 @@
+"""Module for transforming word to vector or index."""
+
+
 def make_bow_vector(document, word_to_ix):
     '''
     Creates a bag-of-words vector from a document and
@@ -17,7 +20,7 @@ def make_bow_vector(document, word_to_ix):
         an index lookup from word_to_ix
     '''
 
-    vec =  [0] * len(word_to_ix)
+    vec = [0] * len(word_to_ix)
     # TODO split on proper tokenizer
     for word in document.split(' '):
         vec[word_to_ix[word]] += 1

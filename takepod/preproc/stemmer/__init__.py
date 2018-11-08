@@ -1,1 +1,1 @@
-"""Package contains modules for preprocessing."""
+"""Package contains modules for stemming."""
