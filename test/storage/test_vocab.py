@@ -94,7 +94,7 @@ def test_specials_get_pad_symbol():
     voc = (voc + set(data))
     assert voc.pad_symbol() == 0
     voc.finalize()
-    assert voc.itos[0] == vocab.SpecialVocabSymbols.PAD.value
+    assert voc.itos[0] == vocab.SpecialVocabSymbols.PAD
 
 
 def test_max_size():
@@ -124,8 +124,8 @@ def test_size_after_final_with_specials():
 
 
 def test_enum_special_vocab_symbols():
-    assert vocab.SpecialVocabSymbols.PAD.value == "<pad>"
-    assert vocab.SpecialVocabSymbols.UNK.value == "<unk>"
+    assert vocab.SpecialVocabSymbols.PAD == "<pad>"
+    assert vocab.SpecialVocabSymbols.UNK == "<unk>"
 
 
 def test_get_stoi_for_unknown_word_default_unk():

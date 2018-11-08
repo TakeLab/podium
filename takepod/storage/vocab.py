@@ -1,11 +1,10 @@
 """Module contains classes related to the vocabulary."""
 from collections import Counter, defaultdict
-from enum import Enum
 import numpy as np
 
 
-class SpecialVocabSymbols(Enum):
-    """Enumeration of special vocabular symbols
+class SpecialVocabSymbols():
+    """Class for special vocabular symbols
 
     Attributes
     ----------
@@ -54,7 +53,7 @@ class Vocab:
         self._keep_freqs = keep_freqs
         self._min_freq = min_freq
 
-        self.itos = [s.value for s in specials]
+        self.itos = list(specials)
         self._default_unk_index = self._init_default_unk_index(specials)
         self.stoi = defaultdict(self._default_unk)
         self.stoi.update({k: v for v, k in enumerate(self.itos)})
@@ -133,9 +132,9 @@ class Vocab:
         ValueError
             if the padding symbol is not pressent in the vocabulary
         """
-        if SpecialVocabSymbols.PAD.value not in self.stoi:
+        if SpecialVocabSymbols.PAD not in self.stoi:
             raise ValueError("Padding symbol is not in the vocabulary")
-        return self.stoi[SpecialVocabSymbols.PAD.value]
+        return self.stoi[SpecialVocabSymbols.PAD]
 
     def __add__(self, values):
         """Method allows a vocabulary to be added to current vocabulary or
