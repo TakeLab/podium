@@ -159,7 +159,7 @@ class VectorStorage(ABC):
         RuntimeError
             if vector storage is not initialized
         """
-        np.vstack([self.token_to_vector[token] for token in itos])
+        return np.vstack([self.token_to_vector(token) for token in itos])
 
 
 class BasicVectorStorage(VectorStorage):

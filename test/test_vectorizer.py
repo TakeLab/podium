@@ -49,6 +49,25 @@ def test_basic_load_all_vectors():
                        rtol=0, atol=1.e-6)
 
 
+def test_get_vector_dimension():
+    vect_file_path = create_temp_vect_file(vect_file_name="vect1",
+                                           file_data=BASIC_VECT_DATA)
+
+    vect = vectorizer.BasicVectorStorage(path=vect_file_path)
+    vect.load_all()
+    assert vect.get_vector_dim() == vect['.'].shape[0]
+    assert vect.get_vector_dim() == 3
+
+
+def test_get_vector_dim_not_initialized_vector_storage():
+    vect_file_path = create_temp_vect_file(vect_file_name="vect1",
+                                           file_data=BASIC_VECT_DATA)
+
+    vect = vectorizer.BasicVectorStorage(path=vect_file_path)
+    with pytest.raises(RuntimeError):
+        vect.get_vector_dim()
+
+
 def test_basic_load_with_header():
     vect_file_path = create_temp_vect_file(vect_file_name="vect1",
                                            file_header=BASIC_VECT_HEADING,
@@ -137,6 +156,30 @@ def test_basic_load_vocab_none():
     vect = vectorizer.BasicVectorStorage(path=vect_file_path)
     with pytest.raises(ValueError):
         vect.load_vocab(vocab=None)
+
+
+@pytest.mark.parametrize(
+    "tokens, expected_matrix, expected_shape",
+    [
+        (['.'], np.matrix(BASIC_VECT_DATA_DICT['.']), (1, 3)),
+        ([',', ":", ".", "'"], np.matrix([BASIC_VECT_DATA_DICT[','],
+                                          BASIC_VECT_DATA_DICT[':'],
+                                          BASIC_VECT_DATA_DICT['.'],
+                                          BASIC_VECT_DATA_DICT["'"]]), (4, 3))
+    ]
+)
+def test_get_embedding_matrix(tokens, expected_matrix, expected_shape):
+    vect_file_path = create_temp_vect_file(vect_file_name="vect1",
+                                           file_data=BASIC_VECT_DATA)
+
+    vect = vectorizer.BasicVectorStorage(path=vect_file_path)
+    vect.load_all()
+
+    embedding_matrix = vect.get_embedding_matrix(itos=tokens)
+    assert embedding_matrix.shape == expected_shape
+    assert np.allclose(a=embedding_matrix,
+                       b=expected_matrix,
+                       rtol=0, atol=1e-6)
 
 
 def test_basic_diff_dimensions():
