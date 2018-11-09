@@ -1,8 +1,12 @@
+from mock import patch
 import numpy as np
-
 import pytest
 
 from takepod.storage.field import Field
+
+ONE_TO_FIVE = [1, 2, 3, 4, 5]
+
+CUSTOM_PAD = 43
 
 PAD_NUM = 42
 
@@ -135,14 +139,16 @@ def test_field_numericalize_vocab(use_vocab, expected_numericalized, vocab):
 @pytest.mark.parametrize(
     "row, length, expected_row, pad_left, truncate_left",
     [
-        ([1, 2, 3, 4, 5], 3, [1, 2, 3], False, False),
-        ([1, 2, 3, 4, 5], 3, [3, 4, 5], False, True),
-        ([1, 2, 3, 4, 5], 7, [1, 2, 3, 4, 5, PAD_NUM, PAD_NUM], False, False),
-        ([1, 2, 3, 4, 5], 7, [PAD_NUM, PAD_NUM, 1, 2, 3, 4, 5], True, False),
-        ([1, 2, 3, 4, 5], 5, [1, 2, 3, 4, 5], False, False),
-        ([1, 2, 3, 4, 5], 5, [1, 2, 3, 4, 5], True, True),
-        ([1, 2, 3, 4, 5], 0, [], False, False),
-        ([1, 2, 3, 4, 5], 0, [], False, True)
+        (ONE_TO_FIVE, 3, [1, 2, 3], False, False),
+        (ONE_TO_FIVE, 3, [3, 4, 5], False, True),
+        (ONE_TO_FIVE, 7, [1, 2, 3, 4, 5, PAD_NUM, PAD_NUM], False, False),
+        (ONE_TO_FIVE, 7, [PAD_NUM, PAD_NUM, 1, 2, 3, 4, 5], True, False),
+        (ONE_TO_FIVE, 5, ONE_TO_FIVE, False, False),
+        (ONE_TO_FIVE, 5, ONE_TO_FIVE, True, True),
+        (ONE_TO_FIVE, 5, ONE_TO_FIVE, True, False),
+        (ONE_TO_FIVE, 5, ONE_TO_FIVE, False, True),
+        (ONE_TO_FIVE, 0, [], False, False),
+        (ONE_TO_FIVE, 0, [], False, True)
     ]
 )
 def test_field_pad_to_length(row, length, expected_row, vocab, pad_left,
@@ -158,30 +164,32 @@ def test_field_pad_to_length(row, length, expected_row, vocab, pad_left,
 @pytest.mark.parametrize(
     "row, length, expected_row",
     [
-        ([1, 2, 3, 4, 5], 3, [1, 2, 3]),
-        ([1, 2, 3, 4, 5], 7, [1, 2, 3, 4, 5, 43, 43]),  # custom pad is 43
-        ([1, 2, 3, 4, 5], 5, [1, 2, 3, 4, 5]),
-        ([1, 2, 3, 4, 5], 0, [])
+        (ONE_TO_FIVE, 3, [1, 2, 3]),
+        (ONE_TO_FIVE, 7, [1, 2, 3, 4, 5, CUSTOM_PAD, CUSTOM_PAD]),
+        (ONE_TO_FIVE, 5, ONE_TO_FIVE),
+        (ONE_TO_FIVE, 0, [])
     ]
 )
 def test_field_pad_to_length_custom_pad(row, length, expected_row):
     f = Field(name="F", vocab=None)
 
     row_arr = np.array(row)
-    received_row = f.pad_to_length(row_arr, length, custom_pad_symbol=43)
+    received_row = f.pad_to_length(row_arr, length,
+                                   custom_pad_symbol=CUSTOM_PAD)
 
     assert received_row.tolist() == expected_row
 
 
 def test_field_pad_to_length_exception():
-    # set vocab and custom_pad_symbol to be None
+    # set vocab to be None
     f = Field(name="F", vocab=None)
 
-    row_arr = np.array([1, 2, 3, 4, 5])
+    row_arr = np.array(ONE_TO_FIVE)
     length = 7
 
+    custom_pad_symbol = None
     with pytest.raises(ValueError):
-        f.pad_to_length(row_arr, length, custom_pad_symbol=None)
+        f.pad_to_length(row_arr, length, custom_pad_symbol=custom_pad_symbol)
 
 
 def test_field_get_tokenizer_callable(vocab):
@@ -195,6 +203,12 @@ def test_field_get_tokenizer_callable(vocab):
 
 
 def test_field_get_tokenizer_spacy_exception(vocab):
+    class MockSpacy:
+        def load(self, x):
+            raise OSError
+
+    patch.dict("sys.modules", spacy=MockSpacy()).start()
+
     with pytest.raises(OSError):
         Field(name="F", vocab=vocab, tokenizer="spacy", sequential=True)
 
@@ -212,19 +226,19 @@ def test_field_get_tokenizer_exception(vocab):
 
 
 def test_field_get_tokenizer_spacy_ok(vocab):
-    def sptk(mod):
-        class MockToken:
-            def __init__(self, txt):
-                self.text = txt
+    class MockToken:
+        def __init__(self, txt):
+            self.text = txt
 
-        class MockTokenizer:
-            def tokenizer(self, string):
-                return [MockToken(tok) for tok in string.split()]
+    class MockSpacy:
+        def load(self, x):
+            class MockTokenizer:
+                def tokenizer(self, string):
+                    return [MockToken(tok) for tok in string.split()]
 
-        return MockTokenizer()
+            return MockTokenizer()
 
-    import spacy
-    spacy.load = sptk
+    patch.dict("sys.modules", spacy=MockSpacy()).start()
 
     f = Field(name="F", vocab=vocab, tokenizer="spacy", sequential=True,
               store_raw=False)
