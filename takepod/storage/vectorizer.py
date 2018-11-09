@@ -129,6 +129,38 @@ class VectorStorage(ABC):
     def __getitem__(self, key):
         return self.token_to_vector(key)
 
+    @abstractmethod
+    def get_vector_dim(self):
+        """"Method returns vector dimension.
+
+        Returns
+        -------
+        dim : int
+            vector dimension
+
+        Raises
+        ------
+        RuntimeError
+            if vector storage is not initialized
+        """
+        pass
+
+    def get_embedding_matrix(self, itos):
+        """Method constructs embedding matrix.
+
+        Parameters
+        ----------
+        itos : iter(str)
+            collection of tokens for creation of embedding matrix
+            default use case is to give this function itos list
+
+        Raises
+        ------
+        RuntimeError
+            if vector storage is not initialized
+        """
+        np.vstack([self.token_to_vector[token] for token in itos])
+
 
 class BasicVectorStorage(VectorStorage):
     """ Basic implementation of VectorStorage that handles loading vectors from
@@ -280,6 +312,12 @@ class BasicVectorStorage(VectorStorage):
                and not os.path.exists(self._cache_path):
                 self._cache_vectors()
         self._initialized = True
+
+    def get_vector_dim(self):
+        if not self._initialized:
+            raise RuntimeError("Cannot obtain vector dimension until"
+                               " vector storage is initialized.")
+        return self._dim
 
     def _check_path(self):
         """Internal method for determining if instance paths are in supported
