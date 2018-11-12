@@ -1,11 +1,13 @@
-from takepod.models.simple_sentiment_analysis import SimpleSentimentAnalysisModel
+from takepod.models.simple_sentiment_analysis import (
+    SimpleSentimentAnalysisModel
+)
 from takepod.preproc.transform import create_word_to_index
 import torch
 
 
 def test_full_sentiment_analysis_model():
     X_train, y_train = ['Positive data', 'Bad data'], ['Positive', 'Negative']
-    X_test, y_test = ['Positive stuff', 'Bad stuff'], ['Positive', 'Negative']
+    X_test = ['Positive stuff', 'Bad stuff']
 
     word_to_ix = create_word_to_index(X_train + X_test)
     assert word_to_ix == {
