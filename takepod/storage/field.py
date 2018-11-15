@@ -1,9 +1,36 @@
+from collections import OrderedDict
+
 import numpy as np
 
 
-class Field(object):
+class HookControl():
+    """Shallow class storing the data necessary to detach a hook. Everytime a
+    hook is added to a field, a HookControl object is returned. The object can
+    be called to remove the hook from the field.
     """
-    Holds the preprocessing and numericalization logic for a single
+
+    def __init__(self, hook_id, hook_dictionary):
+        """Creates a HookControl object.
+
+
+        Parameters
+        ----------
+        hook_id : int
+            The key by which the hook is stored in the hook dictionary.
+        hook_dictionary : dict
+            The dictionary where the hook is stored.
+        """
+
+        self.hook_id = hook_id
+        self.hook_dictionary = hook_dictionary  # this is just a view!
+
+    def __call__(self):
+        if self.hook_id in self.hook_dictionary:
+            del self.hook_dictionary[self.hook_id]
+
+
+class Field(object):
+    """Holds the preprocessing and numericalization logic for a single
     field of a dataset.
     """
 
@@ -74,10 +101,12 @@ class Field(object):
         self.tokenizer = self.get_tokenizer(tokenizer, language)
         self.custom_numericalize = custom_numericalize
 
+        self.pre_tokenize_hooks = OrderedDict()
+        self.post_tokenize_hooks = OrderedDict()
+
     @property
     def use_vocab(self):
-        """
-        A flag that tells whether the field uses a vocab or not.
+        """A flag that tells whether the field uses a vocab or not.
 
         Returns
         -------
@@ -86,6 +115,81 @@ class Field(object):
         """
 
         return self.vocab is not None
+
+    def add_pretokenize_hook(self, hook):
+        """Add a pre-tokenization hook to the Field.
+        If multiple hooks are added to the field, the order of their execution
+        will be the same as the order in which they were added to the field,
+        each subsequent hook taking the output of the previous hook as its
+        input.
+        The output of the final pre-tokenization hook is the raw data that the
+        tokenizer will get as its input.
+        To remove the hook from the field, the user needs to call the callable
+        object that this function returns.
+
+        Pretokenize hooks have the following signature:
+            func pre_tok_hook(raw_data):
+                raw_data_out = do_stuff(raw_data)
+                return raw_data_out
+
+        This can be used to eliminate encoding errors in data, replace numbers
+        and names, etc.
+
+        Parameters
+        ----------
+        hook : callable
+            The pre-tokenization hook that we want to add to the field.
+
+        Returns
+        -------
+        HookControl
+            A callable object that, when called, removes the hook from the
+            Field.
+        """
+
+        h = hash(hook)
+        self.pre_tokenize_hooks[h] = hook
+
+        return HookControl(h, self.pre_tokenize_hooks)
+
+    def add_posttokenize_hook(self, hook):
+        """Add a post-tokenization hook to the Field.
+        If multiple hooks are added to the field, the order of their execution
+        will be the same as the order in which they were added to the field,
+        each subsequent hook taking the output of the previous hook as its
+        input.
+        Post-tokenization hooks are called only if the Field is sequential
+        (in non-sequential fields there is no tokenization and only
+        pre-tokenization hooks are called).
+        The output of the final post-tokenization hook are the raw and
+        tokenized data that the preprocess function will use to produce its
+        result.
+        To remove the hook from the field, the user needs to call the callable
+        object that this function returns.
+
+        Posttokenize hooks have the following outline:
+            func post_tok_hook(raw_data, tokenized_data):
+                raw_out, tokenized_out = do_stuff(raw_data, tokenized_data)
+                return raw_out, tokenized_out
+
+        where 'tokenized_out' should be an iterable.
+
+        Parameters
+        ----------
+        hook : callable
+            The post-tokenization hook that we want to add to the field.
+
+        Returns
+        -------
+        HookControl
+            A callable object that, when called, removes the hook from the
+            Field.
+        """
+
+        h = hash(hook)
+        self.post_tokenize_hooks[h] = hook
+
+        return HookControl(h, self.post_tokenize_hooks)
 
     def preprocess(self, raw):
         """Preprocesses raw data, tokenizing it if the field is sequential,
@@ -108,7 +212,19 @@ class Field(object):
             False, so the function will never return (None, None).
         """
 
-        tokenized = self.tokenizer(raw) if self.sequential else None
+        for key, hook in self.pre_tokenize_hooks.items():
+            raw = hook(raw)
+
+        if self.sequential:
+            tokenized = self.tokenizer(raw) if self.sequential else None
+
+            for key, hook in self.post_tokenize_hooks.items():
+                raw, tokenized = hook(raw, tokenized)
+
+            tokenized = list(tokenized)
+        else:
+            tokenized = None
+
         raw = raw if self.store_raw else None
 
         if self.eager and self.use_vocab:

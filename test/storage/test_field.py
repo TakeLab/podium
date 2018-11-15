@@ -243,3 +243,92 @@ def test_field_get_tokenizer_spacy_ok(vocab):
     f = Field(name="F", vocab=vocab, tokenizer="spacy", sequential=True,
               store_raw=False)
     assert f.preprocess("bla blu") == (None, ["bla", "blu"])
+
+
+def test_field_pretokenize_hooks():
+    f = Field(name="F", sequential=True)
+
+    f.add_pretokenize_hook(str.lower)
+    f.add_pretokenize_hook(lambda x: x.replace("bla", "blu"))
+    f.add_pretokenize_hook(lambda x: x.replace(";", " "))
+    f.add_pretokenize_hook(lambda x: x.replace(",", " "))
+
+    raw_str = "asd;123,BLA"
+
+    received = f.preprocess(raw_str)
+    expected = ("asd 123 blu", ["asd", "123", "blu"])
+
+    assert received == expected
+
+
+def test_field_pretokenize_hooks_detach():
+    f = Field(name="F", sequential=True)
+
+    hook_1 = f.add_pretokenize_hook(str.lower)
+    hook_2 = f.add_pretokenize_hook(lambda x: x.replace(";", " "))
+    hook_3 = f.add_pretokenize_hook(lambda x: x.replace(",", " "))
+
+    # detaching
+    hook_1()
+    hook_2()
+    hook_3()
+
+    raw_str = "asd;123,BLA"
+
+    received = f.preprocess(raw_str)
+
+    expected = (raw_str, [raw_str])
+
+    assert received == expected
+
+
+def test_field_posttokenize_hooks():
+    f = Field(name="F", sequential=True)
+
+    def remove_tags_hook(raw, tokenized):
+        raw = raw.replace("<tag>", "")
+        tokenized = map(lambda x: x.replace("<tag>", ""), tokenized)
+
+        return raw, tokenized
+
+    def to_upper_hook(raw, tokenized):
+        raw = raw.upper()
+        tokenized = map(str.upper, tokenized)
+
+        return raw, tokenized
+
+    f.add_posttokenize_hook(remove_tags_hook)
+    f.add_posttokenize_hook(to_upper_hook)
+
+    received = f.preprocess("asd 123<tag> B<tag>LA")
+    expected = ("ASD 123 BLA", ["ASD", "123", "BLA"])
+
+    assert received == expected
+
+
+def test_field_posttokenize_hooks_detach():
+    f = Field(name="F", sequential=True)
+
+    def remove_tags_hook(raw, tokenized):
+        raw = raw.replace("<tag>", "")
+        tokenized = map(lambda x: x.replace("<tag>", ""), tokenized)
+
+        return raw, tokenized
+
+    def to_upper_hook(raw, tokenized):
+        raw = raw.upper()
+        tokenized = map(str.upper, tokenized)
+
+        return raw, tokenized
+
+    hook_1 = f.add_posttokenize_hook(remove_tags_hook)
+    hook_2 = f.add_posttokenize_hook(to_upper_hook)
+
+    # detaching the hooks
+    hook_1()
+    hook_2()
+
+    received = f.preprocess("asd 123<tag> B<tag>LA")
+    expected = ("asd 123<tag> B<tag>LA", ["asd", "123<tag>", "B<tag>LA"])
+
+    assert received == expected
