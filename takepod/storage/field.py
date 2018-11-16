@@ -212,13 +212,13 @@ class Field(object):
             False, so the function will never return (None, None).
         """
 
-        for key, hook in self.pre_tokenize_hooks.items():
+        for hook in self.pre_tokenize_hooks.values():
             raw = hook(raw)
 
         if self.sequential:
             tokenized = self.tokenizer(raw) if self.sequential else None
 
-            for key, hook in self.post_tokenize_hooks.items():
+            for hook in self.post_tokenize_hooks.values():
                 raw, tokenized = hook(raw, tokenized)
 
             tokenized = list(tokenized)
