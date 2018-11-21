@@ -1,6 +1,6 @@
-from mock import patch
 import numpy as np
 import pytest
+from mock import patch
 
 from takepod.storage.field import Field
 
@@ -332,15 +332,21 @@ def test_field_posttokenize_hooks_detach():
 
 
 def test_field_repeated_hooks():
-    def to_lower_hook(raw, tokenized):
-        tokenized = map(str.lower, tokenized)
-
-        return raw, tokenized
 
     def replace_tag_hook(raw, tokenized):
         replaced_tags = map(lambda s: s.replace("<tag>", "ABC"), tokenized)
 
         return raw, replaced_tags
+
+    def to_lower_hook(raw, tokenized):
+        # keep track of the function call count
+        to_lower_hook.call_count += 1
+
+        tokenized = map(str.lower, tokenized)
+
+        return raw, tokenized
+
+    to_lower_hook.call_count = 0
 
     f = Field(name="F", sequential=True)
 
@@ -354,6 +360,10 @@ def test_field_repeated_hooks():
     f.add_posttokenize_hook(to_lower_hook)
 
     received = f.preprocess("BLA <TAG> bla")
+
     expected = ("BLA <TAG> bla", ["bla", "abc", "bla"])
 
     assert received == expected
+
+    # check that the hook that was added twice was also called twice
+    assert to_lower_hook.call_count == 2
