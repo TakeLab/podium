@@ -264,14 +264,12 @@ def test_field_pretokenize_hooks():
 def test_field_pretokenize_hooks_detach():
     f = Field(name="F", sequential=True)
 
-    hook_1 = f.add_pretokenize_hook(str.lower)
-    hook_2 = f.add_pretokenize_hook(lambda x: x.replace(";", " "))
-    hook_3 = f.add_pretokenize_hook(lambda x: x.replace(",", " "))
+    f.add_pretokenize_hook(str.lower)
+    f.add_pretokenize_hook(lambda x: x.replace(";", " "))
+    f.add_pretokenize_hook(lambda x: x.replace(",", " "))
 
     # detaching
-    hook_1()
-    hook_2()
-    hook_3()
+    f.remove_pretokenize_hooks()
 
     raw_str = "asd;123,BLA"
 
@@ -321,14 +319,41 @@ def test_field_posttokenize_hooks_detach():
 
         return raw, tokenized
 
-    hook_1 = f.add_posttokenize_hook(remove_tags_hook)
-    hook_2 = f.add_posttokenize_hook(to_upper_hook)
+    f.add_posttokenize_hook(remove_tags_hook)
+    f.add_posttokenize_hook(to_upper_hook)
 
     # detaching the hooks
-    hook_1()
-    hook_2()
+    f.remove_posttokenize_hooks()
 
     received = f.preprocess("asd 123<tag> B<tag>LA")
     expected = ("asd 123<tag> B<tag>LA", ["asd", "123<tag>", "B<tag>LA"])
+
+    assert received == expected
+
+
+def test_field_repeated_hooks():
+    def to_lower_hook(raw, tokenized):
+        tokenized = map(str.lower, tokenized)
+
+        return raw, tokenized
+
+    def replace_tag_hook(raw, tokenized):
+        replaced_tags = map(lambda s: s.replace("<tag>", "ABC"), tokenized)
+
+        return raw, replaced_tags
+
+    f = Field(name="F", sequential=True)
+
+    # TAG -> tag
+    f.add_posttokenize_hook(to_lower_hook)
+
+    # <tag> -> ABC
+    f.add_posttokenize_hook(replace_tag_hook)
+
+    # ABC -> abc
+    f.add_posttokenize_hook(to_lower_hook)
+
+    received = f.preprocess("BLA <TAG> bla")
+    expected = ("BLA <TAG> bla", ["bla", "abc", "bla"])
 
     assert received == expected
