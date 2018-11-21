@@ -1,6 +1,6 @@
-from mock import patch
 import numpy as np
 import pytest
+from mock import patch
 
 from takepod.storage.field import Field
 
@@ -243,3 +243,127 @@ def test_field_get_tokenizer_spacy_ok(vocab):
     f = Field(name="F", vocab=vocab, tokenizer="spacy", sequential=True,
               store_raw=False)
     assert f.preprocess("bla blu") == (None, ["bla", "blu"])
+
+
+def test_field_pretokenize_hooks():
+    f = Field(name="F", sequential=True)
+
+    f.add_pretokenize_hook(str.lower)
+    f.add_pretokenize_hook(lambda x: x.replace("bla", "blu"))
+    f.add_pretokenize_hook(lambda x: x.replace(";", " "))
+    f.add_pretokenize_hook(lambda x: x.replace(",", " "))
+
+    raw_str = "asd;123,BLA"
+
+    received = f.preprocess(raw_str)
+    expected = ("asd 123 blu", ["asd", "123", "blu"])
+
+    assert received == expected
+
+
+def test_field_pretokenize_hooks_detach():
+    f = Field(name="F", sequential=True)
+
+    f.add_pretokenize_hook(str.lower)
+    f.add_pretokenize_hook(lambda x: x.replace(";", " "))
+    f.add_pretokenize_hook(lambda x: x.replace(",", " "))
+
+    # detaching
+    f.remove_pretokenize_hooks()
+
+    raw_str = "asd;123,BLA"
+
+    received = f.preprocess(raw_str)
+
+    expected = (raw_str, [raw_str])
+
+    assert received == expected
+
+
+def test_field_posttokenize_hooks():
+    f = Field(name="F", sequential=True)
+
+    def remove_tags_hook(raw, tokenized):
+        raw = raw.replace("<tag>", "")
+        tokenized = map(lambda x: x.replace("<tag>", ""), tokenized)
+
+        return raw, tokenized
+
+    def to_upper_hook(raw, tokenized):
+        raw = raw.upper()
+        tokenized = map(str.upper, tokenized)
+
+        return raw, tokenized
+
+    f.add_posttokenize_hook(remove_tags_hook)
+    f.add_posttokenize_hook(to_upper_hook)
+
+    received = f.preprocess("asd 123<tag> B<tag>LA")
+    expected = ("ASD 123 BLA", ["ASD", "123", "BLA"])
+
+    assert received == expected
+
+
+def test_field_posttokenize_hooks_detach():
+    f = Field(name="F", sequential=True)
+
+    def remove_tags_hook(raw, tokenized):
+        raw = raw.replace("<tag>", "")
+        tokenized = map(lambda x: x.replace("<tag>", ""), tokenized)
+
+        return raw, tokenized
+
+    def to_upper_hook(raw, tokenized):
+        raw = raw.upper()
+        tokenized = map(str.upper, tokenized)
+
+        return raw, tokenized
+
+    f.add_posttokenize_hook(remove_tags_hook)
+    f.add_posttokenize_hook(to_upper_hook)
+
+    # detaching the hooks
+    f.remove_posttokenize_hooks()
+
+    received = f.preprocess("asd 123<tag> B<tag>LA")
+    expected = ("asd 123<tag> B<tag>LA", ["asd", "123<tag>", "B<tag>LA"])
+
+    assert received == expected
+
+
+def test_field_repeated_hooks():
+
+    def replace_tag_hook(raw, tokenized):
+        replaced_tags = map(lambda s: s.replace("<tag>", "ABC"), tokenized)
+
+        return raw, replaced_tags
+
+    def to_lower_hook(raw, tokenized):
+        # keep track of the function call count
+        to_lower_hook.call_count += 1
+
+        tokenized = map(str.lower, tokenized)
+
+        return raw, tokenized
+
+    to_lower_hook.call_count = 0
+
+    f = Field(name="F", sequential=True)
+
+    # TAG -> tag
+    f.add_posttokenize_hook(to_lower_hook)
+
+    # <tag> -> ABC
+    f.add_posttokenize_hook(replace_tag_hook)
+
+    # ABC -> abc
+    f.add_posttokenize_hook(to_lower_hook)
+
+    received = f.preprocess("BLA <TAG> bla")
+
+    expected = ("BLA <TAG> bla", ["bla", "abc", "bla"])
+
+    assert received == expected
+
+    # check that the hook that was added twice was also called twice
+    assert to_lower_hook.call_count == 2

@@ -1,9 +1,10 @@
+from collections import deque
+
 import numpy as np
 
 
 class Field(object):
-    """
-    Holds the preprocessing and numericalization logic for a single
+    """Holds the preprocessing and numericalization logic for a single
     field of a dataset.
     """
 
@@ -74,10 +75,12 @@ class Field(object):
         self.tokenizer = self.get_tokenizer(tokenizer, language)
         self.custom_numericalize = custom_numericalize
 
+        self.pretokenize_hooks = deque()
+        self.posttokenize_hooks = deque()
+
     @property
     def use_vocab(self):
-        """
-        A flag that tells whether the field uses a vocab or not.
+        """A flag that tells whether the field uses a vocab or not.
 
         Returns
         -------
@@ -86,6 +89,75 @@ class Field(object):
         """
 
         return self.vocab is not None
+
+    def add_pretokenize_hook(self, hook):
+        """Add a pre-tokenization hook to the Field.
+        If multiple hooks are added to the field, the order of their execution
+        will be the same as the order in which they were added to the field,
+        each subsequent hook taking the output of the previous hook as its
+        input.
+        If the same function is added to the Field as a hook multiple times,
+        it will be executed that many times.
+        The output of the final pre-tokenization hook is the raw data that the
+        tokenizer will get as its input.
+
+        Pretokenize hooks have the following signature:
+            func pre_tok_hook(raw_data):
+                raw_data_out = do_stuff(raw_data)
+                return raw_data_out
+
+        This can be used to eliminate encoding errors in data, replace numbers
+        and names, etc.
+
+        Parameters
+        ----------
+        hook : callable
+            The pre-tokenization hook that we want to add to the field.
+        """
+
+        self.pretokenize_hooks.append(hook)
+
+    def add_posttokenize_hook(self, hook):
+        """Add a post-tokenization hook to the Field.
+        If multiple hooks are added to the field, the order of their execution
+        will be the same as the order in which they were added to the field,
+        each subsequent hook taking the output of the previous hook as its
+        input.
+        If the same function is added to the Field as a hook multiple times,
+        it will be executed that many times.
+        Post-tokenization hooks are called only if the Field is sequential
+        (in non-sequential fields there is no tokenization and only
+        pre-tokenization hooks are called).
+        The output of the final post-tokenization hook are the raw and
+        tokenized data that the preprocess function will use to produce its
+        result.
+
+        Posttokenize hooks have the following outline:
+            func post_tok_hook(raw_data, tokenized_data):
+                raw_out, tokenized_out = do_stuff(raw_data, tokenized_data)
+                return raw_out, tokenized_out
+
+        where 'tokenized_data' is and 'tokenized_out' should be an iterable.
+
+        Parameters
+        ----------
+        hook : callable
+            The post-tokenization hook that we want to add to the field.
+        """
+
+        self.posttokenize_hooks.append(hook)
+
+    def remove_pretokenize_hooks(self):
+        """Remove all the pre-tokenization hooks that were added to the Field.
+        """
+
+        self.pretokenize_hooks.clear()
+
+    def remove_posttokenize_hooks(self):
+        """Remove all the post-tokenization hooks that were added to the Field.
+        """
+
+        self.posttokenize_hooks.clear()
 
     def preprocess(self, raw):
         """Preprocesses raw data, tokenizing it if the field is sequential,
@@ -108,7 +180,19 @@ class Field(object):
             False, so the function will never return (None, None).
         """
 
-        tokenized = self.tokenizer(raw) if self.sequential else None
+        for hook in self.pretokenize_hooks:
+            raw = hook(raw)
+
+        if self.sequential:
+            tokenized = self.tokenizer(raw) if self.sequential else None
+
+            for hook in self.posttokenize_hooks:
+                raw, tokenized = hook(raw, tokenized)
+
+            tokenized = list(tokenized)
+        else:
+            tokenized = None
+
         raw = raw if self.store_raw else None
 
         if self.eager and self.use_vocab:
