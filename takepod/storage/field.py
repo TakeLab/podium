@@ -18,6 +18,8 @@ class Field(object):
                  store_raw=True,
                  eager=True,
                  custom_numericalize=float,
+                 is_target=False,
+                 fixed_length=None
                  ):
         """Create a Field from arguments.
 
@@ -75,6 +77,9 @@ class Field(object):
 
         self.tokenizer = self.get_tokenizer(tokenizer, language)
         self.custom_numericalize = custom_numericalize
+
+        self.is_target = is_target
+        self.fixed_length = fixed_length
 
         self.pretokenize_hooks = deque()
         self.posttokenize_hooks = deque()
@@ -294,7 +299,7 @@ class Field(object):
             # padding
 
             if self.use_vocab:
-                pad_symbol = self.vocab.pad_symbol
+                pad_symbol = self.vocab.pad_symbol()
             else:
                 pad_symbol = custom_pad_symbol
 

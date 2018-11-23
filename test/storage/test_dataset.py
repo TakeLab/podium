@@ -44,7 +44,7 @@ TABULAR_SOURCES = (
 
 
 class MockField:
-    def __init__(self, name, eager, sequential=True):
+    def __init__(self, name, eager, sequential=True, is_target=False):
         self.name = name
         self.eager = eager
         self.sequential = sequential
@@ -53,6 +53,8 @@ class MockField:
         self.updated_count = 0
 
         self.use_vocab = True
+
+        self.is_target = is_target
 
     def preprocess(self, data):
         return (data, [data]) if self.sequential else (data, None)
@@ -272,13 +274,33 @@ def test_split_stratified_ok(data_for_stratified, field_list):
         assert val_label_counter[label] == test_label_counter[label]
 
 
-def test_split_stratified_exception(data_for_stratified, field_list):
+def test_split_stratified_custom_name(data_for_stratified, field_list):
+    dataset = create_dataset(data_for_stratified, field_list)
+
+    dataset.split(split_ratio=0.5, stratified=True, strata_field_name="label")
+
+
+def test_split_stratified_exception_invalid_name(data_for_stratified,
+                                                 field_list):
     dataset = create_dataset(data_for_stratified, field_list)
 
     # when field with the given name doesn't exist
     with pytest.raises(ValueError):
         dataset.split(split_ratio=0.5, stratified=True,
                       strata_field_name="NOT_label")
+
+
+def test_split_stratified_exception_no_target(data_for_stratified,
+                                              field_list):
+    for field in field_list:
+        field.is_target = False
+
+    dataset = create_dataset(data_for_stratified, field_list)
+
+    # when there is no target fields and the strata field name is not given
+    with pytest.raises(ValueError):
+        dataset.split(split_ratio=0.5, stratified=True)
+
 
 
 @pytest.mark.parametrize(
@@ -421,7 +443,8 @@ def test_tabular_dataset_exception(file_format, use_dict,
 
 @pytest.fixture
 def field_list():
-    return [MockField(field_name, eager) for field_name, eager in FIELD_DATA]
+    return [MockField(field_name, eager, is_target=(field_name == "label"))
+            for field_name, eager in FIELD_DATA]
 
 
 @pytest.fixture()
