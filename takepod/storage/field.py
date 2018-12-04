@@ -1,3 +1,4 @@
+"""Module contains dataset's field definition and methods for construction."""
 from collections import deque
 
 import numpy as np
