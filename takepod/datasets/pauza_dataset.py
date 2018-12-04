@@ -41,8 +41,8 @@ class PauzaHRDataset(dataset.Dataset):
         fields : dict(str, Field)
             dictionary that maps field name to the field
         """
-        unpacked_fields = dataset.unpack_fields(fields)
-        examples = self._create_examples(dir_path, fields)
+        unpacked_fields = dataset.unpack_fields(fields=fields)
+        examples = self._create_examples(dir_path=dir_path, fields=fields)
         super(PauzaHRDataset, self).__init__(examples, unpacked_fields)
 
     @staticmethod
@@ -105,6 +105,8 @@ class PauzaHRDataset(dataset.Dataset):
             data_location, PauzaHRDataset.TRAIN_DIR), fields=fields)
         test_dataset = PauzaHRDataset(dir_path=os.path.join(
             data_location, PauzaHRDataset.TEST_DIR), fields=fields)
+
+        train_dataset.finalize_fields()
         return (train_dataset, test_dataset, fields)
 
     @staticmethod
