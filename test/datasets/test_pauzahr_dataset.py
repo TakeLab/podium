@@ -35,6 +35,7 @@ TEST_EXAMPLES = [{"Text": r"Izvrstan, ogroman Zagrebački,"
                   "Source": r"http://pauza.hr/menu/strossmayer"}
                  ]
 
+
 @pytest.fixture(scope="module")
 def mock_dataset_path():
     base_temp = tempfile.mkdtemp()
