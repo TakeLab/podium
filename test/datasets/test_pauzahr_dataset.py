@@ -92,7 +92,10 @@ def test_default_fields():
 def test_loaded_data(mock_dataset_path):
     data = PauzaHRDataset.get_train_test_dataset(mock_dataset_path)
     train_dataset, _ = data
-    print(list(train_dataset))
     ratings = list(train_dataset.Rating)
+    sources = list(train_dataset.Source)
+    texts = list(train_dataset.Text)
     for ex in TRAIN_EXAMPLES:
         assert (ex["Rating"], None) in ratings
+        assert (None, ex["Text"].split()) in texts
+        assert (ex["Source"], None) in sources
