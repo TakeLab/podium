@@ -77,21 +77,22 @@ def create_mock_xml(base_dir, file_name, example):
 
 def test_return_params(mock_dataset_path):
     data = PauzaHRDataset.get_train_test_dataset(mock_dataset_path)
-    assert len(data) == 3
+    assert len(data) == 2
     assert isinstance(data[0], Dataset)
     assert isinstance(data[1], Dataset)
-    assert len(data[2]) == 3
 
 
-def test_fields_params(mock_dataset_path):
-    data = PauzaHRDataset.get_train_test_dataset(mock_dataset_path)
+def test_default_fields():
+    fields = PauzaHRDataset._get_default_fields()
+    assert len(fields) == 3
     field_names = ["Text", "Rating", "Source"]
-    assert all([name in data[2] for name in field_names])
+    assert all([name in fields for name in field_names])
 
 
 def test_loaded_data(mock_dataset_path):
     data = PauzaHRDataset.get_train_test_dataset(mock_dataset_path)
-    train_dataset = data[0]
+    train_dataset, _ = data
+    print(list(train_dataset))
     ratings = list(train_dataset.Rating)
     for ex in TRAIN_EXAMPLES:
         assert (ex["Rating"], None) in ratings

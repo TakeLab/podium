@@ -29,9 +29,8 @@ class PauzaHRDataset(dataset.Dataset):
     """
 
     URL = "http://takelab.fer.hr/data/cropinion/CropinionDataset.zip"
-    NAME = "croopinion"
-    ROOT_DIR = "CropinionDataset"
-    CURR_DATASET_DIR = "reviews_original"
+    DATASET_DIR = os.path.join("croopinion", "CropinionDataset",
+                               "reviews_original")
     TRAIN_DIR = "Train"
     TEST_DIR = "Test"
 
@@ -79,27 +78,47 @@ class PauzaHRDataset(dataset.Dataset):
         return examples
 
     @staticmethod
-    def get_train_test_dataset(dir_path):
+    def get_train_test_dataset(dir_path, fields=None):
         """Method creates train and test dataset for PauzaHR dataset.
 
         Parameters
         ----------
         dir_path : str
             datasets directory
+        fields : dict(str, Field), optional
+            dictionary mapping field name to field, if not given method will
+            use ```_get_default_fields```.
 
         Returns
         -------
-        (train_dataset, test_dataset, fields) : (Dataset, Dataset, dict)
-            tuple containing train dataset, test dataset and their fields
+        (train_dataset, test_dataset) : (Dataset, Dataset)
+            tuple containing train dataset and test dataset
         """
         data_location = os.path.join(dir_path,
-                                     PauzaHRDataset.NAME,
-                                     PauzaHRDataset.ROOT_DIR,
-                                     PauzaHRDataset.CURR_DATASET_DIR
-                                     )
+                                     PauzaHRDataset.DATASET_DIR)
         if not os.path.exists(path=data_location):
             PauzaHRDataset._download_and_extract(dir_path=dir_path)
 
+        if not fields:
+            fields = PauzaHRDataset._get_default_fields()
+
+        train_dataset = PauzaHRDataset(dir_path=os.path.join(
+            data_location, PauzaHRDataset.TRAIN_DIR), fields=fields)
+        test_dataset = PauzaHRDataset(dir_path=os.path.join(
+            data_location, PauzaHRDataset.TEST_DIR), fields=fields)
+
+        train_dataset.finalize_fields()
+        return (train_dataset, test_dataset)
+
+    @staticmethod
+    def _get_default_fields():
+        """Method returns default PauzaHR fields: rating, source and text.
+
+        Returns
+        -------
+        fields : dict(str, Field)
+            Dictionary mapping field name to field.
+        """
         rating = Field(name="Rating", vocab=Vocab(specials=()),
                        sequential=False, store_raw=True)
         source = Field(name="Source", vocab=Vocab(specials=()),
@@ -108,14 +127,7 @@ class PauzaHRDataset(dataset.Dataset):
                      language="hr", sequential=True, store_raw=False)
 
         fields = {"Text": text, "Rating": rating, "Source": source}
-
-        train_dataset = PauzaHRDataset(dir_path=os.path.join(
-            data_location, PauzaHRDataset.TRAIN_DIR), fields=fields)
-        test_dataset = PauzaHRDataset(dir_path=os.path.join(
-            data_location, PauzaHRDataset.TEST_DIR), fields=fields)
-
-        train_dataset.finalize_fields()
-        return (train_dataset, test_dataset, fields)
+        return fields
 
     @staticmethod
     def _download_and_extract(dir_path):
