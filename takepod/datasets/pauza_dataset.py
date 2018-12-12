@@ -18,16 +18,14 @@ class PauzaHRDataset(dataset.Dataset):
         url to the PauzaHR dataset
     NAME : str
         dataset name
-    ROOT_DIR : str
-        name of dataset's root directory
-    CURR_DATASET_DIR : str
+    DATASET_DIR : str
         name of the folder in the dataset containing train and test directories
     TRAIN_DIR : str
         name of the training directory
     TEST_DIR : str
         name of the directory containing test examples
     """
-
+    NAME = "croopinion"
     URL = "http://takelab.fer.hr/data/cropinion/CropinionDataset.zip"
     DATASET_DIR = os.path.join("croopinion", "CropinionDataset",
                                "reviews_original")
