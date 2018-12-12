@@ -31,14 +31,14 @@ def copyfileobj_with_tqdm(finput, foutput, total_size, buffer_size=16*1024):
             buffer = finput.read(buffer_size)
 
 
-def extract_zip_file(archive_file, destination_file):
+def extract_zip_file(archive_file, destination_dir):
     """Method extracts zip archive to destination.
 
     Parameters
     ----------
     archive_file : str
         path to the archive file that needs to be extracted
-    destination_file : str
+    destination_dir : str
         path where file needs to be decompressed
 
     Raises
@@ -51,11 +51,11 @@ def extract_zip_file(archive_file, destination_file):
             archive_file
         ))
     zip_ref = zipfile.ZipFile(file=archive_file, mode='r')
-    zip_ref.extractall(path=destination_file)
+    zip_ref.extractall(path=destination_dir)
     zip_ref.close()
 
 
-def extract_tar_file(archive_file, destination_file):
+def extract_tar_file(archive_file, destination_dir):
     """Method extracts tar archive to destination, including those archives
     that are created using gzip, bz2 and lzma compression.
 
@@ -63,7 +63,7 @@ def extract_tar_file(archive_file, destination_file):
     ----------
     archive_file : str
         path to the archive file that needs to be extracted
-    destination_file : str
+    destination_dir : str
         path where file needs to be decompressed
 
     Raises
@@ -76,5 +76,5 @@ def extract_tar_file(archive_file, destination_file):
             archive_file
         ))
     tar_ref = tarfile.TarFile(name=archive_file, mode='r')
-    tar_ref.extractall(path=destination_file)
+    tar_ref.extractall(path=destination_dir)
     tar_ref.close()

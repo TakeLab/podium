@@ -93,17 +93,17 @@ class LargeResource:
                                  LargeResource.SUPPORTED_ARCHIVE))
         if self.config[LargeResource.ARCHIVE] == "zip":
             utility.extract_zip_file(archive_file=archive_file,
-                                     destination_file=self.resource_location)
+                                     destination_dir=self.resource_location)
             return
         utility.extract_tar_file(archive_file=archive_file,
-                                 destination_file=self.resource_location)
+                                 destination_dir=self.resource_location)
 
     def _download_unarchive(self):
         """Method downloades resource and decompresses it to resource location.
         """
         os.makedirs(name=self.resource_location)
         download_dir = os.path.join(tempfile.mkdtemp(),
-                                    LargeResource.RESOURCE_NAME)
+                                    self.config[LargeResource.RESOURCE_NAME])
         self._download(download_destination=download_dir)
         self._unarchive(archive_file=download_dir)
 
