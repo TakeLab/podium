@@ -1,4 +1,4 @@
-"""Exampel how to use simple PauzaHR dataset."""
+"""Example how to use simple PauzaHR dataset."""
 from takepod.storage.large_resource import LargeResource
 from takepod.datasets.pauza_dataset import PauzaHRDataset
 
