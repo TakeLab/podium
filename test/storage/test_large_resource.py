@@ -1,7 +1,6 @@
 import os
 import tempfile
 import zipfile
-import tarfile
 import pytest
 from takepod.storage.large_resource import LargeResource
 from takepod.storage.downloader import SimpleHttpDownloader
@@ -72,7 +71,7 @@ def test_file_zip_exists():
 
     base = tempfile.mkdtemp()
     assert os.path.exists(base)
-    os.mkdir(os.path.join(base,MOCK_RESOURCE_NAME))
+    os.mkdir(os.path.join(base, MOCK_RESOURCE_NAME))
     LargeResource(**{LargeResource.URL:"http://fer.hr",
                      LargeResource.RESOURCE_NAME:MOCK_RESOURCE_NAME,
                      LargeResource.ARCHIVE:"zip"})
@@ -83,7 +82,7 @@ def test_file_not_original_archive_exists():
 
     base = tempfile.mkdtemp()
     assert os.path.exists(base)
-    os.mkdir(os.path.join(base,MOCK_RESOURCE_NAME))
+    os.mkdir(os.path.join(base, MOCK_RESOURCE_NAME))
     LargeResource(**{LargeResource.URL:"http://fer.hr",
                      LargeResource.RESOURCE_NAME:MOCK_RESOURCE_NAME,
                      })
@@ -98,8 +97,8 @@ def test_unsupported_archive_type():
     assert os.path.exists(base)
 
     LargeResource.BASE_RESOURCE_DIR = base
-    
+
     with pytest.raises(ValueError):
         LargeResource(**{LargeResource.URL:"http://fer.hr",
-                     LargeResource.RESOURCE_NAME:MOCK_RESOURCE_NAME,
-                     LargeResource.ARCHIVE:"archive_not_supp"})
+                         LargeResource.RESOURCE_NAME:MOCK_RESOURCE_NAME,
+                         LargeResource.ARCHIVE:"archive_not_supp"})
