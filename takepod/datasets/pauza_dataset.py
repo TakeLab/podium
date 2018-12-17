@@ -1,13 +1,10 @@
 """Module contains PauzaHR datasets."""
 import os
-import tempfile
-import zipfile
 from takepod.storage import dataset
 from takepod.storage.example import Example
 from takepod.storage.field import Field
 from takepod.storage.vocab import Vocab
-from takepod.storage.downloader import SimpleHttpDownloader
-
+from takepod.storage.large_resource import LargeResource
 
 class PauzaHRDataset(dataset.Dataset):
     """Simple PauzaHR dataset class which uses original reviews.
@@ -44,9 +41,14 @@ class PauzaHRDataset(dataset.Dataset):
         fields : dict(str, Field)
             dictionary that maps field name to the field
         """
+        LargeResource(**{
+            LargeResource.RESOURCE_NAME:PauzaHRDataset.NAME,
+            LargeResource.ARCHIVE:"zip",
+            LargeResource.URL:PauzaHRDataset.URL})
         unpacked_fields = dataset.unpack_fields(fields=fields)
         examples = self._create_examples(dir_path=dir_path, fields=fields)
-        super(PauzaHRDataset, self).__init__(examples, unpacked_fields)
+        super(PauzaHRDataset, self).__init__(
+            **{"examples":examples, "fields":unpacked_fields})
 
     @staticmethod
     def _create_examples(dir_path, fields):
@@ -76,13 +78,11 @@ class PauzaHRDataset(dataset.Dataset):
         return examples
 
     @staticmethod
-    def get_train_test_dataset(dir_path, fields=None):
+    def get_train_test_dataset(fields=None):
         """Method creates train and test dataset for PauzaHR dataset.
 
         Parameters
         ----------
-        dir_path : str
-            datasets directory
         fields : dict(str, Field), optional
             dictionary mapping field name to field, if not given method will
             use ```_get_default_fields```.
@@ -92,11 +92,8 @@ class PauzaHRDataset(dataset.Dataset):
         (train_dataset, test_dataset) : (Dataset, Dataset)
             tuple containing train dataset and test dataset
         """
-        data_location = os.path.join(dir_path,
+        data_location = os.path.join(LargeResource.BASE_RESOURCE_DIR,
                                      PauzaHRDataset.DATASET_DIR)
-        if not os.path.exists(path=data_location):
-            PauzaHRDataset._download_and_extract(dir_path=dir_path)
-
         if not fields:
             fields = PauzaHRDataset._get_default_fields()
 
@@ -126,20 +123,3 @@ class PauzaHRDataset(dataset.Dataset):
 
         fields = {"Text": text, "Rating": rating, "Source": source}
         return fields
-
-    @staticmethod
-    def _download_and_extract(dir_path):
-        """Method downloades and extracts PauzaHR dataset.
-
-        Parameters
-        ----------
-        dir_path : str
-            path to datasets directory
-        """
-        os.makedirs(name=dir_path)
-        download_dir = tempfile.mkdtemp()
-        SimpleHttpDownloader.download(uri=PauzaHRDataset.URL,
-                                      path=download_dir, overwrite=False)
-        zip_ref = zipfile.ZipFile(download_dir, 'r')
-        zip_ref.extractall(dir_path)
-        zip_ref.close()

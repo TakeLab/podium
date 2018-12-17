@@ -3,6 +3,7 @@ import tempfile
 import pytest
 from takepod.datasets.pauza_dataset import PauzaHRDataset
 from takepod.storage.dataset import Dataset
+from takepod.storage.large_resource import LargeResource
 
 TRAIN_EXAMPLES = [{"Text": r"Izvrstan, ogroman Zagrebački,"
                            r" dostava na vrijeme, ljubazno osoblje ...",
@@ -40,6 +41,7 @@ TEST_EXAMPLES = [{"Text": r"Izvrstan, ogroman Zagrebački,"
 def mock_dataset_path():
     base_temp = tempfile.mkdtemp()
     assert os.path.exists(base_temp)
+    LargeResource.BASE_RESOURCE_DIR=base_temp
     base_dataset_dir = os.path.join(base_temp, "croopinion",
                                     "CropinionDataset", "reviews_original")
 
@@ -76,7 +78,7 @@ def create_mock_xml(base_dir, file_name, example):
 
 
 def test_return_params(mock_dataset_path):
-    data = PauzaHRDataset.get_train_test_dataset(mock_dataset_path)
+    data = PauzaHRDataset.get_train_test_dataset()
     assert len(data) == 2
     assert isinstance(data[0], Dataset)
     assert isinstance(data[1], Dataset)
@@ -90,8 +92,10 @@ def test_default_fields():
 
 
 def test_loaded_data(mock_dataset_path):
-    data = PauzaHRDataset.get_train_test_dataset(mock_dataset_path)
+    data = PauzaHRDataset.get_train_test_dataset()
     train_dataset, _ = data
+    for ex in train_dataset:
+        print(ex)
     ratings = list(train_dataset.Rating)
     sources = list(train_dataset.Source)
     texts = list(train_dataset.Text)
