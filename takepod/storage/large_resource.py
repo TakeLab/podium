@@ -54,7 +54,7 @@ class LargeResource:
         if os.path.exists(self.resource_location):
             return
         if LargeResource.ARCHIVE in self.config\
-            and self.config[LargeResource.ARCHIVE]:
+                and self.config[LargeResource.ARCHIVE]:
             self._download_unarchive()
             return
         self._download(download_destination=self.resource_location)

@@ -6,6 +6,7 @@ from takepod.storage.field import Field
 from takepod.storage.vocab import Vocab
 from takepod.storage.large_resource import LargeResource
 
+
 class PauzaHRDataset(dataset.Dataset):
     """Simple PauzaHR dataset class which uses original reviews.
 
@@ -42,13 +43,13 @@ class PauzaHRDataset(dataset.Dataset):
             dictionary that maps field name to the field
         """
         LargeResource(**{
-            LargeResource.RESOURCE_NAME:PauzaHRDataset.NAME,
-            LargeResource.ARCHIVE:"zip",
-            LargeResource.URL:PauzaHRDataset.URL})
+            LargeResource.RESOURCE_NAME: PauzaHRDataset.NAME,
+            LargeResource.ARCHIVE: "zip",
+            LargeResource.URL: PauzaHRDataset.URL})
         unpacked_fields = dataset.unpack_fields(fields=fields)
         examples = self._create_examples(dir_path=dir_path, fields=fields)
         super(PauzaHRDataset, self).__init__(
-            **{"examples":examples, "fields":unpacked_fields})
+            **{"examples": examples, "fields": unpacked_fields})
 
     @staticmethod
     def _create_examples(dir_path, fields):
