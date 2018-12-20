@@ -8,13 +8,15 @@ is SimpleHttpDownloader.
 from abc import ABC, abstractclassmethod
 import os
 import requests
+import paramiko
 from takepod.storage.utility import copyfileobj_with_tqdm
+
 
 
 class BaseDownloader(ABC):
     '''BaseDownloader interface for downloader classes.'''
     @abstractclassmethod
-    def download(cls, uri, path, overwrite=False):
+    def download(cls, uri, path, overwrite=False, **kwargs):
         '''Function downloades file from given URI to given path.
         If the overwrite variable is true and given path already exists
         it will be overwriten with new file.
@@ -43,6 +45,39 @@ class BaseDownloader(ABC):
         '''
         pass
 
+
+class SCPDownloader(BaseDownloader):
+    USER_NAME_KEY = "username"
+    PASSWORD_KEY = "password"
+    HOST_ADDR_KEY = "host"
+    PUBLIC_KEY_FILE_KEY = "pub_key"
+    @classmethod
+    def download(cls, uri, path, overwrite=False, **kwargs):
+        if path is None or uri is None:
+            raise ValueError(
+                "Path and url mustn't be None."
+                "Given path: {}, {}".format(str(path), str(uri)))
+
+        if not overwrite and os.path.exists(path):
+            return False
+
+        client = paramiko.SSHClient()
+        client.load_system_host_keys()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        if cls.PUBLIC_KEY_FILE_KEY not in kwargs:
+            kwargs[cls.PUBLIC_KEY_FILE_KEY] = None
+        if cls.PASSWORD_KEY not in kwargs:
+            kwargs[cls.PASSWORD_KEY] = None
+        print(kwargs[cls.PUBLIC_KEY_FILE_KEY])
+        client.connect(hostname=kwargs[cls.HOST_ADDR_KEY],
+                       username=kwargs[cls.USER_NAME_KEY],
+                       password=kwargs[cls.PASSWORD_KEY],
+                       key_filename=kwargs[cls.PUBLIC_KEY_FILE_KEY])
+        sftp = client.open_sftp()
+        sftp.get(localpath=path, remotepath=uri)
+        sftp.close()
+        client.close()
+        return True
 
 class HttpDownloader(BaseDownloader, ABC):
     '''Interface for downloader that uses http protocol for data transfer.'''
@@ -89,7 +124,7 @@ class SimpleHttpDownloader(HttpDownloader):
 
     '''
     @classmethod
-    def download(cls, uri, path, overwrite=False):
+    def download(cls, uri, path, overwrite=False, **kwargs):
         if path is None or uri is None:
             raise ValueError(
                 "Path and url mustn't be None."
@@ -102,3 +137,13 @@ class SimpleHttpDownloader(HttpDownloader):
                 open(path, 'wb') as output_file:
             success = cls._process_response(response, output_file)
             return success
+
+
+if __name__ == "__main__":
+    config = {SCPDownloader.HOST_ADDR_KEY:"djurdja.takelab.fer.hr",
+              SCPDownloader.USER_NAME_KEY:"user",
+              SCPDownloader.PASSWORD_KEY:"password",
+              SCPDownloader.PUBLIC_KEY_FILE_KEY:"D:\\TakeLab\\"
+                                                "takleab_ssh"}
+    SCPDownloader.download(uri="/home/dpluscec/test_file.txt",
+                           path="test_file.txt", **config)
