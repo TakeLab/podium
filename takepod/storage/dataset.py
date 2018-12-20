@@ -8,7 +8,6 @@ from functools import partial
 from abc import ABC
 
 from takepod.storage.example import Example
-from takepod.storage.field import Field
 
 
 class Dataset(ABC):
@@ -183,16 +182,12 @@ class Dataset(ABC):
                 shuffle
             )
         else:
+            strata_field_name = self._get_strata_field_name(strata_field_name)
+
             if strata_field_name is None:
-                for field in self.fields:
-                    if field.is_target:
-                        strata_field_name = field.name
-                        break
-                else:
-                    # if the loop doesn't break
-                    raise ValueError(
-                        f"If strata_field_name is not provided, at least one"
-                        f" field has to have is_target equal to True.")
+                raise ValueError(
+                    f"If strata_field_name is not provided, at least one"
+                    f" field has to have is_target equal to True.")
 
             if strata_field_name not in self.field_names:
                 raise ValueError(f"Invalid strata field name: "
@@ -214,6 +209,16 @@ class Dataset(ABC):
                 subset.sort_key = self.sort_key
 
         return splits
+
+    def _get_strata_field_name(self, strata_field_name):
+        if strata_field_name is not None:
+            return strata_field_name
+
+        for field in self.fields:
+            if field.is_target:
+                return field.name
+
+        return None
 
 
 class TabularDataset(Dataset):

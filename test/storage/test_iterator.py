@@ -1,8 +1,6 @@
 import os
 import random
 
-import pandas as pd
-
 import pytest
 import numpy as np
 
@@ -10,6 +8,7 @@ from takepod.storage.dataset import TabularDataset
 from takepod.storage.field import Field
 from takepod.storage.iterator import Iterator, BucketIterator
 from takepod.storage.vocab import Vocab
+from .conftest import create_temp_json
 
 
 @pytest.mark.parametrize(
@@ -43,7 +42,7 @@ def test_len(batch_size, expected_len, dataset):
     ]
 )
 def test_padding(fixed_length, expected_shape, file_path):
-    fields = tabular_dataset_fields(True, fixed_length)
+    fields = tabular_dataset_fields(fixed_length)
     ds = create_tabular_dataset_from_json(fields, file_path)
 
     batch_size = 7
@@ -152,9 +151,13 @@ def test_shuffle_deterministic_sequence(seed_1, seed_2, num_epochs_1,
     run_n_epochs(iterator_2, num_epochs_2)  # iterate for num_epochs_2 epochs
 
     random.seed(44)  # internal random state independent from global seed
+
     if expect_identical_behaviour:
         assert iterators_behave_identically(iterator, iterator_2)
     else:
+        # Beware, for some combination of different seeds and numbers of
+        # epochs the iterators might actually behave identically.
+        # For the chosen combination they don't.
         assert not iterators_behave_identically(iterator, iterator_2)
 
 
@@ -321,26 +324,13 @@ def vocab(tabular_dataset_fields):
     return tabular_dataset_fields["text"].vocab
 
 
-def create_temp_json(path, data):
-    df = pd.DataFrame(data)
-    lines = (df.loc[i].to_json() + "\n" for i in df.index)
-
-    with open(path, "w") as f:
-        f.writelines(lines)
-
-
 @pytest.fixture()
 def dataset(file_path, tabular_dataset_fields):
     return create_tabular_dataset_from_json(tabular_dataset_fields, file_path)
 
 
 @pytest.fixture()
-def use_dict():
-    return True
-
-
-@pytest.fixture()
-def tabular_dataset_fields(use_dict, fixed_length=None):
+def tabular_dataset_fields(fixed_length=None):
     TEXT = Field('text', eager=True, vocab=Vocab(), fixed_length=fixed_length)
     RATING = Field('rating', sequential=False, eager=False, is_target=True)
 

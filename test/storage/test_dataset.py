@@ -1,7 +1,4 @@
-import os
 from collections import Counter
-
-import pandas as pd
 
 from takepod.storage.dataset import Dataset, TabularDataset
 import pytest
@@ -302,7 +299,6 @@ def test_split_stratified_exception_no_target(data_for_stratified,
         dataset.split(split_ratio=0.5, stratified=True)
 
 
-
 @pytest.mark.parametrize(
     "file_format, use_dict",
     FORMAT_USE_DICT_COMBINATIONS
@@ -485,21 +481,6 @@ def tabular_data():
             "source": TABULAR_SOURCES}
 
 
-@pytest.fixture()
-def file_path(tmpdir, file_format, tabular_data):
-    # tmpdir is a default pytest fixture
-    path = os.path.join(tmpdir, "sample." + file_format)
-
-    if file_format == "csv":
-        create_temp_csv(path, ",", tabular_data)
-    elif file_format == "tsv":
-        create_temp_csv(path, "\t", tabular_data)
-    else:
-        create_temp_json(path, tabular_data)
-
-    yield path
-
-
 def create_dataset(data, field_list):
     examples = [MockExample(field_list, d) for d in data]
 
@@ -511,16 +492,3 @@ def create_tabular_dataset(fields, file_format, file_path, use_dict):
 
     return TabularDataset(file_path, file_format, fields,
                           skip_header=skip_header)
-
-
-def create_temp_csv(path, delimiter, data):
-    df = pd.DataFrame(data)
-    df.to_csv(path, sep=delimiter, index=False)
-
-
-def create_temp_json(path, data):
-    df = pd.DataFrame(data)
-    lines = (df.loc[i].to_json() + "\n" for i in df.index)
-
-    with open(path, "w") as f:
-        f.writelines(lines)

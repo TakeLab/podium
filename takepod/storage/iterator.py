@@ -28,7 +28,7 @@ class Iterator:
         batch_size : int
             The size of the batches that the iterator will return. If the
             number of examples in the dataset is not a multiple of
-            batch_sizethe last returned batch will be smaller
+            batch_size the last returned batch will be smaller
             (dataset_len MOD batch_size).
         sort_key : callable
             A callable object used to sort the dataset prior to batching. If
@@ -247,7 +247,6 @@ class Iterator:
         input_batch = self.input_batch_class(**input_batch_dict)
         target_batch = self.target_batch_class(**target_batch_dict)
 
-        # returns the tuple (InputBatch object, TargetBatch object)
         return input_batch, target_batch
 
     @staticmethod
@@ -263,7 +262,7 @@ class Iterator:
         # if fixed_length is None, then return the maximum length of all the
         # examples in the batch
         def length_of_field(example):
-            tokens = getattr(example, field.name)[1]
+            _, tokens = getattr(example, field.name)
             return len(tokens)
 
         return max(map(length_of_field, examples))
