@@ -45,7 +45,7 @@ class PauzaHRDataset(dataset.Dataset):
         LargeResource(**{
             LargeResource.RESOURCE_NAME: PauzaHRDataset.NAME,
             LargeResource.ARCHIVE: "zip",
-            LargeResource.URL: PauzaHRDataset.URL})
+            LargeResource.URI: PauzaHRDataset.URL})
         unpacked_fields = dataset.unpack_fields(fields=fields)
         examples = self._create_examples(dir_path=dir_path, fields=fields)
         super(PauzaHRDataset, self).__init__(

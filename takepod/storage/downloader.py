@@ -47,12 +47,60 @@ class BaseDownloader(ABC):
 
 
 class SCPDownloader(BaseDownloader):
+    """Class for downloading file from server using sftp on top of
+    ssh protocol.
+
+    Attributes
+    ----------
+    USER_NAME_KEY : str
+        key for defining keyword argument for username
+    PASSWORD_KEY : str, optional
+        key for defining keyword argument for password
+        if the private key file uses paraphrase, user should define it here
+    HOST_ADDR_KEY : str
+        key for defining keyword argument for remote host address
+    PRIVATE_KEY_FILE_KEY : str, optional
+        key for defining keyword argument for private key location
+        if the user uses default linux private key location this argument
+        can be set to None
+
+    """
     USER_NAME_KEY = "username"
     PASSWORD_KEY = "password"
     HOST_ADDR_KEY = "host"
-    PUBLIC_KEY_FILE_KEY = "pub_key"
+    PRIVATE_KEY_FILE_KEY = "pub_key"
+
     @classmethod
     def download(cls, uri, path, overwrite=False, **kwargs):
+        """Method downloades
+        If the overwrite variable is true and given path already
+        exists it will be overwriten with new file.
+
+        Parameters
+        ----------
+        uri : str
+            URI of the file on remote machine
+        path : str
+            path of the file on local machine
+        overwrite : bool
+                        if true and given path exists downloaded file
+                        will overwrite existing files
+        kwargs : dict(str, str)
+            key word arguments that are described in class attributes
+            used for connecting to the remote machine
+        Returns
+        -------
+        rewrite_status: bool
+            True if download was successful or False if the file already exists
+            and given overwrite value was False.
+
+        Raises
+        ------
+        ValueError
+            if given uri or path are None
+        RuntimeError
+            if there was an error while obtaining resource from uri
+        """
         if path is None or uri is None:
             raise ValueError(
                 "Path and url mustn't be None."
@@ -61,20 +109,24 @@ class SCPDownloader(BaseDownloader):
         if not overwrite and os.path.exists(path):
             return False
 
+        if cls.PRIVATE_KEY_FILE_KEY not in kwargs:
+            kwargs[cls.PRIVATE_KEY_FILE_KEY] = None
+        if cls.PASSWORD_KEY not in kwargs:
+            kwargs[cls.PASSWORD_KEY] = None
+
+
         client = paramiko.SSHClient()
         client.load_system_host_keys()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        if cls.PUBLIC_KEY_FILE_KEY not in kwargs:
-            kwargs[cls.PUBLIC_KEY_FILE_KEY] = None
-        if cls.PASSWORD_KEY not in kwargs:
-            kwargs[cls.PASSWORD_KEY] = None
-        print(kwargs[cls.PUBLIC_KEY_FILE_KEY])
+
         client.connect(hostname=kwargs[cls.HOST_ADDR_KEY],
                        username=kwargs[cls.USER_NAME_KEY],
                        password=kwargs[cls.PASSWORD_KEY],
-                       key_filename=kwargs[cls.PUBLIC_KEY_FILE_KEY])
+                       key_filename=kwargs[cls.PRIVATE_KEY_FILE_KEY])
+
         sftp = client.open_sftp()
         sftp.get(localpath=path, remotepath=uri)
+
         sftp.close()
         client.close()
         return True
@@ -137,13 +189,3 @@ class SimpleHttpDownloader(HttpDownloader):
                 open(path, 'wb') as output_file:
             success = cls._process_response(response, output_file)
             return success
-
-
-if __name__ == "__main__":
-    config = {SCPDownloader.HOST_ADDR_KEY:"djurdja.takelab.fer.hr",
-              SCPDownloader.USER_NAME_KEY:"user",
-              SCPDownloader.PASSWORD_KEY:"password",
-              SCPDownloader.PUBLIC_KEY_FILE_KEY:"D:\\TakeLab\\"
-                                                "takleab_ssh"}
-    SCPDownloader.download(uri="/home/dpluscec/test_file.txt",
-                           path="test_file.txt", **config)
