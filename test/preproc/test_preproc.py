@@ -1,5 +1,5 @@
-from takepod.preproc.stemmer.croatian_stemmer import CroatianStemmer
 import pytest
+from takepod.preproc.stemmer.croatian_stemmer import CroatianStemmer
 
 
 @pytest.fixture(scope='module')
