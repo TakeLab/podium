@@ -156,8 +156,8 @@ class SCPLargeResource(LargeResource):
             SCPDownloader.HOST_ADDR_KEY: kwargs[SCPLargeResource.SCP_HOST_KEY],
             SCPDownloader.USER_NAME_KEY: kwargs[SCPLargeResource.SCP_USER_KEY],
             SCPDownloader.PASSWORD_KEY: kwargs[SCPLargeResource.SCP_PASS_KEY],
-            SCPDownloader.PRIVATE_KEY_FILE_KEY:\
-                    kwargs[SCPLargeResource.SCP_PRIVATE_KEY]
+            SCPDownloader.PRIVATE_KEY_FILE_KEY: kwargs[
+                SCPLargeResource.SCP_PRIVATE_KEY]
         }
         super(SCPLargeResource, self).__init__(**kwargs)
 

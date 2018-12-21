@@ -2,6 +2,7 @@ import os
 import tempfile
 import zipfile
 import pytest
+import paramiko
 from takepod.storage.large_resource import LargeResource, SCPLargeResource
 from takepod.storage.downloader import SimpleHttpDownloader, SCPDownloader
 
@@ -116,11 +117,36 @@ def test_scp_download_file():
 
     SCPLargeResource(**{LargeResource.URI: "http://fer.hr",
                         LargeResource.RESOURCE_NAME: MOCK_RESOURCE_NAME,
-                        SCPLargeResource.SCP_HOST_KEY:"djurdja.takelab.fer.hr",
-                        SCPLargeResource.SCP_USER_KEY:"user",
-                        SCPLargeResource.SCP_PASS_KEY:"password",
-                        SCPLargeResource.SCP_PRIVATE_KEY:"D:\\TakeLab\\"
-                                                         "takleab_ssh"})
+                        SCPLargeResource.SCP_HOST_KEY: "djurdja.fer.hr",
+                        SCPLargeResource.SCP_USER_KEY: "user",
+                        SCPLargeResource.SCP_PASS_KEY: "password",
+                        SCPLargeResource.SCP_PRIVATE_KEY: "D:\\TakeLab\\"
+                                                          "takleab_ssh"})
+
+    abs_file_path = os.path.join(base, MOCK_RESOURCE_NAME)
+    assert os.path.exists(abs_file_path)
+    with open(file=abs_file_path, mode='r') as fpr:
+        content = fpr.read()
+        assert content == MOCK_FILE_CONTENT
+
+
+def test_scp_download_file_paraminko_mock():
+    paramiko.SSHClient.connect = lambda **kwards: None
+    paramiko.SFTPClient.get = lambda remotepath, localpath:\
+        create_mock_file(remotepath)
+
+    base = tempfile.mkdtemp()
+    assert os.path.exists(base)
+
+    LargeResource.BASE_RESOURCE_DIR = base
+
+    SCPLargeResource(**{LargeResource.URI: "http://fer.hr",
+                        LargeResource.RESOURCE_NAME: MOCK_RESOURCE_NAME,
+                        SCPLargeResource.SCP_HOST_KEY: "djurdja.fer.hr",
+                        SCPLargeResource.SCP_USER_KEY: "user",
+                        SCPLargeResource.SCP_PASS_KEY: "password",
+                        SCPLargeResource.SCP_PRIVATE_KEY: "D:\\TakeLab\\"
+                                                          "takleab_ssh"})
 
     abs_file_path = os.path.join(base, MOCK_RESOURCE_NAME)
     assert os.path.exists(abs_file_path)
