@@ -8,13 +8,14 @@ is SimpleHttpDownloader.
 from abc import ABC, abstractclassmethod
 import os
 import requests
+import paramiko
 from takepod.storage.utility import copyfileobj_with_tqdm
 
 
 class BaseDownloader(ABC):
     '''BaseDownloader interface for downloader classes.'''
     @abstractclassmethod
-    def download(cls, uri, path, overwrite=False):
+    def download(cls, uri, path, overwrite=False, **kwargs):
         '''Function downloades file from given URI to given path.
         If the overwrite variable is true and given path already exists
         it will be overwriten with new file.
@@ -42,6 +43,93 @@ class BaseDownloader(ABC):
 
         '''
         pass
+
+
+class SCPDownloader(BaseDownloader):
+    """Class for downloading file from server using sftp on top of
+    ssh protocol.
+
+    Attributes
+    ----------
+    USER_NAME_KEY : str
+        key for defining keyword argument for username
+    PASSWORD_KEY : str, optional
+        key for defining keyword argument for password
+        if the private key file uses paraphrase, user should define it here
+    HOST_ADDR_KEY : str
+        key for defining keyword argument for remote host address
+    PRIVATE_KEY_FILE_KEY : str, optional
+        key for defining keyword argument for private key location
+        if the user uses default linux private key location this argument
+        can be set to None
+
+    """
+    USER_NAME_KEY = "scp_user"
+    PASSWORD_KEY = "scp_pass"
+    HOST_ADDR_KEY = "scp_host"
+    PRIVATE_KEY_FILE_KEY = "scp_priv"
+
+    @classmethod
+    def download(cls, uri, path, overwrite=False, **kwargs):
+        """Method downloades
+        If the overwrite variable is true and given path already
+        exists it will be overwriten with new file.
+
+        Parameters
+        ----------
+        uri : str
+            URI of the file on remote machine
+        path : str
+            path of the file on local machine
+        overwrite : bool
+                        if true and given path exists downloaded file
+                        will overwrite existing files
+        kwargs : dict(str, str)
+            key word arguments that are described in class attributes
+            used for connecting to the remote machine
+        Returns
+        -------
+        rewrite_status: bool
+            True if download was successful or False if the file already exists
+            and given overwrite value was False.
+
+        Raises
+        ------
+        ValueError
+            if given uri or path are None, or if the host is not defined
+        RuntimeError
+            if there was an error while obtaining resource from uri
+        """
+        if path is None or uri is None:
+            raise ValueError(
+                "Path and url mustn't be None."
+                "Given path: {}, {}".format(str(path), str(uri)))
+        if cls.HOST_ADDR_KEY not in kwargs or not kwargs[cls.HOST_ADDR_KEY]:
+            raise ValueError("Host address mustn't be None")
+
+        if not overwrite and os.path.exists(path):
+            return False
+
+        if cls.PRIVATE_KEY_FILE_KEY not in kwargs:
+            kwargs[cls.PRIVATE_KEY_FILE_KEY] = None
+        if cls.PASSWORD_KEY not in kwargs:
+            kwargs[cls.PASSWORD_KEY] = None
+
+        client = paramiko.SSHClient()
+        client.load_system_host_keys()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        client.connect(hostname=kwargs[cls.HOST_ADDR_KEY],
+                       username=kwargs[cls.USER_NAME_KEY],
+                       password=kwargs[cls.PASSWORD_KEY],
+                       key_filename=kwargs[cls.PRIVATE_KEY_FILE_KEY])
+
+        sftp = client.open_sftp()
+        sftp.get(localpath=path, remotepath=uri)
+
+        sftp.close()
+        client.close()
+        return True
 
 
 class HttpDownloader(BaseDownloader, ABC):
@@ -89,7 +177,7 @@ class SimpleHttpDownloader(HttpDownloader):
 
     '''
     @classmethod
-    def download(cls, uri, path, overwrite=False):
+    def download(cls, uri, path, overwrite=False, **kwargs):
         if path is None or uri is None:
             raise ValueError(
                 "Path and url mustn't be None."

@@ -2,7 +2,7 @@
 large resources that should be downloaded should use this module."""
 import os
 import tempfile
-from takepod.storage.downloader import SimpleHttpDownloader
+from takepod.storage.downloader import SimpleHttpDownloader, SCPDownloader
 from takepod.storage import utility
 
 
@@ -25,7 +25,7 @@ class LargeResource:
     """
     BASE_RESOURCE_DIR = "."
     RESOURCE_NAME = "resource"
-    URL = "url"
+    URI = "uri"
     ARCHIVE = "archive"
     SUPPORTED_ARCHIVE = ["zip", "tar", "bz2", "lzma"]
 
@@ -67,7 +67,7 @@ class LargeResource:
         download_destination : str
             place where to download resource
         """
-        SimpleHttpDownloader.download(uri=self.config[LargeResource.URL],
+        SimpleHttpDownloader.download(uri=self.config[LargeResource.URI],
                                       path=download_destination,
                                       overwrite=False)
 
@@ -121,8 +121,55 @@ class LargeResource:
         ValueError
             if resource name or url are not defined
         """
-        essential_arguments = [LargeResource.RESOURCE_NAME, LargeResource.URL]
+        essential_arguments = [LargeResource.RESOURCE_NAME, LargeResource.URI]
         for arg in essential_arguments:
             if arg not in arguments or not arguments[arg]:
                 raise ValueError(arg+" must be defined"
                                  " while defining Large Resource")
+
+
+class SCPLargeResource(LargeResource):
+    """Large resource that needs to download files from URI using scp protocol.
+    For other functionalities class uses Large Resource class.
+
+    Attributes
+    ----------
+    SCP_HOST_KEY : str
+        key for keyword argument that defines remote host address
+    SCP_USER_KEY : str
+        key for keyword argument that defines remote host username
+    SCP_PASS_KEY : str, optional
+        key for keyword argument that defines remote host password or
+        passphrase used in private key
+    SCP_PRIVATE_KEY : str, optional
+        key for keyword argument that defines location for private key
+        on linux OS it can be optional if the key is in default location
+
+    """
+    SCP_HOST_KEY = "scp_host"
+    SCP_USER_KEY = "scp_user"
+    SCP_PASS_KEY = "scp_pass"
+    SCP_PRIVATE_KEY = "scp_priv"
+
+    def __init__(self, **kwargs):
+        self._scp_config = {
+            SCPDownloader.HOST_ADDR_KEY: kwargs[SCPLargeResource.SCP_HOST_KEY],
+            SCPDownloader.USER_NAME_KEY: kwargs[SCPLargeResource.SCP_USER_KEY],
+            SCPDownloader.PASSWORD_KEY: kwargs[SCPLargeResource.SCP_PASS_KEY],
+            SCPDownloader.PRIVATE_KEY_FILE_KEY: kwargs[
+                SCPLargeResource.SCP_PRIVATE_KEY]
+        }
+        super(SCPLargeResource, self).__init__(**kwargs)
+
+    def _download(self, download_destination):
+        """Method downloades file from config URL to given directory.
+
+        Parameters
+        ----------
+        download_destination : str
+            place where to download resource
+        """
+        SCPDownloader.download(uri=self.config[LargeResource.URI],
+                               path=download_destination,
+                               overwrite=False,
+                               **self._scp_config)
