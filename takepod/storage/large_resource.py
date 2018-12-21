@@ -159,7 +159,7 @@ class SCPLargeResource(LargeResource):
             SCPDownloader.PRIVATE_KEY_FILE_KEY:\
                     kwargs[SCPLargeResource.SCP_PRIVATE_KEY]
         }
-        super(SCPLargeResource, self).__init__(kwargs)
+        super(SCPLargeResource, self).__init__(**kwargs)
 
     def _download(self, download_destination):
         """Method downloades file from config URL to given directory.

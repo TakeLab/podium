@@ -52,8 +52,8 @@ def test_simple_url_downloader_file_already_exists_no_overwrite():
         original_fp.write("original")
 
     dl = downloader.SimpleHttpDownloader
-    returnValue = dl.download(path=file_path, uri=URL)
-    assert not returnValue
+    return_value = dl.download(path=file_path, uri=URL)
+    assert not return_value
     with open(file_path, 'r') as original_fp:
         assert original_fp.read() == "original"
 
@@ -122,3 +122,68 @@ def _mock_response(base_path, url, data_bytes,
     original_response.read = response_fp.read
     resp.raw = original_response
     requests.get = Mock(return_value=resp)
+
+
+def test_scp_downloader_no_path():
+    dl = downloader.SCPDownloader
+    config = {"uri": "https://www.fake.hr/file.htm",
+              "path": None,
+              dl.HOST_ADDR_KEY:"djurdja.takelab.fer.hr",
+              dl.USER_NAME_KEY:"user",
+              dl.PASSWORD_KEY:"password",
+              dl.PRIVATE_KEY_FILE_KEY:"D:\\TakeLab\\"
+                                      "takleab_ssh"}
+
+    with pytest.raises(ValueError):
+        dl.download(**config)
+
+
+def test_scp_downloader_no_uri():
+    dl = downloader.SCPDownloader
+    config = {"uri": None,
+              "path": "path",
+              dl.HOST_ADDR_KEY:"djurdja.takelab.fer.hr",
+              dl.USER_NAME_KEY:"user",
+              dl.PASSWORD_KEY:"password",
+              dl.PRIVATE_KEY_FILE_KEY:"D:\\TakeLab\\"
+                                      "takleab_ssh"}
+
+    with pytest.raises(ValueError):
+        dl.download(**config)
+
+
+def test_scp_downloader_no_host_name():
+    dl = downloader.SCPDownloader
+    config = {"uri": "https://www.fake.hr/file.htm",
+              "path": "path",
+              dl.HOST_ADDR_KEY:None,
+              dl.USER_NAME_KEY:"user",
+              dl.PASSWORD_KEY:"password",
+              dl.PRIVATE_KEY_FILE_KEY:"D:\\TakeLab\\"
+                                      "takleab_ssh"}
+
+    with pytest.raises(ValueError):
+        dl.download(**config)
+
+
+def test_scp_downloader_file_already_exists_no_overwrite():
+   # temporary directory
+    base = tempfile.mkdtemp()
+    assert os.path.exists(base)
+
+    file_path = os.path.join(base, "file.txt")
+    with open(file_path, 'w') as original_fp:
+        original_fp.write("original")
+
+    dl = downloader.SCPDownloader
+    config = {"uri": "https://www.fake.hr/file.htm",
+              "path": file_path,
+              dl.HOST_ADDR_KEY:"djurdja.takelab.fer.hr",
+              dl.USER_NAME_KEY:"user",
+              dl.PASSWORD_KEY:"password",
+              dl.PRIVATE_KEY_FILE_KEY:"D:\\TakeLab\\"
+                                      "takleab_ssh"}
+    return_value = dl.download(**config)
+    assert not return_value
+    with open(file_path, 'r') as original_fp:
+        assert original_fp.read() == "original"

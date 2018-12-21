@@ -2,8 +2,8 @@ import os
 import tempfile
 import zipfile
 import pytest
-from takepod.storage.large_resource import LargeResource
-from takepod.storage.downloader import SimpleHttpDownloader
+from takepod.storage.large_resource import LargeResource, SCPLargeResource
+from takepod.storage.downloader import SimpleHttpDownloader, SCPDownloader
 
 MOCK_RESOURCE_NAME = "res"
 MOCK_FILE_NAME = "test_file.txt"
@@ -86,8 +86,7 @@ def test_file_not_original_archive_exists():
     assert os.path.exists(base)
     os.mkdir(os.path.join(base, MOCK_RESOURCE_NAME))
     LargeResource(**{LargeResource.URI: "http://fer.hr",
-                     LargeResource.RESOURCE_NAME: MOCK_RESOURCE_NAME,
-                     })
+                     LargeResource.RESOURCE_NAME: MOCK_RESOURCE_NAME})
 
 
 def test_unsupported_archive_type():
@@ -104,3 +103,27 @@ def test_unsupported_archive_type():
         LargeResource(**{LargeResource.URI: "http://fer.hr",
                          LargeResource.RESOURCE_NAME: MOCK_RESOURCE_NAME,
                          LargeResource.ARCHIVE: "archive_not_supp"})
+
+
+def test_scp_download_file():
+    SCPDownloader.download = lambda uri, path, overwrite, **kwargs: \
+            create_mock_file(path)
+
+    base = tempfile.mkdtemp()
+    assert os.path.exists(base)
+
+    LargeResource.BASE_RESOURCE_DIR = base
+
+    SCPLargeResource(**{LargeResource.URI: "http://fer.hr",
+                        LargeResource.RESOURCE_NAME: MOCK_RESOURCE_NAME,
+                        SCPLargeResource.SCP_HOST_KEY:"djurdja.takelab.fer.hr",
+                        SCPLargeResource.SCP_USER_KEY:"user",
+                        SCPLargeResource.SCP_PASS_KEY:"password",
+                        SCPLargeResource.SCP_PRIVATE_KEY:"D:\\TakeLab\\"
+                                                         "takleab_ssh"})
+
+    abs_file_path = os.path.join(base, MOCK_RESOURCE_NAME)
+    assert os.path.exists(abs_file_path)
+    with open(file=abs_file_path, mode='r') as fpr:
+        content = fpr.read()
+        assert content == MOCK_FILE_CONTENT

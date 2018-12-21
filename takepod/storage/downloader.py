@@ -12,7 +12,6 @@ import paramiko
 from takepod.storage.utility import copyfileobj_with_tqdm
 
 
-
 class BaseDownloader(ABC):
     '''BaseDownloader interface for downloader classes.'''
     @abstractclassmethod
@@ -65,10 +64,10 @@ class SCPDownloader(BaseDownloader):
         can be set to None
 
     """
-    USER_NAME_KEY = "username"
-    PASSWORD_KEY = "password"
-    HOST_ADDR_KEY = "host"
-    PRIVATE_KEY_FILE_KEY = "pub_key"
+    USER_NAME_KEY = "scp_user"
+    PASSWORD_KEY = "scp_pass"
+    HOST_ADDR_KEY = "scp_host"
+    PRIVATE_KEY_FILE_KEY = "scp_priv"
 
     @classmethod
     def download(cls, uri, path, overwrite=False, **kwargs):
@@ -97,7 +96,7 @@ class SCPDownloader(BaseDownloader):
         Raises
         ------
         ValueError
-            if given uri or path are None
+            if given uri or path are None, or if the host is not defined
         RuntimeError
             if there was an error while obtaining resource from uri
         """
@@ -105,6 +104,8 @@ class SCPDownloader(BaseDownloader):
             raise ValueError(
                 "Path and url mustn't be None."
                 "Given path: {}, {}".format(str(path), str(uri)))
+        if cls.HOST_ADDR_KEY not in kwargs or not kwargs[cls.HOST_ADDR_KEY]:
+            raise ValueError("Host address mustn't be None")
 
         if not overwrite and os.path.exists(path):
             return False
@@ -113,7 +114,6 @@ class SCPDownloader(BaseDownloader):
             kwargs[cls.PRIVATE_KEY_FILE_KEY] = None
         if cls.PASSWORD_KEY not in kwargs:
             kwargs[cls.PASSWORD_KEY] = None
-
 
         client = paramiko.SSHClient()
         client.load_system_host_keys()
@@ -130,6 +130,7 @@ class SCPDownloader(BaseDownloader):
         sftp.close()
         client.close()
         return True
+
 
 class HttpDownloader(BaseDownloader, ABC):
     '''Interface for downloader that uses http protocol for data transfer.'''
