@@ -1,4 +1,4 @@
-from takepod.dataload.ner_croatian import NERCroatian
+from takepod.dataload.ner_croatian import NERCroatianXMLLoader
 import xml.etree.ElementTree as ET
 import tempfile
 import pytest
@@ -27,11 +27,11 @@ body_1 = ET.fromstring("<body><s>Ovdje nema entiteta!</s></body>")
 expected_output_1 = [
     ('Random', 'O'),
     ('Entitet', 'B-Organization'),
-    NERCroatian.SENTENCE_DELIMITER_TOKEN,
+    NERCroatianXMLLoader.SENTENCE_DELIMITER_TOKEN,
     ('Ovdje', 'O'),
     ('nema', 'O'),
     ('entiteta!', 'O'),
-    NERCroatian.SENTENCE_DELIMITER_TOKEN
+    NERCroatianXMLLoader.SENTENCE_DELIMITER_TOKEN
 ]
 
 
@@ -60,7 +60,7 @@ expected_output_2 = [
     ('najveći', 'O'),
     ('svjetski', 'O'),
     ('izvoznik', 'O'),
-    NERCroatian.SENTENCE_DELIMITER_TOKEN,
+    NERCroatianXMLLoader.SENTENCE_DELIMITER_TOKEN,
     ('Ukupna', 'O'),
     ('vrijednost', 'O'),
     ('izvoza', 'O'),
@@ -75,7 +75,7 @@ expected_output_2 = [
     ('milijardi', 'I-Money'),
     ('dolara', 'I-Money'),
     ('.', 'O'),
-    NERCroatian.SENTENCE_DELIMITER_TOKEN
+    NERCroatianXMLLoader.SENTENCE_DELIMITER_TOKEN
 ]
 
 
@@ -90,8 +90,9 @@ def test_load_dataset(tmpdir, expected_data, expected_output):
     base = tempfile.mkdtemp()
     assert os.path.exists(base)
 
-    unzipped_xml_directory = os.path.join(base, 'croatian_ner',
-                                          'CroatianNERDataset')
+    unzipped_xml_directory = os.path.join(
+        base, 'croatian_ner', 'CroatianNERDataset'
+    )
 
     os.makedirs(unzipped_xml_directory)
 
@@ -102,11 +103,60 @@ def test_load_dataset(tmpdir, expected_data, expected_output):
         body
     )
 
-    ner_croatian_ds = NERCroatian(base, tokenizer='split', tag_schema='BIO')
-    documents = ner_croatian_ds.load_dataset()
+    ner_croatian_xml_loader = NERCroatianXMLLoader(
+        base, tokenizer='split', tag_schema='IOB'
+    )
+
+    documents = ner_croatian_xml_loader.load_dataset()
 
     assert len(documents) == 1
     assert documents[0] == expected_output
 
     shutil.rmtree(base)
     assert not os.path.exists(base)
+
+
+def test_load_dataset_with_multiple_documents():
+    base = tempfile.mkdtemp()
+    assert os.path.exists(base)
+
+    unzipped_xml_directory = os.path.join(
+        base, 'croatian_ner', 'CroatianNERDataset'
+    )
+
+    os.makedirs(unzipped_xml_directory)
+
+    create_ner_file(
+        os.path.join(unzipped_xml_directory, "file_1.xml"),
+        title_1,
+        body_1
+    )
+    create_ner_file(
+        os.path.join(unzipped_xml_directory, "file_2.xml"),
+        title_2,
+        body_2
+    )
+
+    ner_croatian_xml_loader = NERCroatianXMLLoader(
+        base, tokenizer='split', tag_schema='IOB'
+    )
+
+    documents = ner_croatian_xml_loader.load_dataset()
+
+    assert len(documents) == 2
+
+    assert documents[0] == expected_output_1
+    assert documents[1] == expected_output_2
+
+    shutil.rmtree(base)
+    assert not os.path.exists(base)
+
+
+def test_load_dataset_with_unsupported_tokenizer():
+    with pytest.raises(ValueError):
+        NERCroatianXMLLoader(tokenizer='unsupported_tokenizer')
+
+
+def test_load_dataset_with_unsupported_tag_schema():
+    with pytest.raises(ValueError):
+        NERCroatianXMLLoader(tag_schema='unsupported_tag_schema')

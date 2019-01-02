@@ -4,7 +4,7 @@ import os
 import xml.etree.ElementTree as ET
 
 
-class NERCroatian:
+class NERCroatianXMLLoader:
     """Simple croatian NER class"""
 
     SENTENCE_DELIMITER_TOKEN = (None, None)
@@ -12,7 +12,7 @@ class NERCroatian:
     def __init__(self,
                  path='downloaded_datasets/',
                  tokenizer='split',
-                 tag_schema='BIO'):
+                 tag_schema='IOB'):
         """Constructor for Croatian NER dataset
 
         Parameters
@@ -26,9 +26,9 @@ class NERCroatian:
                 - 'split': simple tokenizer that splits the sentence on
                     whitespaces (using str.split)
         tag_schema: str
-            Tag schema used when converting the dataset to TSV format
+            Tag schema used for constructing the token labels
             - supported tag schemas:
-                - 'BIO': the label of the beginning token of the entity is
+                - 'IOB': the label of the beginning token of the entity is
                 prefixed with 'B-', the remaining tokens that belong to the
                 same entity are prefixed with 'I-'. The tokens that don't
                 belong to any named entity are labeled 'O'
@@ -53,7 +53,7 @@ class NERCroatian:
 
         tokenized_documents = []
 
-        for xml_file_path in glob.glob(source_dir_location + '/*.xml'):
+        for xml_file_path in sorted(glob.glob(source_dir_location + '/*.xml')):
             word_label_pairs = self._xml_to_token_label_pairs(xml_file_path)
             tokenized_documents.append(word_label_pairs)
 
@@ -97,16 +97,15 @@ class NERCroatian:
 
     def _tokenize(self, text, element=None):
         """
-        Method tokenizes the text and assigns it the label according to
-        the element's 'type' attribute.
+        Method tokenizes the text and assigns the labels to the tokens
+        according to the element's 'type' attribute.
 
         Parameters
         ----------
         text: str
             Input text
         element: ET.Element
-            Element with which the text is associated. If set to None, the
-            default label 'O' is set.
+            Element with which the text is associated.
 
         Returns
         -------
@@ -121,7 +120,7 @@ class NERCroatian:
         token_label_pairs = []
         for index, token in enumerate(tokenized_text):
             if element is not None:
-                label_unprefixed = element.attrib.get('type', 'O')
+                label_unprefixed = element.attrib.get('type', None)
                 label = self._label_resolver(index, label_unprefixed)
             else:
                 label = 'O'
@@ -164,16 +163,16 @@ class NERCroatian:
         label_resolver: callable
             Label resolver associated with the given tag schema
         """
-        if tag_schema == 'BIO':
-            return self._bio_label_resolver
+        if tag_schema == 'IOB':
+            return self._iob_label_resolver
 
         raise ValueError('No label resolver for tag schema {} exists'
                          .format(tag_schema))
 
     @staticmethod
-    def _bio_label_resolver(index, label):
+    def _iob_label_resolver(index, label):
         """
-        A resolver that prefixes the label according to the BIO tag schema.
+        A resolver that prefixes the label according to the IOB tag schema.
 
         Parameters
         ----------
@@ -184,11 +183,11 @@ class NERCroatian:
 
         Returns
         -------
-            Label prefixed with the appropriate prefix according to the BIO
+            Label prefixed with the appropriate prefix according to the IOB
             tag schema
         """
-        if label == 'O':
-            return label
+        if label is None:
+            return 'O'
 
         if index == 0:
             return 'B-' + label
