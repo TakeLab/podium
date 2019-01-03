@@ -217,26 +217,6 @@ def test_shuffle_random_state_exception(dataset):
         iterator.set_internal_random_state(state)
 
 
-@pytest.mark.parametrize(
-    "train, given_shuffle, expected_shuffle",
-    [
-        (False, None, False),  # if no shuffle given, fall back to train
-        (True, None, True),
-        (False, False, False),  # if shuffle given, set to that value
-        (True, False, False),
-        (False, True, True),
-        (True, True, True),
-    ]
-)
-def test_shuffle_correct_values(train, given_shuffle, expected_shuffle,
-                                dataset):
-    dataset.finalize_fields()
-    iterator = Iterator(dataset, batch_size=2, shuffle=given_shuffle,
-                        train=train)
-
-    assert iterator.shuffle == expected_shuffle
-
-
 def text_len_key(example):
     return len(example.text[1])
 

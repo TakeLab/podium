@@ -17,8 +17,8 @@ class Iterator:
         The number of iterations elapsed in the current epoch.
     """
 
-    def __init__(self, dataset, batch_size, sort_key=None, shuffle=None,
-                 train=True, seed=1, internal_random_state=None):
+    def __init__(self, dataset, batch_size, sort_key=None, shuffle=False,
+                 seed=1, internal_random_state=None):
         """ Creates an iterator for the given dataset and batch size.
 
         Parameters
@@ -37,22 +37,11 @@ class Iterator:
         shuffle : bool
             A flag denoting whether the examples should be shuffled before
             each iteration.
-            If None, the decision about shuffling falls back to the
-            'train' flag.
             If sort_key is not None, this flag being True may not have any
             effect since the dataset will always be sorted after being
             shuffled (the only difference shuffling can make is in the
             order of elements with the same value of sort_key)..
-            Default is None.
-        train : bool
-            A flag denoting whether the given dataset represents a train set.
-            Only relevant if shuffle is None. In that case, if this flag is
-            True, the dataset will be shuffled, otherwise it won't.
-            If sort_key is not None, this flag being True may not have any
-            effect since the dataset will always be sorted after (potentially)
-            being shuffled (the only difference shuffling can make is in the
-            order of elements with the same value of sort_key).
-            Default is True.
+            Default is False.
         seed : int
             The seed that the iterator's internal random state will be
             initialized with. Useful when we want repeatable random shuffling.
@@ -91,10 +80,7 @@ class Iterator:
         self.batch_size = batch_size
         self.dataset = dataset
 
-        if shuffle is None:
-            self.shuffle = train
-        else:
-            self.shuffle = shuffle
+        self.shuffle = shuffle
 
         self.sort_key = sort_key
 
@@ -103,7 +89,7 @@ class Iterator:
 
         if self.shuffle:
             if seed is None and internal_random_state is None:
-                raise ValueError("If shuffle=True, either seed or "
+                raise ValueError("If shuffle==True, either seed or "
                                  "internal_random_state have to be != None.")
 
             self.shuffler = Random(seed)
@@ -301,9 +287,9 @@ class BucketIterator(Iterator):
     It creates a bucket of size N x batch_size, and sorts that bucket before
     splitting it into batches, so there is less padding necessary.
     """
+
     def __init__(self, dataset, batch_size, sort_key=None, shuffle=True,
-                 train=True, seed=42, look_ahead_multiplier=100,
-                 bucket_sort_key=None):
+                 seed=42, look_ahead_multiplier=100, bucket_sort_key=None):
         """Creates a BucketIterator with the given bucket sort key and
         look-ahead multiplier (how many batch_sizes to look ahead when
         sorting examples for batches).
@@ -338,7 +324,7 @@ class BucketIterator(Iterator):
                 "bucket_sort_key must be != None.")
 
         super().__init__(dataset, batch_size, sort_key=sort_key,
-                         shuffle=shuffle, train=train, seed=seed)
+                         shuffle=shuffle, seed=seed)
 
         self.bucket_sort_key = bucket_sort_key
         self.look_ahead_multiplier = look_ahead_multiplier
