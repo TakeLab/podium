@@ -65,6 +65,22 @@ def test_lemma2word_no_lemma_found(mock_lemmatizer):
         mock_lemmatizer.get_words_for_lemma("not_in_molex")
 
 
+def test_create_lemmatizer_override_username(
+        molex14_lemma2word, molex14_word2lemma
+):
+    with mock.patch(
+            'takepod.preproc.lemmatizer.croatian_lemmatizer.SCPLargeResource'
+         ) as mock_scp:
+        mock_scp.SCP_HOST_KEY = "scp_host"
+        mock_scp.SCP_USER_KEY = "scp_user"
+        mock_scp.SCP_PASS_KEY = "scp_pass"
+        mock_scp.SCP_PRIVATE_KEY = "scp_priv"
+        lemmatizer = CroatianLemmatizer(username='other')
+        lemmatizer.MOLEX14_LEMMA2WORD = molex14_lemma2word
+        lemmatizer.MOLEX14_WORD2LEMMA = molex14_word2lemma
+        assert lemmatizer.username == 'other'
+
+
 def create_molex_file(filepath, content):
     with open(filepath, "w") as f:
         f.write(content)

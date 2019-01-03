@@ -26,20 +26,25 @@ class CroatianLemmatizer():
     MOLEX14_LEMMA2WORD = os.path.join(BASE_FOLDER, "molex14_lemma2word.txt")
     MOLEX14_WORD2LEMMA = os.path.join(BASE_FOLDER, "molex14_word2lemma.txt")
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         """Creates a lemmatizer object."""
         self.__word2lemma_dict = None
         self.__lemma2word_dict = None
 
+        if kwargs.get('username') is None:
+            # if your username is same as one on djurdja
+            self.username = getpass.getuser()
+        else:
+            self.username = kwargs['username']
+
         # automatically downloads molex resources
         # defaults should work for linux and access to djurdja.fer.hr
-        # if your username is same as one on djurdja
         SCPLargeResource(**{
             LargeResource.URI: "/storage/molex/molex.zip",
             LargeResource.RESOURCE_NAME: self.BASE_FOLDER,
             LargeResource.ARCHIVE: "zip",
             SCPLargeResource.SCP_HOST_KEY: "djurdja.takelab.fer.hr",
-            SCPLargeResource.SCP_USER_KEY: getpass.getuser(),
+            SCPLargeResource.SCP_USER_KEY: self.username,
             SCPLargeResource.SCP_PASS_KEY: None,
             SCPLargeResource.SCP_PRIVATE_KEY: None
         })
@@ -62,7 +67,7 @@ class CroatianLemmatizer():
 
         try:
             lemma = self._word2lemma[word.lower()]
-            return self._uppercase_target_like_source(word, lemma)
+            return _uppercase_target_like_source(word, lemma)
         except KeyError:
             # TODO: insert log statement that a word is being returned
             return word
@@ -89,7 +94,7 @@ class CroatianLemmatizer():
         try:
             words = self._lemma2word[lemma.lower()]
             return [
-                self._uppercase_target_like_source(lemma, w) for w in words
+                _uppercase_target_like_source(lemma, w) for w in words
             ]
         except KeyError:
             raise ValueError("No words found for lemma {}".format(lemma))
@@ -108,15 +113,6 @@ class CroatianLemmatizer():
             self.__lemma2word_dict = self._get_lemma2word_dict()
         return self.__lemma2word_dict
 
-    def _uppercase_target_like_source(self, source, target):
-        uppercased_target = ''.join([
-            target[i].upper()
-            if s.isupper() and s.lower() == target[i] else target[i]
-            for i, s in zip(range(len(target)), source)
-        ])
-        uppercased_target += target[len(source):]
-        return uppercased_target
-
     def _get_word2lemma_dict(self):
         molex_dict = {}
         with open(self.MOLEX14_WORD2LEMMA, encoding='utf-8') as f:
@@ -134,3 +130,13 @@ class CroatianLemmatizer():
                 words = words.rstrip().split(',')
                 molex_dict[lemma] = words
         return molex_dict
+
+
+def _uppercase_target_like_source(source, target):
+    uppercased_target = ''.join([
+        target[i].upper()
+        if s.isupper() and s.lower() == target[i] else target[i]
+        for i, s in zip(range(len(target)), source)
+    ])
+    uppercased_target += target[len(source):]
+    return uppercased_target
