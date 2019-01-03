@@ -1,7 +1,4 @@
-import os
 from collections import Counter
-
-import pandas as pd
 
 from takepod.storage.dataset import Dataset, TabularDataset
 import pytest
@@ -44,7 +41,7 @@ TABULAR_SOURCES = (
 
 
 class MockField:
-    def __init__(self, name, eager, sequential=True):
+    def __init__(self, name, eager, sequential=True, is_target=False):
         self.name = name
         self.eager = eager
         self.sequential = sequential
@@ -53,6 +50,8 @@ class MockField:
         self.updated_count = 0
 
         self.use_vocab = True
+
+        self.is_target = is_target
 
     def preprocess(self, data):
         return (data, [data]) if self.sequential else (data, None)
@@ -272,13 +271,32 @@ def test_split_stratified_ok(data_for_stratified, field_list):
         assert val_label_counter[label] == test_label_counter[label]
 
 
-def test_split_stratified_exception(data_for_stratified, field_list):
+def test_split_stratified_custom_name(data_for_stratified, field_list):
+    dataset = create_dataset(data_for_stratified, field_list)
+
+    dataset.split(split_ratio=0.5, stratified=True, strata_field_name="label")
+
+
+def test_split_stratified_exception_invalid_name(data_for_stratified,
+                                                 field_list):
     dataset = create_dataset(data_for_stratified, field_list)
 
     # when field with the given name doesn't exist
     with pytest.raises(ValueError):
         dataset.split(split_ratio=0.5, stratified=True,
                       strata_field_name="NOT_label")
+
+
+def test_split_stratified_exception_no_target(data_for_stratified,
+                                              field_list):
+    for field in field_list:
+        field.is_target = False
+
+    dataset = create_dataset(data_for_stratified, field_list)
+
+    # when there is no target fields and the strata field name is not given
+    with pytest.raises(ValueError):
+        dataset.split(split_ratio=0.5, stratified=True)
 
 
 @pytest.mark.parametrize(
@@ -421,7 +439,8 @@ def test_tabular_dataset_exception(file_format, use_dict,
 
 @pytest.fixture
 def field_list():
-    return [MockField(field_name, eager) for field_name, eager in FIELD_DATA]
+    return [MockField(field_name, eager, is_target=(field_name == "label"))
+            for field_name, eager in FIELD_DATA]
 
 
 @pytest.fixture()
@@ -462,21 +481,6 @@ def tabular_data():
             "source": TABULAR_SOURCES}
 
 
-@pytest.fixture()
-def file_path(tmpdir, file_format, tabular_data):
-    # tmpdir is a default pytest fixture
-    path = os.path.join(tmpdir, "sample." + file_format)
-
-    if file_format == "csv":
-        create_temp_csv(path, ",", tabular_data)
-    elif file_format == "tsv":
-        create_temp_csv(path, "\t", tabular_data)
-    else:
-        create_temp_json(path, tabular_data)
-
-    yield path
-
-
 def create_dataset(data, field_list):
     examples = [MockExample(field_list, d) for d in data]
 
@@ -488,16 +492,3 @@ def create_tabular_dataset(fields, file_format, file_path, use_dict):
 
     return TabularDataset(file_path, file_format, fields,
                           skip_header=skip_header)
-
-
-def create_temp_csv(path, delimiter, data):
-    df = pd.DataFrame(data)
-    df.to_csv(path, sep=delimiter, index=False)
-
-
-def create_temp_json(path, data):
-    df = pd.DataFrame(data)
-    lines = (df.loc[i].to_json() + "\n" for i in df.index)
-
-    with open(path, "w") as f:
-        f.writelines(lines)

@@ -111,7 +111,7 @@ class Dataset(ABC):
             field.finalize()
 
     def split(self, split_ratio=0.7, stratified=False,
-              strata_field_name='label',
+              strata_field_name=None,
               random_state=None, shuffle=True):
         """Creates train-(validation)-test splits from this dataset.
 
@@ -144,9 +144,12 @@ class Dataset(ABC):
                 Default is False.
             strata_field_name : str
                 Name of the field that is to be used to do the stratified
-                split. Only needed when 'stratified' is true. Note that the
-                values of the strata field have to be hashable.
-                Default is 'label' for the conventional label field.
+                split. Only relevant when 'stratified' is true.
+                If the name of the strata field is not provided (the default
+                behaviour), the stratified split will be done over the first
+                field that is a target (its 'is_target' attribute is True).
+                Note that the values of the strata field have to be hashable.
+                Default is None.
             random_state : int
                 The random seed used for shuffling.
 
@@ -179,11 +182,16 @@ class Dataset(ABC):
                 shuffle
             )
         else:
-            if strata_field_name not in self.field_names:
-                # if there is no field with that name
+            strata_field_name = self._get_strata_field_name(strata_field_name)
+
+            if strata_field_name is None:
                 raise ValueError(
-                    f"Invalid field name for strata_field: "
-                    f"{strata_field_name}")
+                    f"If strata_field_name is not provided, at least one"
+                    f" field has to have is_target equal to True.")
+
+            if strata_field_name not in self.field_names:
+                raise ValueError(f"Invalid strata field name: "
+                                 f"{strata_field_name}")
 
             train_data, val_data, test_data = stratified_split(
                 self.examples, train_ratio, val_ratio, test_ratio,
@@ -201,6 +209,16 @@ class Dataset(ABC):
                 subset.sort_key = self.sort_key
 
         return splits
+
+    def _get_strata_field_name(self, strata_field_name):
+        if strata_field_name is not None:
+            return strata_field_name
+
+        for field in self.fields:
+            if field.is_target:
+                return field.name
+
+        return None
 
 
 class TabularDataset(Dataset):

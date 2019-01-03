@@ -16,7 +16,9 @@ class MockVocab:
         self.values = []
         self.finalized = False
         self.numericalized = False
-        self.pad_symbol = PAD_NUM
+
+    def pad_symbol(self):
+        return PAD_NUM
 
     def __add__(self, values):
         if type(values) == type(self):
@@ -332,7 +334,6 @@ def test_field_posttokenize_hooks_detach():
 
 
 def test_field_repeated_hooks():
-
     def replace_tag_hook(raw, tokenized):
         replaced_tags = map(lambda s: s.replace("<tag>", "ABC"), tokenized)
 
@@ -367,3 +368,13 @@ def test_field_repeated_hooks():
 
     # check that the hook that was added twice was also called twice
     assert to_lower_hook.call_count == 2
+
+
+def test_field_is_target():
+    f1 = Field(name="text", is_target=False)
+    f2 = Field(name="label", is_target=True)
+    f3 = Field(name="bla")
+
+    assert not f1.is_target
+    assert f2.is_target
+    assert not f3.is_target
