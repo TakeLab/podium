@@ -1,4 +1,4 @@
-from takepod.models.simple_sentiment_analysis import (
+from takepod.models.contrib.simple_sentiment_analysis import (
     SimpleSentimentAnalysisModel
 )
 from takepod.preproc.transform import create_word_to_index

@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 class AbstractSupervisedModel(ABC):
     """Interface for supervised models."""
-    ## TODO (dpluscec) add some general keyword argument types
+    # TODO (dpluscec) add some general keyword argument types
     @abstractmethod
     def fit(self, X, y, **kwargs):
         """Method trains the model and returns dictionary of values defined by

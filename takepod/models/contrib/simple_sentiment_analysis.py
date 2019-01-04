@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torch import optim
 from torch import nn
 import torch
-from takepod.models.base_model import SupervisedModel
+from takepod.models.contrib.base_model import SupervisedModel
 from takepod.preproc.transform import (
     make_bow_vector,
     categories_to_int
