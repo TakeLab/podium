@@ -108,3 +108,5 @@ downloaded_datasets/
 .data/
 .vscode/settings.json
 *.bat
+
+.idea/
