@@ -3,6 +3,8 @@ import glob
 import os
 import xml.etree.ElementTree as ET
 
+from takepod.preproc.tokenizers import get_tokenizer
+
 
 class NERCroatianXMLLoader:
     """Simple croatian NER class"""
@@ -22,9 +24,6 @@ class NERCroatianXMLLoader:
             from if it is already downloaded
         tokenizer: str
             Word-level tokenizer used to tokenize the input text
-            - supported tokenizers:
-                - 'split': simple tokenizer that splits the sentence on
-                    whitespaces (using str.split)
         tag_schema: str
             Tag schema used for constructing the token labels
             - supported tag schemas:
@@ -34,7 +33,7 @@ class NERCroatianXMLLoader:
                 belong to any named entity are labeled 'O'
         """
         self._data_dir = path
-        self._tokenizer = self._get_tokenizer(tokenizer)
+        self._tokenizer = get_tokenizer(tokenizer)
         self._label_resolver = self._get_label_resolver(tag_schema)
 
     def load_dataset(self):
@@ -127,27 +126,6 @@ class NERCroatianXMLLoader:
             token_label_pairs.append((token, label))
 
         return token_label_pairs
-
-    def _get_tokenizer(self, tokenizer_name):
-        """
-        Gets the tokenizer implementation associated with the given
-        tokenizer name
-
-        Parameters
-        ----------
-        tokenizer_name: str
-            Name of the tokenizer
-
-        Returns
-        -------
-        tokenizer: callable
-            Tokenizer instance associated with the given tokenizer name
-        """
-        if tokenizer_name == 'split':
-            return str.split
-
-        raise ValueError('Unknown tokenizer specified: {}'
-                         .format(tokenizer_name))
 
     def _get_label_resolver(self, tag_schema):
         """
