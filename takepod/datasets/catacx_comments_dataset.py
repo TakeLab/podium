@@ -36,6 +36,14 @@ class CatacxCommentsDataset(dataset.Dataset):
 
     @staticmethod
     def _create_examples(dir_path, fields):
+        """
+        Loads examples from the dataset file.
+
+        :param dir_path: str
+
+        :param fields:
+        :return:
+        """
         with open(dir_path, encoding="utf8", mode="r") as f:
             ds = json.load(f)
 
@@ -50,7 +58,7 @@ class CatacxCommentsDataset(dataset.Dataset):
     def _get_default_fields():
         """
         Method returns a dict of default catacx comment fields.
-        fields : likes_cnt
+        fields : likes_cnt, id, likes_cnt, message
 
 
         Returns
@@ -58,8 +66,38 @@ class CatacxCommentsDataset(dataset.Dataset):
         fields : dict(str, Field)
             dict containing all default catacx fields
         """
-        #TODO: Add remaining fields
-        likes_cnt = Field(name="likes_cnt", vocab=Vocab(specials=()),
-                          sequential=False, store_raw=True)
+        # TODO: Add remaining fields when NestedFields is implemented
+        # commented lines are fields not yet supported or not important
+        # listed in the odrer they appear in the JSON of the comment
 
-        return {"likes_cnt": likes_cnt}
+        # replies - List of replies
+
+        author_name = Field(name='author_name', sequential=False)
+
+        id = Field(name='id', sequential=False)
+
+        likes_cnt = Field(name="likes_cnt", vocab=None,
+                          sequential=False,
+                          custom_numericalize=int)
+
+        # smileys - list of Smileys
+
+        # likes - list of Likes
+
+        # sentences - list of Sentences preprocessed message of the comment
+
+        # created_time - JSON date
+
+        message = Field(name='message', sequential=True, store_raw=False,
+                        tokenizer='split', language='hr')
+
+        author_id = Field(name='author_id', sequential=False)
+
+        # cs - List of something, not documented in the official catacx documentation
+
+        return {
+            "author_name": author_name,
+            "id": id,
+            "likes_cnt": likes_cnt,
+            "message": message
+        }
