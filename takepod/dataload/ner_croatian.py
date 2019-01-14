@@ -22,8 +22,11 @@ class NERCroatianXMLLoader:
     def __init__(self,
                  path='downloaded_datasets/',
                  tokenizer='split',
-                 tag_schema='IOB'):
-        """Constructor for Croatian NER dataset
+                 tag_schema='IOB',
+                 **kwargs):
+        """
+        Constructor for Croatian NER dataset.
+        Downloads and extracts the dataset.
 
         Parameters
         ----------
@@ -39,37 +42,26 @@ class NERCroatianXMLLoader:
                 prefixed with 'B-', the remaining tokens that belong to the
                 same entity are prefixed with 'I-'. The tokens that don't
                 belong to any named entity are labeled 'O'
+        **kwargs:
+            scp_user:
+                User on the host machine. Not required if the user on the
+                local machine matches the user on the host machine.
+            scp_private_key:
+                Path to the ssh private key eligible to access the host
+                machine. Not required on Unix if the private is in the default
+                location.
+            scp_pass_key:
+                Password for the ssh private key (optional). Can be omitted
+                if the private key is not encrypted.
         """
         self._data_dir = path
         self._tokenizer = get_tokenizer(tokenizer)
         self._label_resolver = self._get_label_resolver(tag_schema)
 
-    def download_and_extract(self, **kwargs):
-        """
-        Method downloads the dataset using SCP and unzips it.
-
-        Keyword arguments:
-        ----------
-        scp_user:
-            User on the host machine. Not required if the user on the
-            local machine matches the user on the host machine.
-        scp_private_key:
-            Path to the ssh private key eligible to access the host machine.
-            Not required on Unix if the private is in the default location.
-        scp_pass_key:
-            Password for the ssh private key (optional). Can be omitted
-            if the private key is not encrypted.
-        """
         download_location = os.path.join(
             self._data_dir,
             NERCroatianXMLLoader.NAME
         )
-        if os.path.isdir(download_location):
-            print("Already downloaded; try loading the dataset...")
-            return
-
-        print("Downloading and unzipping the Croatian NER dataset")
-
         LargeResource.BASE_RESOURCE_DIR = download_location
 
         if 'scp_user' not in kwargs:
@@ -91,8 +83,6 @@ class NERCroatianXMLLoader:
             SCPLargeResource.SCP_PASS_KEY: scp_pass_key
         }
         SCPLargeResource(**config)
-
-        print("Croatian NER dataset successfully downloaded and unzipped")
 
     def load_dataset(self):
         """

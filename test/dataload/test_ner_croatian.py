@@ -181,8 +181,8 @@ def test_download_dataset_using_scp():
 
     LargeResource.BASE_RESOURCE_DIR = base
 
-    ner_croatian_xml_loader = NERCroatianXMLLoader(base)
-    ner_croatian_xml_loader.download_and_extract(
+    ner_croatian_xml_loader = NERCroatianXMLLoader(
+        base,
         scp_user='username',
         scp_private_key='private_key',
         scp_pass_key='pass'
