@@ -1,8 +1,10 @@
+"""Module contains svm models."""
 from sklearn.svm import SVC
 from takepod.models.base_model import AbstractSupervisedModel
 
 
 class ScikitSVCModel(AbstractSupervisedModel):
+    """Simple scikitlearn SVM model."""
     def __init__(self, **kwargs):
         self._model = SVC(**kwargs)
 
