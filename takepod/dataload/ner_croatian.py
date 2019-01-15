@@ -1,21 +1,32 @@
 """Simple NERCroatian dataset module."""
 import glob
 import os
+import getpass
 import xml.etree.ElementTree as ET
 
 from takepod.preproc.tokenizers import get_tokenizer
+from takepod.storage.large_resource import LargeResource, SCPLargeResource
 
 
 class NERCroatianXMLLoader:
     """Simple croatian NER class"""
+
+    URL = '/storage/takepod_data/datasets/CroatianNERDataset.zip'
+    NAME = 'ner_croatian'
+    RESOURCE_NAME = "CroatianNERDataset"
+    SCP_HOST = "djurdja.takelab.fer.hr"
+    ARCHIVE_TYPE = "zip"
 
     SENTENCE_DELIMITER_TOKEN = (None, None)
 
     def __init__(self,
                  path='downloaded_datasets/',
                  tokenizer='split',
-                 tag_schema='IOB'):
-        """Constructor for Croatian NER dataset
+                 tag_schema='IOB',
+                 **kwargs):
+        """
+        Constructor for Croatian NER dataset.
+        Downloads and extracts the dataset.
 
         Parameters
         ----------
@@ -31,10 +42,47 @@ class NERCroatianXMLLoader:
                 prefixed with 'B-', the remaining tokens that belong to the
                 same entity are prefixed with 'I-'. The tokens that don't
                 belong to any named entity are labeled 'O'
+        **kwargs:
+            scp_user:
+                User on the host machine. Not required if the user on the
+                local machine matches the user on the host machine.
+            scp_private_key:
+                Path to the ssh private key eligible to access the host
+                machine. Not required on Unix if the private is in the default
+                location.
+            scp_pass_key:
+                Password for the ssh private key (optional). Can be omitted
+                if the private key is not encrypted.
         """
         self._data_dir = path
         self._tokenizer = get_tokenizer(tokenizer)
         self._label_resolver = self._get_label_resolver(tag_schema)
+
+        download_location = os.path.join(
+            self._data_dir,
+            NERCroatianXMLLoader.NAME
+        )
+        LargeResource.BASE_RESOURCE_DIR = download_location
+
+        if 'scp_user' not in kwargs:
+            # if your username is same as one on djurdja
+            scp_user = getpass.getuser()
+        else:
+            scp_user = kwargs['scp_user']
+
+        scp_private_key = kwargs.get('scp_private_key', None)
+        scp_pass_key = kwargs.get('scp_pass_key', None)
+
+        config = {
+            LargeResource.URI: NERCroatianXMLLoader.URL,
+            LargeResource.RESOURCE_NAME: NERCroatianXMLLoader.RESOURCE_NAME,
+            LargeResource.ARCHIVE: NERCroatianXMLLoader.ARCHIVE_TYPE,
+            SCPLargeResource.SCP_HOST_KEY: NERCroatianXMLLoader.SCP_HOST,
+            SCPLargeResource.SCP_USER_KEY: scp_user,
+            SCPLargeResource.SCP_PRIVATE_KEY: scp_private_key,
+            SCPLargeResource.SCP_PASS_KEY: scp_pass_key
+        }
+        SCPLargeResource(**config)
 
     def load_dataset(self):
         """
@@ -47,8 +95,9 @@ class NERCroatianXMLLoader:
             as a list of tuples (token, label). The sentences in document are
             delimited by tuple (None, None)
         """
-        source_dir_location = os.path.join(self._data_dir, 'croatian_ner',
-                                           'CroatianNERDataset')
+        source_dir_location = os.path.join(self._data_dir,
+                                           NERCroatianXMLLoader.NAME,
+                                           NERCroatianXMLLoader.RESOURCE_NAME)
 
         tokenized_documents = []
 

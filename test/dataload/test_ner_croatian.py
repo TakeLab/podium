@@ -1,9 +1,14 @@
-from takepod.dataload.ner_croatian import NERCroatianXMLLoader
 import xml.etree.ElementTree as ET
 import tempfile
+import zipfile
 import pytest
 import shutil
 import os
+
+from mock import patch
+from takepod.dataload.ner_croatian import NERCroatianXMLLoader
+from takepod.storage.large_resource import LargeResource
+from takepod.storage.downloader import SCPDownloader
 
 
 def create_ner_file(filepath, title_element, body_element):
@@ -33,7 +38,6 @@ expected_output_1 = [
     ('entiteta!', 'O'),
     NERCroatianXMLLoader.SENTENCE_DELIMITER_TOKEN
 ]
-
 
 title_2 = ET.fromstring("""
 <title>
@@ -91,7 +95,9 @@ def test_load_dataset(tmpdir, expected_data, expected_output):
     assert os.path.exists(base)
 
     unzipped_xml_directory = os.path.join(
-        base, 'croatian_ner', 'CroatianNERDataset'
+        base,
+        NERCroatianXMLLoader.NAME,
+        NERCroatianXMLLoader.RESOURCE_NAME
     )
 
     os.makedirs(unzipped_xml_directory)
@@ -121,7 +127,9 @@ def test_load_dataset_with_multiple_documents():
     assert os.path.exists(base)
 
     unzipped_xml_directory = os.path.join(
-        base, 'croatian_ner', 'CroatianNERDataset'
+        base,
+        NERCroatianXMLLoader.NAME,
+        NERCroatianXMLLoader.RESOURCE_NAME
     )
 
     os.makedirs(unzipped_xml_directory)
@@ -160,3 +168,43 @@ def test_load_dataset_with_unsupported_tokenizer():
 def test_load_dataset_with_unsupported_tag_schema():
     with pytest.raises(ValueError):
         NERCroatianXMLLoader(tag_schema='unsupported_tag_schema')
+
+
+def mock_download(uri, path, overwrite=False, **kwargs):
+    create_mock_zip_archive_with_xml_file(path)
+
+
+@patch.object(SCPDownloader, 'download', mock_download)
+def test_download_dataset_using_scp():
+    base = tempfile.mkdtemp()
+    assert os.path.exists(base)
+
+    LargeResource.BASE_RESOURCE_DIR = base
+
+    ner_croatian_xml_loader = NERCroatianXMLLoader(
+        base,
+        scp_user='username',
+        scp_private_key='private_key',
+        scp_pass_key='pass'
+    )
+
+    tokenized_documents = ner_croatian_xml_loader.load_dataset()
+
+    assert len(tokenized_documents) == 1
+    assert tokenized_documents[0] == expected_output_1
+
+    shutil.rmtree(base)
+    assert not os.path.exists(base)
+
+
+def create_mock_zip_archive_with_xml_file(dir_path):
+    base = tempfile.mkdtemp()
+    mock_xml_name = 'mock.xml'
+    mock_xml_path = os.path.join(base, mock_xml_name)
+    create_ner_file(mock_xml_path, title_1, body_1)
+
+    with zipfile.ZipFile(file=dir_path, mode="w") as zipfp:
+        zipfp.write(filename=mock_xml_path, arcname=mock_xml_name)
+
+    shutil.rmtree(base)
+    assert not os.path.exists(base)
