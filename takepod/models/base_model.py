@@ -3,8 +3,16 @@ from abc import ABC, abstractmethod
 
 
 class AbstractSupervisedModel(ABC):
-    """Interface for supervised models."""
-    # TODO (dpluscec) add some general keyword argument types
+    """Interface for supervised models.
+
+    Attributes
+    ----------
+    PREDICTION_KEY : str
+        key for defining prediction return variable
+    """
+
+    PREDICTION_KEY = "predict_y"
+
     @abstractmethod
     def fit(self, X, y, **kwargs):
         """Method trains the model and returns dictionary of values defined by

@@ -13,3 +13,4 @@ class ScikitSVCModel(AbstractSupervisedModel):
 
     def predict(self, X, **kwargs):
         y_pred = self._model.predict(X=X)
+        return {AbstractSupervisedModel.PREDICTION_KEY: y_pred}

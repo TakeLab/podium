@@ -6,11 +6,21 @@ from takepod.models.base_model import AbstractSupervisedModel
 
 class ScikitMLPClassifier(AbstractSupervisedModel):
     """Simple scikitlearn multiperceptron model."""
-    def __init__(self, **kwargs):
-        self._model = MLPClassifier(max_iter=1, warm_start=True, **kwargs)
+    def __init__(self, classes, **kwargs):
+        """Constructor that initializes Sckit MLPClassfier with given list of
+        classes.
+
+        Parameters
+        ----------
+        classes : array, shape (n_classes)
+            Classes across all calls to fit.
+        """
+        self._model = MLPClassifier(max_iter=1, **kwargs)
+        self.classes = classes
 
     def fit(self, X, y, **kwargs):
-        self._model.fit(X=X, y=y)
+        self._model.partial_fit(X=X, y=y, classes=self.classes)
 
     def predict(self, X, **kwargs):
         y_pred = self._model.predict(X=X)
+        return {AbstractSupervisedModel.PREDICTION_KEY: y_pred}
