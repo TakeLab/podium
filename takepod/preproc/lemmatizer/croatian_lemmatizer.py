@@ -2,10 +2,10 @@
 lemmatizer dictionaries. It can return all possible word
 inflections for a lemma, or return the lemma of any
 word inflexion for the Croatian language."""
+import os
+import getpass
 
 from takepod.storage.large_resource import LargeResource, SCPLargeResource
-import getpass
-import os
 
 
 class CroatianLemmatizer():
@@ -31,12 +31,6 @@ class CroatianLemmatizer():
         self.__word2lemma_dict = None
         self.__lemma2word_dict = None
 
-        if kwargs.get('username') is None:
-            # if your username is same as one on djurdja
-            self.username = getpass.getuser()
-        else:
-            self.username = kwargs['username']
-
         # automatically downloads molex resources
         # defaults should work for linux and access to djurdja.fer.hr
         SCPLargeResource(**{
@@ -44,9 +38,10 @@ class CroatianLemmatizer():
             LargeResource.RESOURCE_NAME: self.BASE_FOLDER,
             LargeResource.ARCHIVE: "zip",
             SCPLargeResource.SCP_HOST_KEY: "djurdja.takelab.fer.hr",
-            SCPLargeResource.SCP_USER_KEY: self.username,
-            SCPLargeResource.SCP_PASS_KEY: None,
-            SCPLargeResource.SCP_PRIVATE_KEY: None
+            # if your username is same as one on djurdja
+            SCPLargeResource.SCP_USER_KEY: kwargs.get(
+                SCPLargeResource.SCP_USER_KEY, getpass.getuser()
+            ),
         })
 
     def lemmatize_word(self, word):
@@ -66,8 +61,13 @@ class CroatianLemmatizer():
         """
 
         try:
-            lemma = self._word2lemma[word.lower()]
-            return _uppercase_target_like_source(word, lemma)
+            is_lower = word.islower()
+            word_lower = word if is_lower else word.lower()
+            lemma = self._word2lemma[word_lower]
+            if is_lower:
+                return lemma
+            else:
+                return _uppercase_target_like_source(word, lemma)
         except KeyError:
             # TODO: insert log statement that a word is being returned
             return word
@@ -93,8 +93,12 @@ class CroatianLemmatizer():
         """
         try:
             words = self._lemma2word[lemma.lower()]
+            is_lower = lemma.islower()
             return [
-                _uppercase_target_like_source(lemma, w) for w in words
+                w
+                if is_lower
+                else _uppercase_target_like_source(lemma, w)
+                for w in words
             ]
         except KeyError:
             raise ValueError("No words found for lemma {}".format(lemma))
