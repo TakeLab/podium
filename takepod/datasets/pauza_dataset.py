@@ -27,6 +27,7 @@ class PauzaHRDataset(dataset.Dataset):
     URL = "http://takelab.fer.hr/data/cropinion/CropinionDataset.zip"
     DATASET_DIR = os.path.join("croopinion", "CropinionDataset",
                                "reviews_original")
+    PAUZA_HR_ARCHIVE_TYPE = "zip"
     TRAIN_DIR = "Train"
     TEST_DIR = "Test"
 
@@ -44,7 +45,7 @@ class PauzaHRDataset(dataset.Dataset):
         """
         LargeResource(**{
             LargeResource.RESOURCE_NAME: PauzaHRDataset.NAME,
-            LargeResource.ARCHIVE: "zip",
+            LargeResource.ARCHIVE: PauzaHRDataset.PAUZA_HR_ARCHIVE_TYPE,
             LargeResource.URI: PauzaHRDataset.URL})
         unpacked_fields = dataset.unpack_fields(fields=fields)
         examples = self._create_examples(dir_path=dir_path, fields=fields)
