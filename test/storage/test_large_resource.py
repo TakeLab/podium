@@ -32,8 +32,10 @@ def test_arguments_resource_name_missing():
 
 
 def test_resource_not_archive():
-    SimpleHttpDownloader.download = lambda uri, path, overwrite: \
-                                create_mock_file(path)
+    def download(uri, path, overwrite):
+        create_mock_file(path)
+
+    SimpleHttpDownloader.download = download
 
     base = tempfile.mkdtemp()
     assert os.path.exists(base)
@@ -50,9 +52,9 @@ def test_resource_not_archive():
 
 
 def test_resource_downloading_unzip():
-    SimpleHttpDownloader.download = lambda uri, path, overwrite: \
-                                create_mock_zip_archive(
-                                    file_name=MOCK_FILE_NAME, file_path=path)
+    def download(uri, path, overwrite):
+        create_mock_zip_archive(file_name=MOCK_FILE_NAME, file_path=path)
+    SimpleHttpDownloader.download = download
 
     base = tempfile.mkdtemp()
     assert os.path.exists(base)
@@ -91,9 +93,10 @@ def test_file_not_original_archive_exists():
 
 
 def test_unsupported_archive_type():
-    SimpleHttpDownloader.download = lambda uri, path, overwrite: \
-                                create_mock_zip_archive(
-                                    file_name=MOCK_FILE_NAME, file_path=path)
+    def download(uri, path, overwrite):
+        create_mock_zip_archive(file_name=MOCK_FILE_NAME, file_path=path)
+
+    SimpleHttpDownloader.download = download
 
     base = tempfile.mkdtemp()
     assert os.path.exists(base)
@@ -107,8 +110,10 @@ def test_unsupported_archive_type():
 
 
 def test_scp_download_file():
-    SCPDownloader.download = lambda uri, path, overwrite, **kwargs: \
-            create_mock_file(path)
+    def download(uri, path, overwrite, **kwargs):
+        create_mock_file(path)
+
+    SCPDownloader.download = download
 
     base = tempfile.mkdtemp()
     assert os.path.exists(base)
