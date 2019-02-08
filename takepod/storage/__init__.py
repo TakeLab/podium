@@ -1,7 +1,8 @@
 """Package contains modules for storing and loading datasets and vectors."""
 
 from .dataset import Dataset, TabularDataset, stratified_split, rationed_split
-from .downloader import BaseDownloader, SCPDownloader, HttpDownloader, SimpleHttpDownloader
+from .downloader import (BaseDownloader, SCPDownloader, HttpDownloader, 
+                         SimpleHttpDownloader)
 from .example import Example
 from .field import Field
 from .iterator import Iterator, BucketIterator
