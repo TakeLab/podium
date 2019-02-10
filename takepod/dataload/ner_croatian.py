@@ -12,8 +12,7 @@ class NERCroatianXMLLoader:
     """Simple croatian NER class"""
 
     URL = '/storage/takepod_data/datasets/CroatianNERDataset.zip'
-    NAME = 'ner_croatian'
-    RESOURCE_NAME = "CroatianNERDataset"
+    NAME = "CroatianNERDataset"
     SCP_HOST = "djurdja.takelab.fer.hr"
     ARCHIVE_TYPE = "zip"
 
@@ -58,12 +57,6 @@ class NERCroatianXMLLoader:
         self._tokenizer = get_tokenizer(tokenizer)
         self._label_resolver = self._get_label_resolver(tag_schema)
 
-        download_location = os.path.join(
-            self._data_dir,
-            NERCroatianXMLLoader.NAME
-        )
-        LargeResource.BASE_RESOURCE_DIR = download_location
-
         if 'scp_user' not in kwargs:
             # if your username is same as one on djurdja
             scp_user = getpass.getuser()
@@ -75,7 +68,7 @@ class NERCroatianXMLLoader:
 
         config = {
             LargeResource.URI: NERCroatianXMLLoader.URL,
-            LargeResource.RESOURCE_NAME: NERCroatianXMLLoader.RESOURCE_NAME,
+            LargeResource.RESOURCE_NAME: NERCroatianXMLLoader.NAME,
             LargeResource.ARCHIVE: NERCroatianXMLLoader.ARCHIVE_TYPE,
             SCPLargeResource.SCP_HOST_KEY: NERCroatianXMLLoader.SCP_HOST,
             SCPLargeResource.SCP_USER_KEY: scp_user,
@@ -96,8 +89,7 @@ class NERCroatianXMLLoader:
             delimited by tuple (None, None)
         """
         source_dir_location = os.path.join(self._data_dir,
-                                           NERCroatianXMLLoader.NAME,
-                                           NERCroatianXMLLoader.RESOURCE_NAME)
+                                           NERCroatianXMLLoader.NAME)
 
         tokenized_documents = []
 
