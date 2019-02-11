@@ -33,7 +33,7 @@ class CroatianLemmatizer():
 
         # automatically downloads molex resources
         # defaults should work for linux and access to djurdja.fer.hr
-        SCPLargeResource(**{
+        kwargs.update({
             LargeResource.URI: "/storage/molex/molex.zip",
             LargeResource.RESOURCE_NAME: self.BASE_FOLDER,
             LargeResource.ARCHIVE: "zip",
@@ -43,6 +43,7 @@ class CroatianLemmatizer():
                 SCPLargeResource.SCP_USER_KEY, getpass.getuser()
             ),
         })
+        SCPLargeResource(**kwargs)
 
     def lemmatize_word(self, word):
         """Returns the lemma for the provided word if
