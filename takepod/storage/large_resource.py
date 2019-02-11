@@ -124,7 +124,7 @@ class LargeResource:
         essential_arguments = [LargeResource.RESOURCE_NAME, LargeResource.URI]
         for arg in essential_arguments:
             if arg not in arguments or not arguments[arg]:
-                raise ValueError(arg+" must be defined"
+                raise ValueError(arg + " must be defined"
                                  " while defining Large Resource")
 
 

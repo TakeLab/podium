@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 
 setup(name='takepod',
-      version='0.1',
+      version='0.1.0',
       description='TakeLab podium (TakePod) project',
       author='TakeLab',
       author_email='takelab@fer.hr',
