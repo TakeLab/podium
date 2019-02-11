@@ -8,12 +8,12 @@ from takepod.storage.field import Field
 
 
 class CatacxCommentsDataset(dataset.Dataset):
-    """Simple catacx dataset. Contains only the comments."""
+    """Simple Catacx dataset. Contains only the comments."""
 
     NAME = "CatacxCommentsDataset"
     DATASET_FILE_NAME = "catacx_dataset.json"
     DATASET_DIR = os.path.join("Catacx", NAME)
-    URL = ""  # TODO Add real URL
+    URL = None  # TODO Add real URL
 
     def __init__(self, dir_path, fields=None):
         """Dataset constructor, should be given the path to the .json file which contains the Catacx dataset.
@@ -34,11 +34,14 @@ class CatacxCommentsDataset(dataset.Dataset):
 
     @staticmethod
     def get_dataset(fields=None):
-        """Downloads (if necessary) and loads the dataset.
+        """Downloads (if necessary) and loads the dataset. Not fully implemented yet.
 
         :return:
             the loaded Catacx comment dataset
         """
+
+        raise NotImplementedError("Downloading is not implemented yet")
+
         LargeResource(**{
             LargeResource.RESOURCE_NAME: CatacxCommentsDataset.NAME,
             LargeResource.ARCHIVE: "zip",
@@ -91,14 +94,14 @@ class CatacxCommentsDataset(dataset.Dataset):
     @staticmethod
     def _get_default_fields():
         """
-        Method returns a dict of default catacx comment fields.
+        Method returns a dict of default Catacx comment fields.
         fields : likes_cnt, id, likes_cnt, message
 
 
         Returns
         -------
         fields : dict(str, Field)
-            dict containing all default catacx fields
+            dict containing all default Catacx fields
         """
         # TODO: Add remaining fields when NestedFields is implemented
         # commented lines are fields not yet supported or not important
@@ -127,9 +130,9 @@ class CatacxCommentsDataset(dataset.Dataset):
 
         author_id = Field(name='author_id', sequential=False)
         # cs - List of something, not documented in the official catacx documentation
-
         return {
             "author_name": author_name,
+            "author_id": author_id,
             "id": id,
             "likes_cnt": likes_cnt,
             "message": message
