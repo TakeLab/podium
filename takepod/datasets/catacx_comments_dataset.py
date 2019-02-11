@@ -1,18 +1,22 @@
 """Module contains the catacx dataset."""
 import json
+import os
+from takepod.storage.large_resource import LargeResource
 from takepod.storage import dataset
 from takepod.storage.example import Example
 from takepod.storage.field import Field
-from takepod.storage.vocab import Vocab
 
 
 class CatacxCommentsDataset(dataset.Dataset):
     """Simple catacx dataset. Contains only the comments."""
 
-    NAME = "catacx"
+    NAME = "CatacxCommentsDataset"
+    DATASET_FILE_NAME = "catacx_dataset.json"
+    DATASET_DIR = os.path.join("Catacx", NAME)
+    URL = ""  # TODO Add real URL
 
     def __init__(self, dir_path, fields=None):
-        """Dataset constructor, should be given the path to the .json file which contains the catacx dataset.
+        """Dataset constructor, should be given the path to the .json file which contains the Catacx dataset.
 
         ATTRIBUTES
         ----------
@@ -29,7 +33,34 @@ class CatacxCommentsDataset(dataset.Dataset):
         super(CatacxCommentsDataset, self).__init__(examples, unpacked_fields)
 
     @staticmethod
+    def get_dataset(fields=None):
+        """Downloads (if necessary) and loads the dataset.
+
+        :return:
+            the loaded Catacx comment dataset
+        """
+        LargeResource(**{
+            LargeResource.RESOURCE_NAME: CatacxCommentsDataset.NAME,
+            LargeResource.ARCHIVE: "zip",
+            LargeResource.URI: CatacxCommentsDataset.URL
+        })
+
+        filepath = os.path.join(
+            LargeResource.BASE_RESOURCE_DIR
+            , CatacxCommentsDataset.DATASET_DIR
+            , CatacxCommentsDataset.DATASET_FILE_NAME)
+
+        return CatacxCommentsDataset(filepath, fields=fields)
+
+    @staticmethod
     def _get_comments(ds):
+        """
+        :param ds:
+            Loaded Catacx dataset in dict form.
+
+        :return:
+            Generator iterating trough comments in the dataset.
+        """
         for post in ds:
             for comment in post["comments"]:
                 yield comment
@@ -40,9 +71,12 @@ class CatacxCommentsDataset(dataset.Dataset):
         Loads examples from the dataset file.
 
         :param dir_path: str
+            File path to the dataset .json file.
 
         :param fields:
+            Dict of fields to be loaded.
         :return:
+            List of Examples loaded from the dataset file.
         """
         with open(dir_path, encoding="utf8", mode="r") as f:
             ds = json.load(f)
