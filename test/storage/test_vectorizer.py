@@ -346,7 +346,7 @@ def create_temp_vect_file(vect_file_name, file_data,
 
     with open(file_path, 'wb') as vect_file:
         if file_header is not None:
-            vect_file.write(file_header+b"\n")
+            vect_file.write(file_header + b"\n")
         vect_file.writelines(file_data)
 
     assert os.path.exists(file_path)

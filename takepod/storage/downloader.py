@@ -135,7 +135,7 @@ class SCPDownloader(BaseDownloader):
 class HttpDownloader(BaseDownloader, ABC):
     '''Interface for downloader that uses http protocol for data transfer.'''
     @classmethod
-    def _process_response(cls, response, output_file, chuck_length=1024*16):
+    def _process_response(cls, response, output_file, chuck_length=1024 * 16):
         """Function process given HTTP response and copies it to the given
         outputfile. Data is processed in chunks of given length.
         Parameters

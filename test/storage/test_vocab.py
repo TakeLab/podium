@@ -26,14 +26,14 @@ def test_default_vocab_iadd_set_words():
 
 def test_get_frequency():
     voc = vocab.Vocab(keep_freqs=True)
-    voc = (voc + {"tree", "plant", "grass"})+{"plant"}
+    voc = (voc + {"tree", "plant", "grass"}) + {"plant"}
     assert voc.get_freqs()["tree"] == 1
     assert voc.get_freqs()["plant"] == 2
 
 
 def test_get_frequency_not_kept_not_finalized():
     voc = vocab.Vocab(keep_freqs=False)
-    voc = (voc + {"tree", "plant", "grass"})+{"plant"}
+    voc = (voc + {"tree", "plant", "grass"}) + {"plant"}
     assert voc.get_freqs()["tree"] == 1
     assert voc.get_freqs()["plant"] == 2
 
@@ -48,7 +48,7 @@ def test_get_frequency_not_kept_finalized():
 def test_numericalize_not_finalized():
     voc = vocab.Vocab(keep_freqs=True)
     data = ["tree", "plant", "grass"]
-    voc = (voc + set(data))+{"plant"}
+    voc = (voc + set(data)) + {"plant"}
 
     with pytest.raises(RuntimeError):
         voc.numericalize(data)
@@ -57,7 +57,7 @@ def test_numericalize_not_finalized():
 def test_vocab_len_not_finalized():
     voc = vocab.Vocab(keep_freqs=True)
     data = ["tree", "plant", "grass"]
-    voc = (voc + set(data))+{"plant"}
+    voc = (voc + set(data)) + {"plant"}
     assert len(voc) == len(data)
 
 
@@ -100,7 +100,7 @@ def test_specials_get_pad_symbol():
 def test_max_size():
     voc = vocab.Vocab(max_size=2, specials=[])
     data = ["tree", "plant", "grass"]
-    voc = (voc + set(data))+{"plant"}
+    voc = (voc + set(data)) + {"plant"}
     voc.finalize()
     assert len(voc) == 2
 
@@ -109,7 +109,7 @@ def test_max_size_with_specials():
     voc = vocab.Vocab(max_size=2, specials=[vocab.SpecialVocabSymbols.PAD,
                                             vocab.SpecialVocabSymbols.UNK])
     data = ["tree", "plant", "grass"]
-    voc = (voc + set(data))+{"plant"}
+    voc = (voc + set(data)) + {"plant"}
     voc.finalize()
     assert len(voc) == 2
 
@@ -118,9 +118,9 @@ def test_size_after_final_with_specials():
     specials = [vocab.SpecialVocabSymbols.PAD, vocab.SpecialVocabSymbols.UNK]
     voc = vocab.Vocab(specials=specials)
     data = ["tree", "plant", "grass"]
-    voc = (voc + set(data))+{"plant"}
+    voc = (voc + set(data)) + {"plant"}
     voc.finalize()
-    assert len(voc) == len(data)+len(specials)
+    assert len(voc) == len(data) + len(specials)
 
 
 def test_enum_special_vocab_symbols():
@@ -132,7 +132,7 @@ def test_get_stoi_for_unknown_word_default_unk():
     specials = [vocab.SpecialVocabSymbols.PAD, vocab.SpecialVocabSymbols.UNK]
     voc = vocab.Vocab(specials=specials)
     data = ["tree", "plant", "grass"]
-    voc = (voc + set(data))+{"plant"}
+    voc = (voc + set(data)) + {"plant"}
     voc.finalize()
     assert voc.stoi["unknown"] == 1
 
@@ -158,11 +158,11 @@ def test_add_vocab_to_vocab():
     expected_freq = {"w1": 2, "w2": 1, "w3": 1, "a1": 1, "a2": 2}
 
     voc1 = vocab.Vocab()
-    voc1 = (voc1 + set(data1))+set(data3)
+    voc1 = (voc1 + set(data1)) + set(data3)
     voc2 = vocab.Vocab()
     voc2 += set(data2)
 
-    voc = voc1+voc2  # voc1 should be changed also
+    voc = voc1 + voc2  # voc1 should be changed also
     assert voc == voc1
     for word in voc._freqs:
         assert voc._freqs[word] == expected_freq[word]
