@@ -98,7 +98,7 @@ def molexdir(tmpdir):
 def mock_lemmatizer(molex14_lemma2word, molex14_word2lemma):
     with mock.patch(
             'takepod.preproc.lemmatizer.croatian_lemmatizer.SCPLargeResource'
-         ) as mock_scp:
+        ) as mock_scp:
         mock_scp.SCP_HOST_KEY = "scp_host"
         mock_scp.SCP_USER_KEY = "scp_user"
         mock_scp.SCP_PASS_KEY = "scp_pass"
