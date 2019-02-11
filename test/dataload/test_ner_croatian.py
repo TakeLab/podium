@@ -93,11 +93,11 @@ expected_output_2 = [
 def test_load_dataset(tmpdir, expected_data, expected_output):
     base = tempfile.mkdtemp()
     assert os.path.exists(base)
+    LargeResource.BASE_RESOURCE_DIR = base
 
     unzipped_xml_directory = os.path.join(
         base,
-        NERCroatianXMLLoader.NAME,
-        NERCroatianXMLLoader.RESOURCE_NAME
+        NERCroatianXMLLoader.NAME
     )
 
     os.makedirs(unzipped_xml_directory)
@@ -125,11 +125,11 @@ def test_load_dataset(tmpdir, expected_data, expected_output):
 def test_load_dataset_with_multiple_documents():
     base = tempfile.mkdtemp()
     assert os.path.exists(base)
+    LargeResource.BASE_RESOURCE_DIR = base
 
     unzipped_xml_directory = os.path.join(
         base,
-        NERCroatianXMLLoader.NAME,
-        NERCroatianXMLLoader.RESOURCE_NAME
+        NERCroatianXMLLoader.NAME
     )
 
     os.makedirs(unzipped_xml_directory)

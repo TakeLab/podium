@@ -5,7 +5,7 @@ import tarfile
 from tqdm import tqdm
 
 
-def copyfileobj_with_tqdm(finput, foutput, total_size, buffer_size=16*1024):
+def copyfileobj_with_tqdm(finput, foutput, total_size, buffer_size=16 * 1024):
     """Function copies file like input finput to file like output foutput.
     Total size is used to display progress bar and buffer size to determine
     size of the buffer used for copying. The implementation is based on
