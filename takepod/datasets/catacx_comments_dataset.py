@@ -68,7 +68,7 @@ class CatacxCommentsDataset(dataset.Dataset):
         """
         # TODO: Add remaining fields when NestedFields is implemented
         # commented lines are fields not yet supported or not important
-        # listed in the odrer they appear in the JSON of the comment
+        # listed in the order they appear in the JSON of the comment
 
         # replies - List of replies
 
@@ -92,7 +92,6 @@ class CatacxCommentsDataset(dataset.Dataset):
                         tokenizer='split', language='hr')
 
         author_id = Field(name='author_id', sequential=False)
-
         # cs - List of something, not documented in the official catacx documentation
 
         return {
