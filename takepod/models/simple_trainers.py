@@ -29,13 +29,12 @@ class SimpleTrainer(AbstractTrainer):
         self._check_kwargs(**kwargs)
         batch_transform_fun = kwargs.get(
             SimpleTrainer.BATCH_TRANSFORM_FUN_KEY, None)
-        for x_batch, y_batch in iterator:
-            if iterator.epoch > kwargs[SimpleTrainer.MAX_EPOCH_KEY]:
-                break
-            x_train, y_train = x_batch, y_batch
-            if batch_transform_fun:
-                x_train, y_train = batch_transform_fun(x_train, y_train)
-            self.model.fit(X=x_train, y=y_train)
+        for _ in range(kwargs[SimpleTrainer.MAX_EPOCH_KEY]):
+            for x_batch, y_batch in iterator:
+                x_train, y_train = x_batch, y_batch
+                if batch_transform_fun:
+                    x_train, y_train = batch_transform_fun(x_train, y_train)
+                self.model.fit(X=x_train, y=y_train)
 
     def _check_kwargs(self, **kwargs):
         """Method checks if kwargs contains neccessary training parameters.
