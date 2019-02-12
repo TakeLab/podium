@@ -492,3 +492,20 @@ def create_tabular_dataset(fields, file_format, file_path, use_dict):
 
     return TabularDataset(file_path, file_format, fields,
                           skip_header=skip_header)
+
+
+@pytest.mark.xfail(strict=True, raises=AttributeError)
+def test_attribute_error(data, field_list):
+    dataset = create_dataset(data, field_list)
+    dataset.non_existent_attribute
+
+
+def test_attribute_iteration(data, field_list):
+    dataset = create_dataset(data, field_list)
+
+    i = 0
+    for x, y in zip(dataset.text, TEXT):
+        assert x[0] == y
+        i += 1
+
+    assert len(TEXT) == i

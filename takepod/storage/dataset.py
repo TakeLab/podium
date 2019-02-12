@@ -24,7 +24,7 @@ class Dataset(ABC):
         A list of Field objects that were used to create examples.
     """
 
-    def __init__(self, examples, fields):
+    def __init__(self, examples, fields, sort_key=None):
         """Creates a dataset with the given examples and their fields.
 
         Parameters
@@ -38,6 +38,7 @@ class Dataset(ABC):
         self.examples = examples
         self.fields = fields
         self.field_names = {field.name for field in fields}
+        self.sort_key = sort_key
 
     def __getitem__(self, i):
         return self.examples[i]
@@ -50,17 +51,18 @@ class Dataset(ABC):
             yield x
 
     def __getattr__(self, attr):
-        """Yields values of the field with the given name for every
-        example in the dataset.
+        """Returns an Iterator iterating over values of the field with the given name for
+        every example in the dataset.
 
         Parameters
         ----------
         attr : str
             The name of the field whose values are to be returned.
 
-        Yields
+        Returns
         ------
-            The field value of the next example.
+            an Iterator iterating over values of the field with the given name for
+            every example in the dataset.
 
         Raises
         ------
@@ -69,8 +71,12 @@ class Dataset(ABC):
         """
 
         if attr in self.field_names:
-            for x in self.examples:
-                yield getattr(x, attr)
+            def attrGenerator():
+                for x in self.examples:
+                    yield getattr(x, attr)
+
+            return attrGenerator()
+
         else:
             raise AttributeError(f"Dataset has no field '{attr}'.")
 
@@ -198,15 +204,10 @@ class Dataset(ABC):
                 strata_field_name, shuffle)
 
         splits = tuple(
-            Dataset(example_list, self.fields)
+            Dataset(example_list, self.fields, sort_key=self.sort_key)
             for example_list in (train_data, val_data, test_data)
             if example_list
         )
-
-        # In case the parent sort key isn't none
-        if self.sort_key:
-            for subset in splits:
-                subset.sort_key = self.sort_key
 
         return splits
 
