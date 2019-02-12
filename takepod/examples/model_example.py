@@ -14,7 +14,7 @@ from takepod.models.simple_trainers import SimpleTrainer
 
 def numericalize_pauza_rating(rating):
     """Function numericalizes pauza_hr dataset rating field"""
-    label = int(float(rating)*2)
+    label = int(float(rating) * 2)
     return label
 
 
