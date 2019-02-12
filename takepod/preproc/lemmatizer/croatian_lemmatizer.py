@@ -27,7 +27,14 @@ class CroatianLemmatizer():
     MOLEX14_WORD2LEMMA = os.path.join(BASE_FOLDER, "molex14_word2lemma.txt")
 
     def __init__(self, **kwargs):
-        """Creates a lemmatizer object."""
+        """Creates a lemmatizer object.
+        
+        Parameters
+        ----------
+        **kwargs : dict
+            Additional key-value parameters. 
+            Forwards kwargs to SCPLargeResource
+        """
         self.__word2lemma_dict = None
         self.__lemma2word_dict = None
 
