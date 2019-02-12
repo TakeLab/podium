@@ -1,6 +1,7 @@
-from takepod.datasets.catacx_comments_dataset import CatacxCommentsDataset
 import os
 import tempfile
+
+from takepod.datasets.catacx_comments_dataset import CatacxCommentsDataset
 
 
 def test_dataset_loading():
@@ -34,87 +35,88 @@ def test_dataset_loading():
     assert not hasattr(ex, 'created_time')
     assert not hasattr(ex, 'cs')
 
+
 SAMPLE_DATASET_RAW_JSON = """[
     {
-        "reactions": [], 
-        "sentiment": -1.0, 
-        "likes_cnt": 0, 
-        "message": "Example post No. 1", 
-        "spam": false, 
+        "reactions": [],
+        "sentiment": -1.0,
+        "likes_cnt": 0,
+        "message": "Example post No. 1",
+        "spam": false,
         "emotions": [
             "interest"
-        ], 
+        ],
         "comments":[
             {
-                "replies": [], 
-                "author_name": "Comment author No.1 name", 
-                "id": "Comment_No_1_id", 
+                "replies": [],
+                "author_name": "Comment author No.1 name",
+                "id": "Comment_No_1_id",
                 "likes_cnt": 0,
-                "smileys": [], 
+                "smileys": [],
                 "likes": [],
-                "created_time": "2016-07-18T16:19:21+0000", 
-                "message": "Comment No.1 text", 
+                "created_time": "2016-07-18T16:19:21+0000",
+                "message": "Comment No.1 text",
                 "author_id": "Comment_author_No_1_id",
                 "cs": [
                     "answer"
                 ]
             },
             {
-                "replies": [], 
-                "author_name": "Comment author No.2 name", 
-                "id": "Comment_author_No_2_id", 
+                "replies": [],
+                "author_name": "Comment author No.2 name",
+                "id": "Comment_author_No_2_id",
                 "likes_cnt": 0,
-                "smileys": [], 
+                "smileys": [],
                 "likes": [],
-                "created_time": "2016-07-18T16:19:21+0000", 
-                "message": "Comment No.2 text", 
+                "created_time": "2016-07-18T16:19:21+0000",
+                "message": "Comment No.2 text",
                 "author_id": "Comment_author_No_2_id",
                 "cs": [
                     "answer"
                 ]
             }
         ]
-    
+
     },
      {
-        "reactions": [], 
-        "sentiment": -1.0, 
-        "likes_cnt": 0, 
-        "message": "Example post No. 2", 
-        "spam": false, 
+        "reactions": [],
+        "sentiment": -1.0,
+        "likes_cnt": 0,
+        "message": "Example post No. 2",
+        "spam": false,
         "emotions": [
             "interest"
-        ], 
+        ],
         "comments":[
             {
-                "replies": [], 
-                "author_name": "Comment author No.3 name", 
-                "id": "Comment_No_3_id", 
+                "replies": [],
+                "author_name": "Comment author No.3 name",
+                "id": "Comment_No_3_id",
                 "likes_cnt": 2,
-                "smileys": [], 
+                "smileys": [],
                 "likes": [],
-                "created_time": "2016-07-18T16:19:21+0000", 
-                "message": "Comment No.3 text", 
+                "created_time": "2016-07-18T16:19:21+0000",
+                "message": "Comment No.3 text",
                 "author_id": "Comment_author_No_3_id",
                 "cs": [
                     "answer"
                 ]
             },
             {
-                "replies": [], 
-                "author_name": "Comment author No.4 name", 
-                "id": "Comment_No_4_id", 
+                "replies": [],
+                "author_name": "Comment author No.4 name",
+                "id": "Comment_No_4_id",
                 "likes_cnt": 0,
-                "smileys": [], 
+                "smileys": [],
                 "likes": [],
-                "created_time": "2016-07-18T16:19:21+0000", 
-                "message": "Comment No.4 text", 
+                "created_time": "2016-07-18T16:19:21+0000",
+                "message": "Comment No.4 text",
                 "author_id": "Comment_author_No_4_id",
                 "cs": [
                     "answer"
                 ]
             }
         ]
-    
+
     }
 ]"""

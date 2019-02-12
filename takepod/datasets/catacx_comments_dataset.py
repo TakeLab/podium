@@ -1,10 +1,11 @@
 """Module contains the catacx dataset."""
 import json
 import os
-from takepod.storage.large_resource import LargeResource
+
 from takepod.storage import dataset
 from takepod.storage.example import Example
 from takepod.storage.field import Field
+from takepod.storage.large_resource import LargeResource
 
 
 class CatacxCommentsDataset(dataset.Dataset):
@@ -16,7 +17,8 @@ class CatacxCommentsDataset(dataset.Dataset):
     URL = None  # TODO Add real URL
 
     def __init__(self, dir_path, fields=None):
-        """Dataset constructor, should be given the path to the .json file which contains the Catacx dataset.
+        """Dataset constructor, should be given the path to the .json file which contains
+        the Catacx dataset.
 
         Parameters
         ----------
@@ -34,7 +36,8 @@ class CatacxCommentsDataset(dataset.Dataset):
 
     @staticmethod
     def get_dataset(fields=None):
-        """Downloads (if necessary) and loads the dataset. Not supported yet. Raises NotImplementedError if called.
+        """Downloads (if necessary) and loads the dataset. Not supported yet.
+        Raises NotImplementedError if called.
 
         Parameters
         ----------
@@ -57,9 +60,9 @@ class CatacxCommentsDataset(dataset.Dataset):
         })
 
         filepath = os.path.join(
-            LargeResource.BASE_RESOURCE_DIR
-            , CatacxCommentsDataset.DATASET_DIR
-            , CatacxCommentsDataset.DATASET_FILE_NAME)
+            LargeResource.BASE_RESOURCE_DIR,
+            CatacxCommentsDataset.DATASET_DIR,
+            CatacxCommentsDataset.DATASET_FILE_NAME)
 
         return CatacxCommentsDataset(filepath, fields=fields)
 
