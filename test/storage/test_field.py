@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from mock import patch
 
-from takepod.storage.field import Field
+from takepod.storage.field import Field, TokenizedField
 
 ONE_TO_FIVE = [1, 2, 3, 4, 5]
 
@@ -378,3 +378,21 @@ def test_field_is_target():
     assert not f1.is_target
     assert f2.is_target
     assert not f3.is_target
+
+
+@pytest.mark.parametrize(
+    "use_vocab, expected_vocab_values",
+    [
+        (False, []),
+        (True, ["some", "text"]),
+    ]
+)
+def test_tokenized_field_update_vocab(use_vocab, expected_vocab_values, vocab):
+    f = TokenizedField(name="F", vocab=vocab if use_vocab else None)
+
+    raw_value = ["some", "text"]
+    tokenized_value = None
+
+    f.update_vocab(raw_value, tokenized_value)
+
+    assert vocab.values == expected_vocab_values

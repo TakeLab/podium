@@ -316,3 +316,47 @@ class Field(object):
                 row = np.append(row, [pad_symbol] * diff)
 
         return row
+
+
+class TokenizedField(Field):
+    """
+    Tokenized version of the Field. Holds the preprocessing and
+    numericalization logic for the pre-tokenized dataset fields.
+    """
+
+    def __init__(self,
+                 name,
+                 vocab=None,
+                 eager=True,
+                 custom_numericalize=float,
+                 is_target=False,
+                 fixed_length=None):
+
+        super().__init__(
+            name=name,
+            vocab=vocab,
+            sequential=False,
+            store_raw=True,
+            eager=eager,
+            custom_numericalize=custom_numericalize,
+            is_target=is_target,
+            fixed_length=fixed_length
+        )
+
+    def update_vocab(self, raw, tokenized):
+        """
+        Updates the vocab with new data.
+        Only the raw form is used to update the vocabulary, since the
+        TokenizedField defaults to sequential=False.
+
+        Parameters
+        ----------
+        raw : list
+            The raw form of the data point used to update the vocab.
+        tokenized : any
+            The tokenized form of the data point (not used).
+        """
+        if not self.use_vocab:
+            return
+
+        self.vocab += raw
