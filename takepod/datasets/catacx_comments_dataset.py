@@ -18,10 +18,10 @@ class CatacxCommentsDataset(dataset.Dataset):
     def __init__(self, dir_path, fields=None):
         """Dataset constructor, should be given the path to the .json file which contains the Catacx dataset.
 
-        ATTRIBUTES
+        Parameters
         ----------
         dir_path : str
-            path to the file containing the dataset
+            path to the file containing the dataset.
 
         fields : dict(str, Field)
             dictionary that maps field name to the field
@@ -34,10 +34,18 @@ class CatacxCommentsDataset(dataset.Dataset):
 
     @staticmethod
     def get_dataset(fields=None):
-        """Downloads (if necessary) and loads the dataset. Not fully implemented yet.
+        """Downloads (if necessary) and loads the dataset. Not supported yet. Raises NotImplementedError if called.
 
-        :return:
-            the loaded Catacx comment dataset
+        Parameters
+        ----------
+        fields : dict(str, Field)
+            dictionary that maps field name to the field
+            if passed None the default set of fields will be used.
+
+        Returns
+        -------
+        CatacxCommentsDataset
+            The loaded dataset.
         """
 
         raise NotImplementedError("Downloading is not implemented yet")
@@ -57,30 +65,42 @@ class CatacxCommentsDataset(dataset.Dataset):
 
     @staticmethod
     def _get_comments(ds):
-        """
-        :param ds:
-            Loaded Catacx dataset in dict form.
+        """ Generator iterating trough the comments in the Catacx dataset.
 
-        :return:
-            Generator iterating trough comments in the dataset.
+        Parameters
+        ----------
+        ds
+            Dataset loaded from a .json file in dict form.
+
+        Yields
+        ------
+            The next comment in the dataset.
+
         """
+
         for post in ds:
             for comment in post["comments"]:
                 yield comment
 
     @staticmethod
     def _create_examples(dir_path, fields):
-        """
-        Loads examples from the dataset file.
+        """Loads the dataset and extracts Examples.
 
-        :param dir_path: str
-            File path to the dataset .json file.
+        Parameters
+        ----------
+        dir_path : str
+            Path to the .json file wich contains the dataset.
 
-        :param fields:
-            Dict of fields to be loaded.
-        :return:
-            List of Examples loaded from the dataset file.
+        fields : dict(str, Field)
+            dictionary that maps field name to the field.
+
+        Returns
+        -------
+        list(Example)
+            A list of examples containing comments from the Catacx dataset.
+
         """
+
         with open(dir_path, encoding="utf8", mode="r") as f:
             ds = json.load(f)
 
@@ -95,7 +115,7 @@ class CatacxCommentsDataset(dataset.Dataset):
     def _get_default_fields():
         """
         Method returns a dict of default Catacx comment fields.
-        fields : likes_cnt, id, likes_cnt, message
+        fields : author_name, author_id, id, likes_cnt, message
 
 
         Returns
@@ -104,10 +124,14 @@ class CatacxCommentsDataset(dataset.Dataset):
             dict containing all default Catacx fields
         """
         # TODO: Add remaining fields when NestedFields is implemented
-        # commented lines are fields not yet supported or not important
-        # listed in the order they appear in the JSON of the comment
-
+        # Fields not yet supported or not important:
+        #
         # replies - List of replies
+        # smileys - list of Smileys
+        # likes - list of Likes
+        # sentences - list of Sentences preprocessed message of the comment
+        # created_time - JSON date
+        # cs
 
         author_name = Field(name='author_name', sequential=False)
 
@@ -117,19 +141,11 @@ class CatacxCommentsDataset(dataset.Dataset):
                           sequential=False,
                           custom_numericalize=int)
 
-        # smileys - list of Smileys
-
-        # likes - list of Likes
-
-        # sentences - list of Sentences preprocessed message of the comment
-
-        # created_time - JSON date
-
         message = Field(name='message', sequential=True, store_raw=False,
                         tokenizer='split', language='hr')
 
         author_id = Field(name='author_id', sequential=False)
-        # cs - List of something, not documented in the official catacx documentation
+
         return {
             "author_name": author_name,
             "author_id": author_id,
