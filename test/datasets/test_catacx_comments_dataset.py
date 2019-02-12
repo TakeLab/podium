@@ -1,39 +1,6 @@
 from takepod.datasets.catacx_comments_dataset import CatacxCommentsDataset
 import os
 import tempfile
-from takepod.storage.field import Field
-
-
-def get_default_fields():
-    """
-    Method returns a dict of default Catacx comment fields.
-    fields : likes_cnt, id, likes_cnt, message
-
-
-    Returns
-    -------
-    fields : dict(str, Field)
-        dict containing all default Catacx fields
-    """
-    author_name = Field(name='author_name', sequential=False)
-
-    id = Field(name='id', sequential=False)
-
-    likes_cnt = Field(name="likes_cnt", vocab=None,
-                      sequential=False,
-                      custom_numericalize=int)
-    message = Field(name='message', sequential=True, store_raw=True,
-                    tokenizer='split', language='hr')
-
-    author_id = Field(name='author_id', sequential=False)
-
-    return {
-        "author_name": author_name,
-        "author_id": author_id,
-        "id": id,
-        "likes_cnt": likes_cnt,
-        "message": message
-    }
 
 
 def test_dataset_loading():
@@ -41,22 +8,31 @@ def test_dataset_loading():
     tmpfile.write(SAMPLE_DATASET_RAW_JSON)
     tmpfile.close()
 
-    fields = get_default_fields()
-    dataset = CatacxCommentsDataset(tmpfile.name, fields=fields)
+    dataset = CatacxCommentsDataset(tmpfile.name)
     os.remove(tmpfile.name)
+
+    assert len(dataset) == 4
 
     assert dataset[0].author_name[0] == "Comment author No.1 name"
     assert dataset[0].author_id[0] == "Comment_author_No_1_id"
-    assert dataset[0].message[0] == "Comment No.1 text"
+    assert dataset[0].message[1] == "Comment No.1 text".split()
     assert dataset[0].likes_cnt[0] == 0
     assert dataset[0].id[0] == "Comment_No_1_id"
 
     assert dataset[2].author_name[0] == "Comment author No.3 name"
     assert dataset[2].author_id[0] == "Comment_author_No_3_id"
-    assert dataset[2].message[0] == "Comment No.3 text"
+    assert dataset[2].message[1] == "Comment No.3 text".split()
     assert dataset[2].likes_cnt[0] == 2
     assert dataset[2].id[0] == "Comment_No_3_id"
 
+    ex = dataset[0]
+
+    assert not hasattr(ex, 'replies')
+    assert not hasattr(ex, 'smileys')
+    assert not hasattr(ex, 'likes')
+    assert not hasattr(ex, 'sentences')
+    assert not hasattr(ex, 'created_time')
+    assert not hasattr(ex, 'cs')
 
 SAMPLE_DATASET_RAW_JSON = """[
     {
