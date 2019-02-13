@@ -240,7 +240,7 @@ class BasicVectorStorage(VectorStorage):
             decoded = word.decode('utf-8')
             return decoded
 
-    def _load_vectors(self, vocab=None):
+    def _load_vectors(self, vocab=None, file_type="binary"):
         """Internal method for loading vectors. It combines vocab vectors
         loading and all vectors loading.
 
@@ -267,7 +267,19 @@ class BasicVectorStorage(VectorStorage):
         if vocab is not None and not isinstance(vocab, set):
             vocab = set(vocab)
 
-        with open(curr_path, 'rb') as vector_file:
+        if file_type == 'binary':
+            open_mode = 'rb'
+            split_regex = b" "
+
+        elif file_type == 'plain_text':
+            open_mode = 'r'
+            split_regex = " "
+
+        else:
+            raise ValueError(f"{file_type} is not a valid file type. "
+                             f"Valid types are 'binary' and 'plain_text'")
+
+        with open(curr_path, open_mode) as vector_file:
 
             vectors_loaded = 0
             header_lines = 0
@@ -276,7 +288,7 @@ class BasicVectorStorage(VectorStorage):
                 if not stripped_line:
                     raise RuntimeError("File contains empty lines")
 
-                word, vector_entries_str = stripped_line.split(b" ", 1)
+                word, vector_entries_str = stripped_line.split(split_regex, 1)
                 vector_entry = np.fromstring(string=vector_entries_str,
                                              dtype=float, sep=' ')
                 # will throw ValueError if vector_entries_str cannot be casted
