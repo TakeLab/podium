@@ -286,3 +286,18 @@ class Vocab:
         if self.itos != other.itos:
             return False
         return True
+
+    def __iter__(self):
+        """Method returns iterator over vocabulary, if the vocabulary is not
+        finalized iteration is done over frequency counter and special symbols
+        are not included, otherwise it is performed on itos and special
+        symbols are included.
+
+        Returns
+        -------
+        iter
+            iterator over vocab tokens
+        """
+        if not self.finalized:
+            return iter(self._freqs.keys())
+        return iter(self.itos)
