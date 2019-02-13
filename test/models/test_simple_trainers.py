@@ -1,4 +1,5 @@
 import pytest
+import pytest_mock  # noqa
 
 from takepod.models.simple_trainers import SimpleTrainer
 from takepod.models.base_model import AbstractSupervisedModel
@@ -44,17 +45,22 @@ def test_simple_trainer_num_epoch(tabular_dataset):
     assert model.fit_num == 10
 
 
-@pytest.mark.usefixtures("tabular_dataset")  # noqa
-def test_simple_trainer_batch_transform_call(tabular_dataset):
-    def transform_fun(x, y):
-        transform_fun.transform_call = True
-        return x, y
+def transform_fun(x, y):
+    return x, y
+
+
+@pytest.mark.usefixtures("tabular_dataset", "mocker")  # noqa
+def test_simple_trainer_batch_transform_call(tabular_dataset, mocker):
     tabular_dataset.finalize_fields()
     iterator = Iterator(tabular_dataset, batch_size=len(tabular_dataset))
-    model = MockSupervisedModel()
-    trainer = SimpleTrainer(model=model)
-    trainer.train(
-        iterator=iterator,
-        **{trainer.MAX_EPOCH_KEY: 10,
-           SimpleTrainer.BATCH_TRANSFORM_FUN_KEY: transform_fun})
-    assert transform_fun.transform_call
+
+    with mocker.patch(
+            "test.models.test_simple_trainers.transform_fun",
+            return_value=next(iterator.__iter__())):
+        model = MockSupervisedModel()
+        trainer = SimpleTrainer(model=model)
+        trainer.train(
+            iterator=iterator,
+            **{trainer.MAX_EPOCH_KEY: 10,
+               SimpleTrainer.BATCH_TRANSFORM_FUN_KEY: transform_fun})
+        assert transform_fun.call_count == 10
