@@ -105,7 +105,7 @@ def vectorized_pauza_example():
 
     vectorizer = BasicVectorStorage(
         path="downloaded_datasets/tweeterVectors.txt")
-    vectorizer.load_vocab(vocab=fields["Text"].vocab.itos)
+    vectorizer.load_vocab(vocab=fields["Text"].vocab)
     embedding_matrix = vectorizer.get_embedding_matrix(
         fields["Text"].vocab.itos)
 
