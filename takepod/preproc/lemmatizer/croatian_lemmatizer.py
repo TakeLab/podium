@@ -28,11 +28,11 @@ class CroatianLemmatizer():
 
     def __init__(self, **kwargs):
         """Creates a lemmatizer object.
-        
+
         Parameters
         ----------
         **kwargs : dict
-            Additional key-value parameters. 
+            Additional key-value parameters.
             Forwards kwargs to SCPLargeResource
         """
         self.__word2lemma_dict = None
