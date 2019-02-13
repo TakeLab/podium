@@ -14,7 +14,7 @@ from takepod.models.simple_trainers import SimpleTrainer
 
 def numericalize_pauza_rating(rating):
     """Function numericalizes pauza_hr dataset rating field"""
-    label = int(float(rating) * 2)
+    label = round(float(rating) * 2)
     return label
 
 
@@ -78,7 +78,7 @@ def pauza_mlp_example(
     trainer = SimpleTrainer(model=model)
 
     trainer.train(iterator=train_iter, **{
-        trainer.MAX_EPOCH_KEY: 10000,
+        trainer.MAX_EPOCH_KEY: 10,
         trainer.BATCH_TRANSFORM_FUN_KEY: batch_transform_function})
 
     x_test, y_test = batch_transform_function(*next(test_iter.__iter__()))

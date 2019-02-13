@@ -10,5 +10,5 @@ def test_scikit_mlp_model_shape():
     model.fit(X=X, y=Y)
     result = model.predict(X=X)
 
-    assert not result.get(model.PREDICTION_KEY, False) is False
+    assert result.get(model.PREDICTION_KEY) is not None
     assert result.get(model.PREDICTION_KEY).shape == (3, )

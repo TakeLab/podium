@@ -10,5 +10,5 @@ def test_scikit_svc_model_shape():
     svc.fit(X=X, y=Y)
     result = svc.predict(X=X)
 
-    assert not result.get(svc.PREDICTION_KEY, False) is False
+    assert result.get(svc.PREDICTION_KEY) is not None
     assert result.get(svc.PREDICTION_KEY).shape == (3, )

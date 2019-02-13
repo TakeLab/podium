@@ -19,6 +19,9 @@ class ScikitMLPClassifier(AbstractSupervisedModel):
         self.classes = classes
 
     def fit(self, X, y, **kwargs):
+        """Method calls fit on multiperceptron model with given batch.
+        It is supposed to be used as online learning.
+        """
         self._model.partial_fit(X=X, y=y, classes=self.classes)
 
     def predict(self, X, **kwargs):
