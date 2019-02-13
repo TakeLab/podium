@@ -4,8 +4,9 @@
 """
 import os
 from abc import ABC, abstractmethod
-import six
+
 import numpy as np
+import six
 
 
 def zeros_default_vector(token, dim):
@@ -174,19 +175,26 @@ class BasicVectorStorage(VectorStorage):
         vector dimension
     _initialized : bool
         has the vector storage been initialized by loading vectors
+    _binary : bool
+        if True, the file is read as a binary file.
+        Else, it's read as a plain utf-8 text file.
 
     """
 
     def __init__(self, path, default_vector_function=zeros_default_vector,
-                 cache_path=None, max_vectors=None):
+                 cache_path=None, max_vectors=None, binary=True):
         self._vectors = dict()
         self._dim = None
         self._initialized = False
+        self._binary = binary
         super().__init__(
             path=path,
             default_vector_function=default_vector_function,
             cache_path=cache_path,
             max_vectors=max_vectors)
+
+    def __len__(self):
+        return len(self._vectors)
 
     def load_all(self):
         self._load_vectors()
@@ -240,7 +248,7 @@ class BasicVectorStorage(VectorStorage):
             decoded = word.decode('utf-8')
             return decoded
 
-    def _load_vectors(self, vocab=None, file_type="binary"):
+    def _load_vectors(self, vocab=None):
         """Internal method for loading vectors. It combines vocab vectors
         loading and all vectors loading.
 
@@ -267,17 +275,13 @@ class BasicVectorStorage(VectorStorage):
         if vocab is not None and not isinstance(vocab, set):
             vocab = set(vocab)
 
-        if file_type == 'binary':
+        if self._binary:
             open_mode = 'rb'
             split_regex = b" "
 
-        elif file_type == 'plain_text':
+        else:
             open_mode = 'r'
             split_regex = " "
-
-        else:
-            raise ValueError(f"{file_type} is not a valid file type. "
-                             f"Valid types are 'binary' and 'plain_text'")
 
         with open(curr_path, open_mode) as vector_file:
 
@@ -311,7 +315,9 @@ class BasicVectorStorage(VectorStorage):
                                                        len(vector_entry),
                                                        self._dim))
 
-                word = self._decode_word(word)
+                if self._binary:
+                    word = self._decode_word(word)
+
                 if vocab is not None and word not in vocab:
                     continue
 
@@ -320,8 +326,8 @@ class BasicVectorStorage(VectorStorage):
                 if vectors_loaded == self._max_vectors:
                     break
 
-            if self._cache_path is not None\
-               and not os.path.exists(self._cache_path):
+            if self._cache_path is not None \
+                    and not os.path.exists(self._cache_path):
                 self._cache_vectors()
         self._initialized = True
 
