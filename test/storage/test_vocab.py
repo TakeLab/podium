@@ -44,7 +44,6 @@ def test_vocab_iterable_not_finalized():
     voc += data
     elements = []
     for i in voc:
-        print(i)
         elements.append(i)
     assert all([e in data for e in elements])
 
@@ -56,7 +55,6 @@ def test_vocab_iterable_finalized():
     voc.finalize()
     elements = []
     for i in voc:
-        print(i)
         elements.append(i)
     assert all([e in data for e in elements])
 
