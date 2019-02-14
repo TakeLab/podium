@@ -63,4 +63,4 @@ def test_simple_trainer_batch_transform_call(tabular_dataset, mocker):
             iterator=iterator,
             **{trainer.MAX_EPOCH_KEY: 10,
                SimpleTrainer.BATCH_TRANSFORM_FUN_KEY: transform_fun})
-        assert transform_fun.call_count == 10
+        assert transform_fun.call_count == 10  # pylint: disable=E1101
