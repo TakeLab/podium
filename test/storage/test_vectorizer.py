@@ -1,7 +1,9 @@
 import os
 import tempfile
-import pytest
+
 import numpy as np
+import pytest
+
 from takepod.storage import vectorizer
 
 BASIC_VECT_HEADING = b"251518 300"
@@ -9,10 +11,17 @@ BASIC_VECT_DATA = [b". 0.001134 -0.000058 -0.000668\n",
                    b"' -0.079721 -0.074874 -0.184826\n",
                    b": -0.144256 -0.169637 -0.044801\n",
                    b", -0.031469 -0.107289 -0.182500\n"]
+
+BASIC_VECT_DATA_PLAIN = [". 0.001134 -0.000058 -0.000668\n",
+                         "' -0.079721 -0.074874 -0.184826\n",
+                         ": -0.144256 -0.169637 -0.044801\n",
+                         ", -0.031469 -0.107289 -0.182500\n"]
+
 BASIC_VECT_DATA_DICT = {'.': np.array([0.001134, -0.000058, -0.000668]),
                         "'": np.array([-0.079721, -0.074874, -0.184826]),
                         ":": np.array([-0.144256, -0.169637, -0.044801]),
                         ",": np.array([-0.031469, -0.107289, -0.182500])}
+
 DIFF_DIM_VECT_DATA = [b". 0.001134 -0.000058 -0.000668\n",
                       b"' -0.079721 -0.074874\n",
                       b", -0.031469 -0.107289 -0.182500\n"]
@@ -318,8 +327,25 @@ def test_basic_cache_vocab():
         assert len(content) == 3
 
 
+def test_load_plain_text():
+    filename = "test.txt"
+    with tempfile.TemporaryDirectory() as tmpdir:
+        file_path = os.path.join(tmpdir, filename)
+        with open(file_path, mode="w") as file:
+            assert os.path.exists(file_path)
+            file.writelines(BASIC_VECT_DATA_PLAIN)
+
+        vec_storage = vectorizer.BasicVectorStorage(file_path, binary=False)
+        vec_storage.load_all()
+
+    assert len(vec_storage) == 4
+
+    for token, vec in BASIC_VECT_DATA_DICT.items():
+        assert np.all(vec == vec_storage[token])
+
+
 def create_temp_vect_file(vect_file_name, file_data,
-                          file_header=None, base_dir=None):
+                          file_header=None, base_dir=None, binary=True):
     """Helper function that creates temporary vector file with given data.
 
     Parameters
