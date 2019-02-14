@@ -352,9 +352,12 @@ class TokenizedField(Field):
         Parameters
         ----------
         data : (list(str), None)
-            Tuple of (raw, tokenized) of preprocessed input data. If the field
-            is sequential, 'raw' is ignored and can be None. Otherwise,
-            'sequential' is ignored and can be None.
+            Tuple of (raw, None) of preprocessed input data.
+
+        Returns
+        -------
+        numpy array
+            Array of stoi indexes of the tokens.
         """
 
         raw, _ = data
