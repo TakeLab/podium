@@ -276,13 +276,7 @@ class BasicVectorStorage(VectorStorage):
         if vocab is not None and not isinstance(vocab, set):
             vocab = set(vocab)
 
-        if self._binary:
-            open_mode = 'rb'
-            split_regex = b" "
-
-        else:
-            open_mode = 'r'
-            split_regex = " "
+        open_mode, split_delimiter = ('rb', b' ') if self._binary else ('r', ' ')
 
         with open(curr_path, open_mode) as vector_file:
 
@@ -293,7 +287,7 @@ class BasicVectorStorage(VectorStorage):
                 if not stripped_line:
                     raise RuntimeError("File contains empty lines")
 
-                word, vector_entries_str = stripped_line.split(split_regex, 1)
+                word, vector_entries_str = stripped_line.split(split_delimiter, 1)
                 vector_entry = np.fromstring(string=vector_entries_str,
                                              dtype=float, sep=' ')
                 # will throw ValueError if vector_entries_str cannot be casted
