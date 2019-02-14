@@ -29,14 +29,9 @@ def basic_batch_transform_fun(x_batch, y_batch):
 def batch_transform_fun_vectorize_avg(x_batch, y_batch, embedding_matrix):
     """Method transforms iterator batch to a
        numpy matrix that model accepts."""
-    x_numericalized = x_batch.Text
-    vectors_list = []
-    for comment in x_numericalized:
-        comment_vectors = []
-        for word in comment:
-            comment_vectors.append(embedding_matrix[int(word)])
-        vectors_list.append(np.mean(np.array(comment_vectors), axis=0))
-    X = np.array(vectors_list)
+    x_numericalized = x_batch.Text.astype(int)
+    embeddings = np.take(embedding_matrix, x_numericalized, axis=0)
+    X = np.mean(embeddings, axis=1)
     y = y_batch.Rating.ravel()
     return X, y
 
