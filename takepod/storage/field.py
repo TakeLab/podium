@@ -1,8 +1,9 @@
 """Module contains dataset's field definition and methods for construction."""
 from collections import deque
-from takepod.preproc.tokenizers import get_tokenizer
 
 import numpy as np
+
+from takepod.preproc.tokenizers import get_tokenizer
 
 
 class Field(object):
@@ -342,6 +343,28 @@ class TokenizedField(Field):
             is_target=is_target,
             fixed_length=fixed_length
         )
+
+    def numericalize(self, data):
+        """Numericalize the already preprocessed data point based either on
+        the vocab that was previously built, or on a custom numericalization
+        function, if the field doesn't use a vocab.
+
+        Parameters
+        ----------
+        data : (list(str), None)
+            Tuple of (raw, tokenized) of preprocessed input data. If the field
+            is sequential, 'raw' is ignored and can be None. Otherwise,
+            'sequential' is ignored and can be None.
+        """
+
+        raw, _ = data
+
+        if self.use_vocab:
+            return self.vocab.numericalize(raw)
+        else:
+            # custom numericalization for non-vocab data
+            # (such as floating point data Fields)
+            return np.array([self.custom_numericalize(tok) for tok in raw])
 
     def update_vocab(self, raw, tokenized):
         """

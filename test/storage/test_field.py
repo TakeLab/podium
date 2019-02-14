@@ -3,6 +3,7 @@ import pytest
 from mock import patch
 
 from takepod.storage.field import Field, TokenizedField
+from takepod.storage.vocab import Vocab
 
 ONE_TO_FIVE = [1, 2, 3, 4, 5]
 
@@ -396,3 +397,45 @@ def test_tokenized_field_update_vocab(use_vocab, expected_vocab_values, vocab):
     f.update_vocab(raw_value, tokenized_value)
 
     assert vocab.values == expected_vocab_values
+
+
+def test_tokenized_field_numericalization():
+    vocab = Vocab()
+    pretokenized_input1 = [
+        "word",
+        "words",
+        "uttering"
+    ]
+    pretokenized_input2 = [
+        "word",
+        "words"
+    ]
+    pretokenized_input3 = [
+        "word"
+    ]
+
+    pretokenized_input4 = [
+        "word",
+        "uttering"
+    ]
+
+    tokenized_field = TokenizedField("test_field",
+                                     vocab=vocab)
+    data1 = tokenized_field.preprocess(pretokenized_input1)
+    data2 = tokenized_field.preprocess(pretokenized_input2)
+    data3 = tokenized_field.preprocess(pretokenized_input3)
+    data4 = tokenized_field.preprocess(pretokenized_input4)
+
+    tokenized_field.finalize()
+
+    expected_numericalization_1 = np.array([2, 3, 4])
+    assert np.all(tokenized_field.numericalize(data1) == expected_numericalization_1)
+
+    expected_numericalization_2 = np.array([2, 3])
+    assert np.all(tokenized_field.numericalize(data2) == expected_numericalization_2)
+
+    expected_numericalization_3 = np.array([2])
+    assert np.all(tokenized_field.numericalize(data3) == expected_numericalization_3)
+
+    expected_numericalization_4 = np.array([2, 4])
+    assert np.all(tokenized_field.numericalize(data4) == expected_numericalization_4)
