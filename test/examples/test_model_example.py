@@ -2,10 +2,6 @@ from collections import namedtuple
 import numpy as np
 import pytest
 import takepod.examples.model_example as example
-from takepod.datasets.pauza_dataset import PauzaHRDataset
-from takepod.models.simple_trainers import SimpleTrainer
-from takepod.models.fc_model import ScikitMLPClassifier
-from takepod.storage.iterator import Iterator
 
 
 def test_basic_pauza_hr_fields():
