@@ -175,7 +175,7 @@ def test_get_embedding_matrix(tokens, expected_matrix, expected_shape):
     vect = vectorizer.BasicVectorStorage(path=vect_file_path)
     vect.load_all()
 
-    embedding_matrix = vect.get_embedding_matrix(itos=tokens)
+    embedding_matrix = vect.get_embedding_matrix(vocab=tokens)
     assert embedding_matrix.shape == expected_shape
     assert np.allclose(a=embedding_matrix,
                        b=expected_matrix,

@@ -57,3 +57,13 @@ def test_batch_transform_fun_vectorize_avg():
         embedding_matrix=embedding_matrix)
     assert X.shape == (3, 5)
     assert y.shape == (3,)
+    expected_x = np.array([[6.5, 7, 6.5, 3, 5],
+                           [4.5, 5, 5, 2.5, 5.5],
+                           [2.5, 3.5, 2, 2.5, 2]])
+    assert np.allclose(a=X,
+                       b=expected_x,
+                       rtol=0, atol=1.e-6)
+    expected_y = [1, 0, 4]
+    assert np.allclose(a=y,
+                       b=expected_y,
+                       rtol=0, atol=1.e-6)
