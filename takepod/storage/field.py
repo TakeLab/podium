@@ -1,8 +1,9 @@
 """Module contains dataset's field definition and methods for construction."""
 from collections import deque
-from takepod.preproc.tokenizers import get_tokenizer
 
 import numpy as np
+
+from takepod.preproc.tokenizers import get_tokenizer
 
 
 class Field(object):
@@ -238,6 +239,30 @@ class Field(object):
         if self.use_vocab:
             self.vocab.finalize()
 
+    def _numericalize_tokens(self, tokens):
+        """Numericalizes an iterable of tokens.
+        If use_vocab is True, numericalization of the vocab is used. Else
+        the custom_numericalize hook is used.
+
+        Parameters
+        ----------
+        tokens : iterable
+            Iterable of objects to be numericalized.
+
+        Returns
+        -------
+        numpy array
+            Array of numericalized representations of the tokens.
+
+        """
+        if self.use_vocab:
+            return self.vocab.numericalize(tokens)
+
+        else:
+            # custom numericalization for non-vocab data
+            # (such as floating point data Fields)
+            return np.array([self.custom_numericalize(tok) for tok in tokens])
+
     def numericalize(self, data):
         """Numericalize the already preprocessed data point based either on
         the vocab that was previously built, or on a custom numericalization
@@ -245,23 +270,24 @@ class Field(object):
 
         Parameters
         ----------
-        data : (str, str)
+        data : (hashable, iterable(hashable))
             Tuple of (raw, tokenized) of preprocessed input data. If the field
             is sequential, 'raw' is ignored and can be None. Otherwise,
             'sequential' is ignored and can be None.
+
+        Returns
+        -------
+        numpy array
+            Array of stoi indexes of the tokens.
+
         """
 
         raw, tokenized = data
 
         # raw data is just a string, so we need to wrap it into an iterable
-        data = tokenized if self.sequential else [raw]
+        tokens = tokenized if self.sequential else [raw]
 
-        if self.use_vocab:
-            return self.vocab.numericalize(data)
-        else:
-            # custom numericalization for non-vocab data
-            # (such as floating point data Fields)
-            return np.array([self.custom_numericalize(tok) for tok in data])
+        return self._numericalize_tokens(tokens)
 
     def pad_to_length(self, row, length, custom_pad_symbol=None,
                       pad_left=False, truncate_left=False):
@@ -343,6 +369,31 @@ class TokenizedField(Field):
             fixed_length=fixed_length
         )
 
+    def numericalize(self, data):
+        """Numericalize the already preprocessed data point based either on
+        the vocab that was previously built, or on a custom numericalization
+        function, if the field doesn't use a vocab.
+
+        Parameters
+        ----------
+        data : (iterable(hashable), None)
+            Tuple of (raw, None) of preprocessed input data.
+            Raw should contain an iterable of pretokenized data.
+
+        Returns
+        -------
+        numpy array
+            Array of numericalized representations of the tokens.
+        """
+
+        raw, _ = data
+
+        if self.use_vocab:
+            return self.vocab.numericalize(raw)
+
+        else:
+            return self._numericalize_tokens(raw)
+
     def update_vocab(self, raw, tokenized):
         """
         Updates the vocab with new data.
@@ -351,7 +402,7 @@ class TokenizedField(Field):
 
         Parameters
         ----------
-        raw : list
+        raw : iterable(hashable)
             The raw form of the data point used to update the vocab.
         tokenized : any
             The tokenized form of the data point (not used).
