@@ -1,4 +1,5 @@
 import pytest
+
 from takepod.storage import vocab
 
 
@@ -246,3 +247,12 @@ def test_equals_two_vocabs_different_freq():
     voc2 += data
     voc2 += ["a"]
     assert voc1 != voc2
+
+
+@pytest.mark.xfail(strict=True, reason=ValueError)
+def test_vocab_fail_no_unk():
+    voc = vocab.Vocab(specials=())
+    voc += [1, 2, 3, 4, 5]
+    voc.finalize()
+
+    voc.numericalize([1, 2, 3, 6])
