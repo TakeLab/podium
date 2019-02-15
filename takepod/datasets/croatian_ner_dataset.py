@@ -1,23 +1,52 @@
 """Module contains Croatian NER dataset."""
-from takepod.storage import dataset
+from takepod.storage import dataset, example
 from takepod.storage.field import TokenizedField
 from takepod.storage.vocab import Vocab
 from takepod.storage.large_resource import LargeResource
 from takepod.dataload.ner_croatian import NERCroatianXMLLoader
-from takepod.datasets.sequence_labelling_dataset import SequenceLabellingDataset
 
 
-class CroatianNERDataset(SequenceLabellingDataset):
+class CroatianNERDataset(dataset.Dataset):
     """Croatian NER dataset.
-    A single example represents a single sentence in the input data.
 
-    Attributes
-    ----------
-    NAME : str
-        Name of the dataset.
+    A single example in the dataset represents a single sentence in
+    the input data.
     """
 
     NAME = "CroatianNERDataset"
+
+    def __init__(self, tokenized_documents, fields):
+        """
+        Dataset constructor.
+        Users should use the static method get_dataset rather than invoking
+        the constructor directly.
+
+        Parameters
+        ----------
+        tokenized_documents : list(list(str, str))
+            List of tokenized documents. Each document is represented
+            as a list of tuples (token, label). The sentences in document are
+            delimited by tuple (None, None)
+
+        fields : list(Field)
+            Dictionary that maps field name to the field
+        """
+        examples = []
+        columns = []
+
+        for document in tokenized_documents:
+            for line in document:
+                if is_delimiter_line(line):
+                    if columns:
+                        examples.append(example.Example.fromlist(columns, fields))
+                    columns = []
+                else:
+                    for i, column in enumerate(line):
+                        if len(columns) < i + 1:
+                            columns.append([])
+                        columns[i].append(column)
+
+        super().__init__(examples, fields)
 
     @classmethod
     def get_dataset(cls, tokenizer='split', tag_schema='IOB', fields=None, **kwargs):
@@ -86,3 +115,20 @@ class CroatianNERDataset(SequenceLabellingDataset):
 
         fields = {"tokens": tokens, "labels": labels}
         return fields
+
+
+def is_delimiter_line(line):
+    """
+    Checks if the line is delimiter line. Delimiter line is a tuple with
+    all elements set to None.
+
+    Parameters
+    ----------
+    line : tuple
+        tuple representing line elements.
+
+    Returns
+    -------
+        True if the line is delimiter line.
+    """
+    return not any(line)

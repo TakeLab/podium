@@ -82,7 +82,7 @@ def test_dataset_loading(base_download_dir):
 
     expected_tokens_1 = ['Ukupna', 'vrijednost', 'izvoza', 'u', 'prvoj',
                          'polovini', 'ove', 'godine', 'iznosila', 'je',
-                         '521,7', 'milijardi',  'dolara', '.']
+                         '521,7', 'milijardi', 'dolara', '.']
     expected_labels_1 = ['O', 'O', 'O', 'B-Date', 'I-Date', 'I-Date', 'I-Date',
                          'I-Date', 'O', 'O', 'B-Money', 'I-Money', 'I-Money',
                          'O']
