@@ -147,21 +147,21 @@ class VectorStorage(ABC):
         """
         pass
 
-    def get_embedding_matrix(self, itos):
+    def get_embedding_matrix(self, vocab):
         """Method constructs embedding matrix.
 
         Parameters
         ----------
-        itos : iter(str)
+        vocab : iter(token)
             collection of tokens for creation of embedding matrix
-            default use case is to give this function itos list
+            default use case is to give this function vocab or itos list
 
         Raises
         ------
         RuntimeError
             if vector storage is not initialized
         """
-        return np.vstack([self.token_to_vector(token) for token in itos])
+        return np.vstack([self.token_to_vector(token) for token in vocab])
 
 
 class BasicVectorStorage(VectorStorage):

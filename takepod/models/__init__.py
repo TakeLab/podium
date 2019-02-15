@@ -1,7 +1,5 @@
 """Module contains ML models."""
 
-from .base_model import ExportableModel, SupervisedModel
-from .simple_sentiment_analysis import SimpleSentimentAnalysisModel, RNN
+from .base_model import AbstractFrameworkModel, AbstractSupervisedModel
 
-__all__ = ["ExportableModel", "SupervisedModel",
-           "SimpleSentimentAnalysisModel", "RNN"]
+__all__ = ["AbstractFrameworkModel", "AbstractSupervisedModel"]
