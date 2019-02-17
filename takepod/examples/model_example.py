@@ -38,11 +38,11 @@ def batch_transform_fun_vectorize_avg(x_batch, y_batch, embedding_matrix):
 
 def basic_pauza_hr_fields():
     """Function returns pauza-hr fields used for classification."""
-    rating = Field(name="Rating", vocab=Vocab(specials=()), store_raw=True,
-                   is_target=True, sequential=False,
+    rating = Field(name="Rating", vocab=Vocab(specials=()), store_as_raw=True,
+                   is_target=True, tokenize=False,
                    custom_numericalize=numericalize_pauza_rating)
     text = Field(name="Text", vocab=Vocab(), tokenizer='split',
-                 language="hr", sequential=True, store_raw=False,
+                 language="hr", tokenize=True, store_as_raw=False,
                  fixed_length=100)
     return {"Text": text, "Rating": rating}
 
