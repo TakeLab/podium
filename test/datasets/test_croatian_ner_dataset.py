@@ -43,7 +43,7 @@ def base_download_dir():
     base_temp = tempfile.mkdtemp()
     assert os.path.isdir(base_temp)
 
-    base_dataset_dir = os.path.join(base_temp, CroatianNERDataset.NAME)
+    base_dataset_dir = os.path.join(base_temp, 'CroatianNERDataset')
     os.makedirs(base_dataset_dir)
 
     ner_file_name = os.path.join(base_dataset_dir, 'example.xml')

@@ -13,8 +13,6 @@ class CroatianNERDataset(dataset.Dataset):
     the input data.
     """
 
-    NAME = "CroatianNERDataset"
-
     def __init__(self, tokenized_documents, fields):
         """
         Dataset constructor.
@@ -32,19 +30,20 @@ class CroatianNERDataset(dataset.Dataset):
             Dictionary that maps field name to the field
         """
         examples = []
-        columns = []
+
+        tokens = []
+        labels = []
 
         for document in tokenized_documents:
             for line in document:
-                if is_delimiter_line(line):
-                    if columns:
-                        examples.append(example.Example.fromlist(columns, fields))
-                    columns = []
+                if _is_delimiter_line(line):
+                    examples.append(example.Example.fromlist((tokens, labels), fields))
+                    tokens = []
+                    labels = []
                 else:
-                    for i, column in enumerate(line):
-                        if len(columns) < i + 1:
-                            columns.append([])
-                        columns[i].append(column)
+                    token, label = line
+                    tokens.append(token)
+                    labels.append(label)
 
         super().__init__(examples, fields)
 
@@ -117,7 +116,7 @@ class CroatianNERDataset(dataset.Dataset):
         return fields
 
 
-def is_delimiter_line(line):
+def _is_delimiter_line(line):
     """
     Checks if the line is delimiter line. Delimiter line is a tuple with
     all elements set to None.
