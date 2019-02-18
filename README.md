@@ -1,6 +1,6 @@
 # TakeLab Podium
 
-Home of the **TakeLab Podium** project. Podium is a Python machine learning library that helps users to accelerate use of NLP models. 
+Home of the **TakeLab Podium** project. Podium is a Python machine learning library that helps users to accelerate use of natural language processing models. 
 
 ## Getting Started
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
@@ -18,7 +18,7 @@ For building this project system needs to have installed the following:
 You will work in a virtual environment and keep a list of required
 dependencies in a ```requirements.txt``` file. The master branch of the 
 project **must** be buildable with passing tests **all the time**. 
-Code coverage should be kept as high as possible. 
+Code coverage should be kept as high as possible (preferably >95%). 
 
 Commands to setup virtual environment and run tests.
 ```
@@ -95,12 +95,9 @@ flake8 test
 
 For automatic flake8 compliance we recommend use of [Black](https://github.com/ambv/black).
 
-## Deployment
-Additional notes about how to deploy this library in production environment.
-
 ## Contributing
 
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ## Versioning
 
@@ -109,7 +106,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 ## Authors
 
 * Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Domagoj Pluščec](https://github.com/domi385), [Filip Boltužić](https://github.com/FilipBolt) and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list needs to mention: [Marin Kačan](https://github.com/mkacan), [Mate Mijolić](https://github.com/matemijolovic).
-* Project made as part of TakeLab laboratory at Faculty of Electrical Engineering and Computing, University of Zagreb
+* Project made as part of TakeLab at Faculty of Electrical Engineering and Computing, University of Zagreb
 * Laboratory url: http://takelab.fer.hr
 
 See also the list of [contributors](https://github.com/FilipBolt/takepod/graphs/contributors) who participated in this project.
@@ -127,5 +124,6 @@ This project is licensed under the (TODO) - see the [LICENSE.md](LICENSE.md) fil
 - OSX instructions on installation and building
 - Add used references
 - Add deployment notes
+- Add small examples
 
 
