@@ -270,10 +270,9 @@ def test_equals_two_vocabs_different_freq():
     assert voc1 != voc2
 
 
-@pytest.mark.xfail(strict=True, reason=ValueError)
 def test_vocab_fail_no_unk():
     voc = vocab.Vocab(specials=())
     voc += [1, 2, 3, 4, 5]
     voc.finalize()
-
-    voc.numericalize([1, 2, 3, 6])
+    with pytest.raises(ValueError):
+        voc.numericalize([1, 2, 3, 6])
