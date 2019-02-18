@@ -1,8 +1,7 @@
 """Module contains dataset's field definition and methods for construction."""
 from collections import deque
-from takepod.preproc.tokenizers import get_tokenizer
-
 import numpy as np
+from takepod.preproc.tokenizers import get_tokenizer
 
 
 class Field(object):
@@ -26,6 +25,8 @@ class Field(object):
 
         Parameters
         ----------
+        name : str
+            Field name, used for referencing data in the dataset.
         tokenizer : str | callable
             The tokenizer that is to be used when preprocessing raw data
             (only if sequential is True). The user can provide his own
@@ -55,6 +56,13 @@ class Field(object):
         custom_numericalize : callable
             The numericalization function that will be called if the field
             doesn't use a vocabulary.
+        is_target : bool
+            Whether this field is a target variable. Affects iteration over
+            batches. Default: False.
+        fixed_length : int, optional
+            To which length should the field be fixed. If it is not None every
+            example in the field will be truncated or padded to given length.
+            Default: None.
 
         Raises
         ------
@@ -157,13 +165,11 @@ class Field(object):
     def remove_pretokenize_hooks(self):
         """Remove all the pre-tokenization hooks that were added to the Field.
         """
-
         self.pretokenize_hooks.clear()
 
     def remove_posttokenize_hooks(self):
         """Remove all the post-tokenization hooks that were added to the Field.
         """
-
         self.posttokenize_hooks.clear()
 
     def preprocess(self, raw):
@@ -186,7 +192,6 @@ class Field(object):
             The attributes 'sequential' and 'store_raw' will never both be
             False, so the function will never return (None, None).
         """
-
         for hook in self.pretokenize_hooks:
             raw = hook(raw)
 
@@ -224,7 +229,6 @@ class Field(object):
             updated with. If the field is NOT sequential, this parameter is
             ignored and can be None.
         """
-
         if not self.use_vocab:
             return
 
@@ -234,7 +238,6 @@ class Field(object):
     def finalize(self):
         """Signals that this field's vocab can be built.
         """
-
         if self.use_vocab:
             self.vocab.finalize()
 
@@ -250,7 +253,6 @@ class Field(object):
             is sequential, 'raw' is ignored and can be None. Otherwise,
             'sequential' is ignored and can be None.
         """
-
         raw, tokenized = data
 
         # raw data is just a string, so we need to wrap it into an iterable
@@ -280,6 +282,12 @@ class Field(object):
             The pad symbol that is to be used if the field doesn't have a
             vocab. If the field has a vocab, this parameter is ignored and can
             be None.
+        pad_left : bool
+            If True padding will be done on the left side, otherwise on the
+            right side. Default: False.
+        truncate_left : bool
+            If True field will be trucated on the left side, otherwise on the
+            right side. Default: False.
 
         Raises
         ------
@@ -287,7 +295,6 @@ class Field(object):
             If the field doesn't use a vocab and no custom pad symbol was
             given.
         """
-
         if len(row) > length:
             # truncating
 
