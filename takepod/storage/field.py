@@ -3,8 +3,6 @@ from collections import deque
 import numpy as np
 from takepod.preproc.tokenizers import get_tokenizer
 
-from takepod.preproc.tokenizers import get_tokenizer
-
 
 class Field(object):
     """Holds the preprocessing and numericalization logic for a single
