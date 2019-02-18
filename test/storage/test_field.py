@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from mock import patch
 
-from takepod.storage.field import Field, TokenizedField
+from takepod.storage import Field, TokenizedField, Vocab
 
 ONE_TO_FIVE = [1, 2, 3, 4, 5]
 
@@ -396,3 +396,112 @@ def test_tokenized_field_update_vocab(use_vocab, expected_vocab_values, vocab):
     f.update_vocab(raw_value, tokenized_value)
 
     assert vocab.values == expected_vocab_values
+
+
+def test_tokenized_field_numericalization():
+    vocab = Vocab()
+    pretokenized_input1 = [
+        "word",
+        "words",
+        "uttering"
+    ]
+    pretokenized_input2 = [
+        "word",
+        "words"
+    ]
+    pretokenized_input3 = [
+        "word"
+    ]
+
+    pretokenized_input4 = [
+        "word",
+        "uttering"
+    ]
+
+    tokenized_field = TokenizedField("test_field",
+                                     vocab=vocab)
+    data1 = tokenized_field.preprocess(pretokenized_input1)
+    data2 = tokenized_field.preprocess(pretokenized_input2)
+    data3 = tokenized_field.preprocess(pretokenized_input3)
+    data4 = tokenized_field.preprocess(pretokenized_input4)
+
+    tokenized_field.finalize()
+
+    expected_numericalization_1 = np.array([2, 3, 4])
+    raw1, _ = data1
+    assert np.all(vocab.numericalize(raw1) == expected_numericalization_1)
+    assert np.all(tokenized_field.numericalize(data1) == expected_numericalization_1)
+
+    expected_numericalization_2 = np.array([2, 3])
+    raw2, _ = data2
+    assert np.all(vocab.numericalize(raw2) == expected_numericalization_2)
+    assert np.all(tokenized_field.numericalize(data2) == expected_numericalization_2)
+
+    expected_numericalization_3 = np.array([2])
+    raw3, _ = data3
+    assert np.all(vocab.numericalize(raw3) == expected_numericalization_3)
+    assert np.all(tokenized_field.numericalize(data3) == expected_numericalization_3)
+
+    expected_numericalization_4 = np.array([2, 4])
+    raw4, _ = data4
+    assert np.all(vocab.numericalize(raw4) == expected_numericalization_4)
+    assert np.all(tokenized_field.numericalize(data4) == expected_numericalization_4)
+
+
+def test_tokenized_field_custom_numericalization():
+    tfield = TokenizedField("bla",
+                            custom_numericalize=lambda x: x)
+
+    data1 = tfield.preprocess([1, 2, 3])
+    data2 = tfield.preprocess([3, 2, 1])
+    data3 = tfield.preprocess([3, 4, 5, 6])
+    data4 = tfield.preprocess([2, 3, 6])
+
+    tfield.finalize()
+
+    assert np.all(tfield.numericalize(data1) == np.array([1, 2, 3]))
+    assert np.all(tfield.numericalize(data2) == np.array([3, 2, 1]))
+    assert np.all(tfield.numericalize(data3) == np.array([3, 4, 5, 6]))
+    assert np.all(tfield.numericalize(data4) == np.array([2, 3, 6]))
+
+
+def test_tokenized_field_custom_numericalization_2():
+    label_indexer = {
+        "one": 1,
+        "two": 2,
+        "three": 3,
+        "four": 4
+    }
+
+    tfield = TokenizedField("bla",
+                            custom_numericalize=label_indexer.get)
+
+    data1 = tfield.preprocess(["one", "two", "three"])
+    data2 = tfield.preprocess(["three", "two", "one"])
+    data3 = tfield.preprocess(["three", "four", "four", "two"])
+    data4 = tfield.preprocess(["two", "three", "one"])
+
+    tfield.finalize()
+
+    assert np.all(tfield.numericalize(data1) == np.array([1, 2, 3]))
+    assert np.all(tfield.numericalize(data2) == np.array([3, 2, 1]))
+    assert np.all(tfield.numericalize(data3) == np.array([3, 4, 4, 2]))
+    assert np.all(tfield.numericalize(data4) == np.array([2, 3, 1]))
+
+
+def test_tokenized_field_vocab_non_string():
+    vocab = Vocab(specials=())
+    tfield = TokenizedField("bla",
+                            vocab=vocab)
+
+    data1 = tfield.preprocess([1, 2, 3])
+    data2 = tfield.preprocess([3, 2, 1])
+    data3 = tfield.preprocess([3, 4, 5, 6])
+    data4 = tfield.preprocess([2, 3, 6])
+
+    tfield.finalize()
+
+    assert np.all(tfield.numericalize(data1) == vocab.numericalize([1, 2, 3]))
+    assert np.all(tfield.numericalize(data2) == vocab.numericalize([3, 2, 1]))
+    assert np.all(tfield.numericalize(data3) == vocab.numericalize([3, 4, 5, 6]))
+    assert np.all(tfield.numericalize(data4) == vocab.numericalize([2, 3, 6]))

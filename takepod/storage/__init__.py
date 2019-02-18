@@ -4,7 +4,7 @@ from .dataset import Dataset, TabularDataset, stratified_split, rationed_split
 from .downloader import (BaseDownloader, SCPDownloader, HttpDownloader,
                          SimpleHttpDownloader)
 from .example import Example
-from .field import Field
+from .field import Field, TokenizedField
 from .iterator import Iterator, BucketIterator
 from .large_resource import LargeResource, SCPLargeResource
 from .vectorizer import VectorStorage, BasicVectorStorage
@@ -21,7 +21,7 @@ from .vocab import SpecialVocabSymbols, Vocab
 __all__ = ["Dataset", "TabularDataset",
            "BaseDownloader", "SCPDownloader", "HttpDownloader", "SimpleHttpDownloader",
            "Example",
-           "Field",
+           "Field", "TokenizedField",
            "Iterator", "BucketIterator",
            "LargeResource", "SCPLargeResource",
            "VectorStorage", "BasicVectorStorage",
