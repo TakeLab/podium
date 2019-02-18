@@ -19,6 +19,7 @@
 
 import re
 import os
+import functools
 
 
 class CroatianStemmer:
@@ -134,3 +135,11 @@ class CroatianStemmer:
         return "".join(list(
             stem[i].upper() if c.isupper() else stem[i] for i, c in
             zip(range(len(stem)), word)))
+
+
+def _stemmer_posttokenized_hook(raw, tokenized, stemmer=CroatianStemmer()):
+    return raw, [stemmer.stem_word(token) for token in tokenized]
+
+
+CROATIAN_STEMMER_POSTTOKENIZED_HOOK = functools.partial(
+    _stemmer_posttokenized_hook, stemmer=CroatianStemmer())
