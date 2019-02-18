@@ -1,9 +1,5 @@
 """Module contains dataset's field definition and methods for construction."""
 from collections import deque
-<<<<<<< HEAD
-=======
-
->>>>>>> refs/remotes/origin/master
 import numpy as np
 from takepod.preproc.tokenizers import get_tokenizer
 
