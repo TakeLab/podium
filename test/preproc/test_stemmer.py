@@ -49,16 +49,15 @@ def test_croatian_stemmer_hook(example_raw, example_words, expected_result):
 
 
 @pytest.mark.parametrize(
-    "example_raw, example_words, expected_result",
+    "example_words, expected_result",
     [
-        (None, ["babice", "turizama"], ["babic", "turizm"]),
-        (None, ["jesmo", "sntntn"], ["jesmo", "sntntn"]),
+        (["babice", "turizama"], ["babic", "turizm"]),
+        (["jesmo", "sntntn"], ["jesmo", "sntntn"]),
     ]
 )
-def test_croatian_stemmer_hook_raw_none(
-        example_raw, example_words, expected_result):
+def test_croatian_stemmer_hook_raw_none(example_words, expected_result):
     result_raw, result_tokenized = CROATIAN_STEMMER_POSTTOKENIZED_HOOK(
-        raw=example_raw,
+        raw=None,
         tokenized=example_words)
     assert result_tokenized == expected_result
     assert result_raw is None
