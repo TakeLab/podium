@@ -29,6 +29,8 @@ class Vocab:
         list of words
     stoi : dict
         mapping from word string to index
+    has_special:
+        whether the dictionary contains special symbols
     """
     def __init__(self, max_size=None, min_freq=1,
                  specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD),
@@ -41,8 +43,9 @@ class Vocab:
             maximal vocab size
         min_freq : int
             words with frequency lower than this will be removed
-        specials : iter(SpecialVocabSymbols)
-            collection of special symbols
+        specials : iter(SpecialVocabSymbols) | None
+            collection of special symbols.
+            Can be None.
         keep_freqs : bool
             if true word frequencies will be saved for later use on
             the finalization
@@ -52,6 +55,9 @@ class Vocab:
         self._freqs = Counter()
         self._keep_freqs = keep_freqs
         self._min_freq = min_freq
+
+        specials = () if specials is None else specials
+        self._has_specials = len(specials) > 0
 
         self.itos = list(specials)
         self._default_unk_index = self._init_default_unk_index(specials)
@@ -248,6 +254,10 @@ class Vocab:
                                'been finalized call `.finalize()`'
                                ' on the Field')
         return np.array([self.stoi[token] for token in data])
+
+    @property
+    def has_specials(self):
+        return self._has_specials
 
     def __len__(self):
         """Method calculates vocab lengths including special symbols.
