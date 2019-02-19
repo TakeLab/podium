@@ -39,12 +39,13 @@ def test_word2lemma_casing(word, expected_lemma, mock_lemmatizer):
         ("MaMi parkira parkiranJe",
          ["MaMi", "parkira", "parkiranJe"],
          ["MaMa", "parkirati", "parkiranJe"]),
-        ("tatata Mamama",
-         ["tatata", "Mamama"],
+        ("tata Mamama",
+         ["tata", "Mamama"],
          ["tata", "Mama"]),
     ]
 )
-def test_croatian_lemmatizer_hook(example_raw, example_words, expected_result):
+def test_croatian_lemmatizer_hook(
+        example_raw, example_words, expected_result, mock_lemmatizer):
     result_raw, result_tokenized = _lemmatizer_posttokenized_hook(
         raw=example_raw, tokenized=example_words, lemmatizer=mock_lemmatizer)
     assert result_tokenized == expected_result
@@ -55,7 +56,7 @@ def test_croatian_lemmatizer_hook(example_raw, example_words, expected_result):
     "example_words, expected_result",
     [
         (["Mamama", "parkirati"], ["Mama", "parkirati"]),
-        (["parkiranJe", "tatu"], ["parkiranJe", "tata"]),
+        (["parkiranJe", "tatu"], ["parkiranJe", "tatu"]),
     ]
 )
 def test_croatian_lemmatizer_hook_raw_none(

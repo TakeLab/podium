@@ -176,5 +176,6 @@ def _lemmatizer_posttokenized_hook(
     """
     return raw, [lemmatizer.lemmatize_word(token) for token in tokenized]
 
+
 CROATIAN_LEMMATIZER_POSTTOKENIZED_HOOK = functools.partial(
     _lemmatizer_posttokenized_hook, lemmatizer=CroatianLemmatizer())
