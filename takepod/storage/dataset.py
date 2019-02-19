@@ -40,7 +40,7 @@ class Dataset(ABC):
 
         self.examples = examples
         self.fields = fields
-        self.field_names = {field.name for field in fields}
+        self.field_dict = {field.name: field for field in fields}
         self.sort_key = sort_key
 
     def __getitem__(self, i):
@@ -54,8 +54,8 @@ class Dataset(ABC):
             yield x
 
     def __getattr__(self, attr):
-        """Returns an Iterator iterating over values of the field with the given name for
-        every example in the dataset.
+        """Returns an Iterator iterating over values of the field with the
+        given name for every example in the dataset.
 
         Parameters
         ----------
@@ -64,8 +64,8 @@ class Dataset(ABC):
 
         Returns
         ------
-            an Iterator iterating over values of the field with the given name for
-            every example in the dataset.
+            an Iterator iterating over values of the field with the given name
+            for every example in the dataset.
 
         Raises
         ------
@@ -73,7 +73,7 @@ class Dataset(ABC):
             If there is no Field with the given name.
         """
 
-        if attr in self.field_names:
+        if attr in self.field_dict:
             def attrGenerator():
                 for x in self.examples:
                     yield getattr(x, attr)
@@ -198,7 +198,7 @@ class Dataset(ABC):
                     f"If strata_field_name is not provided, at least one"
                     f" field has to have is_target equal to True.")
 
-            if strata_field_name not in self.field_names:
+            if strata_field_name not in self.field_dict:
                 raise ValueError(f"Invalid strata field name: "
                                  f"{strata_field_name}")
 
