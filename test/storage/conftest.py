@@ -3,8 +3,13 @@ import os
 import pandas as pd
 import pytest
 
+from takepod.storage.dataset import TabularDataset
+from takepod.storage.field import Field
+from takepod.storage.vocab import Vocab
+
 
 @pytest.fixture()
+@pytest.mark.usefixtures("tabular_data")
 def file_path(tmpdir, file_format, tabular_data):
     # tmpdir is a default pytest fixture
     path = os.path.join(tmpdir, "sample." + file_format)
@@ -15,6 +20,15 @@ def file_path(tmpdir, file_format, tabular_data):
         create_temp_csv(path, "\t", tabular_data)
     else:
         create_temp_json(path, tabular_data)
+
+    yield path
+
+
+@pytest.fixture()
+def json_file_path(tmpdir):
+    # tmpdir is a default pytest fixture
+    path = os.path.join(tmpdir, "sample.json")
+    create_temp_json(path, tabular_data())
 
     yield path
 
@@ -30,3 +44,51 @@ def create_temp_json(path, data):
 def create_temp_csv(path, delimiter, data):
     df = pd.DataFrame(data)
     df.to_csv(path, sep=delimiter, index=False)
+
+
+@pytest.fixture()
+def vocab(tabular_dataset_fields):
+    return tabular_dataset_fields["text"].vocab
+
+
+@pytest.fixture()
+@pytest.mark.usefixtures("json_file_path")
+def tabular_dataset(json_file_path):
+    return create_tabular_dataset_from_json(tabular_dataset_fields(),
+                                            json_file_path)
+
+
+@pytest.fixture()
+def tabular_dataset_fields(fixed_length=None):
+    TEXT = Field('text', eager=True, vocab=Vocab(), fixed_length=fixed_length)
+    RATING = Field('rating', sequential=False, eager=False, is_target=True)
+
+    fields = {"text": TEXT, "rating": RATING}
+
+    return fields
+
+
+TABULAR_TEXT = (
+    "a b c",
+    "a",
+    "a b c d",
+    "a",
+    "d b",
+    "d c g",
+    "b b b b b b",
+)
+
+TABULAR_RATINGS = (2.5, 3.2, 1.1, 2.1, 5.4, 2.8, 1.9)
+
+
+@pytest.fixture()
+def tabular_data():
+    return {
+        "text": TABULAR_TEXT,
+        "rating": TABULAR_RATINGS,
+    }
+
+
+@pytest.mark.usefixtures("json_file_path")
+def create_tabular_dataset_from_json(fields, json_file_path):
+    return TabularDataset(json_file_path, "json", fields, skip_header=False)

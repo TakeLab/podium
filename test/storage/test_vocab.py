@@ -1,4 +1,5 @@
 import pytest
+
 from takepod.storage import vocab
 
 
@@ -36,6 +37,27 @@ def test_get_frequency_not_kept_not_finalized():
     voc = (voc + {"tree", "plant", "grass"}) + {"plant"}
     assert voc.get_freqs()["tree"] == 1
     assert voc.get_freqs()["plant"] == 2
+
+
+def test_vocab_iterable_not_finalized():
+    voc = vocab.Vocab(keep_freqs=False)
+    data = {"tree", "plant", "grass"}
+    voc += data
+    elements = []
+    for i in voc:
+        elements.append(i)
+    assert all([e in data for e in elements])
+
+
+def test_vocab_iterable_finalized():
+    voc = vocab.Vocab(keep_freqs=False, specials=())
+    data = {"tree", "plant", "grass"}
+    voc += data
+    voc.finalize()
+    elements = []
+    for i in voc:
+        elements.append(i)
+    assert all([e in data for e in elements])
 
 
 def test_get_frequency_not_kept_finalized():
@@ -246,3 +268,11 @@ def test_equals_two_vocabs_different_freq():
     voc2 += data
     voc2 += ["a"]
     assert voc1 != voc2
+
+
+def test_vocab_fail_no_unk():
+    voc = vocab.Vocab(specials=())
+    voc += [1, 2, 3, 4, 5]
+    voc.finalize()
+    with pytest.raises(ValueError):
+        voc.numericalize([1, 2, 3, 6])

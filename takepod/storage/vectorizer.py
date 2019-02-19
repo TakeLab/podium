@@ -3,9 +3,11 @@
 
 """
 import os
-from abc import ABC, abstractmethod
 import six
+
 import numpy as np
+
+from abc import ABC, abstractmethod
 
 
 def zeros_default_vector(token, dim):
@@ -145,21 +147,21 @@ class VectorStorage(ABC):
         """
         pass
 
-    def get_embedding_matrix(self, itos):
+    def get_embedding_matrix(self, vocab):
         """Method constructs embedding matrix.
 
         Parameters
         ----------
-        itos : iter(str)
+        vocab : iter(token)
             collection of tokens for creation of embedding matrix
-            default use case is to give this function itos list
+            default use case is to give this function vocab or itos list
 
         Raises
         ------
         RuntimeError
             if vector storage is not initialized
         """
-        return np.vstack([self.token_to_vector(token) for token in itos])
+        return np.vstack([self.token_to_vector(token) for token in vocab])
 
 
 class BasicVectorStorage(VectorStorage):
@@ -174,19 +176,26 @@ class BasicVectorStorage(VectorStorage):
         vector dimension
     _initialized : bool
         has the vector storage been initialized by loading vectors
+    _binary : bool
+        if True, the file is read as a binary file.
+        Else, it's read as a plain utf-8 text file.
 
     """
 
     def __init__(self, path, default_vector_function=zeros_default_vector,
-                 cache_path=None, max_vectors=None):
+                 cache_path=None, max_vectors=None, binary=True):
         self._vectors = dict()
         self._dim = None
         self._initialized = False
+        self._binary = binary
         super().__init__(
             path=path,
             default_vector_function=default_vector_function,
             cache_path=cache_path,
             max_vectors=max_vectors)
+
+    def __len__(self):
+        return len(self._vectors)
 
     def load_all(self):
         self._load_vectors()
@@ -267,7 +276,9 @@ class BasicVectorStorage(VectorStorage):
         if vocab is not None and not isinstance(vocab, set):
             vocab = set(vocab)
 
-        with open(curr_path, 'rb') as vector_file:
+        open_mode, split_delimiter = ('rb', b' ') if self._binary else ('r', ' ')
+
+        with open(curr_path, open_mode) as vector_file:
 
             vectors_loaded = 0
             header_lines = 0
@@ -276,7 +287,7 @@ class BasicVectorStorage(VectorStorage):
                 if not stripped_line:
                     raise RuntimeError("File contains empty lines")
 
-                word, vector_entries_str = stripped_line.split(b" ", 1)
+                word, vector_entries_str = stripped_line.split(split_delimiter, 1)
                 vector_entry = np.fromstring(string=vector_entries_str,
                                              dtype=float, sep=' ')
                 # will throw ValueError if vector_entries_str cannot be casted
@@ -299,7 +310,9 @@ class BasicVectorStorage(VectorStorage):
                                                        len(vector_entry),
                                                        self._dim))
 
-                word = self._decode_word(word)
+                if self._binary:
+                    word = self._decode_word(word)
+
                 if vocab is not None and word not in vocab:
                     continue
 
@@ -308,8 +321,8 @@ class BasicVectorStorage(VectorStorage):
                 if vectors_loaded == self._max_vectors:
                     break
 
-            if self._cache_path is not None\
-               and not os.path.exists(self._cache_path):
+            if self._cache_path is not None \
+                    and not os.path.exists(self._cache_path):
                 self._cache_vectors()
         self._initialized = True
 

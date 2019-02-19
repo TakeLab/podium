@@ -27,6 +27,7 @@ class PauzaHRDataset(dataset.Dataset):
     URL = "http://takelab.fer.hr/data/cropinion/CropinionDataset.zip"
     DATASET_DIR = os.path.join("croopinion", "CropinionDataset",
                                "reviews_original")
+    ARCHIVE_TYPE = "zip"
     TRAIN_DIR = "Train"
     TEST_DIR = "Test"
 
@@ -44,7 +45,7 @@ class PauzaHRDataset(dataset.Dataset):
         """
         LargeResource(**{
             LargeResource.RESOURCE_NAME: PauzaHRDataset.NAME,
-            LargeResource.ARCHIVE: "zip",
+            LargeResource.ARCHIVE: PauzaHRDataset.ARCHIVE_TYPE,
             LargeResource.URI: PauzaHRDataset.URL})
         unpacked_fields = dataset.unpack_fields(fields=fields)
         examples = self._create_examples(dir_path=dir_path, fields=fields)
@@ -116,7 +117,7 @@ class PauzaHRDataset(dataset.Dataset):
             Dictionary mapping field name to field.
         """
         rating = Field(name="Rating", vocab=Vocab(specials=()),
-                       sequential=False, store_raw=True)
+                       sequential=False, store_raw=True, is_target=True)
         source = Field(name="Source", vocab=Vocab(specials=()),
                        sequential=False, store_raw=True)
         text = Field(name="Text", vocab=Vocab(), tokenizer='split',
