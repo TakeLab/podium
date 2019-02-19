@@ -170,7 +170,7 @@ class Vocab:
                 self._freqs.update(values)
             except TypeError:
                 raise TypeError("Vocab supports only adding vocab or iterable"
-                                "to vocab")
+                                " to vocab")
         return self
 
     def __iadd__(self, values):
