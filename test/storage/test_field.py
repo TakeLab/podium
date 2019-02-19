@@ -506,14 +506,14 @@ def test_tokenized_field_vocab_non_string():
     assert np.all(tfield.numericalize(data3) == vocab.numericalize([3, 4, 5, 6]))
     assert np.all(tfield.numericalize(data4) == vocab.numericalize([2, 3, 6]))
 
-@pytest.mark.xfail(strict=True, reason=ValueError)
 @pytest.mark.parametrize("store_as_raw, store_as_tokenized, tokenize",
                          [[True, True, True],
                          [True, True, False],
                          [False, True, True],
                          [False, False, False]])
 def test_field_fail_initialization(store_as_raw, store_as_tokenized, tokenize):
-    Field("bla",
-          store_as_raw=store_as_raw,
-          store_as_tokenized=store_as_tokenized,
-          tokenize=tokenize)
+    with pytest.raises(ValueError):
+        Field("bla",
+              store_as_raw=store_as_raw,
+              store_as_tokenized=store_as_tokenized,
+              tokenize=tokenize)

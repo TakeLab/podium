@@ -93,7 +93,7 @@ class Field(object):
             )
 
         self.store_as_raw = store_as_raw
-        self.tokenize_raw = tokenize
+        self.tokenize = tokenize
         self.store_as_tokenized = store_as_tokenized
 
         self.eager = eager
@@ -189,6 +189,19 @@ class Field(object):
 
         self.posttokenize_hooks.clear()
 
+
+    def _run_pretokenization_hooks(self, data):
+        for hook in self.pretokenize_hooks:
+            data = hook(data)
+
+        return data
+
+    def _run_posttokenization_hooks(self, data, tokens):
+        for hook in self.posttokenize_hooks:
+            data, tokens = hook(data, tokens)
+
+        return data, list(tokens)
+
     def preprocess(self, data):
         """Preprocesses raw data, tokenizing it if the field is sequential,
         updating the vocab if the field is eager and preserving the raw data
@@ -216,23 +229,19 @@ class Field(object):
 
         if self.store_as_tokenized:
             # Store data as tokens
-            tokens = data
+            _, tokens = self._run_posttokenization_hooks(None, data)
 
         else:
             # Preprocess the raw input
 
-            for hook in self.pretokenize_hooks:
-                data = hook(data)
+            data = self._run_pretokenization_hooks(data)
 
-            if self.tokenize_raw:
+            if self.tokenize:
                 # Tokenize the preprocessed raw data
 
                 tokens = self.tokenizer(data)
 
-                for hook in self.posttokenize_hooks:
-                    data, tokens = hook(data, tokens)
-
-                tokens = list(tokens)
+                data, tokens = self._run_posttokenization_hooks(data, tokens)
 
         if self.eager and self.use_vocab:
             self.update_vocab(data, tokens)
@@ -403,3 +412,25 @@ class TokenizedField(Field):
             is_target=is_target,
             fixed_length=fixed_length
         )
+
+class MultilabelField(TokenizedField):
+
+    def __init__(self,
+                 name,
+                 vocab=None,
+                 eager=True,
+                 custom_numericalize=float,
+                 is_target=False,
+                 fixed_length=None):
+
+        if vocab is not None and vocab.has_specials:
+            raise ValueError("Vocab contains special symbols."
+                             " Vocabs with special symbols cannot be used"
+                             " with multilabel fields.")
+
+        super().__init__(name,
+                         vocab=vocab,
+                         eager=eager,
+                         custom_numericalize=custom_numericalize,
+                         is_target=is_target,
+                         fixed_length=fixed_length)
