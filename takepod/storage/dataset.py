@@ -33,6 +33,9 @@ class Dataset(ABC):
             A list of examples.
         fields : list
             A list of fields that the examples have been created with.
+        sort_key : callable
+            A key to use for sorting dataset examples, used for batching
+            together examples with similar lengths to minimize padding.
         """
 
         self.examples = examples
