@@ -278,12 +278,14 @@ def test_vocab_fail_no_unk():
     with pytest.raises(ValueError):
         voc.numericalize([1, 2, 3, 6])
 
+
 def test_vocab_has_no_special():
     voc1 = vocab.Vocab(specials=None)
     assert not voc1.has_specials
 
     voc2 = vocab.Vocab(specials=())
     assert not voc2.has_specials
+
 
 def test_vocab_has_specials():
     voc = vocab.Vocab()

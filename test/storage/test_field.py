@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from mock import patch
 
-from takepod.storage import Field, TokenizedField, Vocab
+from takepod.storage import Field, TokenizedField, MultilabelField, Vocab
 
 ONE_TO_FIVE = [1, 2, 3, 4, 5]
 
@@ -506,11 +506,17 @@ def test_tokenized_field_vocab_non_string():
     assert np.all(tfield.numericalize(data3) == vocab.numericalize([3, 4, 5, 6]))
     assert np.all(tfield.numericalize(data4) == vocab.numericalize([2, 3, 6]))
 
+
+def test_multilabel_field_specials_in_vocab_fail():
+    with pytest.raises(ValueError):
+        MultilabelField("bla", vocab=Vocab())
+
+
 @pytest.mark.parametrize("store_as_raw, store_as_tokenized, tokenize",
                          [[True, True, True],
-                         [True, True, False],
-                         [False, True, True],
-                         [False, False, False]])
+                          [True, True, False],
+                          [False, True, True],
+                          [False, False, False]])
 def test_field_fail_initialization(store_as_raw, store_as_tokenized, tokenize):
     with pytest.raises(ValueError):
         Field("bla",

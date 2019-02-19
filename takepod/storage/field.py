@@ -189,7 +189,6 @@ class Field(object):
 
         self.posttokenize_hooks.clear()
 
-
     def _run_pretokenization_hooks(self, data):
         for hook in self.pretokenize_hooks:
             data = hook(data)
@@ -412,6 +411,7 @@ class TokenizedField(Field):
             is_target=is_target,
             fixed_length=fixed_length
         )
+
 
 class MultilabelField(TokenizedField):
 
