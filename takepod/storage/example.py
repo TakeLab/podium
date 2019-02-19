@@ -113,7 +113,9 @@ class Example(object):
                     "Specified key {} was not found in the input data"
                     .format(key))
 
-            val = data[key]
+            # TODO: implement better way for dealing with missing data
+            # for now it's set to None
+            val = data.get(key)
             set_example_attributes(example, field, val)
 
         return example

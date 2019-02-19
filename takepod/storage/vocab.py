@@ -15,6 +15,7 @@ class SpecialVocabSymbols():
     """
     UNK = "<unk>"
     PAD = "<pad>"
+    MISS = "<missing_value>"
 
 
 class Vocab:
@@ -89,6 +90,15 @@ class Vocab:
             ind += 1
         return None
 
+    @staticmethod
+    def _init_default_missing_val_index(specials):
+        ind = 0
+        for spec in specials:
+            if spec == SpecialVocabSymbols.MISS:
+                return ind
+            ind += 1
+        return None
+
     def _default_unk(self):
         """Method obtains default unknown symbol index. Used for stoi.
 
@@ -105,6 +115,12 @@ class Vocab:
         if self._default_unk_index is None:
             raise ValueError("Unknown symbol is not present in the vocab.")
         return self._default_unk_index
+
+    def _default_miss(self):
+        if self._default_miss_index is None:
+            raise ValueError("Missing value symbol is not present in the vocab")
+
+        return self._default_miss_index
 
     def get_freqs(self):
         """Method obtains vocabulary frequencies.
@@ -211,6 +227,10 @@ class Vocab:
         """
         if self.finalized:
             raise RuntimeError("Vocab is already finalized.")
+
+        # determine default UNK and MISS indexes
+        self._default_unk_index = Vocab._init_default_unk_index(self._specials)
+        self._default_miss_index = Vocab._init_default_missing_val_index(self._specials)
 
         # construct stoi and itos, sort by frequency
         words_and_freqs = sorted(self._freqs.items(), key=lambda tup: tup[1],

@@ -231,6 +231,9 @@ class Field(object):
             all be False, so the function will never return (None, None).
         """
 
+        if data is None:
+            return None
+
         tokens = None
 
         if self.store_as_tokenized:
@@ -431,7 +434,6 @@ class MultilabelField(TokenizedField):
                  vocab=None,
                  eager=True,
                  custom_numericalize=float,
-                 is_target=False,
                  fixed_length=None):
 
         if vocab is not None and vocab.has_specials:
@@ -443,5 +445,5 @@ class MultilabelField(TokenizedField):
                          vocab=vocab,
                          eager=eager,
                          custom_numericalize=custom_numericalize,
-                         is_target=is_target,
+                         is_target=True,
                          fixed_length=fixed_length)
