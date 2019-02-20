@@ -105,7 +105,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Authors
 
-* Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Domagoj Pluščec](https://github.com/domi385), [Filip Boltužić](https://github.com/FilipBolt) and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list needs to mention: [Marin Kačan](https://github.com/mkacan), [Mate Mijolić](https://github.com/matemijolovic).
+* Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Domagoj Pluščec](https://github.com/domi385), [Filip Boltužić](https://github.com/FilipBolt) and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list of collaborators needs to mention: [Marin Kačan](https://github.com/mkacan), [Mate Mijolović](https://github.com/matemijolovic).
 * Project made as part of TakeLab at Faculty of Electrical Engineering and Computing, University of Zagreb
 * Laboratory url: http://takelab.fer.hr
 

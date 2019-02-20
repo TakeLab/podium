@@ -2,7 +2,8 @@ import os
 import pytest
 import mock
 
-from takepod.preproc.lemmatizer.croatian_lemmatizer import CroatianLemmatizer
+from takepod.preproc.lemmatizer.croatian_lemmatizer import (
+    CroatianLemmatizer, _lemmatizer_posttokenized_hook)
 
 
 @pytest.mark.parametrize(
@@ -30,6 +31,40 @@ def test_word2lemma_base_case(word, expected_lemma, mock_lemmatizer):
 def test_word2lemma_casing(word, expected_lemma, mock_lemmatizer):
     received_lemma = mock_lemmatizer.lemmatize_word(word)
     assert expected_lemma == received_lemma
+
+
+@pytest.mark.parametrize(
+    "example_raw, example_words, expected_result",
+    [
+        ("MaMi parkira parkiranJe",
+         ["MaMi", "parkira", "parkiranJe"],
+         ["MaMa", "parkirati", "parkiranJe"]),
+        ("tata Mamama",
+         ["tata", "Mamama"],
+         ["tata", "Mama"]),
+    ]
+)
+def test_croatian_lemmatizer_hook(
+        example_raw, example_words, expected_result, mock_lemmatizer):
+    result_raw, result_tokenized = _lemmatizer_posttokenized_hook(
+        raw=example_raw, tokenized=example_words, lemmatizer=mock_lemmatizer)
+    assert result_tokenized == expected_result
+    assert result_raw == example_raw
+
+
+@pytest.mark.parametrize(
+    "example_words, expected_result",
+    [
+        (["Mamama", "parkirati"], ["Mama", "parkirati"]),
+        (["parkiranJe", "tatu"], ["parkiranJe", "tatu"]),
+    ]
+)
+def test_croatian_lemmatizer_hook_raw_none(
+        example_words, expected_result, mock_lemmatizer):
+    result_raw, result_tokenized = _lemmatizer_posttokenized_hook(
+        raw=None, tokenized=example_words, lemmatizer=mock_lemmatizer)
+    assert result_tokenized == expected_result
+    assert result_raw is None
 
 
 @pytest.mark.parametrize(
