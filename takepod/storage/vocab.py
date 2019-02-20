@@ -180,7 +180,6 @@ class Vocab:
 
         return self._stoi[SpecialVocabSymbols.MISS]
 
-
     def __add__(self, values):
         """Method allows a vocabulary to be added to current vocabulary or
         that a set of values is added to the vocabulary.

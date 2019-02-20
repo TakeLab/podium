@@ -292,10 +292,12 @@ def test_vocab_has_specials():
     voc = vocab.Vocab()
     assert voc.has_specials
 
+
 def test_missing_value():
     voc = vocab.Vocab(specials=(vocab.SpecialVocabSymbols.MISS,))
 
     voc.missing_value_symbol is vocab.SpecialVocabSymbols.MISS
+
 
 def test_missing_value_symbol_index():
     voc = vocab.Vocab(specials=(vocab.SpecialVocabSymbols.UNK,
@@ -311,6 +313,7 @@ def test_missing_value_fail():
 
     with pytest.raises(RuntimeError):
         voc.missing_value_symbol
+
 
 def test_numericalize_missing_data_fail():
     voc = vocab.Vocab(specials=(vocab.SpecialVocabSymbols.UNK,

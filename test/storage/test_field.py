@@ -525,13 +525,14 @@ def test_field_fail_initialization(store_as_raw, store_as_tokenized, tokenize):
               store_as_tokenized=store_as_tokenized,
               tokenize=tokenize)
 
+
 def test_field_missing_value():
     voc = Vocab(specials=(SpecialVocabSymbols.MISS,))
 
     field1 = Field("bla",
-                  vocab=voc,
-                  store_as_raw=True,
-                  tokenize=False)
+                   vocab=voc,
+                   store_as_raw=True,
+                   tokenize=False)
 
     raw, tokenized = field1.preprocess(None)
 
@@ -566,7 +567,7 @@ def test_field_missing_value():
 def test_field_no_missing_value_fail():
     vocab = Vocab(specials=())
     field = Field("bla",
-                   vocab=vocab)
+                  vocab=vocab)
 
     with pytest.raises(RuntimeError):
         field.preprocess(None)
