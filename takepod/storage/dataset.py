@@ -224,6 +224,28 @@ class Dataset(ABC):
 
         return None
 
+    def __getstate__(self):
+        """Method obtains dataset state. It is used for pickling dataset data
+        to file.
+
+        Returns
+        -------
+        state : dict
+            dataset state dictionary
+        """
+        return self.__dict__
+
+    def __setstate__(self, state):
+        """Method sets dataset state. It is used for unpickling dataset data
+        from file.
+
+        Parameters
+        ----------
+        state : dict
+            dataset state dictionary
+        """
+        self.__dict__ = state
+
 
 class TabularDataset(Dataset):
     """
