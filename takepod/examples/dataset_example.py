@@ -9,10 +9,10 @@ if __name__ == "__main__":
     print("train set {}".format(len(train_set)))
     print("test set {}".format(len(test_set)))
 
-    #save dataset
+    # save dataset
     with open("dataset.pkl", "wb") as f:
         pickle.dump(train_set, f)
 
-    #load dataset
+    # load dataset
     with open("dataset.pkl", "rb") as f:
         loaded_train_set = pickle.load(f)
