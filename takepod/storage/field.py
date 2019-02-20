@@ -232,10 +232,15 @@ class Field(object):
         """
 
         if data is None:
-            return None
+
+            miss_val = self.vocab.missing_value_symbol
+
+            raw = miss_val if self.store_as_raw else None
+            tokens = miss_val if self.sequential else None
+
+            return raw, tokens
 
         tokens = None
-
         if self.store_as_tokenized:
             # Store data as tokens
             _, tokens = self._run_posttokenization_hooks(None, data)

@@ -1,5 +1,6 @@
 """Module contains classes related to the vocabulary."""
 from collections import Counter, defaultdict
+
 import numpy as np
 
 
@@ -57,13 +58,13 @@ class Vocab:
         self._keep_freqs = keep_freqs
         self._min_freq = min_freq
 
-        specials = () if specials is None else specials
-        self._has_specials = len(specials) > 0
+        self._specials = () if specials is None else specials
+        self._has_specials = len(self._specials) > 0
 
-        self.itos = list(specials)
-        self._default_unk_index = self._init_default_unk_index(specials)
-        self.stoi = defaultdict(self._default_unk)
-        self.stoi.update({k: v for v, k in enumerate(self.itos)})
+        self._has_missing_val_special = SpecialVocabSymbols.MISS in self._specials
+
+        self._itos = list()
+        self._stoi = defaultdict(self._default_unk)
 
         self._max_size = max_size
         self._stop_words = stop_words
@@ -118,7 +119,7 @@ class Vocab:
 
     def _default_miss(self):
         if self._default_miss_index is None:
-            raise ValueError("Missing value symbol is not present in the vocab")
+            raise ValueError("Missing value symbol is not present in the vocab.")
 
         return self._default_miss_index
 
@@ -154,9 +155,31 @@ class Vocab:
         ValueError
             if the padding symbol is not pressent in the vocabulary
         """
-        if SpecialVocabSymbols.PAD not in self.stoi:
+        if not self.finalized:
+            raise RuntimeError("Vocab not finalized. Special symbols are not available"
+                               "until finalization")
+
+        if SpecialVocabSymbols.PAD not in self._stoi:
             raise ValueError("Padding symbol is not in the vocabulary")
-        return self.stoi[SpecialVocabSymbols.PAD]
+
+        return self._stoi[SpecialVocabSymbols.PAD]
+
+    @property
+    def missing_value_symbol(self):
+        if not self._has_missing_val_special:
+            raise RuntimeError("Vocab doesn't have missing value symbol in specials.")
+
+        return SpecialVocabSymbols.MISS
+
+    @property
+    def missing_value_symbol_index(self):
+
+        if not self.finalized:
+            raise RuntimeError("Vocab not finalized. Special symbol indexes "
+                               "are not available until finalization")
+
+        return self._stoi[SpecialVocabSymbols.MISS]
+
 
     def __add__(self, values):
         """Method allows a vocabulary to be added to current vocabulary or
@@ -228,26 +251,38 @@ class Vocab:
         if self.finalized:
             raise RuntimeError("Vocab is already finalized.")
 
-        # determine default UNK and MISS indexes
-        self._default_unk_index = Vocab._init_default_unk_index(self._specials)
-        self._default_miss_index = Vocab._init_default_missing_val_index(self._specials)
-
         # construct stoi and itos, sort by frequency
         words_and_freqs = sorted(self._freqs.items(), key=lambda tup: tup[1],
                                  reverse=True)
+
         if self._max_size is None:
-            self._max_size = len(words_and_freqs) + len(self.itos)
-            # vocab + specials
+            self._max_size = len(words_and_freqs) + len(self._specials)
+
         for word, freq in words_and_freqs:
-            if freq < self._min_freq or len(self.itos) >= self._max_size:
+            if freq < self._min_freq \
+                    or (len(self._itos) + len(self._specials)) >= self._max_size:
                 break
+
             if self._stop_words and word in self._stop_words:
                 continue
-            self.itos.append(word)
-            self.stoi[word] = len(self.stoi)
+
+            self._itos.append(word)
+            self._stoi[word] = len(self._itos) - 1
 
         if not self._keep_freqs:
             self._freqs = None  # release memory
+
+        unk_index = Vocab._init_default_unk_index(self._specials)
+        self._default_unk_index = None if unk_index is None \
+            else unk_index + len(self._itos)
+
+        miss_index = Vocab._init_default_missing_val_index(self._specials)
+        self._default_miss_index = None if miss_index is None \
+            else miss_index + len(self._itos)
+
+        for spec in self._specials:
+            self._itos.append(spec)
+            self._stoi[spec] = len(self._itos) - 1
 
         self.finalized = True
 
@@ -273,7 +308,11 @@ class Vocab:
             raise RuntimeError('Cannot numericalize if the vocabulary has not '
                                'been finalized call `.finalize()`'
                                ' on the Field')
-        return np.array([self.stoi[token] for token in data])
+
+        if data == SpecialVocabSymbols.MISS:
+            raise ValueError("Cannot numericalize missing data.")
+
+        return np.array([self._stoi[token] for token in data])
 
     @property
     def has_specials(self):
@@ -288,7 +327,7 @@ class Vocab:
             vocab size including special symbols
         """
         if self.finalized:
-            return len(self.itos)
+            return len(self._itos)
         return len(self._freqs)
 
     def __eq__(self, other):
@@ -311,9 +350,9 @@ class Vocab:
             return False
         if self._freqs != other._freqs:
             return False
-        if self.stoi != other.stoi:
+        if self._stoi != other._stoi:
             return False
-        if self.itos != other.itos:
+        if self._itos != other._itos:
             return False
         return True
 
@@ -330,4 +369,4 @@ class Vocab:
         """
         if not self.finalized:
             return iter(self._freqs.keys())
-        return iter(self.itos)
+        return iter(self._itos)

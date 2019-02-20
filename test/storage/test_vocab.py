@@ -90,8 +90,8 @@ def test_empty_specials_len():
     voc.finalize()
 
     assert len(voc) == 3
-    assert len(voc.stoi) == 3
-    assert len(voc.itos) == 3
+    assert len(voc._stoi) == 3
+    assert len(voc._itos) == 3
 
 
 def test_empty_specials_get_pad_symbol():
@@ -107,16 +107,16 @@ def test_empty_specials_stoi():
     voc = (voc + set(data))
     voc.finalize()
     with pytest.raises(ValueError):
-        voc.stoi["apple"]
+        voc._stoi["apple"]
 
 
 def test_specials_get_pad_symbol():
     voc = vocab.Vocab(specials=(vocab.SpecialVocabSymbols.PAD,))
     data = ["tree", "plant", "grass"]
     voc = (voc + set(data))
-    assert voc.pad_symbol() == 0
     voc.finalize()
-    assert voc.itos[0] == vocab.SpecialVocabSymbols.PAD
+    assert voc.pad_symbol() == 3
+    assert voc._itos[3] == vocab.SpecialVocabSymbols.PAD
 
 
 def test_max_size():
@@ -148,6 +148,7 @@ def test_size_after_final_with_specials():
 def test_enum_special_vocab_symbols():
     assert vocab.SpecialVocabSymbols.PAD == "<pad>"
     assert vocab.SpecialVocabSymbols.UNK == "<unk>"
+    assert vocab.SpecialVocabSymbols.MISS == "<missing_value>"
 
 
 def test_get_stoi_for_unknown_word_default_unk():
@@ -156,7 +157,7 @@ def test_get_stoi_for_unknown_word_default_unk():
     data = ["tree", "plant", "grass"]
     voc = (voc + set(data)) + {"plant"}
     voc.finalize()
-    assert voc.stoi["unknown"] == 1
+    assert voc._stoi["unknown"] == 4
 
 
 def test_add_word_after_finalization_error():
@@ -234,7 +235,7 @@ def test_numericalize():
     data = ["word", "aaa", "word"]
     word_num = voc.numericalize(data)
     for i in range(len(data)):
-        assert voc.stoi[data[i]] == word_num[i]
+        assert voc._stoi[data[i]] == word_num[i]
 
 
 def test_equals_two_vocabs():
@@ -290,3 +291,33 @@ def test_vocab_has_no_special():
 def test_vocab_has_specials():
     voc = vocab.Vocab()
     assert voc.has_specials
+
+def test_missing_value():
+    voc = vocab.Vocab(specials=(vocab.SpecialVocabSymbols.MISS,))
+
+    voc.missing_value_symbol is vocab.SpecialVocabSymbols.MISS
+
+def test_missing_value_symbol_index():
+    voc = vocab.Vocab(specials=(vocab.SpecialVocabSymbols.UNK,
+                                vocab.SpecialVocabSymbols.MISS)
+                      )
+    voc += [1, 2, 3, 3]
+    voc.finalize()
+    voc.missing_value_symbol_index == 4
+
+
+def test_missing_value_fail():
+    voc = vocab.Vocab()
+
+    with pytest.raises(RuntimeError):
+        voc.missing_value_symbol
+
+def test_numericalize_missing_data_fail():
+    voc = vocab.Vocab(specials=(vocab.SpecialVocabSymbols.UNK,
+                                vocab.SpecialVocabSymbols.MISS)
+                      )
+    voc += [1, 2, 3, 3]
+    voc.finalize()
+
+    with pytest.raises(ValueError):
+        voc.numericalize(vocab.SpecialVocabSymbols.MISS)

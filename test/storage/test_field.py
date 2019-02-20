@@ -2,7 +2,8 @@ import numpy as np
 import pytest
 from mock import patch
 
-from takepod.storage import Field, TokenizedField, MultilabelField, Vocab
+from takepod.storage import Field, TokenizedField, MultilabelField, Vocab, \
+    SpecialVocabSymbols
 
 ONE_TO_FIVE = [1, 2, 3, 4, 5]
 
@@ -427,22 +428,22 @@ def test_tokenized_field_numericalization():
 
     tokenized_field.finalize()
 
-    expected_numericalization_1 = np.array([2, 3, 4])
+    expected_numericalization_1 = np.array([0, 1, 2])
     _, tok1 = data1
     assert np.all(vocab.numericalize(tok1) == expected_numericalization_1)
     assert np.all(tokenized_field.numericalize(data1) == expected_numericalization_1)
 
-    expected_numericalization_2 = np.array([2, 3])
+    expected_numericalization_2 = np.array([0, 1])
     _, tok2 = data2
     assert np.all(vocab.numericalize(tok2) == expected_numericalization_2)
     assert np.all(tokenized_field.numericalize(data2) == expected_numericalization_2)
 
-    expected_numericalization_3 = np.array([2])
+    expected_numericalization_3 = np.array([0])
     _, tok3 = data3
     assert np.all(vocab.numericalize(tok3) == expected_numericalization_3)
     assert np.all(tokenized_field.numericalize(data3) == expected_numericalization_3)
 
-    expected_numericalization_4 = np.array([2, 4])
+    expected_numericalization_4 = np.array([0, 2])
     _, tok4 = data4
     assert np.all(vocab.numericalize(tok4) == expected_numericalization_4)
     assert np.all(tokenized_field.numericalize(data4) == expected_numericalization_4)
@@ -523,3 +524,49 @@ def test_field_fail_initialization(store_as_raw, store_as_tokenized, tokenize):
               store_as_raw=store_as_raw,
               store_as_tokenized=store_as_tokenized,
               tokenize=tokenize)
+
+def test_field_missing_value():
+    voc = Vocab(specials=(SpecialVocabSymbols.MISS,))
+
+    field1 = Field("bla",
+                  vocab=voc,
+                  store_as_raw=True,
+                  tokenize=False)
+
+    raw, tokenized = field1.preprocess(None)
+
+    assert raw == voc.missing_value_symbol
+    assert tokenized is None
+
+    voc = Vocab(specials=(SpecialVocabSymbols.MISS,))
+    field2 = Field("bla",
+                   vocab=voc,
+                   store_as_raw=False,
+                   store_as_tokenized=True,
+                   tokenize=False)
+
+    raw, tokenized = field2.preprocess(None)
+
+    assert raw is None
+    assert tokenized == voc.missing_value_symbol
+
+    voc = Vocab(specials=(SpecialVocabSymbols.MISS,))
+    field3 = Field("bla",
+                   vocab=voc,
+                   store_as_raw=True,
+                   store_as_tokenized=False,
+                   tokenize=True)
+
+    raw, tokenized = field3.preprocess(None)
+
+    assert raw == voc.missing_value_symbol
+    assert tokenized == voc.missing_value_symbol
+
+
+def test_field_no_missing_value_fail():
+    vocab = Vocab(specials=())
+    field = Field("bla",
+                   vocab=vocab)
+
+    with pytest.raises(RuntimeError):
+        field.preprocess(None)
