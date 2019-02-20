@@ -1,7 +1,8 @@
 """Example how to use simple PauzaHR dataset."""
+import pickle
+
 from takepod.storage.large_resource import LargeResource
 from takepod.datasets.pauza_dataset import PauzaHRDataset
-import pickle
 
 if __name__ == "__main__":
     LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"

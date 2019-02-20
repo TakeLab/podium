@@ -375,7 +375,7 @@ def test_tabular_dataset_preserve_sort_key(file_format, use_dict,
     "file_format, use_dict",
     FORMAT_USE_DICT_COMBINATIONS
 )
-def test_tabulat_dataset_pickle_sort_key(
+def test_tabular_dataset_pickle_sort_key(
         file_format, use_dict, tabular_dataset_fields, file_path, tmpdir):
     sort_key_str = "d_sort_key"
     dataset = create_tabular_dataset(tabular_dataset_fields, file_format,
