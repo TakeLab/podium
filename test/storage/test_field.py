@@ -380,24 +380,6 @@ def test_field_is_target():
     assert not f3.is_target
 
 
-# @pytest.mark.parametrize(
-#     "use_vocab, expected_vocab_values",
-#     [
-#         (False, []),
-#         (True, ["some", "text"]),
-#     ]
-# )
-# def test_tokenized_field_update_vocab(use_vocab, expected_vocab_values, vocab):
-#     f =
-#
-#     tokenized_value = ["some", "text"]
-#     raw_value = None
-#
-#     f.update_vocab(raw_value, tokenized_value)
-#
-#     assert vocab.values == expected_vocab_values
-
-
 def test_tokenized_field_numericalization():
     vocab = Vocab()
     pretokenized_input1 = [

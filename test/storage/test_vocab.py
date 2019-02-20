@@ -279,7 +279,7 @@ def test_vocab_fail_no_unk():
         voc.numericalize([1, 2, 3, 6])
 
 
-def test_vocab_has_no_special():
+def test_vocab_has_no_specials():
     voc1 = vocab.Vocab(specials=None)
     assert not voc1.has_specials
 

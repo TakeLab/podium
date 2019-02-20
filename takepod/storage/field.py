@@ -32,7 +32,7 @@ class Field(object):
             Field name, used for referencing data in the dataset.
         tokenizer : str | callable
             The tokenizer that is to be used when preprocessing raw data
-            (only if sequential is True). The user can provide his own
+            (only if 'tokenize' is True). The user can provide his own
             tokenizer as a callable object or specify one of the premade
             tokenizers by a string. The available premade tokenizers are:
                 - 'split' - default str.split()
@@ -82,25 +82,27 @@ class Field(object):
 
         self.name = name
         self.language = language
-        self.sequential = tokenize or store_as_tokenized
 
         if store_as_tokenized and tokenize:
             raise ValueError(
-                "store_as_tokenized' and 'tokenize' both set to True."
-                " They can either both be False, or only one set to True"
+                "Store_as_tokenized' and 'tokenize' both set to True."
+                " You can either store the data as tokenized, tokenize it or do neither"
+                " , but you can't do both."
             )
 
-        if not store_as_raw and not self.sequential:
+        if not store_as_raw and not tokenize and not store_as_tokenized:
             raise ValueError(
-                "Either 'store_as_raw', 'tokenize_raw'"
+                "At least one of 'store_as_raw', 'tokenize'"
                 " or 'store_as_tokenized' must be True.")
 
         if store_as_raw and store_as_tokenized:
             raise ValueError(
                 "'store_as_raw' and 'store_as_tokenized' both set to True."
-                " They can either both be False, or only one set to True"
+                " You can't store the same value as raw and as tokenized."
+                " Maybe you wanted to tokenize the raw data? (the 'tokenize' parameter)"
             )
 
+        self.sequential = store_as_tokenized or tokenize
         self.store_as_raw = store_as_raw
         self.tokenize = tokenize
         self.store_as_tokenized = store_as_tokenized
@@ -217,7 +219,7 @@ class Field(object):
         ----------
         data : str or iterable(hashable)
             The raw data that needs to be preprocessed.
-            String if store_as_raw and/or tokenize_raw attributes are True.
+            String if 'store_as_raw' and/or 'tokenize' attributes are True.
             iterable(hashable) if store_as_tokenized attribute is True.
 
         Returns
@@ -278,7 +280,7 @@ class Field(object):
         if not self.use_vocab:
             return
 
-        data = tokenized if self.sequential else [raw]
+        data = tokenized if self.tokenize or self.store_as_tokenized else [raw]
         self.vocab += data
 
     def finalize(self):
@@ -333,7 +335,7 @@ class Field(object):
         raw, tokenized = data
 
         # raw data is just a string, so we need to wrap it into an iterable
-        tokens = tokenized if self.sequential else [raw]
+        tokens = tokenized if self.tokenize or self.store_as_tokenized else [raw]
 
         return self._numericalize_tokens(tokens)
 
@@ -431,7 +433,6 @@ class MultilabelField(TokenizedField):
                  vocab=None,
                  eager=True,
                  custom_numericalize=float,
-                 is_target=False,
                  fixed_length=None):
 
         if vocab is not None and vocab.has_specials:
@@ -443,5 +444,5 @@ class MultilabelField(TokenizedField):
                          vocab=vocab,
                          eager=eager,
                          custom_numericalize=custom_numericalize,
-                         is_target=is_target,
+                         is_target=True,
                          fixed_length=fixed_length)

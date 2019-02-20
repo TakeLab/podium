@@ -29,7 +29,7 @@ class Vocab:
         list of words
     stoi : dict
         mapping from word string to index
-    has_special:
+    has_specials:
         whether the dictionary contains special symbols
     """
     def __init__(self, max_size=None, min_freq=1,
