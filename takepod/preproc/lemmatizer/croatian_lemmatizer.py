@@ -156,7 +156,7 @@ def _uppercase_target_like_source(source, target):
 
 
 def _lemmatizer_posttokenized_hook(
-        raw, tokenized, lemmatizer=CroatianLemmatizer()):
+        raw, tokenized, lemmatizer):
     """Lemmatizer postokenized hook that can be used in field processing.
     It is intented for the user to use `CROATIAN_LEMMATIZER_POSTOKENIZED_HOOK`
     instead of this function as it hides Lemmatizer initialization and ensures
@@ -168,6 +168,8 @@ def _lemmatizer_posttokenized_hook(
         raw field content
     tokenized : iter(str)
         iterable of tokens that needs to be lemmatized
+    lemmatizer : CroatianLematizer
+        croatian lemmatizer instance
 
     Returns
     -------
@@ -177,5 +179,13 @@ def _lemmatizer_posttokenized_hook(
     return raw, [lemmatizer.lemmatize_word(token) for token in tokenized]
 
 
-CROATIAN_LEMMATIZER_POSTTOKENIZED_HOOK = functools.partial(
-    _lemmatizer_posttokenized_hook, lemmatizer=CroatianLemmatizer())
+def get_croatian_lemmatizer_hook(**kwargs):
+    """Method obtains croatian lemmatizer hook.
+    
+    Parameters
+    ----------
+    kwargs : dict
+        Croatian lemmatizer arguments.
+    """
+    return functools.partial(_lemmatizer_posttokenized_hook,
+                             lemmatizer=CroatianLemmatizer(**kwargs))

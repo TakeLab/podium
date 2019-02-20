@@ -1,7 +1,7 @@
 import pytest
 from takepod.preproc.stemmer.croatian_stemmer import (
     CroatianStemmer,
-    CROATIAN_STEMMER_POSTTOKENIZED_HOOK)
+    get_croatian_stemmer_hook)
 
 
 @pytest.fixture(scope='module')

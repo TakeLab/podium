@@ -137,7 +137,7 @@ class CroatianStemmer:
             zip(range(len(stem)), word)))
 
 
-def _stemmer_posttokenized_hook(raw, tokenized, stemmer=CroatianStemmer()):
+def _stemmer_posttokenized_hook(raw, tokenized, stemmer):
     """Stemmer postokenized hook that can be used in field processing.
     It is intented for user to use `CROATIAN_STEMMER_POSTOKENIZED_HOOK` instead
     of this function as it hides Stemmer initialization and ensures that
@@ -149,6 +149,8 @@ def _stemmer_posttokenized_hook(raw, tokenized, stemmer=CroatianStemmer()):
         raw field content
     tokenized : iter(str)
         iterable of tokens that needs to be stemmed
+    stemmer : CroatianStemmer
+        croatian stemmer instance
 
     Returns
     -------
@@ -158,5 +160,7 @@ def _stemmer_posttokenized_hook(raw, tokenized, stemmer=CroatianStemmer()):
     return raw, [stemmer.stem_word(token) for token in tokenized]
 
 
-CROATIAN_STEMMER_POSTTOKENIZED_HOOK = functools.partial(
-    _stemmer_posttokenized_hook, stemmer=CroatianStemmer())
+def get_croatian_stemmer_hook():
+    """Method obtains croatian stemmer hook."""
+    return functools.partial(_lemmatizer_posttokenized_hook,
+                             lemmatizer=CroatianLemmatizer())
