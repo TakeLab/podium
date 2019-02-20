@@ -162,5 +162,5 @@ def _stemmer_posttokenized_hook(raw, tokenized, stemmer):
 
 def get_croatian_stemmer_hook():
     """Method obtains croatian stemmer hook."""
-    return functools.partial(_lemmatizer_posttokenized_hook,
-                             lemmatizer=CroatianLemmatizer())
+    return functools.partial(_stemmer_posttokenized_hook,
+                             stemmer=CroatianStemmer())

@@ -181,7 +181,7 @@ def _lemmatizer_posttokenized_hook(
 
 def get_croatian_lemmatizer_hook(**kwargs):
     """Method obtains croatian lemmatizer hook.
-    
+
     Parameters
     ----------
     kwargs : dict

@@ -41,7 +41,8 @@ def test_croatian_stemmer_preserves_case(cro_stemmer):
     ]
 )
 def test_croatian_stemmer_hook(example_raw, example_words, expected_result):
-    result_raw, result_tokenized = CROATIAN_STEMMER_POSTTOKENIZED_HOOK(
+    stemmer_hook = get_croatian_stemmer_hook()
+    result_raw, result_tokenized = stemmer_hook(
         raw=example_raw,
         tokenized=example_words)
     assert result_tokenized == expected_result
@@ -56,7 +57,8 @@ def test_croatian_stemmer_hook(example_raw, example_words, expected_result):
     ]
 )
 def test_croatian_stemmer_hook_raw_none(example_words, expected_result):
-    result_raw, result_tokenized = CROATIAN_STEMMER_POSTTOKENIZED_HOOK(
+    stemmer_hook = get_croatian_stemmer_hook()
+    result_raw, result_tokenized = stemmer_hook(
         raw=None,
         tokenized=example_words)
     assert result_tokenized == expected_result
