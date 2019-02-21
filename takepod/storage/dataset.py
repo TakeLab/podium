@@ -2,12 +2,12 @@
 import csv
 import io
 import itertools
+import json
 import os
 import random
-import json
-from functools import partial
 from abc import ABC
 from collections import namedtuple
+from functools import partial
 
 from takepod.storage.example import Example
 
@@ -613,8 +613,8 @@ def stratified_split(examples, train_ratio, val_ratio, test_ratio,
 
 class HierarchicalDataset:
 
-    hierarchical_example_tuple = namedtuple("Node",
-                                            ['example', 'parent', 'children'])
+    Node = namedtuple("Node",
+                      ['example', 'parent', 'children'])
 
     # parser(raw example, fields, depth) - returns (parsed example, iterable(raw children))
 
@@ -622,6 +622,8 @@ class HierarchicalDataset:
         self._root_examples = list()
         self._fields = fields
         self._parser = parser
+        self._size = 0
+        self._max_depth = 0
 
     @staticmethod
     def from_json(dataset, fields, parser):
@@ -639,7 +641,9 @@ class HierarchicalDataset:
     def _parse(self, raw_object, parent, depth):
         example, raw_children = self._parser(raw_object, self._fields, depth)
         children = [self._parse(c, example, depth + 1) for c in raw_children]
-        return HierarchicalDataset.hierarchical_example_tuple(example, parent, children)
+        self._size += 1
+        self._max_depth = max(self._max_depth, depth)
+        return HierarchicalDataset.Node(example, parent, children)
 
     def flatten(self):
         def flat_node_iterator(node):
@@ -651,3 +655,13 @@ class HierarchicalDataset:
         for root_node in self._root_examples:
             for ex in flat_node_iterator(root_node):
                 yield ex
+
+    def as_flat_dataset(self):
+        return Dataset(self.flatten(), self._fields)
+
+    def __len__(self):
+        return self._size
+
+    @property
+    def depth(self):
+        return self._max_depth

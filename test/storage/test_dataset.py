@@ -542,6 +542,9 @@ def test_create_hierarcihal_dataset_from_json(hierarchical_dataset):
     assert root_nodes[1].children[0].example.name[0] == "c21"
     assert root_nodes[1].children[0].example.number[0] == 6
 
+    assert len(hierarchical_dataset) == 7
+    assert hierarchical_dataset.depth == 2
+
 def test_flatten_hierarchical_dataset(hierarchical_dataset):
     count = 0
     for index, example in enumerate(hierarchical_dataset.flatten()):
