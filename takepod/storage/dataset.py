@@ -613,7 +613,9 @@ def stratified_split(examples, train_ratio, val_ratio, test_ratio,
 
 
 class HierarchicalDataset:
-
+    """Container for datasets with a hierarchical structure of examples which have the
+    same structure on every level of the hierarchy.
+    """
     Node = namedtuple("Node",
                       ['example', 'index', 'parent', 'children'])
 
@@ -621,6 +623,33 @@ class HierarchicalDataset:
     # returns (parsed example, iterable(raw children))
 
     def __init__(self, parser, fields):
+        """
+        Constructs the Hierarchical dataset.
+
+        Parameters
+        ----------
+        parser : callable
+            Callable taking (raw_example, fields, depth) and returning a tuple containing
+            (example, raw_children).
+            Arguments:
+                Raw_example: a dict representation of the
+                    example.
+
+                Fields: a dict mapping keys in the raw_example  to corresponding
+                    fields in the dataset.
+
+                Depth: an int marking the depth of the current
+                    example in the hierarchy.
+
+            Return values are:
+                Example: Example instance containing the data in raw_example.
+
+                Raw_children: iterable of dicts representing the children of raw_example
+
+
+        fields : dict(str, Field)
+            Dict mapping keys in the raw_example dict to their corresponding fields.
+        """
         self._root_nodes = list()
         self._fields = fields
         self._parser = parser
@@ -629,6 +658,28 @@ class HierarchicalDataset:
 
     @staticmethod
     def from_json(dataset, fields, parser):
+        """
+        Makes an HierarchicalDataset from a JSON formatted string.
+
+        Parameters
+        ----------
+        dataset : str
+            Dataset in JSON format.
+
+        fields : dict(str, Field)
+            a dict mapping keys in the raw_example to corresponding
+            fields in the dataset.
+
+        parser : callable(raw_example, fields, depth) returning (example, raw_children)
+            Callable taking (raw_example, fields, depth) and returning a tuple containing
+            (example, raw_children).
+
+        Returns
+        -------
+            HierarchicalDataset
+                dataset containing the data
+
+        """
         ds = HierarchicalDataset(parser, fields)
 
         root_list = json.loads(dataset)
@@ -638,6 +689,19 @@ class HierarchicalDataset:
 
     @staticmethod
     def get_default_json_parser(child_attribute_name):
+        """Returns a callable instance that can be used for parsing datasets in which
+        examples on all levels in the hierarchy have children under the same key.
+
+        Parameters
+        ----------
+        child_attribute_name : str
+            key used for accessing children in the examples
+
+        Returns
+        -------
+        Callable(raw_example, fields, depth) returning (example, raw_children).
+
+        """
         def default_json_parser(raw_example, fields, depth):
             example = Example.fromdict(raw_example, fields)
             children = raw_example.get(child_attribute_name)
