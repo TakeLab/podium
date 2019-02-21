@@ -39,6 +39,13 @@ class CroatianLemmatizer():
         self.__word2lemma_dict = None
         self.__lemma2word_dict = None
 
+        self.BASE_FOLDER = os.path.join(
+            LargeResource.BASE_RESOURCE_DIR, self.BASE_FOLDER)
+        self.MOLEX14_LEMMA2WORD = os.path.join(
+            LargeResource.BASE_RESOURCE_DIR, self.MOLEX14_LEMMA2WORD)
+        self.MOLEX14_WORD2LEMMA = os.path.join(
+            LargeResource.BASE_RESOURCE_DIR, self.MOLEX14_WORD2LEMMA)
+
         # automatically downloads molex resources
         # defaults should work for linux and access to djurdja.fer.hr
         kwargs.update({
