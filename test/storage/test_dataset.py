@@ -1,7 +1,10 @@
+import os
+import pickle
 from collections import Counter
+import pytest
 
 from takepod.storage.dataset import Dataset, TabularDataset
-import pytest
+
 
 FORMAT_USE_DICT_COMBINATIONS = (
     ("csv", True),
@@ -97,6 +100,35 @@ def test_finalize_fields(data, field_list):
 
         # all fields should be finalized
         assert f.finalized
+
+
+def test_finalize_fields_pickle(data, field_list, tmpdir):
+    dataset = create_dataset(data, field_list)
+    dataset.finalize_fields()
+    dataset_file = os.path.join(tmpdir, "dataset.pkl")
+
+    with open(dataset_file, "wb") as fdata:
+        pickle.dump(dataset, fdata)
+
+    with open(dataset_file, "rb") as fdata:
+        loaded_dataset = pickle.load(fdata)
+        for f in loaded_dataset.field_dict.values():
+            assert f.updated_count == (len(data) if (not f.eager) else 0)
+            assert f.finalized
+
+
+def test_not_finalize_fields_pickle(data, field_list, tmpdir):
+    dataset = create_dataset(data, field_list)
+    dataset_file = os.path.join(tmpdir, "dataset.pkl")
+
+    with open(dataset_file, "wb") as fdata:
+        pickle.dump(dataset, fdata)
+
+    with open(dataset_file, "rb") as fdata:
+        loaded_dataset = pickle.load(fdata)
+        for f in loaded_dataset.field_dict.values():
+            assert f.updated_count == 0
+            assert not f.finalized
 
 
 def test_finalize_fields_after_split(data, field_list):
@@ -343,6 +375,28 @@ def test_tabular_dataset_preserve_sort_key(file_format, use_dict,
     "file_format, use_dict",
     FORMAT_USE_DICT_COMBINATIONS
 )
+def test_tabular_dataset_pickle_sort_key(
+        file_format, use_dict, tabular_dataset_fields, file_path, tmpdir):
+    sort_key_str = "d_sort_key"
+    dataset = create_tabular_dataset(tabular_dataset_fields, file_format,
+                                     file_path, use_dict,
+                                     sort_key=sort_key_str)
+    dataset.finalize_fields()
+
+    dataset_file = os.path.join(tmpdir, "dataset.pkl")
+
+    with open(dataset_file, "wb") as fdata:
+        pickle.dump(dataset, fdata)
+
+    with open(dataset_file, "rb") as fdata:
+        loaded_dataset = pickle.load(fdata)
+        assert loaded_dataset.sort_key == sort_key_str
+
+
+@pytest.mark.parametrize(
+    "file_format, use_dict",
+    FORMAT_USE_DICT_COMBINATIONS
+)
 def test_tabular_dataset_iterate_over_dataset(file_format, use_dict,
                                               tabular_dataset_fields,
                                               tabular_data, file_path):
@@ -487,8 +541,26 @@ def create_dataset(data, field_list):
     return Dataset(examples, field_list)
 
 
-def create_tabular_dataset(fields, file_format, file_path, use_dict):
+def create_tabular_dataset(fields, file_format, file_path, use_dict,
+                           sort_key=None):
     skip_header = (file_format in {"csv", "tsv"}) and (not use_dict)
 
     return TabularDataset(file_path, file_format, fields,
-                          skip_header=skip_header)
+                          skip_header=skip_header, sort_key=sort_key)
+
+
+def test_attribute_error(data, field_list):
+    dataset = create_dataset(data, field_list)
+    with pytest.raises(AttributeError):
+        dataset.non_existent_attribute
+
+
+def test_attribute_iteration(data, field_list):
+    dataset = create_dataset(data, field_list)
+
+    i = 0
+    for x, y in zip(dataset.text, TEXT):
+        assert x[0] == y
+        i += 1
+
+    assert len(TEXT) == i
