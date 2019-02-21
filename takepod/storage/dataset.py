@@ -613,7 +613,8 @@ def stratified_split(examples, train_ratio, val_ratio, test_ratio,
 
 class HierarchicalDataset:
 
-    hierarchical_example_tuple = namedtuple("hierarchical_example_tuple", ['example', 'parent', 'children'])
+    hierarchical_example_tuple = namedtuple("Node",
+                                            ['example', 'parent', 'children'])
 
     # parser(raw example, fields, depth) - returns (parsed example, iterable(raw children))
 
@@ -639,3 +640,15 @@ class HierarchicalDataset:
         example, raw_children = self._parser(raw_object, self._fields, depth)
         children = [self._parse(c, example, depth + 1) for c in raw_children]
         return HierarchicalDataset.hierarchical_example_tuple(example, parent, children)
+
+    def flatten(self):
+        def flatten_node(node, accumulator):
+            accumulator.append(node.example)
+            for subnode in node.children:
+                flatten_node(subnode, accumulator)
+
+        accumulator = list()
+        for root_node in self._root_examples:
+            flatten_node(root_node, accumulator)
+
+        return accumulator

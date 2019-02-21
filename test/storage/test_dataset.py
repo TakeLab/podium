@@ -1,6 +1,6 @@
 from collections import Counter
 
-from takepod.storage.dataset import Dataset, TabularDataset
+from takepod.storage import Dataset, HierarchicalDataset, TabularDataset, Example, Field
 import pytest
 
 FORMAT_USE_DICT_COMBINATIONS = (
@@ -492,3 +492,104 @@ def create_tabular_dataset(fields, file_format, file_path, use_dict):
 
     return TabularDataset(file_path, file_format, fields,
                           skip_header=skip_header)
+
+
+@pytest.fixture()
+def hierarchical_dataset_fields():
+    name_field = Field("name", store_raw=True, sequential=False)
+    number_field = Field("number", store_raw=True, sequential=False)
+
+    fields = {
+        "name": name_field,
+        "number": number_field
+    }
+    return fields
+
+
+@pytest.fixture()
+def hierarchical_dataset_parser():
+    def parser(raw_example, fields, depth):
+        example = Example.fromdict(raw_example, fields)
+        children = raw_example["children"]
+        return example, children
+
+    return parser
+
+
+@pytest.fixture()
+def hierarchical_dataset(hierarchical_dataset_fields, hierarchical_dataset_parser):
+    return HierarchicalDataset.from_json(HIERARCIHAL_DATASET_JSON_EXAMPLE,
+                                         hierarchical_dataset_fields,
+                                         hierarchical_dataset_parser)
+
+
+def test_create_hierarcihal_dataset_from_json(hierarchical_dataset):
+
+    root_nodes = hierarchical_dataset._root_examples
+
+    assert root_nodes[0].example.name[0] == "parent1"
+    assert root_nodes[1].example.name[0] == "parent2"
+
+    assert root_nodes[0].children[0].example.name[0] == "c11"
+    assert root_nodes[0].children[0].example.number[0] == 2
+
+    assert root_nodes[0].children[0].children[0].example.name[0] == "c111"
+    assert root_nodes[0].children[0].children[0].example.number[0] == 3
+
+    assert root_nodes[0].children[1].example.name[0] == "c12"
+    assert root_nodes[0].children[1].example.number[0] == 4
+
+    assert root_nodes[1].children[0].example.name[0] == "c21"
+    assert root_nodes[1].children[0].example.number[0] == 6
+
+def test_flatten_hierarchical_dataset(hierarchical_dataset):
+    count = 0
+    for index, example in enumerate(hierarchical_dataset.flatten()):
+        assert example.number[0] == index + 1
+        count += 1
+
+    assert count == 7
+
+
+HIERARCIHAL_DATASET_JSON_EXAMPLE = """
+[
+{
+    "name" : "parent1",
+    "number" : 1,
+    "children" : [
+        {
+            "name" : "c11",
+            "number" : 2,
+            "children" : [
+                {
+                    "name" : "c111",
+                    "number" : 3,
+                    "children" : []
+                }
+            ]
+        },
+        {
+            "name" : "c12",
+            "number" : 4,
+            "children" : []
+        }
+    ]
+},
+{
+    "name" : "parent2",
+    "number" : 5,
+    "children" : [
+        {
+            "name" : "c21",
+            "number" : 6,
+            "children" : []
+        },
+        {
+            "name" : "c22",
+            "number" : 7,
+            "children" : []
+        }
+    ]
+    }
+]
+"""
