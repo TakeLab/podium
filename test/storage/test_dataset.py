@@ -525,10 +525,13 @@ def hierarchical_dataset(hierarchical_dataset_fields, hierarchical_dataset_parse
 
 def test_create_hierarcihal_dataset_from_json(hierarchical_dataset):
 
-    root_nodes = hierarchical_dataset._root_examples
+    root_nodes = hierarchical_dataset._root_nodes
 
     assert root_nodes[0].example.name[0] == "parent1"
+    assert root_nodes[0].example.number[0] == 1
+
     assert root_nodes[1].example.name[0] == "parent2"
+    assert root_nodes[1].example.number[0] == 5
 
     assert root_nodes[0].children[0].example.name[0] == "c11"
     assert root_nodes[0].children[0].example.number[0] == 2
@@ -553,6 +556,12 @@ def test_flatten_hierarchical_dataset(hierarchical_dataset):
 
     assert count == 7
 
+def test_hierarchical_dataset_example_indexing(hierarchical_dataset):
+
+    assert hierarchical_dataset[0].name[0] == "parent1"
+    assert hierarchical_dataset[1].name[0] == "c11"
+    assert hierarchical_dataset[2].name[0] == "c111"
+    assert hierarchical_dataset[5].name[0] == "c21"
 
 HIERARCIHAL_DATASET_JSON_EXAMPLE = """
 [

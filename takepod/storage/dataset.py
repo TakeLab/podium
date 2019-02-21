@@ -611,15 +611,17 @@ def stratified_split(examples, train_ratio, val_ratio, test_ratio,
     # list of examples - the ratios are preserved
     return train_split, val_split, test_split
 
+
 class HierarchicalDataset:
 
     Node = namedtuple("Node",
-                      ['example', 'parent', 'children'])
+                      ['example', 'index', 'parent', 'children'])
 
-    # parser(raw example, fields, depth) - returns (parsed example, iterable(raw children))
+    # parser(raw example, fields, depth)
+    # returns (parsed example, iterable(raw children))
 
     def __init__(self, parser, fields):
-        self._root_examples = list()
+        self._root_nodes = list()
         self._fields = fields
         self._parser = parser
         self._size = 0
@@ -636,32 +638,62 @@ class HierarchicalDataset:
 
     def _load(self, root_examples):
         for root in root_examples:
-            self._root_examples.append(self._parse(root, None, 0))
+            self._root_nodes.append(self._parse(root, None, 0))
 
     def _parse(self, raw_object, parent, depth):
         example, raw_children = self._parser(raw_object, self._fields, depth)
-        children = [self._parse(c, example, depth + 1) for c in raw_children]
+        index = self._size
         self._size += 1
+        children = [self._parse(c, example, depth + 1) for c in raw_children]
         self._max_depth = max(self._max_depth, depth)
-        return HierarchicalDataset.Node(example, parent, children)
+        return HierarchicalDataset.Node(example, index, parent, children)
 
     def flatten(self):
         def flat_node_iterator(node):
+            # Todo: Look into using a stack-based iterator to avoid
+            # iterator construction and garbage collection
             yield node.example
             for subnode in node.children:
                 for ex in flat_node_iterator(subnode):
                     yield ex
 
-        for root_node in self._root_examples:
+        for root_node in self._root_nodes:
             for ex in flat_node_iterator(root_node):
                 yield ex
 
     def as_flat_dataset(self):
         return Dataset(self.flatten(), self._fields)
 
-    def __len__(self):
-        return self._size
-
     @property
     def depth(self):
         return self._max_depth
+
+    def _get_node_by_index(self, index):
+        if index < 0 or index >= len(self):
+            raise IndexError(
+                f"Index {index} out of bounds. Must be within [0, len(dataset) - 1]")
+
+        def get_item(nodes, index):
+            for i in range(len(nodes)):
+                node = nodes[i]
+                if node.index < index:
+                    if i == len(nodes) - 1 or nodes[i + 1].index > index:
+                        return get_item(node.children, index)
+
+                    else:
+                        continue
+
+                elif node.index == index:
+                    return node
+
+                else:
+                    # Todo: Improve error message
+                    raise RuntimeError("Malformed indexing")
+
+        return get_item(self._root_nodes, index)
+
+    def __len__(self):
+        return self._size
+
+    def __getitem__(self, index):
+        return self._get_node_by_index(index).example
