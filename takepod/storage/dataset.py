@@ -642,13 +642,12 @@ class HierarchicalDataset:
         return HierarchicalDataset.hierarchical_example_tuple(example, parent, children)
 
     def flatten(self):
-        def flatten_node(node, accumulator):
-            accumulator.append(node.example)
+        def flat_node_iterator(node):
+            yield node.example
             for subnode in node.children:
-                flatten_node(subnode, accumulator)
+                for ex in flat_node_iterator(subnode):
+                    yield ex
 
-        accumulator = list()
         for root_node in self._root_examples:
-            flatten_node(root_node, accumulator)
-
-        return accumulator
+            for ex in flat_node_iterator(root_node):
+                yield ex
