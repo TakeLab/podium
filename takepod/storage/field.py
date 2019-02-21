@@ -22,7 +22,8 @@ class Field(object):
                  eager=True,
                  custom_numericalize=float,
                  is_target=False,
-                 fixed_length=None
+                 fixed_length=None,
+                 default_value_callable=None
                  ):
         """Create a Field from arguments.
 
@@ -118,6 +119,7 @@ class Field(object):
 
         self.pretokenize_hooks = deque()
         self.posttokenize_hooks = deque()
+        self.default_value_callable = default_value_callable
 
     @property
     def use_vocab(self):
@@ -235,6 +237,13 @@ class Field(object):
 
         tokens = None
 
+        if data is None:
+            if self.default_value_callable is None:
+                raise ValueError(f"Missing data not allowed in field {self.name}")
+
+            else:
+                return None, None
+
         if self.store_as_tokenized:
             # Store data as tokens
             _, tokens = self._run_posttokenization_hooks(None, data)
@@ -333,6 +342,13 @@ class Field(object):
 
         """
         raw, tokenized = data
+
+        if raw is None and tokenized is None:
+            if self.default_value_callable is None:
+                raise ValueError(f"Missing value found in field {self.name}.")
+            else:
+                return self.default_value_callable()
+
 
         # raw data is just a string, so we need to wrap it into an iterable
         tokens = tokenized if self.tokenize or self.store_as_tokenized else [raw]
