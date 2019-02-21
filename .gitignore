@@ -106,7 +106,7 @@ venv.bak/
 # Podium related
 downloaded_datasets/
 .data/
-.vscode/settings.json
+.vscode/
 *.bat
 
 .idea/
