@@ -636,6 +636,15 @@ class HierarchicalDataset:
 
         return ds
 
+    @staticmethod
+    def get_default_json_parser(child_attribute_name):
+        def default_json_parser(raw_example, fields, depth):
+            example = Example.fromdict(raw_example, fields)
+            children = raw_example.get(child_attribute_name)
+            return example, children
+
+        return default_json_parser
+
     def _load(self, root_examples):
         for root in root_examples:
             self._root_nodes.append(self._parse(root, None, 0))

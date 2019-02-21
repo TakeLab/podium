@@ -1,6 +1,6 @@
 from collections import Counter
 
-from takepod.storage import Dataset, HierarchicalDataset, TabularDataset, Example, Field
+from takepod.storage import Dataset, HierarchicalDataset, TabularDataset, Field
 import pytest
 
 FORMAT_USE_DICT_COMBINATIONS = (
@@ -508,12 +508,7 @@ def hierarchical_dataset_fields():
 
 @pytest.fixture()
 def hierarchical_dataset_parser():
-    def parser(raw_example, fields, depth):
-        example = Example.fromdict(raw_example, fields)
-        children = raw_example["children"]
-        return example, children
-
-    return parser
+    return HierarchicalDataset.get_default_json_parser("children")
 
 
 @pytest.fixture()
