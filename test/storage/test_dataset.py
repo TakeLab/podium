@@ -518,12 +518,12 @@ def hierarchical_dataset_parser():
 
 @pytest.fixture()
 def hierarchical_dataset(hierarchical_dataset_fields, hierarchical_dataset_parser):
-    return HierarchicalDataset.from_json(HIERARCIHAL_DATASET_JSON_EXAMPLE,
+    return HierarchicalDataset.from_json(HIERARCHIAL_DATASET_JSON_EXAMPLE,
                                          hierarchical_dataset_fields,
                                          hierarchical_dataset_parser)
 
 
-def test_create_hierarcihal_dataset_from_json(hierarchical_dataset):
+def test_create_hierarchical_dataset_from_json(hierarchical_dataset):
 
     root_nodes = hierarchical_dataset._root_nodes
 
@@ -548,6 +548,7 @@ def test_create_hierarcihal_dataset_from_json(hierarchical_dataset):
     assert len(hierarchical_dataset) == 7
     assert hierarchical_dataset.depth == 2
 
+
 def test_flatten_hierarchical_dataset(hierarchical_dataset):
     count = 0
     for index, example in enumerate(hierarchical_dataset.flatten()):
@@ -556,6 +557,7 @@ def test_flatten_hierarchical_dataset(hierarchical_dataset):
 
     assert count == 7
 
+
 def test_hierarchical_dataset_example_indexing(hierarchical_dataset):
 
     assert hierarchical_dataset[0].name[0] == "parent1"
@@ -563,7 +565,8 @@ def test_hierarchical_dataset_example_indexing(hierarchical_dataset):
     assert hierarchical_dataset[2].name[0] == "c111"
     assert hierarchical_dataset[5].name[0] == "c21"
 
-HIERARCIHAL_DATASET_JSON_EXAMPLE = """
+
+HIERARCHIAL_DATASET_JSON_EXAMPLE = """
 [
 {
     "name" : "parent1",
