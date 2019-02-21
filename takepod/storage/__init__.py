@@ -1,6 +1,6 @@
 """Package contains modules for storing and loading datasets and vectors."""
 
-from .dataset import Dataset, TabularDataset, stratified_split, rationed_split
+from .dataset import Dataset, HierarchicalDataset, TabularDataset, stratified_split, rationed_split
 from .downloader import (BaseDownloader, SCPDownloader, HttpDownloader,
                          SimpleHttpDownloader)
 from .example import Example
@@ -18,7 +18,7 @@ from .vocab import SpecialVocabSymbols, Vocab
 # Function imports follow the same convention, but behind class imports.
 
 
-__all__ = ["Dataset", "TabularDataset",
+__all__ = ["Dataset", "HierarchicalDataset", "TabularDataset",
            "BaseDownloader", "SCPDownloader", "HttpDownloader", "SimpleHttpDownloader",
            "Example",
            "Field", "TokenizedField",

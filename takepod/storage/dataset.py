@@ -4,8 +4,10 @@ import io
 import itertools
 import os
 import random
+import json
 from functools import partial
 from abc import ABC
+from collections import namedtuple
 
 from takepod.storage.example import Example
 
@@ -608,3 +610,32 @@ def stratified_split(examples, train_ratio, val_ratio, test_ratio,
     # now, for each concrete label value (stratum) - as well as for the whole
     # list of examples - the ratios are preserved
     return train_split, val_split, test_split
+
+class HierarchicalDataset:
+
+    hierarchical_example_tuple = namedtuple("hierarchical_example_tuple", ['example', 'parent', 'children'])
+
+    # parser(raw example, fields, depth) - returns (parsed example, iterable(raw children))
+
+    def __init__(self, parser, fields):
+        self._root_examples = list()
+        self._fields = fields
+        self._parser = parser
+
+    @staticmethod
+    def from_json(dataset, fields, parser):
+        ds = HierarchicalDataset(parser, fields)
+
+        root_list = json.loads(dataset)
+        ds._load(root_list)
+
+        return ds
+
+    def _load(self, root_examples):
+        for root in root_examples:
+            self._root_examples.append(self._parse(root, None, 0))
+
+    def _parse(self, raw_object, parent, depth):
+        example, raw_children = self._parser(raw_object, self._fields, depth)
+        children = [self._parse(c, example, depth + 1) for c in raw_children]
+        return HierarchicalDataset.hierarchical_example_tuple(example, parent, children)
