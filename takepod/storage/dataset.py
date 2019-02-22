@@ -834,27 +834,60 @@ class HierarchicalDataset:
             if the index is out of bounds.
 
         """
-        # TODO: Look into implementing binary search to lower search complexity
         if index < 0 or index >= len(self):
             raise IndexError(
                 f"Index {index} out of bounds. Must be within [0, len(dataset) - 1]")
 
         def get_item(nodes, index):
-            for i in range(len(nodes)):
-                node = nodes[i]
-                if node.index < index:
-                    if i == len(nodes) - 1 or nodes[i + 1].index > index:
-                        return get_item(node.children, index)
+            """Right bisect binary search.
 
-                    else:
-                        continue
+            Parameters
+            ----------
+            nodes : list(Node)
+                Nodes to be searched.
 
-                elif node.index == index:
-                    return node
+            index : int
+                index of the node to fetch.
+
+            Returns
+            -------
+
+            """
+            start = 0
+            end = len(nodes)
+
+            while start < end:
+                middle = (start + end)//2
+                middle_index = nodes[middle].index
+
+                if index < middle_index:
+                    end = middle
 
                 else:
-                    # Todo: Improve error message
-                    raise RuntimeError("Malformed indexing")
+                    start = middle + 1
+
+            if nodes[start - 1].index == index:
+                return nodes[start - 1]
+
+            else:
+                return get_item(nodes[start - 1].children, index)
+
+        # def get_item(nodes, index):
+        #     for i in range(len(nodes)):
+        #         node = nodes[i]
+        #         if node.index < index:
+        #             if i == len(nodes) - 1 or nodes[i + 1].index > index:
+        #                 return get_item(node.children, index)
+        #
+        #             else:
+        #                 continue
+        #
+        #         elif node.index == index:
+        #             return node
+        #
+        #         else:
+        #             # Todo: Improve error message
+        #             raise RuntimeError("Malformed indexing")
 
         return get_item(self._root_nodes, index)
 
