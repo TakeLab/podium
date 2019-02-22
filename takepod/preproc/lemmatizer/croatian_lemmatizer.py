@@ -39,8 +39,6 @@ class CroatianLemmatizer(SCPLargeResource):
         self.__word2lemma_dict = None
         self.__lemma2word_dict = None
 
-        CroatianLemmatizer.BASE_FOLDER = os.path.join(
-            SCPLargeResource.BASE_RESOURCE_DIR, self.BASE_FOLDER)
         CroatianLemmatizer.MOLEX14_LEMMA2WORD = os.path.join(
             SCPLargeResource.BASE_RESOURCE_DIR, self.MOLEX14_LEMMA2WORD)
         CroatianLemmatizer.MOLEX14_WORD2LEMMA = os.path.join(
