@@ -6,10 +6,10 @@ import os
 import getpass
 import functools
 
-from takepod.storage.large_resource import LargeResource, SCPLargeResource
+from takepod.storage.large_resource import SCPLargeResource
 
 
-class CroatianLemmatizer():
+class CroatianLemmatizer(SCPLargeResource):
     """Class for lemmatizing words and fetching word
     inflections for a given lemma
 
@@ -39,26 +39,27 @@ class CroatianLemmatizer():
         self.__word2lemma_dict = None
         self.__lemma2word_dict = None
 
-        self.BASE_FOLDER = os.path.join(
-            LargeResource.BASE_RESOURCE_DIR, self.BASE_FOLDER)
-        self.MOLEX14_LEMMA2WORD = os.path.join(
-            LargeResource.BASE_RESOURCE_DIR, self.MOLEX14_LEMMA2WORD)
-        self.MOLEX14_WORD2LEMMA = os.path.join(
-            LargeResource.BASE_RESOURCE_DIR, self.MOLEX14_WORD2LEMMA)
+        CroatianLemmatizer.BASE_FOLDER = os.path.join(
+            SCPLargeResource.BASE_RESOURCE_DIR, self.BASE_FOLDER)
+        CroatianLemmatizer.MOLEX14_LEMMA2WORD = os.path.join(
+            SCPLargeResource.BASE_RESOURCE_DIR, self.MOLEX14_LEMMA2WORD)
+        CroatianLemmatizer.MOLEX14_WORD2LEMMA = os.path.join(
+            SCPLargeResource.BASE_RESOURCE_DIR, self.MOLEX14_WORD2LEMMA)
 
         # automatically downloads molex resources
         # defaults should work for linux and access to djurdja.fer.hr
         kwargs.update({
-            LargeResource.URI: "/storage/molex/molex.zip",
-            LargeResource.RESOURCE_NAME: self.BASE_FOLDER,
-            LargeResource.ARCHIVE: "zip",
+            SCPLargeResource.URI: "/storage/molex/molex.zip",
+            SCPLargeResource.RESOURCE_NAME: self.BASE_FOLDER,
+            SCPLargeResource.ARCHIVE: "zip",
             SCPLargeResource.SCP_HOST_KEY: "djurdja.takelab.fer.hr",
             # if your username is same as one on djurdja
             SCPLargeResource.SCP_USER_KEY: kwargs.get(
                 SCPLargeResource.SCP_USER_KEY, getpass.getuser()
             ),
         })
-        SCPLargeResource(**kwargs)
+        super(CroatianLemmatizer, self).__init__(
+            **kwargs)
 
     def lemmatize_word(self, word):
         """Returns the lemma for the provided word if
@@ -135,16 +136,16 @@ class CroatianLemmatizer():
 
     def _get_word2lemma_dict(self):
         molex_dict = {}
-        with open(self.MOLEX14_WORD2LEMMA, encoding='utf-8') as f:
-            for line in f.readlines():
+        with open(self.MOLEX14_WORD2LEMMA, encoding='utf-8') as fp_word:
+            for line in fp_word.readlines():
                 word, lemma = line.split(" ")
                 molex_dict[word] = lemma.rstrip()
         return molex_dict
 
     def _get_lemma2word_dict(self):
         molex_dict = {}
-        with open(self.MOLEX14_LEMMA2WORD, encoding='utf-8') as f:
-            for line in f.readlines():
+        with open(self.MOLEX14_LEMMA2WORD, encoding='utf-8') as fp_lemma:
+            for line in fp_lemma.readlines():
                 sline = line.split('#')
                 lemma, words = sline
                 words = words.rstrip().split(',')
