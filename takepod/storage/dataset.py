@@ -699,7 +699,7 @@ class HierarchicalDataset:
 
         Returns
         -------
-        Callable(raw_example, fields, depth) returning (example, raw_children).
+            Callable(raw_example, fields, depth) returning (example, raw_children).
 
         """
         def default_json_parser(raw_example, fields, depth):
@@ -710,10 +710,36 @@ class HierarchicalDataset:
         return default_json_parser
 
     def _load(self, root_examples):
+        """Starts the parsing of the dataset.
+
+        Parameters
+        ----------
+        root_examples : iterable(dict(str, object))
+            iterable containing the root examples in raw dict form.
+
+        """
         for root in root_examples:
             self._root_nodes.append(self._parse(root, None, 0))
 
     def _parse(self, raw_object, parent, depth):
+        """Parses an raw example.
+
+        Parameters
+        ----------
+        raw_object : dict(str, object)
+            Example in raw dict form.
+
+        parent
+            Parent node of the example to be parsed. None for root nodes.
+
+        depth
+            Depth of the example to be parsed in the hierarchy. Depth of root nodes is 0.
+
+        Returns
+        -------
+        Node
+            Node parsed from the raw example.
+        """
         example, raw_children = self._parser(raw_object, self._fields, depth)
         index = self._size
         self._size += 1
@@ -722,6 +748,15 @@ class HierarchicalDataset:
         return HierarchicalDataset.Node(example, index, parent, children)
 
     def flatten(self):
+        """
+        Returns an iterable iterating trough examples in the dataset as if it was a
+        standard Dataset. The iteration is done in pre-order.
+
+        Returns
+        -------
+        itearble
+             iterable iterating trough examples in the dataset.
+        """
         def flat_node_iterator(node):
             # Todo: Look into using a stack-based iterator to avoid
             # iterator construction and garbage collection
@@ -735,13 +770,45 @@ class HierarchicalDataset:
                 yield ex
 
     def as_flat_dataset(self):
+        """Returns a standard Dataset containing the examples
+        in order as defined in 'flatten'.
+
+        Returns
+        -------
+            a standard Dataset
+        """
         return Dataset(self.flatten(), self._fields)
 
     @property
     def depth(self):
+        """
+        Returns
+        -------
+        int
+            the maximum depth of a node in the hierarchy.
+        """
         return self._max_depth
 
     def _get_node_by_index(self, index):
+        """Returns the node with the provided index.
+
+        Parameters
+        ----------
+        index : int
+            Index of the node to be fetched.
+
+        Returns
+        -------
+        Node
+            the node with the provided index.
+
+        Raises
+        ------
+        IndexError
+            if the index is out of bounds.
+
+        """
+        # TODO: Look into implementing binary search to lower search complexity
         if index < 0 or index >= len(self):
             raise IndexError(
                 f"Index {index} out of bounds. Must be within [0, len(dataset) - 1]")

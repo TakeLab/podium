@@ -1,6 +1,6 @@
 from collections import Counter
 
-from takepod.storage import Dataset, HierarchicalDataset, TabularDataset, Field
+from takepod.storage import Dataset, HierarchicalDataset, TabularDataset,    Field
 import pytest
 
 FORMAT_USE_DICT_COMBINATIONS = (
