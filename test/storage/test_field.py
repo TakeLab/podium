@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from mock import patch
 
-from takepod.storage import Field, TokenizedField, Vocab
+from takepod.storage import Field, TokenizedField, MultilabelField, Vocab
 
 ONE_TO_FIVE = [1, 2, 3, 4, 5]
 
@@ -48,7 +48,7 @@ def vocab():
 
 def test_field_store_raw_sequential_exception():
     with pytest.raises(ValueError):
-        Field(name="F", store_raw=False, sequential=False)
+        Field(name="F", store_as_raw=False, tokenize=False)
 
 
 def test_field_preprocess_eager(vocab):
@@ -71,7 +71,7 @@ def test_field_preprocess_eager(vocab):
 def test_field_preprocess_raw_sequential(value, store_raw, sequential,
                                          expected_raw_value,
                                          expected_tokenized_value):
-    f = Field(name="F", store_raw=store_raw, sequential=sequential)
+    f = Field(name="F", store_as_raw=store_raw, tokenize=sequential)
 
     received_raw_value, received_tokenized_value = f.preprocess(value)
 
@@ -104,7 +104,7 @@ def test_field_use_vocab(vocab, expected_value):
 def test_field_update_vocab(use_vocab, sequential, expected_vocab_values,
                             vocab):
     f = Field(name="F", vocab=vocab if use_vocab else None,
-              sequential=sequential)
+              tokenize=sequential)
 
     raw_value = "some text"
     tokenized_value = ["some", "text"]
@@ -132,7 +132,7 @@ def test_field_finalize(vocab):
     ]
 )
 def test_field_numericalize_vocab(use_vocab, expected_numericalized, vocab):
-    f = Field(name="F", vocab=vocab if use_vocab else None, sequential=False)
+    f = Field(name="F", vocab=vocab if use_vocab else None, tokenize=False)
     f.numericalize(("4.32", None))
 
     assert vocab.numericalized == expected_numericalized
@@ -198,8 +198,8 @@ def test_field_get_tokenizer_callable(vocab):
     def my_tokenizer(string):
         return [string[0], string[1:]]
 
-    f = Field(name="F", vocab=vocab, tokenizer=my_tokenizer, sequential=True,
-              store_raw=False)
+    f = Field(name="F", vocab=vocab, tokenizer=my_tokenizer, tokenize=True,
+              store_as_raw=False)
 
     assert f.preprocess("asd dsa") == (None, ["a", "sd dsa"])
 
@@ -212,11 +212,11 @@ def test_field_get_tokenizer_spacy_exception(vocab):
     patch.dict("sys.modules", spacy=MockSpacy()).start()
 
     with pytest.raises(OSError):
-        Field(name="F", vocab=vocab, tokenizer="spacy", sequential=True)
+        Field(name="F", vocab=vocab, tokenizer="spacy", tokenize=True)
 
 
 def test_field_get_tokenizer_default(vocab):
-    f = Field(name="F", vocab=vocab, sequential=True, store_raw=False)
+    f = Field(name="F", vocab=vocab, tokenize=True, store_as_raw=False)
 
     assert f.preprocess("asd dsa") == (None, ["asd", "dsa"])
 
@@ -224,7 +224,7 @@ def test_field_get_tokenizer_default(vocab):
 def test_field_get_tokenizer_exception(vocab):
     with pytest.raises(ValueError):
         Field(name="F", vocab=vocab, tokenizer="NOT_tokenizer",
-              sequential=True, store_raw=False)
+              tokenize=True, store_as_raw=False)
 
 
 def test_field_get_tokenizer_spacy_ok(vocab):
@@ -242,13 +242,13 @@ def test_field_get_tokenizer_spacy_ok(vocab):
 
     patch.dict("sys.modules", spacy=MockSpacy()).start()
 
-    f = Field(name="F", vocab=vocab, tokenizer="spacy", sequential=True,
-              store_raw=False)
+    f = Field(name="F", vocab=vocab, tokenizer="spacy", tokenize=True,
+              store_as_raw=False)
     assert f.preprocess("bla blu") == (None, ["bla", "blu"])
 
 
 def test_field_pretokenize_hooks():
-    f = Field(name="F", sequential=True)
+    f = Field(name="F", tokenize=True)
 
     f.add_pretokenize_hook(str.lower)
     f.add_pretokenize_hook(lambda x: x.replace("bla", "blu"))
@@ -264,7 +264,7 @@ def test_field_pretokenize_hooks():
 
 
 def test_field_pretokenize_hooks_detach():
-    f = Field(name="F", sequential=True)
+    f = Field(name="F", tokenize=True)
 
     f.add_pretokenize_hook(str.lower)
     f.add_pretokenize_hook(lambda x: x.replace(";", " "))
@@ -283,7 +283,7 @@ def test_field_pretokenize_hooks_detach():
 
 
 def test_field_posttokenize_hooks():
-    f = Field(name="F", sequential=True)
+    f = Field(name="F", tokenize=True)
 
     def remove_tags_hook(raw, tokenized):
         raw = raw.replace("<tag>", "")
@@ -307,7 +307,7 @@ def test_field_posttokenize_hooks():
 
 
 def test_field_posttokenize_hooks_detach():
-    f = Field(name="F", sequential=True)
+    f = Field(name="F", tokenize=True)
 
     def remove_tags_hook(raw, tokenized):
         raw = raw.replace("<tag>", "")
@@ -349,7 +349,7 @@ def test_field_repeated_hooks():
 
     to_lower_hook.call_count = 0
 
-    f = Field(name="F", sequential=True)
+    f = Field(name="F", tokenize=True)
 
     # TAG -> tag
     f.add_posttokenize_hook(to_lower_hook)
@@ -380,24 +380,6 @@ def test_field_is_target():
     assert not f3.is_target
 
 
-@pytest.mark.parametrize(
-    "use_vocab, expected_vocab_values",
-    [
-        (False, []),
-        (True, ["some", "text"]),
-    ]
-)
-def test_tokenized_field_update_vocab(use_vocab, expected_vocab_values, vocab):
-    f = TokenizedField(name="F", vocab=vocab if use_vocab else None)
-
-    raw_value = ["some", "text"]
-    tokenized_value = None
-
-    f.update_vocab(raw_value, tokenized_value)
-
-    assert vocab.values == expected_vocab_values
-
-
 def test_tokenized_field_numericalization():
     vocab = Vocab()
     pretokenized_input1 = [
@@ -418,8 +400,8 @@ def test_tokenized_field_numericalization():
         "uttering"
     ]
 
-    tokenized_field = TokenizedField("test_field",
-                                     vocab=vocab)
+    tokenized_field = TokenizedField("test_field", vocab=vocab)
+
     data1 = tokenized_field.preprocess(pretokenized_input1)
     data2 = tokenized_field.preprocess(pretokenized_input2)
     data3 = tokenized_field.preprocess(pretokenized_input3)
@@ -428,23 +410,23 @@ def test_tokenized_field_numericalization():
     tokenized_field.finalize()
 
     expected_numericalization_1 = np.array([2, 3, 4])
-    raw1, _ = data1
-    assert np.all(vocab.numericalize(raw1) == expected_numericalization_1)
+    _, tok1 = data1
+    assert np.all(vocab.numericalize(tok1) == expected_numericalization_1)
     assert np.all(tokenized_field.numericalize(data1) == expected_numericalization_1)
 
     expected_numericalization_2 = np.array([2, 3])
-    raw2, _ = data2
-    assert np.all(vocab.numericalize(raw2) == expected_numericalization_2)
+    _, tok2 = data2
+    assert np.all(vocab.numericalize(tok2) == expected_numericalization_2)
     assert np.all(tokenized_field.numericalize(data2) == expected_numericalization_2)
 
     expected_numericalization_3 = np.array([2])
-    raw3, _ = data3
-    assert np.all(vocab.numericalize(raw3) == expected_numericalization_3)
+    _, tok3 = data3
+    assert np.all(vocab.numericalize(tok3) == expected_numericalization_3)
     assert np.all(tokenized_field.numericalize(data3) == expected_numericalization_3)
 
     expected_numericalization_4 = np.array([2, 4])
-    raw4, _ = data4
-    assert np.all(vocab.numericalize(raw4) == expected_numericalization_4)
+    _, tok4 = data4
+    assert np.all(vocab.numericalize(tok4) == expected_numericalization_4)
     assert np.all(tokenized_field.numericalize(data4) == expected_numericalization_4)
 
 
@@ -505,3 +487,21 @@ def test_tokenized_field_vocab_non_string():
     assert np.all(tfield.numericalize(data2) == vocab.numericalize([3, 2, 1]))
     assert np.all(tfield.numericalize(data3) == vocab.numericalize([3, 4, 5, 6]))
     assert np.all(tfield.numericalize(data4) == vocab.numericalize([2, 3, 6]))
+
+
+def test_multilabel_field_specials_in_vocab_fail():
+    with pytest.raises(ValueError):
+        MultilabelField("bla", vocab=Vocab())
+
+
+@pytest.mark.parametrize("store_as_raw, store_as_tokenized, tokenize",
+                         [[True, True, True],
+                          [True, True, False],
+                          [False, True, True],
+                          [False, False, False]])
+def test_field_fail_initialization(store_as_raw, store_as_tokenized, tokenize):
+    with pytest.raises(ValueError):
+        Field("bla",
+              store_as_raw=store_as_raw,
+              store_as_tokenized=store_as_tokenized,
+              tokenize=tokenize)
