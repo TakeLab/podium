@@ -1,6 +1,8 @@
 """Module contains dataset's field definition and methods for construction."""
 from collections import deque
+
 import numpy as np
+
 from takepod.preproc.tokenizers import get_tokenizer
 
 
@@ -14,8 +16,9 @@ class Field(object):
                  tokenizer='split',
                  language='en',
                  vocab=None,
-                 sequential=True,
-                 store_raw=True,
+                 tokenize=True,
+                 store_as_raw=True,
+                 store_as_tokenized=False,
                  eager=True,
                  custom_numericalize=float,
                  is_target=False,
@@ -29,7 +32,7 @@ class Field(object):
             Field name, used for referencing data in the dataset.
         tokenizer : str | callable
             The tokenizer that is to be used when preprocessing raw data
-            (only if sequential is True). The user can provide his own
+            (only if 'tokenize' is True). The user can provide his own
             tokenizer as a callable object or specify one of the premade
             tokenizers by a string. The available premade tokenizers are:
                 - 'split' - default str.split()
@@ -46,10 +49,16 @@ class Field(object):
             If None, the field won't use a vocab, in which case a custom
             numericalization function has to be given.
             Default is None.
-        sequential : bool
+        tokenize : bool
             Whether the data should be tokenized when being preprocessed.
-        store_raw : bool
-            Whether to store untokenized data after tokenization.
+            If True, store_as_tokenized must be False.
+        store_as_raw : bool
+            Whether to store untokenized preprocessed data.
+            If True, ''
+        store_as_tokenized : bool
+            Whether to store the data as tokenized.
+            Data will be stored as-is and no preprocessing will be done.
+            If True, store_raw and tokenize must be False.
         eager : bool
             Whether to build the vocabulary online, each time the field
             preprocesses raw data.
@@ -74,12 +83,29 @@ class Field(object):
         self.name = name
         self.language = language
 
-        if not store_raw and not sequential:
+        if store_as_tokenized and tokenize:
             raise ValueError(
-                "Either 'store_raw' or 'sequential' must be true.")
+                "Store_as_tokenized' and 'tokenize' both set to True."
+                " You can either store the data as tokenized, tokenize it or do neither"
+                " , but you can't do both."
+            )
 
-        self.store_raw = store_raw
-        self.sequential = sequential
+        if not store_as_raw and not tokenize and not store_as_tokenized:
+            raise ValueError(
+                "At least one of 'store_as_raw', 'tokenize'"
+                " or 'store_as_tokenized' must be True.")
+
+        if store_as_raw and store_as_tokenized:
+            raise ValueError(
+                "'store_as_raw' and 'store_as_tokenized' both set to True."
+                " You can't store the same value as raw and as tokenized."
+                " Maybe you wanted to tokenize the raw data? (the 'tokenize' parameter)"
+            )
+
+        self.sequential = store_as_tokenized or tokenize
+        self.store_as_raw = store_as_raw
+        self.tokenize = tokenize
+        self.store_as_tokenized = store_as_tokenized
 
         self.eager = eager
         self.vocab = vocab
@@ -172,45 +198,65 @@ class Field(object):
         """
         self.posttokenize_hooks.clear()
 
-    def preprocess(self, raw):
+    def _run_pretokenization_hooks(self, data):
+        for hook in self.pretokenize_hooks:
+            data = hook(data)
+
+        return data
+
+    def _run_posttokenization_hooks(self, data, tokens):
+        for hook in self.posttokenize_hooks:
+            data, tokens = hook(data, tokens)
+
+        return data, list(tokens)
+
+    def preprocess(self, data):
         """Preprocesses raw data, tokenizing it if the field is sequential,
         updating the vocab if the field is eager and preserving the raw data
         if field's 'store_raw' is true.
 
         Parameters
         ----------
-        raw : str
+        data : str or iterable(hashable)
             The raw data that needs to be preprocessed.
+            String if 'store_as_raw' and/or 'tokenize' attributes are True.
+            iterable(hashable) if store_as_tokenized attribute is True.
 
         Returns
         -------
-        (str, str)
-            A tuple of strings (raw, tokenized). If the field's 'store_raw'
+        (str, Iterable(hashable))
+            A tuple of (raw, tokenized). If the field's 'store_as_raw'
             attribute is False, then 'raw' will be None (we don't preserve
-            the raw data). If field's 'sequential' attribute is False then
-            'tokenized' will be None.
-            The attributes 'sequential' and 'store_raw' will never both be
-            False, so the function will never return (None, None).
+            the raw data). If field's 'tokenize' and 'store_as_tokenized' attributes
+            are False then 'tokenized' will be None.
+            The attributes 'store_as_raw', 'store_as_tokenized' and 'tokenize' will never
+            all be False, so the function will never return (None, None).
         """
-        for hook in self.pretokenize_hooks:
-            raw = hook(raw)
 
-        if self.sequential:
-            tokenized = self.tokenizer(raw) if self.sequential else None
+        tokens = None
 
-            for hook in self.posttokenize_hooks:
-                raw, tokenized = hook(raw, tokenized)
+        if self.store_as_tokenized:
+            # Store data as tokens
+            _, tokens = self._run_posttokenization_hooks(None, data)
 
-            tokenized = list(tokenized)
         else:
-            tokenized = None
+            # Preprocess the raw input
 
-        raw = raw if self.store_raw else None
+            data = self._run_pretokenization_hooks(data)
+
+            if self.tokenize:
+                # Tokenize the preprocessed raw data
+
+                tokens = self.tokenizer(data)
+
+                data, tokens = self._run_posttokenization_hooks(data, tokens)
 
         if self.eager and self.use_vocab:
-            self.update_vocab(raw, tokenized)
+            self.update_vocab(data, tokens)
 
-        return raw, tokenized
+        raw = data if self.store_as_raw else None
+
+        return raw, tokens
 
     def update_vocab(self, raw, tokenized):
         """Updates the vocab with a data point in its raw and tokenized form.
@@ -220,24 +266,27 @@ class Field(object):
 
         Parameters
         ----------
-        raw : str
+        raw : hashable
             The raw form of the data point that the vocab is to be updated
             with. If the field is sequential, this parameter is ignored and
             can be None.
-        tokenized : str
+        tokenized : iterable(hashable)
             The tokenized form of the data point that the vocab is to be
-            updated with. If the field is NOT sequential, this parameter is
-            ignored and can be None.
+            updated with. If the field is NOT sequential
+            ('store_as_tokenized' and 'tokenize' attributes are False),
+            this parameter is ignored and can be None.
         """
+
         if not self.use_vocab:
             return
 
-        data = tokenized if self.sequential else [raw]
+        data = tokenized if self.tokenize or self.store_as_tokenized else [raw]
         self.vocab += data
 
     def finalize(self):
         """Signals that this field's vocab can be built.
         """
+
         if self.use_vocab:
             self.vocab.finalize()
 
@@ -248,8 +297,8 @@ class Field(object):
 
         Parameters
         ----------
-        tokens : iterable
-            Iterable of objects to be numericalized.
+        tokens : iterable(hashable)
+            Iterable of hashable objects to be numericalized.
 
         Returns
         -------
@@ -286,7 +335,7 @@ class Field(object):
         raw, tokenized = data
 
         # raw data is just a string, so we need to wrap it into an iterable
-        tokens = tokenized if self.sequential else [raw]
+        tokens = tokenized if self.tokenize or self.store_as_tokenized else [raw]
 
         return self._numericalize_tokens(tokens)
 
@@ -367,53 +416,33 @@ class TokenizedField(Field):
         super().__init__(
             name=name,
             vocab=vocab,
-            sequential=False,
-            store_raw=True,
+            store_as_raw=False,
+            tokenize=False,
+            store_as_tokenized=True,
             eager=eager,
             custom_numericalize=custom_numericalize,
             is_target=is_target,
             fixed_length=fixed_length
         )
 
-    def numericalize(self, data):
-        """Numericalize the already preprocessed data point based either on
-        the vocab that was previously built, or on a custom numericalization
-        function, if the field doesn't use a vocab.
 
-        Parameters
-        ----------
-        data : (iterable(hashable), None)
-            Tuple of (raw, None) of preprocessed input data.
-            Raw should contain an iterable of pretokenized data.
+class MultilabelField(TokenizedField):
 
-        Returns
-        -------
-        numpy array
-            Array of numericalized representations of the tokens.
-        """
+    def __init__(self,
+                 name,
+                 vocab=None,
+                 eager=True,
+                 custom_numericalize=float,
+                 fixed_length=None):
 
-        raw, _ = data
+        if vocab is not None and vocab.has_specials:
+            raise ValueError("Vocab contains special symbols."
+                             " Vocabs with special symbols cannot be used"
+                             " with multilabel fields.")
 
-        if self.use_vocab:
-            return self.vocab.numericalize(raw)
-
-        else:
-            return self._numericalize_tokens(raw)
-
-    def update_vocab(self, raw, tokenized):
-        """
-        Updates the vocab with new data.
-        Only the raw form is used to update the vocabulary, since the
-        TokenizedField defaults to sequential=False.
-
-        Parameters
-        ----------
-        raw : iterable(hashable)
-            The raw form of the data point used to update the vocab.
-        tokenized : any
-            The tokenized form of the data point (not used).
-        """
-        if not self.use_vocab:
-            return
-
-        self.vocab += raw
+        super().__init__(name,
+                         vocab=vocab,
+                         eager=eager,
+                         custom_numericalize=custom_numericalize,
+                         is_target=True,
+                         fixed_length=fixed_length)
