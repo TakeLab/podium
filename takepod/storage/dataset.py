@@ -806,7 +806,7 @@ class HierarchicalDataset:
         -------
             a standard Dataset
         """
-        return Dataset(self.flatten(), self._fields)
+        return Dataset(list(self.flatten()), self._fields)
 
     @property
     def depth(self):
@@ -876,6 +876,30 @@ class HierarchicalDataset:
                 return get_item(nodes[start - 1].children, index)
 
         return get_item(self._root_nodes, index)
+
+    def _get_node_context(self, node, levels=None):
+        levels = float('Inf') if levels is None else levels
+        if levels <= 0:
+            raise ValueError(f"Number of context levels must be greater or equal to 0."
+                             f" Passed value: {levels}")
+
+        parent = node
+        while parent.parent is not None and levels > 0:
+            parent = parent.parent
+            levels -= 1
+
+        def context_iterator(start_node, finish_node):
+            yield start_node.example
+
+            children = start_node.children
+            i = 0
+            while True:
+                if i == len(children) - 1:
+                    for sub_child in context_iterator(children[-1], finish_node):
+                        yield sub_child
+                        return
+                    # TODO: Finish method
+
 
     def __len__(self):
         return self._size
