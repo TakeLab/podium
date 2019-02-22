@@ -6,6 +6,7 @@ import os
 import getpass
 import functools
 
+from takepod.preproc.util import capitalize_target_like_source
 from takepod.storage.large_resource import LargeResource, SCPLargeResource
 
 
@@ -53,6 +54,7 @@ class CroatianLemmatizer():
         })
         SCPLargeResource(**kwargs)
 
+    @capitalize_target_like_source
     def lemmatize_word(self, word):
         """Returns the lemma for the provided word if
         there is a word in a dictionary, otherwise returns the word.
@@ -70,13 +72,7 @@ class CroatianLemmatizer():
         """
 
         try:
-            is_lower = word.islower()
-            word_lower = word if is_lower else word.lower()
-            lemma = self._word2lemma[word_lower]
-            if is_lower:
-                return lemma
-            else:
-                return _uppercase_target_like_source(word, lemma)
+            return self._word2lemma[word]
         except KeyError:
             # TODO: insert log statement that a word is being returned
             return word

@@ -21,6 +21,8 @@ import re
 import os
 import functools
 
+from takepod.preproc.util import capitalize_target_like_source
+
 
 class CroatianStemmer:
     """Simple stemmer for Croatian language"""
@@ -113,6 +115,7 @@ class CroatianStemmer:
                     return root
         return word
 
+    @capitalize_target_like_source
     def stem_word(self, word):
         '''
         Returns the root or roots of a word,
@@ -129,12 +132,10 @@ class CroatianStemmer:
             Croatian word root plus derivational morphemes
         '''
 
-        if word.lower() in self.__stop:
+        if word in self.__stop:
             return word
-        stem = self.root_word(self.transform(word.lower()))
-        return "".join(list(
-            stem[i].upper() if c.isupper() else stem[i] for i, c in
-            zip(range(len(stem)), word)))
+        else:
+            return self.root_word(self.transform(word))
 
 
 def _stemmer_posttokenized_hook(raw, tokenized, stemmer):
