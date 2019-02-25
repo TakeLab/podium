@@ -126,6 +126,10 @@ class Field(object):
         self.posttokenize_hooks = deque()
         self.default_value_callable = default_value_callable
 
+    @staticmethod
+    def empty_vector_callable():
+        return lambda: np.empty(0)
+
     @property
     def use_vocab(self):
         """A flag that tells whether the field uses a vocab or not.
@@ -461,7 +465,8 @@ class TokenizedField(Field):
                  eager=True,
                  custom_numericalize=float,
                  is_target=False,
-                 fixed_length=None):
+                 fixed_length=None,
+                 default_value_callable=None):
 
         super().__init__(
             name=name,
@@ -472,7 +477,8 @@ class TokenizedField(Field):
             eager=eager,
             custom_numericalize=custom_numericalize,
             is_target=is_target,
-            fixed_length=fixed_length
+            fixed_length=fixed_length,
+            default_value_callable=default_value_callable
         )
 
 
@@ -483,7 +489,8 @@ class MultilabelField(TokenizedField):
                  vocab=None,
                  eager=True,
                  custom_numericalize=float,
-                 fixed_length=None):
+                 fixed_length=None,
+                 default_value_callable = None):
 
         if vocab is not None and vocab.has_specials:
             raise ValueError("Vocab contains special symbols."
@@ -495,4 +502,5 @@ class MultilabelField(TokenizedField):
                          eager=eager,
                          custom_numericalize=custom_numericalize,
                          is_target=True,
-                         fixed_length=fixed_length)
+                         fixed_length=fixed_length,
+                         default_value_callable=default_value_callable)

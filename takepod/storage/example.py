@@ -108,12 +108,12 @@ class Example(object):
         # we ignore columns with field mappings set to None
         items = filter(lambda el: el[1] is not None, fields.items())
         for key, field in items:
-            if key not in data:
-                raise ValueError(
-                    "Specified key {} was not found in the input data"
-                    .format(key))
+            # if key not in data:
+            #     raise ValueError(
+            #         "Specified key {} was not found in the input data"
+            #         .format(key))
 
-            val = data[key]
+            val = data.get(key)
             set_example_attributes(example, field, val)
 
         return example
