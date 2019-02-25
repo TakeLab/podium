@@ -152,7 +152,7 @@ class NERCroatianXMLLoader:
         token_label_pairs: list of tuples
             List of tuples (token, label)
         """
-        if len(text) == 0:
+        if not text:
             return []
 
         tokenized_text = self._tokenizer(text)

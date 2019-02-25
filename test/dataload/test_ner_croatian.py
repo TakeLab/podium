@@ -1,9 +1,9 @@
 import xml.etree.ElementTree as ET
 import tempfile
 import zipfile
-import pytest
-import shutil
 import os
+import shutil
+import pytest
 
 from mock import patch
 from takepod.dataload.ner_croatian import NERCroatianXMLLoader

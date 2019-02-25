@@ -38,7 +38,7 @@ class MockField:
     ]
 )
 def test_fromdict_ok(data_dict, fields_dict):
-    received_example = Example.fromdict(data_dict, fields_dict)
+    received_example = Example.from_dict(data_dict, fields_dict)
 
     field_data_tuples = ((fields_dict[k], v) for k, v in data_dict.items())
     expected_example = create_expected_example(field_data_tuples)
@@ -59,7 +59,7 @@ def test_fromdict_ok(data_dict, fields_dict):
 )
 def test_fromdict_exception(data_dict, fields_dict):
     with pytest.raises(ValueError):
-        Example.fromdict(data_dict, fields_dict)
+        Example.from_dict(data_dict, fields_dict)
 
 
 @pytest.mark.parametrize(
@@ -83,8 +83,8 @@ def test_fromdict_exception(data_dict, fields_dict):
         ),
     ]
 )
-def test_fromJSON_ok(json_data, fields_dict, expected_data_dict):
-    received_example = Example.fromJSON(json_data, fields_dict)
+def test_from_json_ok(json_data, fields_dict, expected_data_dict):
+    received_example = Example.from_json(json_data, fields_dict)
 
     field_data_tuples = ((fields_dict[k], v) for k, v in
                          expected_data_dict.items())
@@ -104,9 +104,9 @@ def test_fromJSON_ok(json_data, fields_dict, expected_data_dict):
         ),
     ]
 )
-def test_fromJSON_exception(json_data, fields_dict):
+def test_from_json_exception(json_data, fields_dict):
     with pytest.raises(ValueError):
-        Example.fromJSON(json_data, fields_dict)
+        Example.from_json(json_data, fields_dict)
 
 
 @pytest.mark.parametrize(
@@ -141,8 +141,8 @@ def test_fromJSON_exception(json_data, fields_dict):
     ]
 )
 def test_fromxmlstr_ok(xml_str, fields_dict, expected_data_dict):
-    received_example = Example.fromxmlstr(data=xml_str,
-                                          fields=fields_dict)
+    received_example = Example.from_xml_str(data=xml_str,
+                                            fields=fields_dict)
 
     field_data_tuples = ((fields_dict[k], v) for k, v in
                          expected_data_dict.items())
@@ -173,7 +173,7 @@ def test_fromxmlstr_ok(xml_str, fields_dict, expected_data_dict):
 )
 def test_fromxmlstr_value_error(xml_str, fields_dict):
     with pytest.raises(ValueError):
-        Example.fromxmlstr(xml_str, fields_dict)
+        Example.from_xml_str(xml_str, fields_dict)
 
 
 @pytest.mark.parametrize(
@@ -204,7 +204,7 @@ def test_fromxmlstr_value_error(xml_str, fields_dict):
 )
 def test_fromxmlstr_invalid_xml(xml_str, fields_dict):
     with pytest.raises(ParseError):
-        Example.fromxmlstr(xml_str, fields_dict)
+        Example.from_xml_str(xml_str, fields_dict)
 
 
 @pytest.mark.parametrize(
@@ -231,7 +231,7 @@ def test_fromxmlstr_invalid_xml(xml_str, fields_dict):
     ]
 )
 def test_fromlist(data_list, fields_list):
-    received_example = Example.fromlist(data_list, fields_list)
+    received_example = Example.from_list(data_list, fields_list)
     expected_example = create_expected_example(zip(fields_list, data_list))
 
     assert received_example.__dict__ == expected_example.__dict__
@@ -263,10 +263,10 @@ def test_fromlist(data_list, fields_list):
         )
     ]
 )
-def test_fromCSV_fields_is_dict(csv_line, fields_dict, field_to_index,
-                                delimiter, expected_data_dict):
-    received_example = Example.fromCSV(csv_line, fields_dict, field_to_index,
-                                       delimiter)
+def test_from_csv_fields_is_dict(csv_line, fields_dict, field_to_index,
+                                 delimiter, expected_data_dict):
+    received_example = Example.from_csv(csv_line, fields_dict, field_to_index,
+                                        delimiter)
 
     field_data_tuples = ((fields_dict[k], v) for k, v in
                          expected_data_dict.items())
@@ -312,9 +312,9 @@ def test_fromCSV_fields_is_dict(csv_line, fields_dict, field_to_index,
         )
     ]
 )
-def test_fromCSV_fields_is_list(csv_line, fields_list, delimiter,
-                                expected_data_list):
-    received_example = Example.fromCSV(csv_line, fields_list, None, delimiter)
+def test_from_csv_fields_is_list(csv_line, fields_list, delimiter,
+                                 expected_data_list):
+    received_example = Example.from_csv(csv_line, fields_list, None, delimiter)
     expected_example = create_expected_example(
         zip(fields_list, expected_data_list))
 
@@ -332,7 +332,7 @@ def test_fromCSV_fields_is_list(csv_line, fields_list, delimiter,
     ]
 )
 def test_fromtree_no_subtrees(data, fields_list, expected_attributes):
-    received_example = Example.fromtree(data, fields_list, subtrees=False)
+    received_example = Example.from_tree(data, fields_list, subtrees=False)
     expected_example = create_expected_example(
         zip(fields_list, expected_attributes))
 
@@ -356,7 +356,7 @@ def test_fromtree_no_subtrees(data, fields_list, expected_attributes):
     ]
 )
 def test_fromtree_with_subtrees(data, fields_list, expected_attributes_list):
-    received_examples = Example.fromtree(data, fields_list, subtrees=True)
+    received_examples = Example.from_tree(data, fields_list, subtrees=True)
     assert len(received_examples) == len(expected_attributes_list)
 
     for received_example, expected_attributes in zip(received_examples,
