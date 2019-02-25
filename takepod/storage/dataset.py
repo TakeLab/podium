@@ -872,23 +872,6 @@ class HierarchicalDataset:
             else:
                 return get_item(nodes[start - 1].children, index)
 
-        # def get_item(nodes, index):
-        #     for i in range(len(nodes)):
-        #         node = nodes[i]
-        #         if node.index < index:
-        #             if i == len(nodes) - 1 or nodes[i + 1].index > index:
-        #                 return get_item(node.children, index)
-        #
-        #             else:
-        #                 continue
-        #
-        #         elif node.index == index:
-        #             return node
-        #
-        #         else:
-        #             # Todo: Improve error message
-        #             raise RuntimeError("Malformed indexing")
-
         return get_item(self._root_nodes, index)
 
     def __len__(self):
