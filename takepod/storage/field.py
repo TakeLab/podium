@@ -76,7 +76,7 @@ class Field(object):
         default_value_callable : callable() returning numpy array.
             Callable that will be called to get the default value if missing data
             is attempted to be numericalized. If set to None, numericalization
-            and preprocessing calls on missing data will raise and ValueError.
+            and preprocessing calls on missing data will raise an ValueError.
             Default: None
 
         Raises
