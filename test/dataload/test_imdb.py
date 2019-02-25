@@ -1,7 +1,8 @@
-from takepod.dataload.imdb import Imdb
 import tempfile
 import shutil
 import os
+
+from takepod.dataload.imdb import Imdb
 
 
 def write_to_file(path, text):

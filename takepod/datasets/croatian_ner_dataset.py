@@ -37,7 +37,8 @@ class CroatianNERDataset(dataset.Dataset):
         for document in tokenized_documents:
             for line in document:
                 if _is_delimiter_line(line):
-                    examples.append(example.Example.fromlist((tokens, labels), fields))
+                    examples.append(
+                        example.Example.from_list((tokens, labels), fields))
                     tokens = []
                     labels = []
                 else:

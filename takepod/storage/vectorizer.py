@@ -3,11 +3,10 @@
 
 """
 import os
+from abc import ABC, abstractmethod
 import six
 
 import numpy as np
-
-from abc import ABC, abstractmethod
 
 
 def zeros_default_vector(token, dim):

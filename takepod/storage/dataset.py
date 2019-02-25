@@ -363,9 +363,9 @@ def create_examples(reader, format, fields, skip_header):
     # fromlist is used for CSV/TSV because csv_reader yields data rows as
     # lists, not strings
     make_example_function = {
-        "json": Example.fromJSON,
-        "csv": Example.fromlist,
-        "tsv": Example.fromlist
+        "json": Example.from_json,
+        "csv": Example.from_list,
+        "tsv": Example.from_list
     }
 
     if skip_header:
