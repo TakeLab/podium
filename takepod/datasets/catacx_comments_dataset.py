@@ -110,7 +110,7 @@ class CatacxCommentsDataset(dataset.Dataset):
         examples = list()
 
         for comment in CatacxCommentsDataset._get_comments(ds):
-            examples.append(Example.fromdict(comment, fields))
+            examples.append(Example.from_dict(comment, fields))
 
         return examples
 

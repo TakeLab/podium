@@ -75,8 +75,8 @@ class PauzaHRDataset(dataset.Dataset):
         for file_path in files_list:
             with open(file=os.path.join(dir_path, file_path),
                       mode='r', encoding='utf8') as fpr:
-                examples.append(Example.fromxmlstr(data=fpr.read(),
-                                                   fields=fields))
+                examples.append(Example.from_xml_str(data=fpr.read(),
+                                                     fields=fields))
         return examples
 
     @staticmethod

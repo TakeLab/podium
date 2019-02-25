@@ -1,9 +1,8 @@
 """"Module contains classes for iterating over datasets."""
 import math
 from random import Random
-import numpy as np
-
 from collections import namedtuple
+import numpy as np
 
 
 class Iterator:

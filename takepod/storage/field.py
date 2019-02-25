@@ -87,7 +87,7 @@ class Field(object):
             raise ValueError(
                 "Store_as_tokenized' and 'tokenize' both set to True."
                 " You can either store the data as tokenized, tokenize it or do neither"
-                " , but you can't do both."
+                ", but you can't do both."
             )
 
         if not store_as_raw and not tokenize and not store_as_tokenized:
@@ -227,10 +227,10 @@ class Field(object):
         (str, Iterable(hashable))
             A tuple of (raw, tokenized). If the field's 'store_as_raw'
             attribute is False, then 'raw' will be None (we don't preserve
-            the raw data). If field's 'tokenize' and 'store_as_tokenized' attributes
-            are False then 'tokenized' will be None.
-            The attributes 'store_as_raw', 'store_as_tokenized' and 'tokenize' will never
-            all be False, so the function will never return (None, None).
+            the raw data). If field's 'tokenize' and 'store_as_tokenized'
+            attributes are False then 'tokenized' will be None.
+            The attributes 'store_as_raw', 'store_as_tokenized' and 'tokenize'
+            will never all be False, so the function will never return (None, None).
         """
 
         tokens = None

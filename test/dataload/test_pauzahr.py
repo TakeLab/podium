@@ -1,9 +1,10 @@
-from takepod.dataload.pauzahr import PauzaHR
 import xml.etree.ElementTree as ET
 import tempfile
-import pytest
-import shutil
 import os
+import shutil
+import pytest
+
+from takepod.dataload.pauzahr import PauzaHR
 
 
 def create_review_file(filepath, review_text, review_rating):
