@@ -22,7 +22,8 @@ class Field(object):
                  eager=True,
                  custom_numericalize=float,
                  is_target=False,
-                 fixed_length=None
+                 fixed_length=None,
+                 default_value_callable=None
                  ):
         """Create a Field from arguments.
 
@@ -72,6 +73,11 @@ class Field(object):
             To which length should the field be fixed. If it is not None every
             example in the field will be truncated or padded to given length.
             Default: None.
+        default_value_callable : callable() returning numpy array.
+            Callable that will be called to get the default value if missing data
+            is attempted to be numericalized. If set to None, numericalization
+            and preprocessing calls on missing data will raise an ValueError.
+            Default: None
 
         Raises
         ------
@@ -118,6 +124,7 @@ class Field(object):
 
         self.pretokenize_hooks = deque()
         self.posttokenize_hooks = deque()
+        self.default_value_callable = default_value_callable
 
     @property
     def use_vocab(self):
@@ -199,12 +206,42 @@ class Field(object):
         self.posttokenize_hooks.clear()
 
     def _run_pretokenization_hooks(self, data):
+        """Runs pretokenization hooks on the raw data and returns the result.
+
+        Parameters
+        ----------
+        data : hashable
+            data to be processed
+
+        Returns
+        -------
+        hashable
+            processed data
+
+        """
         for hook in self.pretokenize_hooks:
             data = hook(data)
 
         return data
 
     def _run_posttokenization_hooks(self, data, tokens):
+        """Runs posttokenization hooks on tokenized data.
+
+        Parameters
+        ----------
+        data : hashable
+            raw data that was processed with '_run_pretokenization_hooks'.
+
+        tokens : iterable(hashable)
+            iterable of tokens resulting from the tokenization of the processed raw data.
+
+        Returns
+        -------
+        (data, list(tokens))
+            Returns a tuple containing the data and list of tokens processed by
+            posttokenization hooks.
+
+        """
         for hook in self.posttokenize_hooks:
             data, tokens = hook(data, tokens)
 
@@ -234,6 +271,13 @@ class Field(object):
         """
 
         tokens = None
+
+        if data is None:
+            if self.default_value_callable is None:
+                raise ValueError(f"Missing data not allowed in field {self.name}")
+
+            else:
+                return None, None
 
         if self.store_as_tokenized:
             # Store data as tokens
@@ -333,6 +377,12 @@ class Field(object):
 
         """
         raw, tokenized = data
+
+        if raw is None and tokenized is None:
+            if self.default_value_callable is None:
+                raise ValueError(f"Missing value found in field {self.name}.")
+            else:
+                return self.default_value_callable()
 
         # raw data is just a string, so we need to wrap it into an iterable
         tokens = tokenized if self.tokenize or self.store_as_tokenized else [raw]

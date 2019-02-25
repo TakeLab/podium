@@ -505,3 +505,33 @@ def test_field_fail_initialization(store_as_raw, store_as_tokenized, tokenize):
               store_as_raw=store_as_raw,
               store_as_tokenized=store_as_tokenized,
               tokenize=tokenize)
+
+
+def test_missing_values_default():
+    fld = Field("bla",
+                store_as_raw=True,
+                tokenize=False,
+                custom_numericalize=lambda x: hash(x),
+                default_value_callable=lambda: np.empty(0))
+
+    data_missing = fld.preprocess(None)
+    data_exists = fld.preprocess("data_string")
+
+    assert data_missing == (None, None)
+    assert data_exists == ("data_string", None)
+
+    fld.finalize()
+
+    assert np.all(fld.numericalize(data_missing) == np.empty(0))
+    assert np.all(fld.numericalize(data_exists) == np.array([hash("data_string")]))
+
+
+def test_missing_values_fail():
+    fld = Field("bla",
+                store_as_raw=True,
+                tokenize=False,
+                custom_numericalize=lambda x: hash(x),
+                default_value_callable=None)
+
+    with pytest.raises(ValueError):
+        fld.preprocess(None)
