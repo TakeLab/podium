@@ -857,7 +857,7 @@ class HierarchicalDataset:
             end = len(nodes)
 
             while start < end:
-                middle = (start + end)//2
+                middle = (start + end) // 2
                 middle_index = nodes[middle].index
 
                 if index < middle_index:
