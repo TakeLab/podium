@@ -1,4 +1,3 @@
-
 import os
 
 from takepod.storage import HierarchicalDataset, Example, Field, \
@@ -30,6 +29,38 @@ class CatacxDataset(HierarchicalDataset):
         super().__init__(fields, CatacxDataset.get_catacx_parser())
 
     @staticmethod
+    def get_dataset(fields=None):
+        """Downloads (if necessary) and loads the dataset. Not supported yet.
+        Raises NotImplementedError if called.
+
+        Parameters
+        ----------
+        fields : dict(str, Field)
+            dictionary that maps field name to the field
+            if passed None the default set of fields will be used.
+
+        Returns
+        -------
+        CatacxCommentsDataset
+            The loaded dataset.
+        """
+
+        raise NotImplementedError("Downloading is not implemented yet")
+
+        LargeResource(**{
+            LargeResource.RESOURCE_NAME: CatacxCommentsDataset.NAME,
+            LargeResource.ARCHIVE: "zip",
+            LargeResource.URI: CatacxCommentsDataset.URL
+        })
+
+        filepath = os.path.join(
+            LargeResource.BASE_RESOURCE_DIR,
+            CatacxCommentsDataset.DATASET_DIR,
+            CatacxCommentsDataset.DATASET_FILE_NAME)
+
+        return CatacxDataset.load_from_file(filepath, fields=fields)
+
+    @staticmethod
     def load_from_file(path, fields=None):
         fields = fields if fields else CatacxDataset._get_default_fields()
         parser = CatacxDataset._get_catacx_parser()
@@ -38,7 +69,6 @@ class CatacxDataset(HierarchicalDataset):
             ds_str = f.read()
 
         return HierarchicalDataset.from_json(ds_str, fields, parser)
-
 
     @staticmethod
     def _get_catacx_parser():
@@ -58,6 +88,17 @@ class CatacxDataset(HierarchicalDataset):
 
         return catacx_parser
 
+    @staticmethod
+    def get_sentences_tokenizer(key):
+        def extractor_tokenizer(raw):
+            tokens = []
+            for sentence in raw:
+                for token in sentence:
+                    tokens.append(token.get(key))
+
+            return tokens
+
+        return extractor_tokenizer
 
     @staticmethod
     def _get_default_fields():
@@ -87,6 +128,11 @@ class CatacxDataset(HierarchicalDataset):
         # sentences - list of Sentences preprocessed message of the comment
         # created_time - JSON date
         # cs
+
+        id_field = Field("id",
+                         store_as_raw=True,
+                         tokenize=False)
+
         sentiment_field = Field("sentiment",
                                 store_as_raw=True,
                                 tokenize=False,
@@ -137,6 +183,32 @@ class CatacxDataset(HierarchicalDataset):
                                    vocab=Vocab(specials=()),
                                    default_value_callable=Field.empty_vector_callable())
 
+        pos_tag_field = Field("pos_tags",
+                              store_as_raw=False,
+                              tokenizer=CatacxDataset.get_sentences_tokenizer("pos_tag"))
+
+        lemma_field = Field("lemmas",
+                            store_as_raw=False,
+                            tokenizer=CatacxDataset.get_sentences_tokenizer("lemma"))
+
+        parent_ids_field = Field("parent_ids",
+                                 store_as_raw=False,
+                                 tokenizer=
+                                 CatacxDataset.get_sentences_tokenizer("parent_id"))
+
+        tokens_field = Field("tokens",
+                             store_as_raw=False,
+                             tokenizer=CatacxDataset.get_sentences_tokenizer("token"))
+
+        dependency_tags_field = Field("dependency_tags",
+                                      store_as_raw=False,
+                                      tokenizer=CatacxDataset.get_sentences_tokenizer(
+                                          "dependency_tag"))
+
+        token_id_field = Field("id_tags",
+                               store_as_raw=False,
+                               tokenizer=CatacxDataset.get_sentences_tokenizer("id"))
+
         return {
             "sentiment": sentiment_field,
             "likes_cnt": likes_cnt_field,
@@ -146,5 +218,7 @@ class CatacxDataset(HierarchicalDataset):
             "irony": irony_field,
             "speech_acts": speech_acts_field,
             "topics": topics_field,
-            "cs": cs_field
+            "cs": cs_field,
+            "sentences": (pos_tag_field, lemma_field, parent_ids_field, tokens_field,
+                          dependency_tags_field, token_id_field)
         }
