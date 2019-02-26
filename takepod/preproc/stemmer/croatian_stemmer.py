@@ -47,7 +47,6 @@ class CroatianStemmer:
         self.__transform_trie = make_trie(
             list(self.__transform_map.keys())
         )
-        
         self.__stop = set([
             e.strip()
             for e in
@@ -65,7 +64,6 @@ class CroatianStemmer:
                 # we go from end to start
                 transform_map[key[::-1]] = value
         return transform_map
-
 
     def _determine_r_vowel(self, string):
         '''
@@ -102,7 +100,7 @@ class CroatianStemmer:
         Returns
         -------
         transformed_word : str
-            transformed word according
+            transformed word according to transformation mappings
         """
 
         # first, we reverse the word, such that we can

@@ -56,12 +56,11 @@ def make_trie(words):
     ----------
     words : list(str)
         List of strings to create a trie structure from
-        
+
     Returns
     -------
     trie : dict
         Nested dict trie data structure
-        
     """
     trie = dict()
 
@@ -81,7 +80,7 @@ def make_trie(words):
 def find_word_by_prefix(trie, word):
     """Searches through a trie data structure and
     returns an element of the trie is the word
-    is a prefix or exact match of one of the trie elements. 
+    is a prefix or exact match of one of the trie elements.
     Otherwise returns None
 
     Parameters
