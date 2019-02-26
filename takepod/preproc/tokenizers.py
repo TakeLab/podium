@@ -39,7 +39,7 @@ def get_tokenizer(tokenizer, language='en'):
     elif tokenizer == 'spacy':
         try:
             import spacy
-            spacy_tokenizer = spacy.load(language)
+            spacy_tokenizer = spacy.load(language,  disable=['parser', 'ner'])
 
             # closures instead of lambdas because they are serializable
             def spacy_tokenize(string):
