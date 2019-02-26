@@ -1,9 +1,10 @@
 """Module contains utility functions to preprocess text data"""
 
+
 def capitalize_target_like_source(func):
     """Capitalization decorator of a method that processes a word.
-    Method invokes the parameter function 
-    with a lowercased input, then capitalizes 
+    Method invokes the parameter function
+    with a lowercased input, then capitalizes
     the return value such that capitalization corresponds
     to the original input provided
 
