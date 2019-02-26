@@ -5,8 +5,8 @@ import itertools
 import json
 import os
 import random
+
 from abc import ABC
-from collections import namedtuple
 from functools import partial
 
 from takepod.storage.example import Example
@@ -642,8 +642,16 @@ class HierarchicalDataset:
     """Container for datasets with a hierarchical structure of examples which have the
     same structure on every level of the hierarchy.
     """
-    Node = namedtuple("Node",
-                      ['example', 'index', 'parent', 'children'])
+    class Node:
+        __slots__ = ['example', 'index', 'parent', 'children']
+
+        def __init__(self, example, index, parent):
+            self.example = example
+            self.index = index
+            self.parent = parent
+
+    # Node = namedtuple("Node",
+    #                   ['example', 'index', 'parent', 'children'])
 
     # parser(raw example, fields, depth)
     # returns (parsed example, iterable(raw children))
@@ -770,11 +778,17 @@ class HierarchicalDataset:
             Node parsed from the raw example.
         """
         example, raw_children = self._parser(raw_object, self._fields, depth)
+
         index = self._size
         self._size += 1
-        children = tuple(self._parse(c, example, depth + 1) for c in raw_children)
+
+        current_node = HierarchicalDataset.Node(example, index, parent)
+        children = tuple(self._parse(c, current_node, depth + 1) for c in raw_children)
+        current_node.children = children
+
         self._max_depth = max(self._max_depth, depth)
-        return HierarchicalDataset.Node(example, index, parent, children)
+
+        return current_node
 
     def flatten(self):
         """
@@ -877,29 +891,42 @@ class HierarchicalDataset:
 
         return get_item(self._root_nodes, index)
 
-    def _get_node_context(self, node, levels=None):
+    @staticmethod
+    def _get_node_context(node, levels=None):
         levels = float('Inf') if levels is None else levels
-        if levels <= 0:
+        if levels < 0:
             raise ValueError(f"Number of context levels must be greater or equal to 0."
                              f" Passed value: {levels}")
 
         parent = node
-        while parent.parent is not None and levels > 0:
+        while parent.parent is not None and levels >= 0:
             parent = parent.parent
             levels -= 1
 
         def context_iterator(start_node, finish_node):
+            if start_node is finish_node:
+                return
+
             yield start_node.example
 
             children = start_node.children
             i = 0
             while True:
-                if i == len(children) - 1:
-                    for sub_child in context_iterator(children[-1], finish_node):
+                if i == len(children) - 1 or children[i + 1].index > finish_node.index:
+                    for sub_child in context_iterator(children[i], finish_node):
                         yield sub_child
-                        return
-                    # TODO: Finish method
 
+                    return
+
+                else:
+                    yield children[i].example
+                    i += 1
+
+        return context_iterator(parent, node)
+
+    def get_context(self, index, levels=None):
+        node = self._get_node_by_index(index)
+        return HierarchicalDataset._get_node_context(node, levels)
 
     def __len__(self):
         return self._size
