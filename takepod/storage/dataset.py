@@ -676,7 +676,6 @@ class HierarchicalDataset:
         fields : dict(str, Field)
             Dict mapping keys in the raw_example dict to their corresponding fields.
         """
-        self._root_nodes = list()
         self._fields = fields
         self._parser = parser
         self._size = 0
@@ -690,7 +689,8 @@ class HierarchicalDataset:
         Parameters
         ----------
         dataset : str
-            Dataset in JSON format.
+            Dataset in JSON format. The root element of the JSON string must be
+            a list of root examples.
 
         fields : dict(str, Field)
             a dict mapping keys in the raw_example to corresponding
@@ -708,13 +708,17 @@ class HierarchicalDataset:
         """
         ds = HierarchicalDataset(parser, fields)
 
-        root_list = json.loads(dataset)
-        ds._load(root_list)
+        root_examples = json.loads(dataset)
+        if not isinstance(root_examples, list):
+            raise ValueError("The base element in the JSON string must be a list of root "
+                             "elements.")
+
+        ds._load(root_examples)
 
         return ds
 
     @staticmethod
-    def get_default_json_parser(child_attribute_name):
+    def get_default_dict_parser(child_attribute_name):
         """Returns a callable instance that can be used for parsing datasets in which
         examples on all levels in the hierarchy have children under the same key.
 
@@ -728,12 +732,12 @@ class HierarchicalDataset:
             Callable(raw_example, fields, depth) returning (example, raw_children).
 
         """
-        def default_json_parser(raw_example, fields, depth):
+        def default_dict_parser(raw_example, fields, depth):
             example = Example.fromdict(raw_example, fields)
-            children = raw_example.get(child_attribute_name)
+            children = raw_example.get(child_attribute_name, ())
             return example, children
 
-        return default_json_parser
+        return default_dict_parser
 
     def _load(self, root_examples):
         """Starts the parsing of the dataset.
@@ -744,8 +748,7 @@ class HierarchicalDataset:
             iterable containing the root examples in raw dict form.
 
         """
-        for root in root_examples:
-            self._root_nodes.append(self._parse(root, None, 0))
+        self._root_nodes = tuple(self._parse(root, None, 0) for root in root_examples)
 
     def _parse(self, raw_object, parent, depth):
         """Parses an raw example.
@@ -769,7 +772,7 @@ class HierarchicalDataset:
         example, raw_children = self._parser(raw_object, self._fields, depth)
         index = self._size
         self._size += 1
-        children = [self._parse(c, example, depth + 1) for c in raw_children]
+        children = tuple(self._parse(c, example, depth + 1) for c in raw_children)
         self._max_depth = max(self._max_depth, depth)
         return HierarchicalDataset.Node(example, index, parent, children)
 
@@ -780,8 +783,8 @@ class HierarchicalDataset:
 
         Returns
         -------
-        itearble
-             iterable iterating trough examples in the dataset.
+        iterable
+             iterable iterating through examples in the dataset.
         """
         def flat_node_iterator(node):
             # Todo: Look into using a stack-based iterator to avoid
