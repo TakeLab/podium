@@ -652,6 +652,7 @@ def test_hierarchical_dataset_json_root_element_not_list_fail():
                                       HierarchicalDataset
                                       .get_default_dict_parser("children"))
 
+
 HIERARCHIAL_DATASET_JSON_EXAMPLE = """
 [
 {
