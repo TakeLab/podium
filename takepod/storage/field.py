@@ -411,7 +411,7 @@ class Field(object):
         """
         state = self.__dict__.copy()
         del state['tokenizer']
-        return self.__dict__
+        return state
 
     def __setstate__(self, state):
         """Method sets field state. It is used for unpickling dataset data
