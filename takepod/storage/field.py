@@ -82,12 +82,13 @@ class Field(object):
 
         self.name = name
         self.language = language
+        self._tokenizer_arg = tokenizer
 
         if store_as_tokenized and tokenize:
             raise ValueError(
                 "Store_as_tokenized' and 'tokenize' both set to True."
-                " You can either store the data as tokenized, tokenize it or do neither"
-                ", but you can't do both."
+                " You can either store the data as tokenized, tokenize it"
+                " or do neither, but you can't do both."
             )
 
         if not store_as_raw and not tokenize and not store_as_tokenized:
@@ -99,7 +100,8 @@ class Field(object):
             raise ValueError(
                 "'store_as_raw' and 'store_as_tokenized' both set to True."
                 " You can't store the same value as raw and as tokenized."
-                " Maybe you wanted to tokenize the raw data? (the 'tokenize' parameter)"
+                " Maybe you wanted to tokenize the raw data? (the 'tokenize'"
+                " parameter)"
             )
 
         self.sequential = store_as_tokenized or tokenize
@@ -398,6 +400,31 @@ class Field(object):
 
         return row
 
+    def __getstate__(self):
+        """Method obtains field state. It is used for pickling dataset data
+        to file.
+
+        Returns
+        -------
+        state : dict
+            dataset state dictionary
+        """
+        state = self.__dict__.copy()
+        del state['tokenizer']
+        return self.__dict__
+
+    def __setstate__(self, state):
+        """Method sets field state. It is used for unpickling dataset data
+        from file.
+
+        Parameters
+        ----------
+        state : dict
+            dataset state dictionary
+        """
+        self.__dict__.update(state)
+        self.tokenizer = get_tokenizer(self._tokenizer_arg, self.language)
+
 
 class TokenizedField(Field):
     """
@@ -427,6 +454,10 @@ class TokenizedField(Field):
 
 
 class MultilabelField(TokenizedField):
+    """
+    Class used for storing pre-tokenized labels.
+    Used for multilabeled datasets.
+    """
 
     def __init__(self,
                  name,
