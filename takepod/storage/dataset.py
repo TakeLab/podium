@@ -2,10 +2,12 @@
 import csv
 import io
 import itertools
+import json
 import os
 import random
-from functools import partial
 from abc import ABC
+from collections import namedtuple
+from functools import partial
 
 from takepod.storage.example import Example
 
@@ -634,3 +636,249 @@ def stratified_split(examples, train_ratio, val_ratio, test_ratio,
     # now, for each concrete label value (stratum) - as well as for the whole
     # list of examples - the ratios are preserved
     return train_split, val_split, test_split
+
+
+class HierarchicalDataset:
+    """Container for datasets with a hierarchical structure of examples which have the
+    same structure on every level of the hierarchy.
+    """
+    Node = namedtuple("Node",
+                      ['example', 'index', 'parent', 'children'])
+
+    # parser(raw example, fields, depth)
+    # returns (parsed example, iterable(raw children))
+
+    def __init__(self, parser, fields):
+        """
+        Constructs the Hierarchical dataset.
+
+        Parameters
+        ----------
+        parser : callable
+            Callable taking (raw_example, fields, depth) and returning a tuple containing
+            (example, raw_children).
+            Arguments:
+                Raw_example: a dict representation of the
+                    example.
+
+                Fields: a dict mapping keys in the raw_example  to corresponding
+                    fields in the dataset.
+
+                Depth: an int marking the depth of the current
+                    example in the hierarchy.
+
+            Return values are:
+                Example: Example instance containing the data in raw_example.
+
+                Raw_children: iterable of dicts representing the children of raw_example
+
+
+        fields : dict(str, Field)
+            Dict mapping keys in the raw_example dict to their corresponding fields.
+        """
+        self._fields = fields
+        self._parser = parser
+        self._size = 0
+        self._max_depth = 0
+
+    @staticmethod
+    def from_json(dataset, fields, parser):
+        """
+        Makes an HierarchicalDataset from a JSON formatted string.
+
+        Parameters
+        ----------
+        dataset : str
+            Dataset in JSON format. The root element of the JSON string must be
+            a list of root examples.
+
+        fields : dict(str, Field)
+            a dict mapping keys in the raw_example to corresponding
+            fields in the dataset.
+
+        parser : callable(raw_example, fields, depth) returning (example, raw_children)
+            Callable taking (raw_example, fields, depth) and returning a tuple containing
+            (example, raw_children).
+
+        Returns
+        -------
+            HierarchicalDataset
+                dataset containing the data
+
+        """
+        ds = HierarchicalDataset(parser, fields)
+
+        root_examples = json.loads(dataset)
+        if not isinstance(root_examples, list):
+            raise ValueError("The base element in the JSON string must be a list of root "
+                             "elements.")
+
+        ds._load(root_examples)
+
+        return ds
+
+    @staticmethod
+    def get_default_dict_parser(child_attribute_name):
+        """Returns a callable instance that can be used for parsing datasets in which
+        examples on all levels in the hierarchy have children under the same key.
+
+        Parameters
+        ----------
+        child_attribute_name : str
+            key used for accessing children in the examples
+
+        Returns
+        -------
+            Callable(raw_example, fields, depth) returning (example, raw_children).
+
+        """
+        def default_dict_parser(raw_example, fields, depth):
+            example = Example.fromdict(raw_example, fields)
+            children = raw_example.get(child_attribute_name, ())
+            return example, children
+
+        return default_dict_parser
+
+    def _load(self, root_examples):
+        """Starts the parsing of the dataset.
+
+        Parameters
+        ----------
+        root_examples : iterable(dict(str, object))
+            iterable containing the root examples in raw dict form.
+
+        """
+        self._root_nodes = tuple(self._parse(root, None, 0) for root in root_examples)
+
+    def _parse(self, raw_object, parent, depth):
+        """Parses an raw example.
+
+        Parameters
+        ----------
+        raw_object : dict(str, object)
+            Example in raw dict form.
+
+        parent
+            Parent node of the example to be parsed. None for root nodes.
+
+        depth
+            Depth of the example to be parsed in the hierarchy. Depth of root nodes is 0.
+
+        Returns
+        -------
+        Node
+            Node parsed from the raw example.
+        """
+        example, raw_children = self._parser(raw_object, self._fields, depth)
+        index = self._size
+        self._size += 1
+        children = tuple(self._parse(c, example, depth + 1) for c in raw_children)
+        self._max_depth = max(self._max_depth, depth)
+        return HierarchicalDataset.Node(example, index, parent, children)
+
+    def flatten(self):
+        """
+        Returns an iterable iterating trough examples in the dataset as if it was a
+        standard Dataset. The iteration is done in pre-order.
+
+        Returns
+        -------
+        iterable
+             iterable iterating through examples in the dataset.
+        """
+        def flat_node_iterator(node):
+            # Todo: Look into using a stack-based iterator to avoid
+            # iterator construction and garbage collection
+            yield node.example
+            for subnode in node.children:
+                for ex in flat_node_iterator(subnode):
+                    yield ex
+
+        for root_node in self._root_nodes:
+            for ex in flat_node_iterator(root_node):
+                yield ex
+
+    def as_flat_dataset(self):
+        """Returns a standard Dataset containing the examples
+        in order as defined in 'flatten'.
+
+        Returns
+        -------
+            a standard Dataset
+        """
+        return Dataset(self.flatten(), self._fields)
+
+    @property
+    def depth(self):
+        """
+        Returns
+        -------
+        int
+            the maximum depth of a node in the hierarchy.
+        """
+        return self._max_depth
+
+    def _get_node_by_index(self, index):
+        """Returns the node with the provided index.
+
+        Parameters
+        ----------
+        index : int
+            Index of the node to be fetched.
+
+        Returns
+        -------
+        Node
+            the node with the provided index.
+
+        Raises
+        ------
+        IndexError
+            if the index is out of bounds.
+
+        """
+        if index < 0 or index >= len(self):
+            raise IndexError(
+                f"Index {index} out of bounds. Must be within [0, len(dataset) - 1]")
+
+        def get_item(nodes, index):
+            """Right bisect binary search.
+
+            Parameters
+            ----------
+            nodes : list(Node)
+                Nodes to be searched.
+
+            index : int
+                index of the node to fetch.
+
+            Returns
+            -------
+
+            """
+            start = 0
+            end = len(nodes)
+
+            while start < end:
+                middle = (start + end) // 2
+                middle_index = nodes[middle].index
+
+                if index < middle_index:
+                    end = middle
+
+                else:
+                    start = middle + 1
+
+            if nodes[start - 1].index == index:
+                return nodes[start - 1]
+
+            else:
+                return get_item(nodes[start - 1].children, index)
+
+        return get_item(self._root_nodes, index)
+
+    def __len__(self):
+        return self._size
+
+    def __getitem__(self, index):
+        return self._get_node_by_index(index).example

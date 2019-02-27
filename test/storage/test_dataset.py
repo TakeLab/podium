@@ -1,9 +1,10 @@
 import os
 import pickle
-from collections import Counter
 import pytest
 
-from takepod.storage.dataset import Dataset, TabularDataset
+from collections import Counter
+from json import JSONDecodeError
+from takepod.storage import Dataset, HierarchicalDataset, TabularDataset, Field
 
 
 FORMAT_USE_DICT_COMBINATIONS = (
@@ -564,3 +565,180 @@ def test_attribute_iteration(data, field_list):
         i += 1
 
     assert len(TEXT) == i
+
+
+@pytest.fixture()
+def hierarchical_dataset_fields():
+    name_field = Field("name", store_as_raw=True, tokenize=False)
+    number_field = Field("number", store_as_raw=True, tokenize=False)
+
+    fields = {
+        "name": name_field,
+        "number": number_field
+    }
+    return fields
+
+
+@pytest.fixture()
+def hierarchical_dataset_parser():
+    return HierarchicalDataset.get_default_dict_parser("children")
+
+
+@pytest.fixture()
+def hierarchical_dataset(hierarchical_dataset_fields, hierarchical_dataset_parser):
+    return HierarchicalDataset.from_json(HIERARCHIAL_DATASET_JSON_EXAMPLE,
+                                         hierarchical_dataset_fields,
+                                         hierarchical_dataset_parser)
+
+
+def test_create_hierarchical_dataset_from_json(hierarchical_dataset):
+
+    root_nodes = hierarchical_dataset._root_nodes
+
+    assert root_nodes[0].example.name[0] == "parent1"
+    assert root_nodes[0].example.number[0] == 1
+
+    assert root_nodes[1].example.name[0] == "parent2"
+    assert root_nodes[1].example.number[0] == 5
+
+    assert root_nodes[0].children[0].example.name[0] == "c11"
+    assert root_nodes[0].children[0].example.number[0] == 2
+
+    assert root_nodes[0].children[0].children[0].example.name[0] == "c111"
+    assert root_nodes[0].children[0].children[0].example.number[0] == 3
+
+    assert root_nodes[0].children[1].example.name[0] == "c12"
+    assert root_nodes[0].children[1].example.number[0] == 4
+
+    assert root_nodes[1].children[0].example.name[0] == "c21"
+    assert root_nodes[1].children[0].example.number[0] == 6
+
+    assert len(hierarchical_dataset) == 9
+    assert hierarchical_dataset.depth == 2
+
+
+def test_flatten_hierarchical_dataset(hierarchical_dataset):
+    count = 0
+    for index, example in enumerate(hierarchical_dataset.flatten()):
+        assert example.number[0] == index + 1
+        count += 1
+
+    assert count == 9
+
+
+def test_hierarchical_dataset_example_indexing(hierarchical_dataset):
+
+    assert hierarchical_dataset[0].name[0] == "parent1"
+    assert hierarchical_dataset[1].name[0] == "c11"
+    assert hierarchical_dataset[2].name[0] == "c111"
+    assert hierarchical_dataset[3].name[0] == "c12"
+    assert hierarchical_dataset[4].name[0] == "parent2"
+    assert hierarchical_dataset[5].name[0] == "c21"
+    assert hierarchical_dataset[6].name[0] == "c22"
+    assert hierarchical_dataset[7].name[0] == "c23"
+    assert hierarchical_dataset[8].name[0] == "c24"
+
+
+def test_hierarchical_dataset_invalid_json_fail(hierarchical_dataset_fields):
+    with pytest.raises(JSONDecodeError):
+        HierarchicalDataset.from_json(INVALID_JSON, hierarchical_dataset_fields,
+                                      HierarchicalDataset
+                                      .get_default_dict_parser("children"))
+
+
+def test_hierarchical_dataset_json_root_element_not_list_fail():
+    with pytest.raises(ValueError):
+        HierarchicalDataset.from_json(JSON_ROOT_NOT_LIST, hierarchical_dataset_fields,
+                                      HierarchicalDataset
+                                      .get_default_dict_parser("children"))
+
+
+HIERARCHIAL_DATASET_JSON_EXAMPLE = """
+[
+{
+    "name" : "parent1",
+    "number" : 1,
+    "children" : [
+        {
+            "name" : "c11",
+            "number" : 2,
+            "children" : [
+                {
+                    "name" : "c111",
+                    "number" : 3
+                }
+            ]
+        },
+        {
+            "name" : "c12",
+            "number" : 4
+        }
+    ]
+},
+{
+    "name" : "parent2",
+    "number" : 5,
+    "children" : [
+        {
+            "name" : "c21",
+            "number" : 6
+        },
+        {
+            "name" : "c22",
+            "number" : 7,
+            "children" : []
+        },
+        {
+            "name" : "c23",
+            "number" : 8,
+            "children" : []
+        },
+        {
+            "name" : "c24",
+            "number" : 9,
+            "children" : []
+        }
+    ]
+    }
+]
+"""
+
+
+INVALID_JSON = """
+[
+{
+    "name" : "parent1",
+    "number" : 1,
+    "children" : [
+        {
+            "name" : "c11",
+            "number" : 2,
+            "children" : [
+                {
+                    "name" : "c111",
+                    "number" : 3,
+                    "children" : []
+                }
+            ]
+        },
+"""
+
+JSON_ROOT_NOT_LIST = """
+{
+    "name" : "parent1",
+    "number" : 1,
+    "children" : [
+        {
+            "name" : "c11",
+            "number" : 2,
+            "children" : [
+                {
+                    "name" : "c111",
+                    "number" : 3,
+                    "children" : []
+                }
+            ]
+        }
+        ]
+}
+"""
