@@ -206,7 +206,7 @@ def test_field_get_tokenizer_callable(vocab):
 
 def test_field_get_tokenizer_spacy_exception(vocab):
     class MockSpacy:
-        def load(self, x):
+        def load(self, x, **kwargs):
             raise OSError
 
     patch.dict("sys.modules", spacy=MockSpacy()).start()
@@ -233,7 +233,7 @@ def test_field_get_tokenizer_spacy_ok(vocab):
             self.text = txt
 
     class MockSpacy:
-        def load(self, x):
+        def load(self, x, **kwargs):
             class MockTokenizer:
                 def tokenizer(self, string):
                     return [MockToken(tok) for tok in string.split()]
