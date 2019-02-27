@@ -790,6 +790,18 @@ class HierarchicalDataset:
 
         return current_node
 
+    def _node_iterator(self):
+
+        def flat_node_iterator(node):
+            yield node
+            for subnode in node.children:
+                for ex in flat_node_iterator(subnode):
+                    yield ex
+
+        for root_node in self._root_nodes:
+            for ex in flat_node_iterator(root_node):
+                yield ex
+
     def flatten(self):
         """
         Returns an iterable iterating trough examples in the dataset as if it was a
@@ -800,17 +812,8 @@ class HierarchicalDataset:
         iterable
              iterable iterating through examples in the dataset.
         """
-        def flat_node_iterator(node):
-            # Todo: Look into using a stack-based iterator to avoid
-            # iterator construction and garbage collection
+        for node in self._node_iterator():
             yield node.example
-            for subnode in node.children:
-                for ex in flat_node_iterator(subnode):
-                    yield ex
-
-        for root_node in self._root_nodes:
-            for ex in flat_node_iterator(root_node):
-                yield ex
 
     def as_flat_dataset(self):
         """Returns a standard Dataset containing the examples

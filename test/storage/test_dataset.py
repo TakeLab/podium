@@ -639,6 +639,7 @@ def test_hierarchical_dataset_example_indexing(hierarchical_dataset):
     assert hierarchical_dataset[8].name[0] == "c231"
     assert hierarchical_dataset[9].name[0] == "c24"
 
+
 def test_hierarchical_dataset_invalid_json_fail(hierarchical_dataset_fields):
     with pytest.raises(JSONDecodeError):
         HierarchicalDataset.from_json(INVALID_JSON, hierarchical_dataset_fields,
@@ -659,7 +660,7 @@ def test_hierarchical_dataset_context_iteration(hierarchical_dataset):
     assert c111_context == c111_expected_context
 
     c23_expected_context_0_lvl = ["parent2", "c21", "c22"]
-    c23_context_0_lvl = c111_context = list(
+    c23_context_0_lvl = list(
         map(
             lambda x: x.name[0], hierarchical_dataset.get_context(7, 0)
         )
