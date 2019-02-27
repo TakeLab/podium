@@ -285,7 +285,7 @@ def test_field_get_tokenizer_spacy_ok(vocab):
     assert f.preprocess("bla blu") == (None, ["bla", "blu"])
 
 
-def test_field_picke_spacy_tokenizer(vocab, tmpdir):
+def test_field_pickle_spacy_tokenizer(vocab, tmpdir):
     patch.dict("sys.modules", spacy=MockSpacy()).start()
     fld = Field(name="F", vocab=vocab, tokenizer="spacy", tokenize=True,
                 store_as_raw=False)
