@@ -733,7 +733,7 @@ class HierarchicalDataset:
 
         """
         def default_dict_parser(raw_example, fields, depth):
-            example = Example.fromdict(raw_example, fields)
+            example = Example.from_dict(raw_example, fields)
             children = raw_example.get(child_attribute_name, ())
             return example, children
 
