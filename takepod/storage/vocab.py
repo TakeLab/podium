@@ -1,4 +1,5 @@
 """Module contains classes related to the vocabulary."""
+import logging
 from collections import Counter, defaultdict
 import numpy as np
 
@@ -121,6 +122,9 @@ class Vocab:
             and the vocab is finalized
         """
         if self.finalized and not self._keep_freqs:
+            logging.error("User specified that frequencies shoudn't be "
+                          "kept in vocabulary but the get_freqs method "
+                          "is called.")
             raise RuntimeError("User specified that the frequencies "
                                "are not kept")
         return self._freqs
@@ -139,6 +143,8 @@ class Vocab:
             if the padding symbol is not pressent in the vocabulary
         """
         if SpecialVocabSymbols.PAD not in self.stoi:
+            logging.error("Padding symbol is not in the vocabulary so"
+                          " pad_symbol function raises exception.")
             raise ValueError("Padding symbol is not in the vocabulary")
         return self.stoi[SpecialVocabSymbols.PAD]
 
@@ -162,7 +168,10 @@ class Vocab:
             if the current vocab is finalized
         """
         if self.finalized:
-            raise RuntimeError("Once finalized, vocabulary cannot be changed.")
+            logging.warning("Vocabulary is finalized already. "
+                            "This should be used only if multiple fields use"
+                            " same vocabulary.")
+            return self
 
         if isinstance(values, str):
             raise TypeError("Values mustn't be a string.")
@@ -175,6 +184,7 @@ class Vocab:
             try:
                 self._freqs.update(values)
             except TypeError:
+                
                 raise TypeError("Vocab supports only adding vocab or iterable"
                                 " to vocab")
         return self
