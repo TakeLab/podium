@@ -51,13 +51,18 @@ class Field(object):
             Default is None.
         tokenize : bool
             Whether the data should be tokenized when being preprocessed.
-            If True, store_as_tokenized must be False.
+            If True, the raw data will be run through the pretokenize hooks, tokenized using the tokenizer,
+            run through the posttokenize hooks and then stored in the 'tokenized' part of the example tuple.
+            If True, 'store_as_tokenized' must be False.
         store_as_raw : bool
             Whether to store untokenized preprocessed data.
-            If True, ''
+            If True, the raw data will be run trough the provided pretokenize hooks
+            and stored in the 'raw' part of the example tuple.
+            If True, 'store_as_tokenized' must be False.
         store_as_tokenized : bool
             Whether to store the data as tokenized.
-            Data will be stored as-is and no preprocessing will be done.
+            If True, the raw data will be run through the provided posttokenize hooks and
+            stored in the 'tokenized' part of the example tuple.
             If True, store_raw and tokenize must be False.
         eager : bool
             Whether to build the vocabulary online, each time the field
