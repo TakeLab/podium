@@ -3,6 +3,7 @@
 
 """
 import os
+import logging
 from abc import ABC, abstractmethod
 import six
 
@@ -183,6 +184,7 @@ class BasicVectorStorage(VectorStorage):
 
     def __init__(self, path, default_vector_function=zeros_default_vector,
                  cache_path=None, max_vectors=None, binary=True):
+        self._logger = logging.getLogger(__name__)
         self._vectors = dict()
         self._dim = None
         self._initialized = False
@@ -201,15 +203,23 @@ class BasicVectorStorage(VectorStorage):
 
     def load_vocab(self, vocab):
         if vocab is None:
+            self._logger.error("Cannot load vectors for vocab because given "
+                               "vocab is None.")
             raise ValueError("Vocab mustn't be None")
         self._load_vectors(vocab=vocab)
+        self._logger.debug("Loaded vectors for vocab.")
 
     def token_to_vector(self, token):
         if not self._initialized:
+            self._logger.error("Vector storage is not initialized so it cannot"
+                               " transform token to vector. Use load_all or "
+                               " load_vocab function to initialize.")
             raise RuntimeError("VectorStorage is not initialized."
                                "Use load_all or load_vocab function"
                                " to initialize.")
         if token is None:
+            self._logger.error("User gave None token to be converted to vector"
+                               ", but None is not a valid token.")
             raise ValueError("Token mustn't be None")
         if token not in self._vectors \
            and self._default_vector_function is not None:
@@ -327,6 +337,8 @@ class BasicVectorStorage(VectorStorage):
 
     def get_vector_dim(self):
         if not self._initialized:
+            self._logger.error("Vector storage must be initialized to obtain "
+                               "vector dimenstion.")
             raise RuntimeError("Cannot obtain vector dimension until"
                                " vector storage is initialized.")
         return self._dim
@@ -337,12 +349,23 @@ class BasicVectorStorage(VectorStorage):
         path must exist unless if it is used for caching loaded vectors.
         """
         if self._path is None and self._cache_path is None:
+            self._logger.error("Error in checking paths that are handed to "
+                               "load vectors. Given vectors and cache paths "
+                               "mustn't be both None.")
             raise ValueError("Given vectors and cache paths mustn't"
                              " be both None")
 
         if self._path is not None and not os.path.exists(self._path):
+            self._logger.error("Error in checking paths that are handed to "
+                               "load vectors. Given vectors path doesn't"
+                               " exist. If you want to use only cached path "
+                               "set path to None.")
             raise ValueError("Given vectors path doesn't exist.")
 
         if self._path is None and self._cache_path is not None\
            and not os.path.exists(self._cache_path):
+            self._logger.error("Error in checking paths that are handed to "
+                               "load vectors. Given cache path doesn't exist."
+                               " User needs to specify valid path or existing "
+                               "cache path.")
             raise ValueError("Given cache path doesn't exist.")
