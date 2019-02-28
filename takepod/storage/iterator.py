@@ -1,10 +1,13 @@
 """"Module contains classes for iterating over datasets."""
 import math
+import itertools
 from random import Random
 import numpy as np
 
+
 from collections import namedtuple
 
+from takepod.storage.dataset import HierarchicalDataset
 
 class Iterator:
     """An iterator that batches data from a dataset after numericalization.
@@ -105,7 +108,7 @@ class Iterator:
         Returns
         -------
         int
-            Number of batches provided in one epoch.
+            Number of batche s provided in one epoch.
         """
 
         return math.ceil(len(self.dataset) / self.batch_size)
@@ -211,7 +214,7 @@ class Iterator:
             n_rows = min(self.batch_size, len(examples))
 
             # empty matrix to be filled with numericalized fields
-            matrix = np.zeros(shape=(n_rows, pad_length))
+            matrix = np.empty(shape=(n_rows, pad_length))
 
             # non-sequential fields all have length = 1, no padding necessary
             should_pad = True if field.sequential else False
@@ -359,3 +362,95 @@ class BucketIterator(Iterator):
         # prepare for new epoch
         self.iterations = 0
         self.epoch += 1
+
+
+class HierarchicalDatasetIterator(Iterator):
+
+    def __init__(self, dataset, batch_size, sort_key=None, shuffle=False,
+                 seed=1, internal_random_state=None,
+                 context_max_length=None, context_max_depth=None):
+
+        self._context_max_depth = context_max_depth
+        self._context_max_size = context_max_length
+
+        super().__init__(dataset, batch_size,
+                         sort_key=sort_key,
+                         shuffle=shuffle,
+                         seed=seed,
+                         internal_random_state=internal_random_state)
+
+    def _get_node_context(self, node):
+        context_iterator = HierarchicalDataset._get_node_context(node,
+                                                                 self._context_max_depth)
+        context = list(context_iterator)
+
+        if self._context_max_size is not None:
+            # if context max size is defined, truncate it
+            context = context[-self._context_max_size:]
+
+        # add the example to the end of its own context
+        context.append(node.example)
+
+        return context
+
+    def _create_batch(self, nodes):
+
+        input_batch_dict, target_batch_dict = {}, {}
+
+        for field in self.dataset.fields:
+            # list of matrices containing numericalized contexts for the current field
+            field_contextualized_example_matrices = []
+
+            for node in nodes:
+
+                # all examples that make up the current node's context
+                node_context_examples = self._get_node_context(node)
+
+                # the length to which all the rows are padded (or truncated)
+                pad_length = Iterator.get_pad_length(field, node_context_examples)
+
+                # empty matrix to be filled with numericalized fields
+                n_rows = len(node_context_examples)
+                matrix = np.empty(shape=(n_rows, pad_length))
+
+                # non-sequential fields all have length = 1, no padding necessary
+                should_pad = True if field.sequential else False
+
+                for i, example in enumerate(node_context_examples):
+                    row = field.numericalize(getattr(example, field.name))
+
+                    if should_pad:
+                        row = field.pad_to_length(row, pad_length)
+
+                    # set the matrix row to the numericalized, padded array
+                    matrix[i] = row
+
+                field_contextualized_example_matrices.append(matrix)
+
+            if field.is_target:
+                target_batch_dict[field.name] = field_contextualized_example_matrices
+
+            else:
+                input_batch_dict[field.name] = field_contextualized_example_matrices
+
+        input_batch = self.input_batch_class(**input_batch_dict)
+        target_batch = self.target_batch_class(**target_batch_dict)
+
+        return input_batch, target_batch
+
+    def _data(self):
+        dataset_nodes = list(self.dataset._node_iterator())
+
+        if self.shuffle:
+            # shuffle the indices
+            indices = list(range(len(self.dataset)))
+            self.shuffler.shuffle(indices)
+
+            # creates a new list of nodes
+            dataset_nodes = [dataset_nodes[i] for i in indices]
+
+
+        if self.sort_key is not None:
+            dataset_nodes.sort(key=lambda node: self.sort_key(node.example))
+
+        return dataset_nodes

@@ -642,19 +642,13 @@ class HierarchicalDataset:
     """Container for datasets with a hierarchical structure of examples which have the
     same structure on every level of the hierarchy.
     """
-    class Node:
-        __slots__ = ['example', 'index', 'parent', 'children']
+    class Node(object):
+        __slots__ = 'example', 'index', 'parent', 'children'
 
         def __init__(self, example, index, parent):
             self.example = example
             self.index = index
             self.parent = parent
-
-    # Node = namedtuple("Node",
-    #                   ['example', 'index', 'parent', 'children'])
-
-    # parser(raw example, fields, depth)
-    # returns (parsed example, iterable(raw children))
 
     def __init__(self, parser, fields):
         """
@@ -834,6 +828,10 @@ class HierarchicalDataset:
             the maximum depth of a node in the hierarchy.
         """
         return self._max_depth
+
+    @property
+    def fields(self):
+        return self._fields
 
     def _get_node_by_index(self, index):
         """Returns the node with the provided index.
