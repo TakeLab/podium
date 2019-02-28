@@ -1,3 +1,8 @@
+"""
+Home of the TakeLab Podium project. Podium is a Python machine learning library
+that helps users to accelerate use of natural language processing models.
+GitHub repository: https://github.com/FilipBolt/takepod
+"""
 import logging
 import logging.config
 from . import dataload
