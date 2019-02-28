@@ -109,9 +109,8 @@ def find_word_by_prefix(trie, word):
             return None
 
     # reached end of the given word
+    if TRIE_END_SYMBOL in trie:
+        return word
     else:
-        if TRIE_END_SYMBOL in trie:
-            return word
-        else:
-            # partial match in trie found
-            return None
+        # partial match in trie found
+        return None
