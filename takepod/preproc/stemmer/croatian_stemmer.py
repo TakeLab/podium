@@ -21,16 +21,15 @@ import re
 import os
 import functools
 
-from takepod.preproc.util import capitalize_target_like_source
+from takepod.preproc.util import (
+    capitalize_target_like_source,
+    make_trie,
+    find_word_by_prefix
+)
 
 
 class CroatianStemmer:
     """Simple stemmer for Croatian language"""
-    # list of words that are it's own stem
-    __stop = None
-    __transformations = None
-    __rules = None
-
     def __init__(self):
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -42,16 +41,29 @@ class CroatianStemmer:
                 open(os.path.join(dir_path, "data/rules.txt"),
                      encoding='utf-8')]
         ]
-        self.__transformations = [e.strip().split(
-            '\t') for e in open(os.path.join(dir_path,
-                                             'data/transformations.txt'),
-                                encoding='utf-8')]
+        self.__transform_map = self._load_transformations(
+            os.path.join(dir_path, "data/transformations.txt")
+        )
+        self.__transform_trie = make_trie(
+            list(self.__transform_map.keys())
+        )
         self.__stop = set([
             e.strip()
             for e in
             open(os.path.join(dir_path, 'data/nostem-hr.txt'),
                  encoding='utf-8')
         ])
+
+    def _load_transformations(self, file_path):
+        transform_map = {}
+        with open(file_path, encoding='utf-8') as f:
+            for line in f:
+                (key, value) = line.split('\t')
+                # we reverse the keys, since we search for prefixes
+                # e.g. when searching for 'izam' in 'turizam'
+                # we go from end to start
+                transform_map[key[::-1]] = value
+        return transform_map
 
     def _determine_r_vowel(self, string):
         '''
@@ -77,22 +89,29 @@ class CroatianStemmer:
             return False
 
     def transform(self, word):
-        """Method transforms given word.
+        """Method transforms given word from a dict, given it
+        ending with a specific suffix
 
         Parameters
         ----------
         word : str
-            word string
+            word
 
         Returns
         -------
         transformed_word : str
-            transformed word
+            transformed word according to transformation mappings
         """
-        for seek, replace in self.__transformations:
-            if word.endswith(seek):
-                return word[:-len(seek)] + replace
-        return word
+
+        # first, we reverse the word, such that we can
+        # use the prefix search in trie
+        found_prefix = find_word_by_prefix(self.__transform_trie, word[::-1])
+
+        if found_prefix:
+            replace = self.__transform_map[found_prefix]
+            return word[:-len(found_prefix)] + replace
+        else:
+            return word
 
     def root_word(self, word):
         """Method returns root of a word.
