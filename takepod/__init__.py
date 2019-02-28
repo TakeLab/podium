@@ -1,3 +1,5 @@
+import logging
+import logging.config
 from . import dataload
 from . import datasets
 from . import examples
@@ -16,3 +18,10 @@ __all__ = ["dataload",
            "models",
            "preproc",
            "storage"]
+
+
+# From documentation:
+#   `fileConfig can be called several times from an application,`
+#   `allowing an end user the ability to select from various`
+#   ` pre-canned configurations.`
+logging.config.fileConfig(fname='logging.ini', disable_existing_loggers=False)

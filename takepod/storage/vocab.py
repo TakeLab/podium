@@ -53,6 +53,7 @@ class Vocab:
         stop_words : set(str), optional
             set of stop words
         """
+        self._logger = logging.getLogger(__name__)
         self._freqs = Counter()
         self._keep_freqs = keep_freqs
         self._min_freq = min_freq
@@ -68,6 +69,7 @@ class Vocab:
         self._max_size = max_size
         self._stop_words = stop_words
         self.finalized = False   # flag to know if we're ready to numericalize
+        self._logger.debug("Vocabulary has been created and initialized.")
 
     @staticmethod
     def _init_default_unk_index(specials):
@@ -104,6 +106,9 @@ class Vocab:
             if unknown symbol is not present in the vocab
         """
         if self._default_unk_index is None:
+            self._logger.error("Unkown symbol is not present in the vocab but "
+                               "the user asked for the word that isn't in the"
+                               " vocab.")
             raise ValueError("Unknown symbol is not present in the vocab.")
         return self._default_unk_index
 
@@ -122,9 +127,9 @@ class Vocab:
             and the vocab is finalized
         """
         if self.finalized and not self._keep_freqs:
-            logging.error("User specified that frequencies shoudn't be "
-                          "kept in vocabulary but the get_freqs method "
-                          "is called.")
+            self._logger.error("User specified that frequencies shoudn't be "
+                               "kept in vocabulary but the get_freqs method "
+                               "is called.")
             raise RuntimeError("User specified that the frequencies "
                                "are not kept")
         return self._freqs
@@ -143,8 +148,8 @@ class Vocab:
             if the padding symbol is not pressent in the vocabulary
         """
         if SpecialVocabSymbols.PAD not in self.stoi:
-            logging.error("Padding symbol is not in the vocabulary so"
-                          " pad_symbol function raises exception.")
+            self._logger.error("Padding symbol is not in the vocabulary so"
+                               " pad_symbol function raises exception.")
             raise ValueError("Padding symbol is not in the vocabulary")
         return self.stoi[SpecialVocabSymbols.PAD]
 
@@ -168,12 +173,14 @@ class Vocab:
             if the current vocab is finalized
         """
         if self.finalized:
-            logging.warning("Vocabulary is finalized already. "
-                            "This should be used only if multiple fields use"
-                            " same vocabulary.")
-            return self
+            self._logger.error("Vocabulary doesn't support adding words after"
+                               " finalization.")
+            raise RuntimeError("Once finalized, vocabulary cannot be changed.")
 
         if isinstance(values, str):
+            self._logger.error("Vocabulary doesn't support adding a string. "
+                               "If you need single word added to vocab,"
+                               " you should wrap it to an iterable.")
             raise TypeError("Values mustn't be a string.")
             # if it is a string characters of a string will be added to counter
             # instead of whole string
@@ -184,7 +191,10 @@ class Vocab:
             try:
                 self._freqs.update(values)
             except TypeError:
-                
+                self._logger.exception("TypeError exception ocured while "
+                                       "adding values to counter object. Vocab"
+                                       " supports only adding vocab or "
+                                       "iterable to vocab")
                 raise TypeError("Vocab supports only adding vocab or iterable"
                                 " to vocab")
         return self
@@ -220,7 +230,10 @@ class Vocab:
             if the vocab is already finalized
         """
         if self.finalized:
-            raise RuntimeError("Vocab is already finalized.")
+            self._logger.warning("Vocabulary is finalized already. "
+                                 "This should be used only if multiple fields "
+                                 "use same vocabulary.")
+            return
 
         # construct stoi and itos, sort by frequency
         words_and_freqs = sorted(self._freqs.items(), key=lambda tup: tup[1],
@@ -238,8 +251,8 @@ class Vocab:
 
         if not self._keep_freqs:
             self._freqs = None  # release memory
-
         self.finalized = True
+        self._logger.debug("Vocabulary is finalized.")
 
     def numericalize(self, data):
         """Method numericalizes given tokens.
@@ -260,6 +273,9 @@ class Vocab:
             if the vocabulary is not finalized
         """
         if not self.finalized:
+            self._logger.error("Cannot numericalize if the vocabulary has not "
+                               "been finalized because itos and stoi are not "
+                               "yet built.")
             raise RuntimeError('Cannot numericalize if the vocabulary has not '
                                'been finalized call `.finalize()`'
                                ' on the Field')
