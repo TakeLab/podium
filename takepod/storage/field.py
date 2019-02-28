@@ -51,13 +51,18 @@ class Field(object):
             Default is None.
         tokenize : bool
             Whether the data should be tokenized when being preprocessed.
-            If True, store_as_tokenized must be False.
+            If True, the raw data will be run through the pretokenize hooks, tokenized using the tokenizer,
+            run through the posttokenize hooks and then stored in the 'tokenized' part of the example tuple.
+            If True, 'store_as_tokenized' must be False.
         store_as_raw : bool
             Whether to store untokenized preprocessed data.
-            If True, ''
+            If True, the raw data will be run trough the provided pretokenize hooks
+            and stored in the 'raw' part of the example tuple.
+            If True, 'store_as_tokenized' must be False.
         store_as_tokenized : bool
             Whether to store the data as tokenized.
-            Data will be stored as-is and no preprocessing will be done.
+            If True, the raw data will be run through the provided posttokenize hooks and
+            stored in the 'tokenized' part of the example tuple.
             If True, store_raw and tokenize must be False.
         eager : bool
             Whether to build the vocabulary online, each time the field
@@ -82,12 +87,13 @@ class Field(object):
 
         self.name = name
         self.language = language
+        self._tokenizer_arg = tokenizer
 
         if store_as_tokenized and tokenize:
             raise ValueError(
                 "Store_as_tokenized' and 'tokenize' both set to True."
-                " You can either store the data as tokenized, tokenize it or do neither"
-                ", but you can't do both."
+                " You can either store the data as tokenized, tokenize it"
+                " or do neither, but you can't do both."
             )
 
         if not store_as_raw and not tokenize and not store_as_tokenized:
@@ -99,7 +105,8 @@ class Field(object):
             raise ValueError(
                 "'store_as_raw' and 'store_as_tokenized' both set to True."
                 " You can't store the same value as raw and as tokenized."
-                " Maybe you wanted to tokenize the raw data? (the 'tokenize' parameter)"
+                " Maybe you wanted to tokenize the raw data? (the 'tokenize'"
+                " parameter)"
             )
 
         self.sequential = store_as_tokenized or tokenize
@@ -398,6 +405,31 @@ class Field(object):
 
         return row
 
+    def __getstate__(self):
+        """Method obtains field state. It is used for pickling dataset data
+        to file.
+
+        Returns
+        -------
+        state : dict
+            dataset state dictionary
+        """
+        state = self.__dict__.copy()
+        del state['tokenizer']
+        return state
+
+    def __setstate__(self, state):
+        """Method sets field state. It is used for unpickling dataset data
+        from file.
+
+        Parameters
+        ----------
+        state : dict
+            dataset state dictionary
+        """
+        self.__dict__.update(state)
+        self.tokenizer = get_tokenizer(self._tokenizer_arg, self.language)
+
 
 class TokenizedField(Field):
     """
@@ -427,6 +459,10 @@ class TokenizedField(Field):
 
 
 class MultilabelField(TokenizedField):
+    """
+    Class used for storing pre-tokenized labels.
+    Used for multilabeled datasets.
+    """
 
     def __init__(self,
                  name,

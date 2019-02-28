@@ -267,6 +267,14 @@ class Vocab:
 
     @property
     def has_specials(self):
+        """
+        Method checks if the vocabulary contains special symbols.
+
+        Returns
+        -------
+        flag : bool
+            true if the vocabulary has special symbols, false otherwise.
+        """
         return self._has_specials
 
     def __len__(self):
