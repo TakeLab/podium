@@ -2,8 +2,12 @@
 large resources that should be downloaded should use this module."""
 import os
 import tempfile
+import logging
 from takepod.storage.downloader import SimpleHttpDownloader, SCPDownloader
 from takepod.storage import utility
+
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class LargeResource:
@@ -47,12 +51,16 @@ class LargeResource:
             LargeResource.BASE_RESOURCE_DIR,
             self.config[LargeResource.RESOURCE_NAME])
         self._check_files()
+        _LOGGER.debug("Large resource %s initialized.",
+                      self.config[LargeResource.RESOURCE_NAME])
 
     def _check_files(self):
         """Method checks if large resource files exists and if they don't it
         initiates downloading of resources."""
         if os.path.exists(self.resource_location):
+            _LOGGER.debug("Large resource alreadys exists, skipping download.")
             return
+        _LOGGER.debug("Large resource doesn't exist, starting download.")
         if LargeResource.ARCHIVE in self.config\
                 and self.config[LargeResource.ARCHIVE]:
             self._download_unarchive()
@@ -124,6 +132,7 @@ class LargeResource:
         essential_arguments = [LargeResource.RESOURCE_NAME, LargeResource.URI]
         for arg in essential_arguments:
             if arg not in arguments or not arguments[arg]:
+                _LOGGER.error(f"Large resource argument {arg} is missing.")
                 raise ValueError(arg + " must be defined"
                                  " while defining Large Resource")
 
