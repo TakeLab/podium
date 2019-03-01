@@ -25,8 +25,11 @@ __all__ = ["dataload",
            "storage"]
 
 
-# From documentation:
-#   `fileConfig can be called several times from an application,`
-#   `allowing an end user the ability to select from various`
-#   ` pre-canned configurations.`
-logging.config.fileConfig(fname='logging.ini', disable_existing_loggers=False)
+# Reference for initialization of logging scikit-learn
+# https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/__init__.py
+LOGGER = logging.getLogger(__name__)
+LOGGER.addHandler(logging.StreamHandler())
+LOGGER.setLevel(logging.WARNING)
+
+# More information about logging can be found on project github
+#  https://github.com/FilipBolt/takepod/wiki/Logging
