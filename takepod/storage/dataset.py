@@ -678,7 +678,7 @@ class HierarchicalDataset:
         fields : dict(str, Field)
             Dict mapping keys in the raw_example dict to their corresponding fields.
         """
-        self._fields = fields
+        self._field_dict = fields
         self._parser = parser
         self._size = 0
         self._max_depth = 0
@@ -751,6 +751,8 @@ class HierarchicalDataset:
 
         """
         self._root_nodes = tuple(self._parse(root, None, 0) for root in root_examples)
+        for field in self.fields:
+            field.finalize()
 
     def _parse(self, raw_object, parent, depth):
         """Parses an raw example.
@@ -771,7 +773,7 @@ class HierarchicalDataset:
         Node
             Node parsed from the raw example.
         """
-        example, raw_children = self._parser(raw_object, self._fields, depth)
+        example, raw_children = self._parser(raw_object, self._field_dict, depth)
 
         index = self._size
         self._size += 1
@@ -817,7 +819,7 @@ class HierarchicalDataset:
         -------
             a standard Dataset
         """
-        return Dataset(list(self.flatten()), self._fields)
+        return Dataset(list(self.flatten()), self._field_dict)
 
     @property
     def depth(self):
@@ -831,7 +833,7 @@ class HierarchicalDataset:
 
     @property
     def fields(self):
-        return self._fields
+        return list(self._field_dict.values())
 
     def _get_node_by_index(self, index):
         """Returns the node with the provided index.

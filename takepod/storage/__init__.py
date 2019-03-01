@@ -6,7 +6,7 @@ from .downloader import (BaseDownloader, SCPDownloader, HttpDownloader,
                          SimpleHttpDownloader)
 from .example import Example
 from .field import Field, TokenizedField, MultilabelField
-from .iterator import Iterator, BucketIterator
+from .iterator import Iterator, BucketIterator, HierarchicalDatasetIterator
 from .large_resource import LargeResource, SCPLargeResource
 from .vectorizer import VectorStorage, BasicVectorStorage
 from .vocab import SpecialVocabSymbols, Vocab
@@ -23,7 +23,7 @@ __all__ = ["Dataset", "HierarchicalDataset", "TabularDataset",
            "BaseDownloader", "SCPDownloader", "HttpDownloader", "SimpleHttpDownloader",
            "Example",
            "Field", "TokenizedField", "MultilabelField",
-           "Iterator", "BucketIterator",
+           "Iterator", "BucketIterator", "HierarchicalDatasetIterator",
            "LargeResource", "SCPLargeResource",
            "VectorStorage", "BasicVectorStorage",
            "SpecialVocabSymbols", "Vocab",

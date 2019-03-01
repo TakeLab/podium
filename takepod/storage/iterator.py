@@ -9,6 +9,7 @@ from collections import namedtuple
 
 from takepod.storage.dataset import HierarchicalDataset
 
+
 class Iterator:
     """An iterator that batches data from a dataset after numericalization.
 
@@ -370,6 +371,15 @@ class HierarchicalDatasetIterator(Iterator):
                  seed=1, internal_random_state=None,
                  context_max_length=None, context_max_depth=None):
 
+        if context_max_length is not None and context_max_length < 1:
+            raise ValueError(f"'context_max_length' must not be less than 1. "
+                             f"If you don't want context, try flattening the dataset. "
+                             f"'context_max_length' : {context_max_length})")
+
+        if context_max_depth is not None and context_max_depth < 0:
+            raise ValueError(f"'context_max_depth' must not be negative. "
+                             f"'context_max_depth' : {context_max_depth}")
+
         self._context_max_depth = context_max_depth
         self._context_max_size = context_max_length
 
@@ -407,7 +417,7 @@ class HierarchicalDatasetIterator(Iterator):
                 node_context_examples = self._get_node_context(node)
 
                 # the length to which all the rows are padded (or truncated)
-                pad_length = Iterator.get_pad_length(field, node_context_examples)
+                pad_length = Iterator._get_pad_length(field, node_context_examples)
 
                 # empty matrix to be filled with numericalized fields
                 n_rows = len(node_context_examples)
@@ -448,7 +458,6 @@ class HierarchicalDatasetIterator(Iterator):
 
             # creates a new list of nodes
             dataset_nodes = [dataset_nodes[i] for i in indices]
-
 
         if self.sort_key is not None:
             dataset_nodes.sort(key=lambda node: self.sort_key(node.example))
