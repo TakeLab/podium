@@ -108,7 +108,7 @@ class Vocab:
             if unknown symbol is not present in the vocab
         """
         if self._default_unk_index is None:
-            _LOGGER.error("Unkown symbol is not present in the vocab but "
+            _LOGGER.error("Unknown symbol is not present in the vocab but "
                           "the user asked for the word that isn't in the"
                           " vocab.")
             raise ValueError("Unknown symbol is not present in the vocab.")
