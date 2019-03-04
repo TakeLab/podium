@@ -129,7 +129,7 @@ class Vocab:
             and the vocab is finalized
         """
         if self.finalized and not self._keep_freqs:
-            _LOGGER.error("User specified that frequencies shoudn't be "
+            _LOGGER.error("User specified that frequencies aren't "
                           "kept in vocabulary but the get_freqs method "
                           "is called.")
             raise RuntimeError("User specified that the frequencies "
