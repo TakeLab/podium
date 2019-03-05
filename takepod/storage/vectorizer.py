@@ -30,6 +30,8 @@ def zeros_default_vector(token, dim):
         zeros vector with given dimension
     """
     if dim is None:
+        _LOGGER.error("Can't create zeros default vector with dimension "
+                      "equal to None. Given token=%s, dim=%d", token, dim)
         raise ValueError("Dim mustn't be None,"
                          " given token={}, dim={}".format(token, dim))
     return np.zeros(dim)
@@ -296,6 +298,8 @@ class BasicVectorStorage(VectorStorage):
             for line in vector_file:
                 stripped_line = line.rstrip()
                 if not stripped_line:
+                    _LOGGER.error("Vectors file contains empty lines which is"
+                                  " not supported.")
                     raise RuntimeError("File contains empty lines")
 
                 word, vector_entries_str = stripped_line.split(split_delimiter, 1)
@@ -308,11 +312,18 @@ class BasicVectorStorage(VectorStorage):
                 elif len(vector_entry) == 1:
                     header_lines += 1
                     if header_lines > 1:
+                        _LOGGER.error("Found more than one header line in "
+                                      "vectors file.")
                         raise RuntimeError("Found more than one header line")
                     continue  # probably a header, reference torch text
                 # second reference:
                 # https://radimrehurek.com/gensim/scripts/glove2word2vec.html
                 elif self._dim != len(vector_entry):
+                    _LOGGER.error("Vector for token %s has %d dimensions, but "
+                                  "previously read vectors have %d dimensions."
+                                  " All vectors must have the same number of "
+                                  "dimensions.",
+                                  word, len(vector_entry), self._dim)
                     raise RuntimeError(
                         "Vector for token {} has {} dimensions, "
                         "but previously read vectors have {} dimensions. "

@@ -95,6 +95,9 @@ class LargeResource:
         """
         if self.config[LargeResource.ARCHIVE] \
                 not in LargeResource.SUPPORTED_ARCHIVE:
+            _LOGGER.error("Unsupported archive method. Given %s, expected one"
+                          " from %s", self.config[LargeResource.ARCHIVE],
+                          str(LargeResource.SUPPORTED_ARCHIVE))
             raise ValueError("Unsupported archive method. Given {}, expected"
                              "one from {}".format(
                                  self.config[LargeResource.ARCHIVE],
@@ -132,7 +135,7 @@ class LargeResource:
         essential_arguments = [LargeResource.RESOURCE_NAME, LargeResource.URI]
         for arg in essential_arguments:
             if arg not in arguments or not arguments[arg]:
-                _LOGGER.error("Large resource argument %arg is missing.", arg)
+                _LOGGER.error("Large resource argument %s is missing.", arg)
                 raise ValueError(arg + " must be defined"
                                  " while defining Large Resource")
 

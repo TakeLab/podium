@@ -3,11 +3,14 @@ lemmatizer dictionaries. It can return all possible word
 inflections for a lemma, or return the lemma of any
 word inflexion for the Croatian language."""
 import os
+import logging
 import getpass
 import functools
 
 from takepod.preproc.util import capitalize_target_like_source
 from takepod.storage.large_resource import SCPLargeResource
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class CroatianLemmatizer(SCPLargeResource):
@@ -80,7 +83,7 @@ class CroatianLemmatizer(SCPLargeResource):
         try:
             return self._word2lemma[word]
         except KeyError:
-            # TODO: insert log statement that a word is being returned
+            _LOGGER.info("Word is being returned instead of lemma.")
             return word
 
     def get_words_for_lemma(self, lemma):
@@ -112,6 +115,7 @@ class CroatianLemmatizer(SCPLargeResource):
                 for w in words
             ]
         except KeyError:
+            _LOGGER.error("No words found for lemma %s", lemma)
             raise ValueError("No words found for lemma {}".format(lemma))
 
     @property
