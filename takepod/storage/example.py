@@ -1,7 +1,10 @@
 """Example module that defines mapping for single data instance."""
 import csv
 import json
+import logging
 import xml.etree.ElementTree as ET
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class Example(object):
@@ -109,9 +112,10 @@ class Example(object):
         items = filter(lambda el: el[1] is not None, fields.items())
         for key, field in items:
             if key not in data:
-                raise ValueError(
-                    "Specified key {} was not found in the input data"
-                    .format(key))
+                error_msg = f"Specified key {key} was not found "\
+                            "in the input data"
+                _LOGGER.error(error_msg)
+                raise ValueError(error_msg)
 
             val = data[key]
             set_example_attributes(example, field, val)
@@ -157,9 +161,10 @@ class Example(object):
                 if root.tag == name:
                     node = root
                 else:
-                    raise ValueError(
-                        "Specified name {} was not found in the input data"
-                        .format(name))
+                    error_msg = f"Specified name {name} was not found in the "\
+                                "input data"
+                    _LOGGER.error(error_msg)
+                    raise ValueError(error_msg)
 
             val = node.text
             set_example_attributes(example, field, val)

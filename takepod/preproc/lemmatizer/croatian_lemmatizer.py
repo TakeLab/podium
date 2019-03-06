@@ -115,8 +115,9 @@ class CroatianLemmatizer(SCPLargeResource):
                 for w in words
             ]
         except KeyError:
-            _LOGGER.error("No words found for lemma %s", lemma)
-            raise ValueError("No words found for lemma {}".format(lemma))
+            error_msg = "No words found for lemma {}".format(lemma)
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
 
     @property
     def _word2lemma(self):

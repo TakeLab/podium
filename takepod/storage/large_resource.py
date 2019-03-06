@@ -135,9 +135,9 @@ class LargeResource:
         essential_arguments = [LargeResource.RESOURCE_NAME, LargeResource.URI]
         for arg in essential_arguments:
             if arg not in arguments or not arguments[arg]:
-                _LOGGER.error("Large resource argument %s is missing.", arg)
-                raise ValueError(arg + " must be defined"
-                                 " while defining Large Resource")
+                error_msg = f"Large resource argument {arg} is missing."
+                _LOGGER.error(error_msg)
+                raise ValueError(error_msg)
 
 
 class SCPLargeResource(LargeResource):
