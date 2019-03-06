@@ -1,3 +1,4 @@
+import pickle
 import pytest
 
 from takepod.storage import vocab
@@ -211,13 +212,6 @@ def test_add_not_set_or_vocab_to_vocab_error(object_to_add):
         voc += object_to_add
 
 
-def test_finalize_finalized_vocab_error():
-    voc = vocab.Vocab()
-    voc.finalize()
-    with pytest.raises(RuntimeError):
-        voc.finalize()
-
-
 def test_skip_stop_words():
     stop_words = ["the", "is", "a"]
     data = "the list is great".split(" ")
@@ -247,6 +241,38 @@ def test_equals_two_vocabs():
     voc1.finalize()
     voc2.finalize()
     assert voc1 == voc2
+
+
+def test_vocab_pickle():
+    data = ["a", "b"]
+    voc = vocab.Vocab()
+    voc += data
+
+    vocab_file = os.path.join(tmpdir, "vocab.pkl")
+
+    with open(vocab_file, "wb") as fdata:
+        pickle.dump(voc, fdata)
+
+    with open(vocab_file, "rb") as fdata:
+        loaded_voc = pickle.load(fdata)
+
+        assert voc == loaded_voc
+
+
+def test_finalized_vocab_pickle():
+    data = ["a", "b"]
+    voc = vocab.Vocab()
+    voc += data
+
+    vocab_file = os.path.join(tmpdir, "vocab.pkl")
+
+    with open(vocab_file, "wb") as fdata:
+        pickle.dump(voc, fdata)
+
+    with open(vocab_file, "rb") as fdata:
+        loaded_voc = pickle.load(fdata)
+
+        assert voc == loaded_voc
 
 
 def test_equals_two_vocabs_different_finalization():
