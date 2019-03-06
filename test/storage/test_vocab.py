@@ -1,4 +1,5 @@
 import pickle
+import os
 import pytest
 
 from takepod.storage import vocab
@@ -243,7 +244,7 @@ def test_equals_two_vocabs():
     assert voc1 == voc2
 
 
-def test_vocab_pickle():
+def test_vocab_pickle(tmpdir):
     data = ["a", "b"]
     voc = vocab.Vocab()
     voc += data
@@ -259,7 +260,7 @@ def test_vocab_pickle():
         assert voc == loaded_voc
 
 
-def test_finalized_vocab_pickle():
+def test_finalized_vocab_pickle(tmpdir):
     data = ["a", "b"]
     voc = vocab.Vocab()
     voc += data
