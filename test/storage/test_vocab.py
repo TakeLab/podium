@@ -211,13 +211,6 @@ def test_add_not_set_or_vocab_to_vocab_error(object_to_add):
         voc += object_to_add
 
 
-def test_finalize_finalized_vocab_error():
-    voc = vocab.Vocab()
-    voc.finalize()
-    with pytest.raises(RuntimeError):
-        voc.finalize()
-
-
 def test_skip_stop_words():
     stop_words = ["the", "is", "a"]
     data = "the list is great".split(" ")

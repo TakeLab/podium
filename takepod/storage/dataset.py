@@ -4,12 +4,15 @@ import io
 import itertools
 import json
 import os
+import logging
 import random
 from abc import ABC
 from collections import namedtuple
 from functools import partial
 
 from takepod.storage.example import Example
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class Dataset(ABC):
@@ -83,7 +86,9 @@ class Dataset(ABC):
             return attr_generator()
 
         else:
-            raise AttributeError(f"Dataset has no field '{attr}'.")
+            error_msg = f"Dataset has no field '{attr}'."
+            _LOGGER.error(error_msg)
+            raise AttributeError(error_msg)
 
     def finalize_fields(self, *args):
         """
@@ -196,13 +201,15 @@ class Dataset(ABC):
             strata_field_name = self._get_strata_field_name(strata_field_name)
 
             if strata_field_name is None:
-                raise ValueError(
-                    f"If strata_field_name is not provided, at least one"
-                    f" field has to have is_target equal to True.")
+                error_msg = "If strata_field_name is not provided, at least"\
+                            " one field has to have is_target equal to True."
+                _LOGGER.error(error_msg)
+                raise ValueError(error_msg)
 
             if strata_field_name not in self.field_dict:
-                raise ValueError(f"Invalid strata field name: "
-                                 f"{strata_field_name}")
+                error_msg = f"Invalid strata field name: {strata_field_name}"
+                _LOGGER.error(error_msg)
+                raise ValueError(error_msg)
 
             train_data, val_data, test_data = stratified_split(
                 self.examples, train_ratio, val_ratio, test_ratio,
@@ -316,7 +323,9 @@ class TabularDataset(Dataset):
             elif format == "json":
                 reader = f
             else:
-                raise ValueError(f'Invalid format: {format}')
+                error_msg = f'Invalid format: {format}'
+                _LOGGER.error(error_msg)
+                raise ValueError(error_msg)
 
             # create a list of examples
             examples = create_examples(reader, format, fields, skip_header)
@@ -372,12 +381,16 @@ def create_examples(reader, format, fields, skip_header):
 
     if skip_header:
         if format == "json":
-            raise ValueError(
-                f'When using a {format} file, skip_header must be False.')
+            error_msg = f'When using a {format} file, skip_header must be'\
+                        f' False.'
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
         elif format in {"csv", "tsv"} and isinstance(fields, dict):
-            raise ValueError(
-                f'When using a dict to specify fields with a {format} file,'
-                'skip_header must be False and the file must have a header.')
+            error_msg = f'When using a dict to specify fields with a {format}'\
+                        ' file, skip_header must be False and the file must '\
+                        'have a header.'
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
 
         # skipping the header
         next(reader)
@@ -460,7 +473,9 @@ def check_split_ratio(split_ratio):
     if isinstance(split_ratio, float):
         # Only the train set relative ratio is provided
         if not (0. < split_ratio < 1.):
-            raise ValueError(f'Split ratio {split_ratio} not between 0 and 1')
+            error_msg = f'Split ratio {split_ratio} not between 0 and 1'
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
 
         train_ratio = split_ratio
         val_ratio = None
@@ -471,15 +486,17 @@ def check_split_ratio(split_ratio):
         length = len(split_ratio)
 
         if length not in {2, 3}:
-            raise ValueError(
-                f'Split ratio list/tuple should be of length 2 or 3, '
-                f'got {length}.')
+            error_msg = f'Split ratio list/tuple should be of length 2 or 3, '\
+                        f'got {length}.'
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
 
         for i, ratio in enumerate(split_ratio):
             if float(ratio) <= 0.0:
-                raise ValueError(
-                    f'Elements of ratio tuple/list must be > 0.0 '
-                    f'(got value {ratio} at index {i}).')
+                error_msg = f'Elements of ratio tuple/list must be > 0.0 '\
+                            f'(got value {ratio} at index {i}).'
+                _LOGGER.error(error_msg)
+                raise ValueError(error_msg)
 
         # Normalize if necessary
         ratio_sum = sum(split_ratio)
@@ -495,9 +512,10 @@ def check_split_ratio(split_ratio):
             val_ratio = split_ratio[1]
             test_ratio = split_ratio[2]
     else:
-        raise ValueError(
-            f'Split ratio must be a float, a list or a tuple, '
-            f'got {type(split_ratio)}')
+        error_msg = f'Split ratio must be a float, a list or a tuple, '\
+                    f'got {type(split_ratio)}'
+        _LOGGER.error(error_msg)
+        raise ValueError(error_msg)
 
     return train_ratio, val_ratio, test_ratio
 
@@ -547,8 +565,9 @@ def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
     # Due to possible rounding problems
     if val_ratio is None:
         if train_len == 0 or (N - train_len) == 0:
-            raise ValueError(
-                'Bad ratio: both splits should have at least 1 element.')
+            error_msg = 'Bad ratio: both splits should have at least 1 element.'
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
 
         indices_tuple = (
             indices[:train_len],
@@ -560,8 +579,9 @@ def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
         val_len = N - train_len - test_len
 
         if train_len * test_len * val_len == 0:
-            raise ValueError(
-                'Bad ratio: all splits should have at least 1 element.')
+            error_msg = 'Bad ratio: all splits should have at least 1 element.'
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
 
         indices_tuple = (
             indices[:train_len],  # Train
@@ -710,17 +730,19 @@ class HierarchicalDataset:
 
         root_examples = json.loads(dataset)
         if not isinstance(root_examples, list):
-            raise ValueError("The base element in the JSON string must be a list of root "
-                             "elements.")
+            error_msg = "The base element in the JSON string must be a list "\
+                        "of root elements."
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
 
         ds._load(root_examples)
-
         return ds
 
     @staticmethod
     def get_default_dict_parser(child_attribute_name):
-        """Returns a callable instance that can be used for parsing datasets in which
-        examples on all levels in the hierarchy have children under the same key.
+        """Returns a callable instance that can be used for parsing datasets
+        in which examples on all levels in the hierarchy have children under
+        the same key.
 
         Parameters
         ----------
@@ -729,7 +751,8 @@ class HierarchicalDataset:
 
         Returns
         -------
-            Callable(raw_example, fields, depth) returning (example, raw_children).
+            Callable(raw_example, fields, depth) returning
+            (example, raw_children).
 
         """
         def default_dict_parser(raw_example, fields, depth):
@@ -838,8 +861,10 @@ class HierarchicalDataset:
 
         """
         if index < 0 or index >= len(self):
-            raise IndexError(
-                f"Index {index} out of bounds. Must be within [0, len(dataset) - 1]")
+            error_msg = f"Index {index} out of bounds. Must be within "\
+                        "[0, len(dataset) - 1]"
+            _LOGGER.error(error_msg)
+            raise IndexError(error_msg)
 
         def get_item(nodes, index):
             """Right bisect binary search.

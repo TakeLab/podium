@@ -110,3 +110,4 @@ downloaded_datasets/
 *.bat
 
 .idea/
+*.pkl

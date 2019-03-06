@@ -1,9 +1,11 @@
 """Module contains dataset's field definition and methods for construction."""
 from collections import deque
-
+import logging
 import numpy as np
 
 from takepod.preproc.tokenizers import get_tokenizer
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class Field(object):
@@ -51,18 +53,19 @@ class Field(object):
             Default is None.
         tokenize : bool
             Whether the data should be tokenized when being preprocessed.
-            If True, the raw data will be run through the pretokenize hooks, tokenized using the tokenizer,
-            run through the posttokenize hooks and then stored in the 'tokenized' part of the example tuple.
+            If True, the raw data will be run through the pretokenize hooks,
+            tokenized using the tokenizer, run through the posttokenize hooks
+            and then stored in the 'tokenized' part of the example tuple.
             If True, 'store_as_tokenized' must be False.
         store_as_raw : bool
             Whether to store untokenized preprocessed data.
-            If True, the raw data will be run trough the provided pretokenize hooks
-            and stored in the 'raw' part of the example tuple.
+            If True, the raw data will be run trough the provided pretokenize
+            hooks and stored in the 'raw' part of the example tuple.
             If True, 'store_as_tokenized' must be False.
         store_as_tokenized : bool
             Whether to store the data as tokenized.
-            If True, the raw data will be run through the provided posttokenize hooks and
-            stored in the 'tokenized' part of the example tuple.
+            If True, the raw data will be run through the provided posttokenize
+            hooks and stored in the 'tokenized' part of the example tuple.
             If True, store_raw and tokenize must be False.
         eager : bool
             Whether to build the vocabulary online, each time the field
@@ -90,24 +93,25 @@ class Field(object):
         self._tokenizer_arg = tokenizer
 
         if store_as_tokenized and tokenize:
-            raise ValueError(
-                "Store_as_tokenized' and 'tokenize' both set to True."
-                " You can either store the data as tokenized, tokenize it"
-                " or do neither, but you can't do both."
-            )
+            error_msg = "Store_as_tokenized' and 'tokenize' both set to True."\
+                        " You can either store the data as tokenized, "\
+                        "tokenize it or do neither, but you can't do both."
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
 
         if not store_as_raw and not tokenize and not store_as_tokenized:
-            raise ValueError(
-                "At least one of 'store_as_raw', 'tokenize'"
-                " or 'store_as_tokenized' must be True.")
+            error_msg = "At least one of 'store_as_raw', 'tokenize'"\
+                        " or 'store_as_tokenized' must be True."
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
 
         if store_as_raw and store_as_tokenized:
-            raise ValueError(
-                "'store_as_raw' and 'store_as_tokenized' both set to True."
-                " You can't store the same value as raw and as tokenized."
-                " Maybe you wanted to tokenize the raw data? (the 'tokenize'"
-                " parameter)"
-            )
+            error_msg = "'store_as_raw' and 'store_as_tokenized' both set to"\
+                        " True. You can't store the same value as raw and as "\
+                        "tokenized. Maybe you wanted to tokenize the raw "\
+                        "data? (the 'tokenize' parameter)"
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
 
         self.sequential = store_as_tokenized or tokenize
         self.store_as_raw = store_as_raw
@@ -393,8 +397,10 @@ class Field(object):
                 pad_symbol = custom_pad_symbol
 
             if pad_symbol is None:
-                raise ValueError('Must provide a custom pad symbol if the '
-                                 'field has no vocab.')
+                error_msg = 'Must provide a custom pad symbol if the '\
+                            'field has no vocab.'
+                _LOGGER.error(error_msg)
+                raise ValueError(error_msg)
 
             diff = length - len(row)
 
@@ -472,9 +478,11 @@ class MultilabelField(TokenizedField):
                  fixed_length=None):
 
         if vocab is not None and vocab.has_specials:
-            raise ValueError("Vocab contains special symbols."
-                             " Vocabs with special symbols cannot be used"
-                             " with multilabel fields.")
+            error_msg = "Vocab contains special symbols."\
+                        " Vocabs with special symbols cannot be used"\
+                        " with multilabel fields."
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
 
         super().__init__(name,
                          vocab=vocab,

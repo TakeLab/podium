@@ -1,4 +1,7 @@
 """Module contains text tokenizers."""
+import logging
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def get_tokenizer(tokenizer, language='en'):
@@ -52,14 +55,17 @@ def get_tokenizer(tokenizer, language='en'):
 
             return spacy_tokenize
         except OSError:
-            print(f'Please install SpaCy and the SpaCy {language} '
-                  f'tokenizer. See the docs at https://spacy.io for more '
-                  f'information.')
+            error_msg = f'Please install SpaCy and the SpaCy {language} '\
+                        f'tokenizer. See the docs at https://spacy.io for '\
+                        f'more information.'
+            _LOGGER.error(error_msg)
             raise
 
     elif tokenizer == "split":
         return str.split
 
     else:
-        raise ValueError(f"Wrong value given for the tokenizer: "
-                         f"{tokenizer}")
+        error_msg = f"Wrong value given for the tokenizer: "\
+                    f"{tokenizer}"
+        _LOGGER.error(error_msg)
+        raise ValueError(error_msg)
