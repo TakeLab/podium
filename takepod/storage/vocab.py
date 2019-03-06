@@ -38,7 +38,7 @@ class Vocab:
     """
     def __init__(self, max_size=None, min_freq=1,
                  specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD),
-                 keep_freqs=False, stop_words=None):
+                 keep_freqs=False):
         """Vocab constructor. Specials are first in the vocabulary.
 
         Parameters
@@ -53,8 +53,6 @@ class Vocab:
         keep_freqs : bool
             if true word frequencies will be saved for later use on
             the finalization
-        stop_words : set(str), optional
-            set of stop words
         """
         self._freqs = Counter()
         self._keep_freqs = keep_freqs
@@ -69,7 +67,6 @@ class Vocab:
         self.stoi.update({k: v for v, k in enumerate(self.itos)})
 
         self._max_size = max_size
-        self._stop_words = stop_words
         self.finalized = False   # flag to know if we're ready to numericalize
         _LOGGER.debug("Vocabulary has been created and initialized.")
 
@@ -246,8 +243,6 @@ class Vocab:
         for word, freq in words_and_freqs:
             if freq < self._min_freq or len(self.itos) >= self._max_size:
                 break
-            if self._stop_words and word in self._stop_words:
-                continue
             self.itos.append(word)
             self.stoi[word] = len(self.stoi)
 

@@ -213,15 +213,6 @@ def test_add_not_set_or_vocab_to_vocab_error(object_to_add):
         voc += object_to_add
 
 
-def test_skip_stop_words():
-    stop_words = ["the", "is", "a"]
-    data = "the list is great".split(" ")
-    voc = vocab.Vocab(stop_words=stop_words, specials=[])
-    voc += data
-    voc.finalize()
-    assert len(voc) == 2
-
-
 def test_numericalize():
     voc = vocab.Vocab(specials=[])
     voc += ["word", "word", "aaa"]
