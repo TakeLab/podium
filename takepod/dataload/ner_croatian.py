@@ -1,11 +1,14 @@
 """Simple NERCroatian dataset module."""
 import glob
 import os
+import logging
 import getpass
 import xml.etree.ElementTree as ET
 
 from takepod.preproc.tokenizers import get_tokenizer
 from takepod.storage.large_resource import LargeResource, SCPLargeResource
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class NERCroatianXMLLoader:
@@ -185,8 +188,10 @@ class NERCroatianXMLLoader:
         if tag_schema == 'IOB':
             return self._iob_label_resolver
 
-        raise ValueError('No label resolver for tag schema {} exists'
-                         .format(tag_schema))
+        error_msg = 'No label resolver for tag schema {} exists'\
+                    .format(tag_schema)
+        _LOGGER.error(error_msg)
+        raise ValueError(error_msg)
 
     @staticmethod
     def _iob_label_resolver(index, label):
