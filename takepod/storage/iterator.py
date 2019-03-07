@@ -1,11 +1,9 @@
 """"Module contains classes for iterating over datasets."""
 import math
-import itertools
-from random import Random
-import numpy as np
-
-
 from collections import namedtuple
+from random import Random
+
+import numpy as np
 
 from takepod.storage.dataset import HierarchicalDataset
 
@@ -21,8 +19,15 @@ class Iterator:
         The number of iterations elapsed in the current epoch.
     """
 
-    def __init__(self, dataset, batch_size, sort_key=None, shuffle=False,
-                 seed=1, internal_random_state=None):
+    def __init__(
+            self,
+            dataset,
+            batch_size,
+            sort_key=None,
+            shuffle=False,
+            seed=1,
+            internal_random_state=None,
+    ):
         """ Creates an iterator for the given dataset and batch size.
 
         Parameters
@@ -71,15 +76,14 @@ class Iterator:
             None.
         """
 
-        self.input_batch_class = namedtuple("InputBatch",
-                                            [field.name for field in
-                                             dataset.fields if
-                                             not field.is_target])
+        self.input_batch_class = namedtuple(
+            "InputBatch",
+            [field.name for field in dataset.fields if not field.is_target],
+        )
 
-        self.target_batch_class = namedtuple("TargetBatch",
-                                             [field.name for field in
-                                              dataset.fields if
-                                              field.is_target])
+        self.target_batch_class = namedtuple(
+            "TargetBatch", [field.name for field in dataset.fields if field.is_target]
+        )
 
         self.batch_size = batch_size
         self.dataset = dataset
@@ -93,8 +97,10 @@ class Iterator:
 
         if self.shuffle:
             if seed is None and internal_random_state is None:
-                raise ValueError("If shuffle==True, either seed or "
-                                 "internal_random_state have to be != None.")
+                raise ValueError(
+                    "If shuffle==True, either seed or "
+                    "internal_random_state have to be != None."
+                )
 
             self.shuffler = Random(seed)
 
@@ -137,7 +143,7 @@ class Iterator:
 
         data = self._data()
         for i in range(0, len(data), self.batch_size):
-            batch_examples = data[i:i + self.batch_size]
+            batch_examples = data[i: i + self.batch_size]
             input_batch, target_batch = self._create_batch(batch_examples)
 
             yield input_batch, target_batch
@@ -171,8 +177,7 @@ class Iterator:
 
         if not self.shuffle:
             raise RuntimeError(
-                "Iterator with shuffle=False does not have "
-                "an internal random state."
+                "Iterator with shuffle=False does not have " "an internal random state."
             )
 
         return self.shuffler.getstate()
@@ -196,8 +201,7 @@ class Iterator:
 
         if not self.shuffle:
             raise RuntimeError(
-                "Iterator with shuffle=False does not have "
-                "an internal random state."
+                "Iterator with shuffle=False does not have " "an internal random state."
             )
 
         self.shuffler.setstate(state)
@@ -292,8 +296,16 @@ class BucketIterator(Iterator):
     splitting it into batches, so there is less padding necessary.
     """
 
-    def __init__(self, dataset, batch_size, sort_key=None, shuffle=True,
-                 seed=42, look_ahead_multiplier=100, bucket_sort_key=None):
+    def __init__(
+            self,
+            dataset,
+            batch_size,
+            sort_key=None,
+            shuffle=True,
+            seed=42,
+            look_ahead_multiplier=100,
+            bucket_sort_key=None,
+    ):
         """Creates a BucketIterator with the given bucket sort key and
         look-ahead multiplier (how many batch_sizes to look ahead when
         sorting examples for batches).
@@ -325,10 +337,12 @@ class BucketIterator(Iterator):
         if sort_key is None and bucket_sort_key is None:
             raise ValueError(
                 "For BucketIterator to work, either sort_key or "
-                "bucket_sort_key must be != None.")
+                "bucket_sort_key must be != None."
+            )
 
-        super().__init__(dataset, batch_size, sort_key=sort_key,
-                         shuffle=shuffle, seed=seed)
+        super().__init__(
+            dataset, batch_size, sort_key=sort_key, shuffle=shuffle, seed=seed
+        )
 
         self.bucket_sort_key = bucket_sort_key
         self.look_ahead_multiplier = look_ahead_multiplier
@@ -347,14 +361,14 @@ class BucketIterator(Iterator):
 
         for i in range(0, len(data), step):
             if self.bucket_sort_key is not None:
-                bucket = sorted(data[i:i + step], key=self.bucket_sort_key)
+                bucket = sorted(data[i: i + step], key=self.bucket_sort_key)
             else:
                 # if bucket_sort_key is None, sort_key != None so the whole
                 # dataset was already sorted with sort_key
-                bucket = data[i:i + step]
+                bucket = data[i: i + step]
 
             for j in range(0, len(bucket), self.batch_size):
-                examples = bucket[j:j + self.batch_size]
+                examples = bucket[j: j + self.batch_size]
                 input_batch, target_batch = self._create_batch(examples)
 
                 yield input_batch, target_batch
@@ -366,32 +380,47 @@ class BucketIterator(Iterator):
 
 
 class HierarchicalDatasetIterator(Iterator):
-
-    def __init__(self, dataset, batch_size, sort_key=None, shuffle=False,
-                 seed=1, internal_random_state=None,
-                 context_max_length=None, context_max_depth=None):
+    def __init__(
+            self,
+            dataset,
+            batch_size,
+            sort_key=None,
+            shuffle=False,
+            seed=1,
+            internal_random_state=None,
+            context_max_length=None,
+            context_max_depth=None,
+    ):
 
         if context_max_length is not None and context_max_length < 1:
-            raise ValueError(f"'context_max_length' must not be less than 1. "
-                             f"If you don't want context, try flattening the dataset. "
-                             f"'context_max_length' : {context_max_length})")
+            raise ValueError(
+                f"'context_max_length' must not be less than 1. "
+                f"If you don't want context, try flattening the dataset. "
+                f"'context_max_length' : {context_max_length})"
+            )
 
         if context_max_depth is not None and context_max_depth < 0:
-            raise ValueError(f"'context_max_depth' must not be negative. "
-                             f"'context_max_depth' : {context_max_depth}")
+            raise ValueError(
+                f"'context_max_depth' must not be negative. "
+                f"'context_max_depth' : {context_max_depth}"
+            )
 
         self._context_max_depth = context_max_depth
         self._context_max_size = context_max_length
 
-        super().__init__(dataset, batch_size,
-                         sort_key=sort_key,
-                         shuffle=shuffle,
-                         seed=seed,
-                         internal_random_state=internal_random_state)
+        super().__init__(
+            dataset,
+            batch_size,
+            sort_key=sort_key,
+            shuffle=shuffle,
+            seed=seed,
+            internal_random_state=internal_random_state,
+        )
 
     def _get_node_context(self, node):
-        context_iterator = HierarchicalDataset._get_node_context(node,
-                                                                 self._context_max_depth)
+        context_iterator = HierarchicalDataset._get_node_context(
+            node, self._context_max_depth
+        )
         context = list(context_iterator)
 
         if self._context_max_size is not None:

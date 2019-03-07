@@ -345,6 +345,7 @@ def test_hierarchical_dataset_iteration(hierarchical_dataset):
     assert np.all(input_batch_1.number[1] == [[1], [2]])
     assert np.all(input_batch_1.number[2] == [[1], [2], [3]])
 
+
     input_batch_2, _ = batch_iter.__next__()
     assert len(input_batch_2.number) == 3
     assert np.all(input_batch_2.number[0] == [[1], [2], [4]])
@@ -359,7 +360,7 @@ def test_hierarchical_dataset_iteration(hierarchical_dataset):
 
     input_batch_4, _ = batch_iter.__next__()
     assert len(input_batch_4.number) == 1
-    assert np.all(input_batch_4.number[2] == [[5], [6], [7], [8], [10]])
+    assert np.all(input_batch_4.number[0] == [[5], [6], [7], [8], [10]])
 
     with pytest.raises(StopIteration):
         batch_iter.__next__()

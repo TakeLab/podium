@@ -817,6 +817,7 @@ class HierarchicalDataset:
 
         Returns
         -------
+        Dataset
             a standard Dataset
         """
         return Dataset(list(self.flatten()), self._field_dict)
@@ -871,6 +872,8 @@ class HierarchicalDataset:
 
             Returns
             -------
+            Node
+                the node with the provided index.
 
             """
             start = 0

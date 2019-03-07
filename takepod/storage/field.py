@@ -392,9 +392,11 @@ class Field(object):
             diff = length - len(row)
 
             if pad_left:
-                row = np.append([pad_symbol] * diff, row)
+                row = np.pad(row, (diff, 0), 'constant',
+                             constant_values=pad_symbol)
             else:
-                row = np.append(row, [pad_symbol] * diff)
+                row = np.pad(row, (0, diff), 'constant',
+                             constant_values=pad_symbol)
 
         return row
 
