@@ -1,8 +1,11 @@
 """Module contains storage utility methods."""
 import os
+import logging
 import zipfile
 import tarfile
 from tqdm import tqdm
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def copyfileobj_with_tqdm(finput, foutput, total_size, buffer_size=16 * 1024):
@@ -47,9 +50,9 @@ def extract_zip_file(archive_file, destination_dir):
         if given archive file doesn't exists
     """
     if not os.path.exists(archive_file):
-        raise ValueError("Given archive file doesn't exists. Given {}.".format(
-            archive_file
-        ))
+        error_msg = "Given archive file doesn't exists. Given {archive_file}."
+        _LOGGER.error(error_msg)
+        raise ValueError(error_msg)
     zip_ref = zipfile.ZipFile(file=archive_file, mode='r')
     zip_ref.extractall(path=destination_dir)
     zip_ref.close()
@@ -72,9 +75,9 @@ def extract_tar_file(archive_file, destination_dir):
         if given archive file doesn't exists
     """
     if not os.path.exists(archive_file):
-        raise ValueError("Given archive file doesn't exists. Given {}.".format(
-            archive_file
-        ))
+        error_msg = f"Given archive file doesn't exists. Given {archive_file}."
+        _LOGGER.error(error_msg)
+        raise ValueError(error_msg)
     tar_ref = tarfile.TarFile(name=archive_file, mode='r')
     tar_ref.extractall(path=destination_dir)
     tar_ref.close()

@@ -1,7 +1,10 @@
 """Example module that defines mapping for single data instance."""
 import csv
 import json
+import logging
 import xml.etree.ElementTree as ET
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class Example(object):
@@ -13,7 +16,7 @@ class Example(object):
     """
 
     @classmethod
-    def fromJSON(cls, data, fields):
+    def from_json(cls, data, fields):
         """ Creates an Example from a JSON object and the
         corresponding fields.
 
@@ -39,10 +42,10 @@ class Example(object):
             if JSON doesn't contain key name
         """
 
-        return cls.fromdict(json.loads(data), fields)
+        return cls.from_dict(json.loads(data), fields)
 
     @classmethod
-    def fromCSV(cls, data, fields, field_to_index=None, delimiter=","):
+    def from_csv(cls, data, fields, field_to_index=None, delimiter=","):
         """ Creates an Example from a CSV line and a corresponding
         list or dict of Fields.
 
@@ -72,13 +75,13 @@ class Example(object):
         elements = next(csv.reader([data], delimiter=delimiter))
 
         if isinstance(fields, list):
-            return cls.fromlist(elements, fields)
+            return cls.from_list(elements, fields)
         else:
             data_dict = {f: elements[idx] for f, idx in field_to_index.items()}
-            return cls.fromdict(data_dict, fields)
+            return cls.from_dict(data_dict, fields)
 
     @classmethod
-    def fromdict(cls, data, fields):
+    def from_dict(cls, data, fields):
         """ Creates an Example from a dict of Fields and a dict of
         corresponding values.
 
@@ -109,9 +112,10 @@ class Example(object):
         items = filter(lambda el: el[1] is not None, fields.items())
         for key, field in items:
             if key not in data:
-                raise ValueError(
-                    "Specified key {} was not found in the input data"
-                    .format(key))
+                error_msg = f"Specified key {key} was not found "\
+                            "in the input data"
+                _LOGGER.error(error_msg)
+                raise ValueError(error_msg)
 
             val = data[key]
             set_example_attributes(example, field, val)
@@ -119,7 +123,7 @@ class Example(object):
         return example
 
     @classmethod
-    def fromxmlstr(cls, data, fields):
+    def from_xml_str(cls, data, fields):
         """Method creates and Example from xml string.
 
         Parameters
@@ -157,9 +161,10 @@ class Example(object):
                 if root.tag == name:
                     node = root
                 else:
-                    raise ValueError(
-                        "Specified name {} was not found in the input data"
-                        .format(name))
+                    error_msg = f"Specified name {name} was not found in the "\
+                                "input data"
+                    _LOGGER.error(error_msg)
+                    raise ValueError(error_msg)
 
             val = node.text
             set_example_attributes(example, field, val)
@@ -167,7 +172,7 @@ class Example(object):
         return example
 
     @classmethod
-    def fromlist(cls, data, fields):
+    def from_list(cls, data, fields):
         """ Creates an Example from a list of Fields and a list of
         corresponding values.
 
@@ -197,7 +202,7 @@ class Example(object):
         return example
 
     @classmethod
-    def fromtree(cls, data, fields, subtrees=False):
+    def from_tree(cls, data, fields, subtrees=False):
         """ Creates an Example (or multiple Examples) from a string
         representing an nltk tree and a list of corresponding values.
 
@@ -231,10 +236,10 @@ class Example(object):
             subtree_lists = map(tree_to_list, tree.subtrees())
 
             # an example is created for each subtree
-            return [cls.fromlist(subtree_list, fields) for subtree_list in
+            return [cls.from_list(subtree_list, fields) for subtree_list in
                     subtree_lists]
         else:
-            return cls.fromlist(tree_to_list(tree), fields)
+            return cls.from_list(tree_to_list(tree), fields)
 
 
 def tree_to_list(tree):

@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
-
+import takepod
 
 setup(name='takepod',
-      version='0.1.0',
+      version=takepod.__version__,
       description='TakeLab podium (TakePod) project',
       author='TakeLab',
       author_email='takelab@fer.hr',

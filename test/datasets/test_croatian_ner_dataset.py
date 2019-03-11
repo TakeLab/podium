@@ -1,8 +1,8 @@
 import os
 import shutil
 import tempfile
-import pytest
 import xml.etree.ElementTree as ET
+import pytest
 
 from takepod.datasets.croatian_ner_dataset import CroatianNERDataset
 from takepod.storage.dataset import Dataset
