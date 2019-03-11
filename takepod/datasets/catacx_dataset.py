@@ -25,7 +25,7 @@ class CatacxDataset(HierarchicalDataset):
             dictionary that maps field name to the field
             if passed None the default set of fields will be used
         """
-        fields = fields if fields else CatacxDataset._get_default_fields()
+        fields = fields if fields else CatacxDataset.get_default_fields()
         super().__init__(fields, CatacxDataset.get_catacx_parser())
 
     @staticmethod
@@ -62,7 +62,7 @@ class CatacxDataset(HierarchicalDataset):
 
     @staticmethod
     def load_from_file(path, fields=None):
-        fields = fields if fields else CatacxDataset._get_default_fields()
+        fields = fields if fields else CatacxDataset.get_default_fields()
         parser = CatacxDataset._get_catacx_parser()
 
         with open(path, mode='r') as f:
@@ -82,7 +82,7 @@ class CatacxDataset(HierarchicalDataset):
                 children = raw.get('replies')
 
             else:
-                children = []
+                children = ()
 
             return example, children
 
@@ -101,7 +101,7 @@ class CatacxDataset(HierarchicalDataset):
         return extractor_tokenizer
 
     @staticmethod
-    def _get_default_fields():
+    def get_default_fields():
         """
         Method returns a dict of default Catacx comment fields.
         fields : author_name, author_id, id, likes_cnt, message
@@ -137,13 +137,12 @@ class CatacxDataset(HierarchicalDataset):
                                 store_as_raw=True,
                                 tokenize=False,
                                 custom_numericalize=float,
-                                default_value_callable=Field.empty_vector_callable())
+                                allow_missing_data=True)
 
         likes_cnt_field = Field("likes_cnt",
                                 store_as_raw=True,
                                 tokenize=False,
-                                custom_numericalize=int,
-                                default_value_callable=Field.empty_vector_callable())
+                                custom_numericalize=int)
 
         message_field = Field(name='message',
                               vocab=Vocab(),
@@ -156,32 +155,29 @@ class CatacxDataset(HierarchicalDataset):
                            store_as_raw=True,
                            tokenize=False,
                            custom_numericalize=int,
-                           default_value_callable=Field.empty_vector_callable())
+                           allow_missing_data=True)
 
         emotions_field = MultilabelField("emotions",
                                          vocab=Vocab(specials=()),
-                                         default_value_callable=
-                                         Field.empty_vector_callable())
+                                         allow_missing_data=True)
 
         irony_field = Field("irony",
                             store_as_raw=True,
                             tokenize=False,
                             custom_numericalize=int,
-                            default_value_callable=Field.empty_vector_callable())
+                            allow_missing_data=True)
 
         speech_acts_field = MultilabelField("speech_acts",
                                             vocab=Vocab(specials=()),
-                                            default_value_callable=
-                                            Field.empty_vector_callable())
+                                            allow_missing_data=True)
 
         topics_field = MultilabelField("topics",
                                        vocab=Vocab(specials=()),
-                                       default_value_callable=
-                                       Field.empty_vector_callable())
+                                       allow_missing_data=True)
 
         cs_field = MultilabelField("cs",
                                    vocab=Vocab(specials=()),
-                                   default_value_callable=Field.empty_vector_callable())
+                                   allow_missing_data=True)
 
         pos_tag_field = Field("pos_tags",
                               store_as_raw=False,

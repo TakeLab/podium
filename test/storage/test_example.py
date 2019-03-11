@@ -46,20 +46,20 @@ def test_fromdict_ok(data_dict, fields_dict):
     assert received_example.__dict__ == expected_example.__dict__
 
 
-@pytest.mark.parametrize(
-    "data_dict, fields_dict",
-    [
-        (
-            {"text": "this is a review", "rating": 4.5, "sentiment": 1},
-            {"not_text": (MockField("words"), MockField("chars")),
-             "rating": MockField("label"),
-             "sentiment": (MockField("sentiment"), MockField("polarity"))},
-        ),
-    ]
-)
-def test_fromdict_exception(data_dict, fields_dict):
-    with pytest.raises(ValueError):
-        Example.fromdict(data_dict, fields_dict)
+# @pytest.mark.parametrize(
+#     "data_dict, fields_dict",
+#     [
+#         (
+#             {"text": "this is a review", "rating": 4.5, "sentiment": 1},
+#             {"not_text": (MockField("words"), MockField("chars")),
+#              "rating": MockField("label"),
+#              "sentiment": (MockField("sentiment"), MockField("polarity"))},
+#         ),
+#     ]
+# )
+# def test_fromdict_exception(data_dict, fields_dict):
+#     with pytest.raises(ValueError):
+#         Example.fromdict(data_dict, fields_dict)
 
 
 @pytest.mark.parametrize(
@@ -93,20 +93,20 @@ def test_fromJSON_ok(json_data, fields_dict, expected_data_dict):
     assert received_example.__dict__ == expected_example.__dict__
 
 
-@pytest.mark.parametrize(
-    "json_data, fields_dict",
-    [
-        (
-            '{"text": "this is a review", "rating": 4.5, "sentiment": 1}',
-            {"not_text": (MockField("words"), MockField("chars")),
-             "rating": MockField("label"),
-             "sentiment": (MockField("sentiment"), MockField("polarity"))},
-        ),
-    ]
-)
-def test_fromJSON_exception(json_data, fields_dict):
-    with pytest.raises(ValueError):
-        Example.fromJSON(json_data, fields_dict)
+# @pytest.mark.parametrize(
+#     "json_data, fields_dict",
+#     [
+#         (
+#             '{"text": "this is a review", "rating": 4.5, "sentiment": 1}',
+#             {"not_text": (MockField("words"), MockField("chars")),
+#              "rating": MockField("label"),
+#              "sentiment": (MockField("sentiment"), MockField("polarity"))},
+#         ),
+#     ]
+# )
+# def test_fromJSON_exception(json_data, fields_dict):
+#     with pytest.raises(ValueError):
+#         Example.fromJSON(json_data, fields_dict)
 
 
 @pytest.mark.parametrize(

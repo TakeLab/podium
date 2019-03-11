@@ -507,31 +507,48 @@ def test_field_fail_initialization(store_as_raw, store_as_tokenized, tokenize):
               tokenize=tokenize)
 
 
-def test_missing_values_default():
+def test_missing_values_default_sequential():
     fld = Field("bla",
-                store_as_raw=True,
-                tokenize=False,
+                store_as_raw=False,
+                tokenize=True,
                 custom_numericalize=lambda x: hash(x),
-                default_value_callable=lambda: np.empty(0))
+                allow_missing_data=True)
 
     data_missing = fld.preprocess(None)
     data_exists = fld.preprocess("data_string")
 
     assert data_missing == (None, None)
-    assert data_exists == ("data_string", None)
-
+    assert data_exists == (None, ["data_string"])
     fld.finalize()
 
     assert np.all(fld.numericalize(data_missing) == np.empty(0))
     assert np.all(fld.numericalize(data_exists) == np.array([hash("data_string")]))
 
 
+def test_missing_values_default_not_sequential():
+    fld = Field("bla",
+                store_as_raw=True,
+                tokenize=False,
+                custom_numericalize=int,
+                allow_missing_data=True)
+
+    data_missing = fld.preprocess(None)
+    data_exists = fld.preprocess("404")
+
+    assert data_missing == (None, None)
+    assert data_exists == ("404", None)
+
+    fld.finalize()
+
+    assert np.allclose(fld.numericalize(data_missing), np.array([np.nan]), equal_nan=True)
+    assert np.all(fld.numericalize(data_exists) == np.array([404]))
+
+
 def test_missing_values_fail():
     fld = Field("bla",
                 store_as_raw=True,
                 tokenize=False,
-                custom_numericalize=lambda x: hash(x),
-                default_value_callable=None)
+                custom_numericalize=lambda x: hash(x))
 
     with pytest.raises(ValueError):
         fld.preprocess(None)

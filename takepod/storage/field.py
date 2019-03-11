@@ -23,7 +23,7 @@ class Field(object):
                  custom_numericalize=float,
                  is_target=False,
                  fixed_length=None,
-                 default_value_callable=None
+                 allow_missing_data=False
                  ):
         """Create a Field from arguments.
 
@@ -124,11 +124,7 @@ class Field(object):
 
         self.pretokenize_hooks = deque()
         self.posttokenize_hooks = deque()
-        self.default_value_callable = default_value_callable
-
-    @staticmethod
-    def empty_vector_callable():
-        return lambda: np.empty(0)
+        self.allow_missing_data = allow_missing_data
 
     @property
     def use_vocab(self):
@@ -277,7 +273,7 @@ class Field(object):
         tokens = None
 
         if data is None:
-            if self.default_value_callable is None:
+            if not self.allow_missing_data:
                 raise ValueError(f"Missing data not allowed in field {self.name}")
 
             else:
@@ -362,6 +358,13 @@ class Field(object):
             # (such as floating point data Fields)
             return np.array([self.custom_numericalize(tok) for tok in tokens])
 
+    def get_default_value(self):
+        if self.sequential:
+            return np.empty(0)
+
+        else:
+            return np.array([np.nan])
+
     def numericalize(self, data):
         """Numericalize the already preprocessed data point based either on
         the vocab that was previously built, or on a custom numericalization
@@ -383,10 +386,10 @@ class Field(object):
         raw, tokenized = data
 
         if raw is None and tokenized is None:
-            if self.default_value_callable is None:
+            if not self.allow_missing_data:
                 raise ValueError(f"Missing value found in field {self.name}.")
             else:
-                return self.default_value_callable()
+                return self.get_default_value()
 
         # raw data is just a string, so we need to wrap it into an iterable
         tokens = tokenized if self.tokenize or self.store_as_tokenized else [raw]
@@ -466,7 +469,7 @@ class TokenizedField(Field):
                  custom_numericalize=float,
                  is_target=False,
                  fixed_length=None,
-                 default_value_callable=None):
+                 allow_missing_data=False):
 
         super().__init__(
             name=name,
@@ -478,7 +481,7 @@ class TokenizedField(Field):
             custom_numericalize=custom_numericalize,
             is_target=is_target,
             fixed_length=fixed_length,
-            default_value_callable=default_value_callable
+            allow_missing_data=allow_missing_data
         )
 
 
@@ -490,7 +493,7 @@ class MultilabelField(TokenizedField):
                  eager=True,
                  custom_numericalize=float,
                  fixed_length=None,
-                 default_value_callable = None):
+                 allow_missing_data=False):
 
         if vocab is not None and vocab.has_specials:
             raise ValueError("Vocab contains special symbols."
@@ -503,4 +506,4 @@ class MultilabelField(TokenizedField):
                          custom_numericalize=custom_numericalize,
                          is_target=True,
                          fixed_length=fixed_length,
-                         default_value_callable=default_value_callable)
+                         allow_missing_data=allow_missing_data)
