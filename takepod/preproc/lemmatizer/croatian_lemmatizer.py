@@ -165,7 +165,7 @@ def _uppercase_target_like_source(source, target):
 def _lemmatizer_posttokenized_hook(
         raw, tokenized, lemmatizer):
     """Lemmatizer postokenized hook that can be used in field processing.
-    It is intented for the user to use `CROATIAN_LEMMATIZER_POSTOKENIZED_HOOK`
+    It is intented for the user to use `get_croatian_lemmatizer_hook`
     instead of this function as it hides Lemmatizer initialization and ensures
     that the constructor is called once.
 
