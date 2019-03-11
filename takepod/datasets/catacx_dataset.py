@@ -1,7 +1,7 @@
 import os
 
 from takepod.storage import HierarchicalDataset, Example, Field, \
-    MultilabelField, Vocab
+    MultilabelField, Vocab, LargeResource
 
 
 class CatacxDataset(HierarchicalDataset):
@@ -41,22 +41,22 @@ class CatacxDataset(HierarchicalDataset):
 
         Returns
         -------
-        CatacxCommentsDataset
+        CatacxDataset
             The loaded dataset.
         """
 
         raise NotImplementedError("Downloading is not implemented yet")
 
         LargeResource(**{
-            LargeResource.RESOURCE_NAME: CatacxCommentsDataset.NAME,
+            LargeResource.RESOURCE_NAME: CatacxDataset.NAME,
             LargeResource.ARCHIVE: "zip",
-            LargeResource.URI: CatacxCommentsDataset.URL
+            LargeResource.URI: CatacxDataset.URL
         })
 
         filepath = os.path.join(
             LargeResource.BASE_RESOURCE_DIR,
-            CatacxCommentsDataset.DATASET_DIR,
-            CatacxCommentsDataset.DATASET_FILE_NAME)
+            CatacxDataset.DATASET_DIR,
+            CatacxDataset.DATASET_FILE_NAME)
 
         return CatacxDataset.load_from_file(filepath, fields=fields)
 
@@ -73,7 +73,7 @@ class CatacxDataset(HierarchicalDataset):
     @staticmethod
     def _get_catacx_parser():
         def catacx_parser(raw, fields, depth):
-            example = Example.fromdict(raw, fields)
+            example = Example.from_dict(raw, fields)
 
             if depth == 0:
                 children = raw.get('comments')
@@ -103,9 +103,7 @@ class CatacxDataset(HierarchicalDataset):
     @staticmethod
     def get_default_fields():
         """
-        Method returns a dict of default Catacx comment fields.
-        fields : author_name, author_id, id, likes_cnt, message
-
+        Method returns a dict of default Catacx fields.
 
         Returns
         -------
@@ -129,9 +127,9 @@ class CatacxDataset(HierarchicalDataset):
         # created_time - JSON date
         # cs
 
-        id_field = Field("id",
-                         store_as_raw=True,
-                         tokenize=False)
+        # id_field = Field("id",
+        #                  store_as_raw=True,
+        #                  tokenize=False)
 
         sentiment_field = Field("sentiment",
                                 store_as_raw=True,
@@ -189,8 +187,8 @@ class CatacxDataset(HierarchicalDataset):
 
         parent_ids_field = Field("parent_ids",
                                  store_as_raw=False,
-                                 tokenizer=
-                                 CatacxDataset.get_sentences_tokenizer("parent_id"))
+                                 tokenizer=CatacxDataset
+                                 .get_sentences_tokenizer("parent_id"))
 
         tokens_field = Field("tokens",
                              store_as_raw=False,

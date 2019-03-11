@@ -3,13 +3,17 @@ lemmatizer dictionaries. It can return all possible word
 inflections for a lemma, or return the lemma of any
 word inflexion for the Croatian language."""
 import os
+import logging
 import getpass
 import functools
 
-from takepod.storage.large_resource import LargeResource, SCPLargeResource
+from takepod.preproc.util import capitalize_target_like_source
+from takepod.storage.large_resource import SCPLargeResource
+
+_LOGGER = logging.getLogger(__name__)
 
 
-class CroatianLemmatizer():
+class CroatianLemmatizer(SCPLargeResource):
     """Class for lemmatizing words and fetching word
     inflections for a given lemma
 
@@ -39,20 +43,27 @@ class CroatianLemmatizer():
         self.__word2lemma_dict = None
         self.__lemma2word_dict = None
 
+        CroatianLemmatizer.MOLEX14_LEMMA2WORD = os.path.join(
+            SCPLargeResource.BASE_RESOURCE_DIR, self.MOLEX14_LEMMA2WORD)
+        CroatianLemmatizer.MOLEX14_WORD2LEMMA = os.path.join(
+            SCPLargeResource.BASE_RESOURCE_DIR, self.MOLEX14_WORD2LEMMA)
+
         # automatically downloads molex resources
         # defaults should work for linux and access to djurdja.fer.hr
         kwargs.update({
-            LargeResource.URI: "/storage/molex/molex.zip",
-            LargeResource.RESOURCE_NAME: self.BASE_FOLDER,
-            LargeResource.ARCHIVE: "zip",
+            SCPLargeResource.URI: "/storage/molex/molex.zip",
+            SCPLargeResource.RESOURCE_NAME: self.BASE_FOLDER,
+            SCPLargeResource.ARCHIVE: "zip",
             SCPLargeResource.SCP_HOST_KEY: "djurdja.takelab.fer.hr",
             # if your username is same as one on djurdja
             SCPLargeResource.SCP_USER_KEY: kwargs.get(
                 SCPLargeResource.SCP_USER_KEY, getpass.getuser()
             ),
         })
-        SCPLargeResource(**kwargs)
+        super(CroatianLemmatizer, self).__init__(
+            **kwargs)
 
+    @capitalize_target_like_source
     def lemmatize_word(self, word):
         """Returns the lemma for the provided word if
         there is a word in a dictionary, otherwise returns the word.
@@ -70,15 +81,9 @@ class CroatianLemmatizer():
         """
 
         try:
-            is_lower = word.islower()
-            word_lower = word if is_lower else word.lower()
-            lemma = self._word2lemma[word_lower]
-            if is_lower:
-                return lemma
-            else:
-                return _uppercase_target_like_source(word, lemma)
+            return self._word2lemma[word]
         except KeyError:
-            # TODO: insert log statement that a word is being returned
+            _LOGGER.info("Word is being returned instead of lemma.")
             return word
 
     def get_words_for_lemma(self, lemma):
@@ -110,7 +115,9 @@ class CroatianLemmatizer():
                 for w in words
             ]
         except KeyError:
-            raise ValueError("No words found for lemma {}".format(lemma))
+            error_msg = "No words found for lemma {}".format(lemma)
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
 
     @property
     def _word2lemma(self):
@@ -128,16 +135,16 @@ class CroatianLemmatizer():
 
     def _get_word2lemma_dict(self):
         molex_dict = {}
-        with open(self.MOLEX14_WORD2LEMMA, encoding='utf-8') as f:
-            for line in f.readlines():
+        with open(self.MOLEX14_WORD2LEMMA, encoding='utf-8') as fp_word:
+            for line in fp_word.readlines():
                 word, lemma = line.split(" ")
                 molex_dict[word] = lemma.rstrip()
         return molex_dict
 
     def _get_lemma2word_dict(self):
         molex_dict = {}
-        with open(self.MOLEX14_LEMMA2WORD, encoding='utf-8') as f:
-            for line in f.readlines():
+        with open(self.MOLEX14_LEMMA2WORD, encoding='utf-8') as fp_lemma:
+            for line in fp_lemma.readlines():
                 sline = line.split('#')
                 lemma, words = sline
                 words = words.rstrip().split(',')

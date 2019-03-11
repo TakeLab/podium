@@ -3,7 +3,7 @@ import pickle
 import pytest
 
 from collections import Counter
-
+from json import JSONDecodeError
 from takepod.storage import Dataset, HierarchicalDataset, TabularDataset, Field
 
 
@@ -581,7 +581,7 @@ def hierarchical_dataset_fields():
 
 @pytest.fixture()
 def hierarchical_dataset_parser():
-    return HierarchicalDataset.get_default_json_parser("children")
+    return HierarchicalDataset.get_default_dict_parser("children")
 
 
 @pytest.fixture()
@@ -613,7 +613,7 @@ def test_create_hierarchical_dataset_from_json(hierarchical_dataset):
     assert root_nodes[1].children[0].example.name[0] == "c21"
     assert root_nodes[1].children[0].example.number[0] == 6
 
-    assert len(hierarchical_dataset) == 9
+    assert len(hierarchical_dataset) == 10
     assert hierarchical_dataset.depth == 2
 
 
@@ -623,7 +623,7 @@ def test_flatten_hierarchical_dataset(hierarchical_dataset):
         assert example.number[0] == index + 1
         count += 1
 
-    assert count == 9
+    assert count == 10
 
 
 def test_hierarchical_dataset_example_indexing(hierarchical_dataset):
@@ -631,13 +631,100 @@ def test_hierarchical_dataset_example_indexing(hierarchical_dataset):
     assert hierarchical_dataset[0].name[0] == "parent1"
     assert hierarchical_dataset[1].name[0] == "c11"
     assert hierarchical_dataset[2].name[0] == "c111"
+    assert hierarchical_dataset[3].name[0] == "c12"
+    assert hierarchical_dataset[4].name[0] == "parent2"
     assert hierarchical_dataset[5].name[0] == "c21"
     assert hierarchical_dataset[6].name[0] == "c22"
     assert hierarchical_dataset[7].name[0] == "c23"
-    assert hierarchical_dataset[8].name[0] == "c24"
+    assert hierarchical_dataset[8].name[0] == "c231"
+    assert hierarchical_dataset[9].name[0] == "c24"
+
+
+def test_hierarchical_dataset_invalid_json_fail(hierarchical_dataset_fields):
+    with pytest.raises(JSONDecodeError):
+        HierarchicalDataset.from_json(INVALID_JSON, hierarchical_dataset_fields,
+                                      HierarchicalDataset
+                                      .get_default_dict_parser("children"))
+
+
+def test_hierarchical_dataset_json_root_element_not_list_fail():
+    with pytest.raises(ValueError):
+        HierarchicalDataset.from_json(JSON_ROOT_NOT_LIST, hierarchical_dataset_fields,
+                                      HierarchicalDataset
+                                      .get_default_dict_parser("children"))
+
+
+def test_hierarchical_dataset_context_iteration(hierarchical_dataset):
+    c111_expected_context = ["parent1", "c11"]
+    c111_context = list(map(lambda x: x.name[0], hierarchical_dataset.get_context(2)))
+    assert c111_context == c111_expected_context
+
+    c23_expected_context_0_lvl = ["parent2", "c21", "c22"]
+    c23_context_0_lvl = list(
+        map(
+            lambda x: x.name[0], hierarchical_dataset.get_context(7, 0)
+        )
+    )
+
+    assert c23_context_0_lvl == c23_expected_context_0_lvl
 
 
 HIERARCHIAL_DATASET_JSON_EXAMPLE = """
+[
+{
+    "name" : "parent1",
+    "number" : 1,
+    "children" : [
+        {
+            "name" : "c11",
+            "number" : 2,
+            "children" : [
+                {
+                    "name" : "c111",
+                    "number" : 3
+                }
+            ]
+        },
+        {
+            "name" : "c12",
+            "number" : 4
+        }
+    ]
+},
+{
+    "name" : "parent2",
+    "number" : 5,
+    "children" : [
+        {
+            "name" : "c21",
+            "number" : 6
+        },
+        {
+            "name" : "c22",
+            "number" : 7,
+            "children" : []
+        },
+        {
+            "name" : "c23",
+            "number" : 8,
+            "children" : [
+                {
+                    "name" : "c231",
+                    "number" : 9
+                }
+            ]
+        },
+        {
+            "name" : "c24",
+            "number" : 10
+        }
+    ]
+}
+]
+"""
+
+
+INVALID_JSON = """
 [
 {
     "name" : "parent1",
@@ -654,38 +741,24 @@ HIERARCHIAL_DATASET_JSON_EXAMPLE = """
                 }
             ]
         },
-        {
-            "name" : "c12",
-            "number" : 4,
-            "children" : []
-        }
-    ]
-},
+"""
+
+JSON_ROOT_NOT_LIST = """
 {
-    "name" : "parent2",
-    "number" : 5,
+    "name" : "parent1",
+    "number" : 1,
     "children" : [
         {
-            "name" : "c21",
-            "number" : 6,
-            "children" : []
-        },
-        {
-            "name" : "c22",
-            "number" : 7,
-            "children" : []
-        },
-        {
-            "name" : "c23",
-            "number" : 8,
-            "children" : []
-        },
-        {
-            "name" : "c24",
-            "number" : 9,
-            "children" : []
+            "name" : "c11",
+            "number" : 2,
+            "children" : [
+                {
+                    "name" : "c111",
+                    "number" : 3,
+                    "children" : []
+                }
+            ]
         }
-    ]
-    }
-]
+        ]
+}
 """

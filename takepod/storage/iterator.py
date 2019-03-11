@@ -1,9 +1,14 @@
 """"Module contains classes for iterating over datasets."""
 import math
+import logging
+
 from random import Random
+from collections import namedtuple
 import numpy as np
 
-from collections import namedtuple
+from takepod.storage.dataset import HierarchicalDataset
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class Iterator:
@@ -17,8 +22,15 @@ class Iterator:
         The number of iterations elapsed in the current epoch.
     """
 
-    def __init__(self, dataset, batch_size, sort_key=None, shuffle=False,
-                 seed=1, internal_random_state=None):
+    def __init__(
+            self,
+            dataset,
+            batch_size,
+            sort_key=None,
+            shuffle=False,
+            seed=1,
+            internal_random_state=None,
+    ):
         """ Creates an iterator for the given dataset and batch size.
 
         Parameters
@@ -67,15 +79,14 @@ class Iterator:
             None.
         """
 
-        self.input_batch_class = namedtuple("InputBatch",
-                                            [field.name for field in
-                                             dataset.fields if
-                                             not field.is_target])
+        self.input_batch_class = namedtuple(
+            "InputBatch",
+            [field.name for field in dataset.fields if not field.is_target],
+        )
 
-        self.target_batch_class = namedtuple("TargetBatch",
-                                             [field.name for field in
-                                              dataset.fields if
-                                              field.is_target])
+        self.target_batch_class = namedtuple(
+            "TargetBatch", [field.name for field in dataset.fields if field.is_target]
+        )
 
         self.batch_size = batch_size
         self.dataset = dataset
@@ -89,8 +100,10 @@ class Iterator:
 
         if self.shuffle:
             if seed is None and internal_random_state is None:
-                raise ValueError("If shuffle==True, either seed or "
-                                 "internal_random_state have to be != None.")
+                error_msg = "If shuffle==True, either seed or "\
+                            "internal_random_state have to be != None."
+                _LOGGER.error(error_msg)
+                raise ValueError(error_msg)
 
             self.shuffler = Random(seed)
 
@@ -105,7 +118,7 @@ class Iterator:
         Returns
         -------
         int
-            Number of batches provided in one epoch.
+            Number of batche s provided in one epoch.
         """
 
         return math.ceil(len(self.dataset) / self.batch_size)
@@ -133,7 +146,7 @@ class Iterator:
 
         data = self._data()
         for i in range(0, len(data), self.batch_size):
-            batch_examples = data[i:i + self.batch_size]
+            batch_examples = data[i: i + self.batch_size]
             input_batch, target_batch = self._create_batch(batch_examples)
 
             yield input_batch, target_batch
@@ -166,10 +179,10 @@ class Iterator:
         """
 
         if not self.shuffle:
-            raise RuntimeError(
-                "Iterator with shuffle=False does not have "
-                "an internal random state."
-            )
+            error_msg = "Iterator with shuffle=False does not have "\
+                        "an internal random state."
+            _LOGGER.error(error_msg)
+            raise RuntimeError(error_msg)
 
         return self.shuffler.getstate()
 
@@ -191,10 +204,10 @@ class Iterator:
         """
 
         if not self.shuffle:
-            raise RuntimeError(
-                "Iterator with shuffle=False does not have "
-                "an internal random state."
-            )
+            error_msg = "Iterator with shuffle=False does not have "\
+                        "an internal random state."
+            _LOGGER.error(error_msg)
+            raise RuntimeError(error_msg)
 
         self.shuffler.setstate(state)
 
@@ -211,7 +224,7 @@ class Iterator:
             n_rows = min(self.batch_size, len(examples))
 
             # empty matrix to be filled with numericalized fields
-            matrix = np.zeros(shape=(n_rows, pad_length))
+            matrix = np.empty(shape=(n_rows, pad_length))
 
             # non-sequential fields all have length = 1, no padding necessary
             should_pad = True if field.sequential else False
@@ -288,8 +301,16 @@ class BucketIterator(Iterator):
     splitting it into batches, so there is less padding necessary.
     """
 
-    def __init__(self, dataset, batch_size, sort_key=None, shuffle=True,
-                 seed=42, look_ahead_multiplier=100, bucket_sort_key=None):
+    def __init__(
+            self,
+            dataset,
+            batch_size,
+            sort_key=None,
+            shuffle=True,
+            seed=42,
+            look_ahead_multiplier=100,
+            bucket_sort_key=None,
+    ):
         """Creates a BucketIterator with the given bucket sort key and
         look-ahead multiplier (how many batch_sizes to look ahead when
         sorting examples for batches).
@@ -319,12 +340,14 @@ class BucketIterator(Iterator):
         """
 
         if sort_key is None and bucket_sort_key is None:
-            raise ValueError(
-                "For BucketIterator to work, either sort_key or "
-                "bucket_sort_key must be != None.")
+            error_msg = "For BucketIterator to work, either sort_key or "\
+                        "bucket_sort_key must be != None."
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
 
-        super().__init__(dataset, batch_size, sort_key=sort_key,
-                         shuffle=shuffle, seed=seed)
+        super().__init__(
+            dataset, batch_size, sort_key=sort_key, shuffle=shuffle, seed=seed
+        )
 
         self.bucket_sort_key = bucket_sort_key
         self.look_ahead_multiplier = look_ahead_multiplier
@@ -343,14 +366,14 @@ class BucketIterator(Iterator):
 
         for i in range(0, len(data), step):
             if self.bucket_sort_key is not None:
-                bucket = sorted(data[i:i + step], key=self.bucket_sort_key)
+                bucket = sorted(data[i: i + step], key=self.bucket_sort_key)
             else:
                 # if bucket_sort_key is None, sort_key != None so the whole
                 # dataset was already sorted with sort_key
-                bucket = data[i:i + step]
+                bucket = data[i: i + step]
 
             for j in range(0, len(bucket), self.batch_size):
-                examples = bucket[j:j + self.batch_size]
+                examples = bucket[j: j + self.batch_size]
                 input_batch, target_batch = self._create_batch(examples)
 
                 yield input_batch, target_batch
@@ -359,3 +382,226 @@ class BucketIterator(Iterator):
         # prepare for new epoch
         self.iterations = 0
         self.epoch += 1
+
+
+class HierarchicalDatasetIterator(Iterator):
+    """
+    Iterator used to create batches for Hierarchical Datasets.
+
+    It creates batches in the form of lists of matrices. In the batch namedtuple that gets
+    returned, every attribute corresponds to a field in the dataset. For every field in
+    the dataset, the namedtuple contains a list of matrices, where every matrix
+    represents the context of an example in the batch. The rows of a matrix contain
+    numericalized representations of the examples that make up the context of an example
+    in the batch with the representation of the example itself being in the last row of
+    its own context matrix.
+
+    """
+
+    def __init__(
+            self,
+            dataset,
+            batch_size,
+            sort_key=None,
+            shuffle=False,
+            seed=1,
+            internal_random_state=None,
+            context_max_length=None,
+            context_max_depth=None,
+    ):
+        """ Creates an iterator for the given dataset and batch size.
+
+        Parameters
+        ----------
+        dataset : Dataset
+            The dataset whose examples the iterator will iterate over.
+        batch_size : int
+            The size of the batches that the iterator will return. If the
+            number of examples in the dataset is not a multiple of
+            batch_size the last returned batch will be smaller
+            (dataset_len MOD batch_size).
+        sort_key : callable
+            A callable object used to sort the dataset prior to batching. If
+            None, the dataset won't be sorted.
+            Default is None.
+        shuffle : bool
+            A flag denoting whether the examples should be shuffled before
+            each iteration.
+            If sort_key is not None, this flag being True may not have any
+            effect since the dataset will always be sorted after being
+            shuffled (the only difference shuffling can make is in the
+            order of elements with the same value of sort_key)..
+            Default is False.
+        seed : int
+            The seed that the iterator's internal random state will be
+            initialized with. Useful when we want repeatable random shuffling.
+            Only relevant if shuffle is True. If shuffle is True and
+            internal_random_state is None, then this must not be None,
+            otherwise a ValueError is raised.
+            Default is 1.
+        internal_random_state : tuple
+            The random state that the iterator will be initialized with.
+            Useful when we want to stop iteration and later continue where
+            we left off.
+            If None, the iterator will create its own random state from the
+            given seed, that can later be obtained if we want to store it.
+            Only relevant if shuffle is True. If shuffle is True and seed is
+            None, then this must not be None, otherwise a ValueError is
+            raised.
+            Default is None.
+        context_max_depth: int
+            The maximum depth of the context retrieved for an example in the batch.
+            While generating the context, the iterator will take 'context_max_depth'
+            levels above the example and the root node of the last level, e.g. if 0 is
+            passed, the context generated for an example will contain all examples in the
+            level of the example in the batch and the root example of that level.
+            If None, this depth limit will be ignored.
+        context_max_length: int
+            The maximum length of the context retrieved for an example in the batch. The
+            number of rows in the generated context matrix will be (if needed) truncated
+            to `context_max_length` - 1.
+            If None, this length limit will be ignored.
+
+        Raises
+        ------
+        ValueError
+            If shuffle is True and both seed and internal_random_state are
+            None.
+        """
+
+        if context_max_length is not None and context_max_length < 1:
+            raise ValueError(
+                f"'context_max_length' must not be less than 1. "
+                f"If you don't want context, try flattening the dataset. "
+                f"'context_max_length' : {context_max_length})"
+            )
+
+        if context_max_depth is not None and context_max_depth < 0:
+            raise ValueError(
+                f"'context_max_depth' must not be negative. "
+                f"'context_max_depth' : {context_max_depth}"
+            )
+
+        self._context_max_depth = context_max_depth
+        self._context_max_size = context_max_length
+
+        super().__init__(
+            dataset,
+            batch_size,
+            sort_key=sort_key,
+            shuffle=shuffle,
+            seed=seed,
+            internal_random_state=internal_random_state,
+        )
+
+    def _get_node_context(self, node):
+        """Generates a list of examples that make up the context of the provided node,
+        truncated to adhere to 'context_max_depth' and 'context_max_length' limitations.
+
+        Parameters
+        ----------
+        node : Node
+            The Hierarchical dataset node the context should be retrieved for.
+
+        Returns
+        -------
+        list(Example)
+            A list of examples that make up the context of the provided node,
+            truncated to adhere to 'context_max_depth' and 'context_max_length'
+            limitations.
+
+        """
+        context_iterator = HierarchicalDataset._get_node_context(
+            node, self._context_max_depth
+        )
+        context = list(context_iterator)
+
+        if self._context_max_size is not None:
+            # if context max size is defined, truncate it
+            context = context[-self._context_max_size:]
+
+        # add the example to the end of its own context
+        context.append(node.example)
+
+        return context
+
+    def _create_batch(self, nodes):
+        """
+        Creates a batch from the passed nodes.
+        Parameters
+        ----------
+        nodes : list(Node)
+            Nodes that should be contained in the batch
+
+        Returns
+        -------
+        (namedtuple, namedtuple)
+            a tuple of two namedtuples, input batch and target batch, containing the
+            input and target fields of the batch respectively.
+
+        """
+
+        input_batch_dict, target_batch_dict = {}, {}
+
+        for field in self.dataset.fields:
+            # list of matrices containing numericalized contexts for the current field
+            field_contextualized_example_matrices = []
+
+            for node in nodes:
+
+                # all examples that make up the current node's context
+                node_context_examples = self._get_node_context(node)
+
+                # the length to which all the rows are padded (or truncated)
+                pad_length = Iterator._get_pad_length(field, node_context_examples)
+
+                # empty matrix to be filled with numericalized fields
+                n_rows = len(node_context_examples)
+                matrix = np.empty(shape=(n_rows, pad_length))
+
+                # non-sequential fields all have length = 1, no padding necessary
+                should_pad = True if field.sequential else False
+
+                for i, example in enumerate(node_context_examples):
+                    row = field.numericalize(getattr(example, field.name))
+
+                    if should_pad:
+                        row = field.pad_to_length(row, pad_length)
+
+                    # set the matrix row to the numericalized, padded array
+                    matrix[i] = row
+
+                field_contextualized_example_matrices.append(matrix)
+
+            if field.is_target:
+                target_batch_dict[field.name] = field_contextualized_example_matrices
+
+            else:
+                input_batch_dict[field.name] = field_contextualized_example_matrices
+
+        input_batch = self.input_batch_class(**input_batch_dict)
+        target_batch = self.target_batch_class(**target_batch_dict)
+
+        return input_batch, target_batch
+
+    def _data(self):
+        """Generates a list of Nodes to be used in batch iteration.
+        Returns
+        -------
+        list(Node)
+            a list of Nodes
+        """
+        dataset_nodes = list(self.dataset._node_iterator())
+
+        if self.shuffle:
+            # shuffle the indices
+            indices = list(range(len(self.dataset)))
+            self.shuffler.shuffle(indices)
+
+            # creates a new list of nodes
+            dataset_nodes = [dataset_nodes[i] for i in indices]
+
+        if self.sort_key is not None:
+            dataset_nodes.sort(key=lambda node: self.sort_key(node.example))
+
+        return dataset_nodes

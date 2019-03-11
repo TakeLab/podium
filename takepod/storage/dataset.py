@@ -4,12 +4,15 @@ import io
 import itertools
 import json
 import os
+import logging
 import random
+
 from abc import ABC
-from collections import namedtuple
 from functools import partial
 
 from takepod.storage.example import Example
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class Dataset(ABC):
@@ -83,7 +86,9 @@ class Dataset(ABC):
             return attr_generator()
 
         else:
-            raise AttributeError(f"Dataset has no field '{attr}'.")
+            error_msg = f"Dataset has no field '{attr}'."
+            _LOGGER.error(error_msg)
+            raise AttributeError(error_msg)
 
     def finalize_fields(self, *args):
         """
@@ -196,13 +201,15 @@ class Dataset(ABC):
             strata_field_name = self._get_strata_field_name(strata_field_name)
 
             if strata_field_name is None:
-                raise ValueError(
-                    f"If strata_field_name is not provided, at least one"
-                    f" field has to have is_target equal to True.")
+                error_msg = "If strata_field_name is not provided, at least"\
+                            " one field has to have is_target equal to True."
+                _LOGGER.error(error_msg)
+                raise ValueError(error_msg)
 
             if strata_field_name not in self.field_dict:
-                raise ValueError(f"Invalid strata field name: "
-                                 f"{strata_field_name}")
+                error_msg = f"Invalid strata field name: {strata_field_name}"
+                _LOGGER.error(error_msg)
+                raise ValueError(error_msg)
 
             train_data, val_data, test_data = stratified_split(
                 self.examples, train_ratio, val_ratio, test_ratio,
@@ -316,7 +323,9 @@ class TabularDataset(Dataset):
             elif format == "json":
                 reader = f
             else:
-                raise ValueError(f'Invalid format: {format}')
+                error_msg = f'Invalid format: {format}'
+                _LOGGER.error(error_msg)
+                raise ValueError(error_msg)
 
             # create a list of examples
             examples = create_examples(reader, format, fields, skip_header)
@@ -365,19 +374,23 @@ def create_examples(reader, format, fields, skip_header):
     # fromlist is used for CSV/TSV because csv_reader yields data rows as
     # lists, not strings
     make_example_function = {
-        "json": Example.fromJSON,
-        "csv": Example.fromlist,
-        "tsv": Example.fromlist
+        "json": Example.from_json,
+        "csv": Example.from_list,
+        "tsv": Example.from_list
     }
 
     if skip_header:
         if format == "json":
-            raise ValueError(
-                f'When using a {format} file, skip_header must be False.')
+            error_msg = f'When using a {format} file, skip_header must be'\
+                        f' False.'
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
         elif format in {"csv", "tsv"} and isinstance(fields, dict):
-            raise ValueError(
-                f'When using a dict to specify fields with a {format} file,'
-                'skip_header must be False and the file must have a header.')
+            error_msg = f'When using a dict to specify fields with a {format}'\
+                        ' file, skip_header must be False and the file must '\
+                        'have a header.'
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
 
         # skipping the header
         next(reader)
@@ -460,7 +473,9 @@ def check_split_ratio(split_ratio):
     if isinstance(split_ratio, float):
         # Only the train set relative ratio is provided
         if not (0. < split_ratio < 1.):
-            raise ValueError(f'Split ratio {split_ratio} not between 0 and 1')
+            error_msg = f'Split ratio {split_ratio} not between 0 and 1'
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
 
         train_ratio = split_ratio
         val_ratio = None
@@ -471,15 +486,17 @@ def check_split_ratio(split_ratio):
         length = len(split_ratio)
 
         if length not in {2, 3}:
-            raise ValueError(
-                f'Split ratio list/tuple should be of length 2 or 3, '
-                f'got {length}.')
+            error_msg = f'Split ratio list/tuple should be of length 2 or 3, '\
+                        f'got {length}.'
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
 
         for i, ratio in enumerate(split_ratio):
             if float(ratio) <= 0.0:
-                raise ValueError(
-                    f'Elements of ratio tuple/list must be > 0.0 '
-                    f'(got value {ratio} at index {i}).')
+                error_msg = f'Elements of ratio tuple/list must be > 0.0 '\
+                            f'(got value {ratio} at index {i}).'
+                _LOGGER.error(error_msg)
+                raise ValueError(error_msg)
 
         # Normalize if necessary
         ratio_sum = sum(split_ratio)
@@ -495,9 +512,10 @@ def check_split_ratio(split_ratio):
             val_ratio = split_ratio[1]
             test_ratio = split_ratio[2]
     else:
-        raise ValueError(
-            f'Split ratio must be a float, a list or a tuple, '
-            f'got {type(split_ratio)}')
+        error_msg = f'Split ratio must be a float, a list or a tuple, '\
+                    f'got {type(split_ratio)}'
+        _LOGGER.error(error_msg)
+        raise ValueError(error_msg)
 
     return train_ratio, val_ratio, test_ratio
 
@@ -547,8 +565,9 @@ def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
     # Due to possible rounding problems
     if val_ratio is None:
         if train_len == 0 or (N - train_len) == 0:
-            raise ValueError(
-                'Bad ratio: both splits should have at least 1 element.')
+            error_msg = 'Bad ratio: both splits should have at least 1 element.'
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
 
         indices_tuple = (
             indices[:train_len],
@@ -560,8 +579,9 @@ def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
         val_len = N - train_len - test_len
 
         if train_len * test_len * val_len == 0:
-            raise ValueError(
-                'Bad ratio: all splits should have at least 1 element.')
+            error_msg = 'Bad ratio: all splits should have at least 1 element.'
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
 
         indices_tuple = (
             indices[:train_len],  # Train
@@ -642,11 +662,13 @@ class HierarchicalDataset:
     """Container for datasets with a hierarchical structure of examples which have the
     same structure on every level of the hierarchy.
     """
-    Node = namedtuple("Node",
-                      ['example', 'index', 'parent', 'children'])
+    class Node(object):
+        __slots__ = 'example', 'index', 'parent', 'children'
 
-    # parser(raw example, fields, depth)
-    # returns (parsed example, iterable(raw children))
+        def __init__(self, example, index, parent):
+            self.example = example
+            self.index = index
+            self.parent = parent
 
     def __init__(self, parser, fields):
         """
@@ -676,8 +698,7 @@ class HierarchicalDataset:
         fields : dict(str, Field)
             Dict mapping keys in the raw_example dict to their corresponding fields.
         """
-        self._root_nodes = list()
-        self._fields = fields
+        self._field_dict = fields
         self._parser = parser
         self._size = 0
         self._max_depth = 0
@@ -690,7 +711,8 @@ class HierarchicalDataset:
         Parameters
         ----------
         dataset : str
-            Dataset in JSON format.
+            Dataset in JSON format. The root element of the JSON string must be
+            a list of root examples.
 
         fields : dict(str, Field)
             a dict mapping keys in the raw_example to corresponding
@@ -708,13 +730,19 @@ class HierarchicalDataset:
         """
         ds = HierarchicalDataset(parser, fields)
 
-        root_list = json.loads(dataset)
-        ds._load(root_list)
+        root_examples = json.loads(dataset)
+        if not isinstance(root_examples, list):
+            error_msg = "The base element in the JSON string must be a list " \
+                        "of root elements."
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
+
+        ds._load(root_examples)
 
         return ds
 
     @staticmethod
-    def get_default_json_parser(child_attribute_name):
+    def get_default_dict_parser(child_attribute_name):
         """Returns a callable instance that can be used for parsing datasets in which
         examples on all levels in the hierarchy have children under the same key.
 
@@ -728,12 +756,12 @@ class HierarchicalDataset:
             Callable(raw_example, fields, depth) returning (example, raw_children).
 
         """
-        def default_json_parser(raw_example, fields, depth):
-            example = Example.fromdict(raw_example, fields)
-            children = raw_example.get(child_attribute_name)
+        def default_dict_parser(raw_example, fields, depth):
+            example = Example.from_dict(raw_example, fields)
+            children = raw_example.get(child_attribute_name, ())
             return example, children
 
-        return default_json_parser
+        return default_dict_parser
 
     def _load(self, root_examples):
         """Starts the parsing of the dataset.
@@ -744,8 +772,13 @@ class HierarchicalDataset:
             iterable containing the root examples in raw dict form.
 
         """
-        for root in root_examples:
-            self._root_nodes.append(self._parse(root, None, 0))
+        self._root_nodes = tuple(self._parse(root, None, 0) for root in root_examples)
+
+    def finalize_fields(self):
+        """Finalizes all fields in this dataset."""
+
+        for field in unpack_fields(self.fields):
+            field.finalize()
 
     def _parse(self, raw_object, parent, depth):
         """Parses an raw example.
@@ -766,27 +799,23 @@ class HierarchicalDataset:
         Node
             Node parsed from the raw example.
         """
-        example, raw_children = self._parser(raw_object, self._fields, depth)
+        example, raw_children = self._parser(raw_object, self._field_dict, depth)
+
         index = self._size
         self._size += 1
-        children = [self._parse(c, example, depth + 1) for c in raw_children]
+
+        current_node = HierarchicalDataset.Node(example, index, parent)
+        children = tuple(self._parse(c, current_node, depth + 1) for c in raw_children)
+        current_node.children = children
+
         self._max_depth = max(self._max_depth, depth)
-        return HierarchicalDataset.Node(example, index, parent, children)
 
-    def flatten(self):
-        """
-        Returns an iterable iterating trough examples in the dataset as if it was a
-        standard Dataset. The iteration is done in pre-order.
+        return current_node
 
-        Returns
-        -------
-        itearble
-             iterable iterating trough examples in the dataset.
-        """
+    def _node_iterator(self):
+
         def flat_node_iterator(node):
-            # Todo: Look into using a stack-based iterator to avoid
-            # iterator construction and garbage collection
-            yield node.example
+            yield node
             for subnode in node.children:
                 for ex in flat_node_iterator(subnode):
                     yield ex
@@ -795,15 +824,29 @@ class HierarchicalDataset:
             for ex in flat_node_iterator(root_node):
                 yield ex
 
+    def flatten(self):
+        """
+        Returns an iterable iterating trough examples in the dataset as if it was a
+        standard Dataset. The iteration is done in pre-order.
+
+        Returns
+        -------
+        iterable
+             iterable iterating through examples in the dataset.
+        """
+        for node in self._node_iterator():
+            yield node.example
+
     def as_flat_dataset(self):
         """Returns a standard Dataset containing the examples
         in order as defined in 'flatten'.
 
         Returns
         -------
+        Dataset
             a standard Dataset
         """
-        return Dataset(self.flatten(), self._fields)
+        return Dataset(list(self.flatten()), self._field_dict)
 
     @property
     def depth(self):
@@ -814,6 +857,10 @@ class HierarchicalDataset:
             the maximum depth of a node in the hierarchy.
         """
         return self._max_depth
+
+    @property
+    def fields(self):
+        return list(self._field_dict.values())
 
     def _get_node_by_index(self, index):
         """Returns the node with the provided index.
@@ -835,8 +882,10 @@ class HierarchicalDataset:
 
         """
         if index < 0 or index >= len(self):
-            raise IndexError(
-                f"Index {index} out of bounds. Must be within [0, len(dataset) - 1]")
+            error_msg = f"Index {index} out of bounds. Must be within " \
+                "[0, len(dataset) - 1]"
+            _LOGGER.error(error_msg)
+            raise IndexError(error_msg)
 
         def get_item(nodes, index):
             """Right bisect binary search.
@@ -851,6 +900,8 @@ class HierarchicalDataset:
 
             Returns
             -------
+            Node
+                the node with the provided index.
 
             """
             start = 0
@@ -873,6 +924,78 @@ class HierarchicalDataset:
                 return get_item(nodes[start - 1].children, index)
 
         return get_item(self._root_nodes, index)
+
+    @staticmethod
+    def _get_node_context(node, levels=None):
+        """Returns an Iterator iterating through the context of the passed node.
+
+        Parameters
+        ----------
+        node : Node
+            Node for which the context should be retrieved.
+        levels : the maximum number of levels of the hierarchy the context should contain.
+            If None, the context will contain all levels up to the root nodes of the
+            dataset.
+
+        Returns
+        -------
+        Iterator(Node)
+            an Iterator iterating through the context of the passed node
+
+        """
+        levels = float('Inf') if levels is None else levels
+        if levels < 0:
+            raise ValueError(f"Number of context levels must be greater or equal to 0."
+                             f" Passed value: {levels}")
+
+        parent = node
+        while parent.parent is not None and levels >= 0:
+            parent = parent.parent
+            levels -= 1
+
+        def context_iterator(start_node, finish_node):
+            if start_node is finish_node:
+                return
+
+            yield start_node.example
+
+            children = start_node.children
+            i = 0
+            while True:
+                if i == len(children) - 1 or children[i + 1].index > finish_node.index:
+                    for sub_child in context_iterator(children[i], finish_node):
+                        yield sub_child
+
+                    return
+
+                else:
+                    yield children[i].example
+                    i += 1
+
+        return context_iterator(parent, node)
+
+    def get_context(self, index, levels=None):
+        """Returns an Iterator iterating through the context of the Example with the
+        passed index.
+
+        Parameters
+        ----------
+        index : int
+            Index of the Example the context should be retrieved for.
+        levels : int
+            the maximum number of levels of the hierarchy the context should contain.
+            If None, the context will contain all levels up to the root node of the
+            dataset.
+
+        Returns
+        -------
+        Iterator(Node)
+            an Iterator iterating through the context of the Example with the passed
+            index.
+
+        """
+        node = self._get_node_by_index(index)
+        return HierarchicalDataset._get_node_context(node, levels)
 
     def __len__(self):
         return self._size

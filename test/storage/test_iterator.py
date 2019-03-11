@@ -5,7 +5,8 @@ from test.storage.conftest import (
 import pytest
 import numpy as np
 
-from takepod.storage.iterator import Iterator, BucketIterator
+from takepod.storage import Iterator, BucketIterator, HierarchicalDatasetIterator, \
+    HierarchicalDataset, Field, Vocab
 
 
 @pytest.mark.parametrize(
@@ -308,3 +309,124 @@ def np_arrays_equal(arr_1, arr_2):
         arrs_equal = arrs_equal.all()
 
     return arrs_equal
+
+
+@pytest.fixture()
+def hierarchical_dataset_fields():
+    name_field = Field("name", store_as_raw=True, tokenize=False, vocab=Vocab())
+    number_field = Field("number", store_as_raw=True, tokenize=False,
+                         custom_numericalize=int)
+
+    fields = {
+        "name": name_field,
+        "number": number_field
+    }
+    return fields
+
+
+@pytest.fixture()
+def hierarchical_dataset_parser():
+    return HierarchicalDataset.get_default_dict_parser("children")
+
+
+@pytest.fixture()
+def hierarchical_dataset(hierarchical_dataset_fields, hierarchical_dataset_parser):
+    dataset = HierarchicalDataset.from_json(HIERARCHIAL_DATASET_JSON_EXAMPLE,
+                                            hierarchical_dataset_fields,
+                                            hierarchical_dataset_parser)
+    dataset.finalize_fields()
+    return dataset
+
+
+def test_hierarchical_dataset_iteration(hierarchical_dataset):
+    hit = HierarchicalDatasetIterator(hierarchical_dataset, 3)
+    batch_iter = hit.__iter__()
+
+    input_batch_1, _ = batch_iter.__next__()
+    assert len(input_batch_1.number) == 3
+    assert np.all(input_batch_1.number[0] == [[1]])
+    assert np.all(input_batch_1.number[1] == [[1], [2]])
+    assert np.all(input_batch_1.number[2] == [[1], [2], [3]])
+
+    input_batch_2, _ = batch_iter.__next__()
+    assert len(input_batch_2.number) == 3
+    assert np.all(input_batch_2.number[0] == [[1], [2], [4]])
+    assert np.all(input_batch_2.number[1] == [[5]])
+    assert np.all(input_batch_2.number[2] == [[5], [6]])
+
+    input_batch_3, _ = batch_iter.__next__()
+    assert len(input_batch_1.number) == 3
+    assert np.all(input_batch_3.number[0] == [[5], [6], [7]])
+    assert np.all(input_batch_3.number[1] == [[5], [6], [7], [8]])
+    assert np.all(input_batch_3.number[2] == [[5], [6], [7], [8], [9]])
+
+    input_batch_4, _ = batch_iter.__next__()
+    assert len(input_batch_4.number) == 1
+    assert np.all(input_batch_4.number[0] == [[5], [6], [7], [8], [10]])
+
+    with pytest.raises(StopIteration):
+        batch_iter.__next__()
+
+
+def test_hierarchical_dataset_iteration_with_depth_limitation(hierarchical_dataset):
+    hit = HierarchicalDatasetIterator(hierarchical_dataset, 20, context_max_depth=0)
+    batch_iter = hit.__iter__()
+
+    input_batch, _ = batch_iter.__next__()
+    assert np.all(input_batch.number[2] == [[2], [3]])
+    assert np.all(input_batch.number[8] == [[8], [9]])
+
+
+HIERARCHIAL_DATASET_JSON_EXAMPLE = """
+[
+{
+    "name" : "parent1",
+    "number" : 1,
+    "children" : [
+        {
+            "name" : "c11",
+            "number" : 2,
+            "children" : [
+                {
+                    "name" : "c111",
+                    "number" : 3
+                }
+            ]
+        },
+        {
+            "name" : "c12",
+            "number" : 4
+        }
+    ]
+},
+{
+    "name" : "parent2",
+    "number" : 5,
+    "children" : [
+        {
+            "name" : "c21",
+            "number" : 6
+        },
+        {
+            "name" : "c22",
+            "number" : 7,
+            "children" : []
+        },
+        {
+            "name" : "c23",
+            "number" : 8,
+            "children" : [
+                {
+                    "name" : "c231",
+                    "number" : 9
+                }
+            ]
+        },
+        {
+            "name" : "c24",
+            "number" : 10
+        }
+    ]
+}
+]
+"""

@@ -1,3 +1,5 @@
+import os
+import pickle
 import numpy as np
 import pytest
 from mock import patch
@@ -9,6 +11,20 @@ ONE_TO_FIVE = [1, 2, 3, 4, 5]
 CUSTOM_PAD = 43
 
 PAD_NUM = 42
+
+
+class MockToken:
+    def __init__(self, txt):
+        self.text = txt
+
+
+class MockSpacy:
+    def load(self, x, **kwargs):
+        class MockTokenizer:
+            def tokenizer(self, string):
+                return [MockToken(tok) for tok in string.split()]
+
+        return MockTokenizer()
 
 
 class MockVocab:
@@ -77,6 +93,41 @@ def test_field_preprocess_raw_sequential(value, store_raw, sequential,
 
     assert received_raw_value == expected_raw_value
     assert received_tokenized_value == expected_tokenized_value
+
+
+@pytest.mark.parametrize(
+    "value, store_raw, sequential, expected_raw_value, "
+    "expected_tokenized_value",
+    [
+        ("some text", True, True, "some text", ["some", "text"]),
+        ("some text", True, False, "some text", None),
+        ("some text", False, True, None, ["some", "text"]),
+    ]
+)
+def test_field_pickle_tokenized(value, store_raw, sequential,
+                                expected_raw_value,
+                                expected_tokenized_value, tmpdir):
+    fld = Field(name="F", store_as_raw=store_raw, tokenize=sequential)
+
+    received_raw_value, received_tokenized_value = fld.preprocess(value)
+
+    assert received_raw_value == expected_raw_value
+    assert received_tokenized_value == expected_tokenized_value
+
+    field_file = os.path.join(tmpdir, "field.pkl")
+
+    with open(field_file, "wb") as fdata:
+        pickle.dump(fld, fdata)
+
+    with open(field_file, "rb") as fdata:
+        loaded_fld = pickle.load(fdata)
+        raw_value, tokenized_value = loaded_fld.preprocess(value)
+
+        assert raw_value == expected_raw_value
+        assert tokenized_value == expected_tokenized_value
+        assert loaded_fld.name == "F"
+        assert loaded_fld.store_as_raw == store_raw
+        assert loaded_fld.sequential == sequential
 
 
 @pytest.mark.parametrize(
@@ -206,7 +257,7 @@ def test_field_get_tokenizer_callable(vocab):
 
 def test_field_get_tokenizer_spacy_exception(vocab):
     class MockSpacy:
-        def load(self, x):
+        def load(self, x, **kwargs):
             raise OSError
 
     patch.dict("sys.modules", spacy=MockSpacy()).start()
@@ -228,23 +279,28 @@ def test_field_get_tokenizer_exception(vocab):
 
 
 def test_field_get_tokenizer_spacy_ok(vocab):
-    class MockToken:
-        def __init__(self, txt):
-            self.text = txt
-
-    class MockSpacy:
-        def load(self, x):
-            class MockTokenizer:
-                def tokenizer(self, string):
-                    return [MockToken(tok) for tok in string.split()]
-
-            return MockTokenizer()
-
     patch.dict("sys.modules", spacy=MockSpacy()).start()
-
     f = Field(name="F", vocab=vocab, tokenizer="spacy", tokenize=True,
               store_as_raw=False)
     assert f.preprocess("bla blu") == (None, ["bla", "blu"])
+
+
+def test_field_pickle_spacy_tokenizer(vocab, tmpdir):
+    patch.dict("sys.modules", spacy=MockSpacy()).start()
+    fld = Field(name="F", vocab=vocab, tokenizer="spacy", tokenize=True,
+                store_as_raw=False)
+    assert fld.preprocess("bla blu") == (None, ["bla", "blu"])
+
+    field_file = os.path.join(tmpdir, "field.pkl")
+
+    with open(field_file, "wb") as fdata:
+        pickle.dump(fld, fdata)
+
+    with open(field_file, "rb") as fdata:
+        loaded_fld = pickle.load(fdata)
+
+        assert loaded_fld._tokenizer_arg == "spacy"
+        assert loaded_fld.preprocess("bla blu") == (None, ["bla", "blu"])
 
 
 def test_field_pretokenize_hooks():
