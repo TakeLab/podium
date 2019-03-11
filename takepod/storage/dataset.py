@@ -899,6 +899,22 @@ class HierarchicalDataset:
 
     @staticmethod
     def _get_node_context(node, levels=None):
+        """Returns an Iterator iterating through the context of the passed node.
+
+        Parameters
+        ----------
+        node : Node
+            Node for which the context should be retrieved.
+        levels : the maximum number of levels of the hierarchy the context should contain.
+            If None, the context will contain all levels up to the root nodes of the
+            dataset.
+
+        Returns
+        -------
+        Iterator(Node)
+            an Iterator iterating through the context of the passed node
+
+        """
         levels = float('Inf') if levels is None else levels
         if levels < 0:
             raise ValueError(f"Number of context levels must be greater or equal to 0."
@@ -931,6 +947,25 @@ class HierarchicalDataset:
         return context_iterator(parent, node)
 
     def get_context(self, index, levels=None):
+        """Returns an Iterator iterating through the context of the Example with the
+        passed index.
+
+        Parameters
+        ----------
+        index : int
+            Index of the Example the context should be retrieved for.
+        levels : int
+            the maximum number of levels of the hierarchy the context should contain.
+            If None, the context will contain all levels up to the root node of the
+            dataset.
+
+        Returns
+        -------
+        Iterator(Node)
+            an Iterator iterating through the context of the Example with the passed
+            index.
+
+        """
         node = self._get_node_by_index(index)
         return HierarchicalDataset._get_node_context(node, levels)
 

@@ -310,6 +310,7 @@ def np_arrays_equal(arr_1, arr_2):
 
     return arrs_equal
 
+
 @pytest.fixture()
 def hierarchical_dataset_fields():
     name_field = Field("name", store_as_raw=True, tokenize=False, vocab=Vocab())
@@ -345,7 +346,6 @@ def test_hierarchical_dataset_iteration(hierarchical_dataset):
     assert np.all(input_batch_1.number[1] == [[1], [2]])
     assert np.all(input_batch_1.number[2] == [[1], [2], [3]])
 
-
     input_batch_2, _ = batch_iter.__next__()
     assert len(input_batch_2.number) == 3
     assert np.all(input_batch_2.number[0] == [[1], [2], [4]])
@@ -364,6 +364,15 @@ def test_hierarchical_dataset_iteration(hierarchical_dataset):
 
     with pytest.raises(StopIteration):
         batch_iter.__next__()
+
+
+def test_hierarchical_dataset_iteration_with_depth_limitation(hierarchical_dataset):
+    hit = HierarchicalDatasetIterator(hierarchical_dataset, 20, context_max_depth=0)
+    batch_iter = hit.__iter__()
+
+    input_batch, _ = batch_iter.__next__()
+    assert np.all(input_batch.number[2] == [[2], [3]])
+    assert np.all(input_batch.number[8] == [[8], [9]])
 
 
 HIERARCHIAL_DATASET_JSON_EXAMPLE = """
