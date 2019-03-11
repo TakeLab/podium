@@ -388,7 +388,7 @@ class BasicVectorStorage(VectorStorage):
 class GloVe(BasicVectorStorage):
     """Class represents concrete vector storage for GloVe vectors described in
     https://nlp.stanford.edu/projects/glove/ . Class contains a Large resource so
-    that vectors could be automaticly downloaded on first use.
+    that vectors could be automatically downloaded on first use.
 
     Attributes
     ----------
