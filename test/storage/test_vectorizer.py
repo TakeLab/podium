@@ -347,9 +347,9 @@ def test_load_plain_text():
 @pytest.mark.parametrize(
     "name, dim",
     [
-        ("not_valid_glove", 11),
-        ("name_not_valid", 300),
-        ("glove-wikipedia", 77)
+        ("not_valid_glove", 11),  # both name and dimension are invalid
+        ("name_not_valid", 300),  # invalid name
+        ("glove-wikipedia", 77)  # invalid dimension
     ]
 )
 def test_glove_wrong_params(name, dim):

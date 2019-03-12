@@ -61,7 +61,7 @@ class VectorStorage(ABC):
                 using vocab for loading vectors or when limiting number of
                 vectors to load
             max_vectors : int, optional
-                maximal number of vectors to load in the memory
+                maximum number of vectors to load in memory
 
         """
         self._path = path
@@ -444,15 +444,15 @@ class GloVe(BasicVectorStorage):
             vectors dimension, available dimensions are listed in NAME_DIM_MAPPING
             dictionary
         default_vector_function : callable, optional
-                which vector should be returned if vectorizer doesn't have
-                representation for given token. If None and token doesn't
-                exists an error is raised while obtaining a vector
+            which vector should be returned if vectorizer doesn't have
+            representation for given token. If None and token doesn't
+            exists an error is raised while obtaining a vector
         cache_path : str
-            path for caching vectors, usefull if not loading all vectors from file
+            path for caching vectors, useful if not loading all vectors from file
             by either loading some arbitrary number of vectors (see max_vectors) or
             by loading vectors for vocabulary.
         max_vectors : int
-            maximal number of vectors to load in the memory
+            maximum number of vectors to load in memory
 
         Raises
         ------
