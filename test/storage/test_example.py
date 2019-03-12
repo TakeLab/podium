@@ -1,3 +1,5 @@
+import os
+import pickle
 from xml.etree.ElementTree import ParseError
 import pytest
 from takepod.storage.example import Example
@@ -241,6 +243,44 @@ def test_from_csv_fields_is_dict(csv_line, fields_dict, field_to_index,
     expected_example = create_expected_example(field_data_tuples)
 
     assert received_example.__dict__ == expected_example.__dict__
+
+
+@pytest.mark.parametrize(
+    "csv_line, fields_dict, field_to_index, delimiter",
+    [
+        (
+            ",".join(["this is a review", "4.5", "1"]),
+            {"text": (MockField("words"), MockField("chars")),
+             "rating": MockField("label"),
+             "sentiment": (MockField("sentiment"), MockField("polarity"))},
+            {"text": 0, "rating": 1, "sentiment": 2},
+            ","
+        ),
+        (
+            "|".join(["this is a review", "bla"]),
+            {
+                "text": (MockField("words"), MockField("chars")),
+                "sentiment": (
+                    MockField("sentiment"), MockField("polarity")
+                )
+            },
+            {"text": 0, "sentiment": 1},
+            "|"
+        )
+    ]
+)
+def test_from_csv_fields_pickle(csv_line, fields_dict, field_to_index,
+                                delimiter, tmpdir):
+    example = Example.from_csv(csv_line, fields_dict, field_to_index, delimiter)
+    example_file = os.path.join(tmpdir, "example.pkl")
+
+    with open(example_file, "wb") as fdata:
+        pickle.dump(example, fdata)
+
+    with open(example_file, "rb") as fdata:
+        loaded_example = pickle.load(fdata)
+
+        assert example.__dict__ == loaded_example.__dict__
 
 
 @pytest.mark.parametrize(
