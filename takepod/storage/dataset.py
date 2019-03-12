@@ -8,7 +8,6 @@ import logging
 import random
 
 from abc import ABC
-from collections import namedtuple
 from functools import partial
 
 from takepod.storage.example import Example
@@ -999,3 +998,29 @@ class HierarchicalDataset:
 
     def __getitem__(self, index):
         return self._get_node_by_index(index).example
+
+    def __getstate__(self):
+        """Method obtains dataset state. It is used for pickling dataset data
+        to file.
+
+        Returns
+        -------
+        state : dict
+            dataset state dictionary
+        """
+        d = dict(self.__dict__)
+
+        del d["_parser"]
+
+        return d
+
+    def __setstate__(self, state):
+        """Method sets dataset state. It is used for unpickling dataset data
+        from file.
+
+        Parameters
+        ----------
+        state : dict
+            dataset state dictionary
+        """
+        self.__dict__ = state

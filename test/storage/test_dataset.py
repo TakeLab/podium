@@ -669,6 +669,17 @@ def test_hierarchical_dataset_context_iteration(hierarchical_dataset):
     assert c23_context_0_lvl == c23_expected_context_0_lvl
 
 
+def test_hierarchical_dataset_pickle(tmpdir, hierarchical_dataset):
+    dataset_file = os.path.join(tmpdir, "dataset.pkl")
+
+    with open(dataset_file, "wb") as fdata:
+        pickle.dump(hierarchical_dataset, fdata)
+
+    with open(dataset_file, "rb") as fdata:
+        loaded_dataset = pickle.load(fdata)
+        test_create_hierarchical_dataset_from_json(loaded_dataset)
+
+
 HIERARCHIAL_DATASET_JSON_EXAMPLE = """
 [
 {
