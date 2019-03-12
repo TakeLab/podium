@@ -1,7 +1,7 @@
 import os
 
 from takepod.storage import HierarchicalDataset, Example, Field, \
-    MultilabelField, Vocab, LargeResource
+    MultilabelField, Vocab
 
 
 class CatacxDataset(HierarchicalDataset):
@@ -26,7 +26,7 @@ class CatacxDataset(HierarchicalDataset):
             if passed None the default set of fields will be used
         """
         fields = fields if fields else CatacxDataset.get_default_fields()
-        super().__init__(fields, CatacxDataset.get_catacx_parser())
+        super().__init__(fields, CatacxDataset._get_catacx_parser())
 
     @staticmethod
     def get_dataset(fields=None):
@@ -46,19 +46,19 @@ class CatacxDataset(HierarchicalDataset):
         """
 
         raise NotImplementedError("Downloading is not implemented yet")
-
-        LargeResource(**{
-            LargeResource.RESOURCE_NAME: CatacxDataset.NAME,
-            LargeResource.ARCHIVE: "zip",
-            LargeResource.URI: CatacxDataset.URL
-        })
-
-        filepath = os.path.join(
-            LargeResource.BASE_RESOURCE_DIR,
-            CatacxDataset.DATASET_DIR,
-            CatacxDataset.DATASET_FILE_NAME)
-
-        return CatacxDataset.load_from_file(filepath, fields=fields)
+        # TODO: uncomment when the dataset can be downloaded
+        # LargeResource(**{
+        #     LargeResource.RESOURCE_NAME: CatacxDataset.NAME,
+        #     LargeResource.ARCHIVE: "zip",
+        #     LargeResource.URI: CatacxDataset.URL
+        # })
+        #
+        # filepath = os.path.join(
+        #     LargeResource.BASE_RESOURCE_DIR,
+        #     CatacxDataset.DATASET_DIR,
+        #     CatacxDataset.DATASET_FILE_NAME)
+        #
+        # return CatacxDataset.load_from_file(filepath, fields=fields)
 
     @staticmethod
     def load_from_file(path, fields=None):
