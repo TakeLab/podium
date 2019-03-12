@@ -1,14 +1,138 @@
+from keras import backend as K
+from keras.layers import Bidirectional, Dense, Dropout
+from keras.layers import Input, LSTM, TimeDistributed
+from keras.models import Model
+from keras.optimizers import Adadelta, Adagrad, Adam, Nadam, RMSprop, SGD
 from takepod.models import AbstractSupervisedModel
-from takepod.models.blcc.BiLSTM import BiLSTM
+
+from takepod.models.blcc.chain_crf import ChainCRF
+
+import numpy as np
 
 
 class BLCCModel(AbstractSupervisedModel):
 
-    def __init__(self, **kwargs) -> None:
-        self.model = BiLSTM(**kwargs)
+    EMBEDDING_SIZE = 'embedding_size'
+    OUTPUT_SIZE = 'output_size'
+    LEARNING_RATE = 'learning_rate'
+    CLIPNORM = 'clipnorm'
+    CLIPVALUE = 'clipvalue'
+    OPTIMIZER = 'optimizer'
+    CLASSIFIER = 'classifier'
+    LSTM_SIZE = 'LSTM-Size'
+    DROPOUT = 'dropout'
+    
+    def __init__(self, **kwargs):
+        default_hyperparameters = {
+            self.EMBEDDING_SIZE: None,
+            self.OUTPUT_SIZE: None,
+            
+            self.DROPOUT: (0.5, 0.5),
+            self.CLASSIFIER: 'CRF',
+            self.LSTM_SIZE: (100,),
+            self.OPTIMIZER: 'adam',
+            self.CLIPVALUE: 0,
+            self.CLIPNORM: 1,
+            self.LEARNING_RATE: 0.01
+        }
+
+        if kwargs:
+            default_hyperparameters.update(kwargs)
+
+        self.params = default_hyperparameters
+        self.model = self._build_model()
+
+    def _build_model(self):
+        embedding_size = self.params.get(self.EMBEDDING_SIZE)
+        output_size = self.params.get(self.OUTPUT_SIZE)
+
+        tokens_input = Input(shape=(None, embedding_size),
+                             dtype='float32',
+                             name='embeddings_input')
+        input_nodes = [tokens_input]
+
+        # TODO add character embeddings and casing
+
+        shared_layer = input_nodes
+        cnt = 0
+
+        for size in self.params[self.LSTM_SIZE]:
+            cnt += 1
+            if isinstance(self.params[self.DROPOUT], (list, tuple)):
+                shared_layer = Bidirectional(
+                    LSTM(
+                        size,
+                        return_sequences=True,
+                        dropout=self.params[self.DROPOUT][0],
+                        recurrent_dropout=self.params[self.DROPOUT][1]
+                    ),
+                    name='shared_varLSTM_' + str(cnt))(shared_layer)
+            else:
+                # Naive dropout
+                shared_layer = Bidirectional(
+                    LSTM(size, return_sequences=True),
+                    name='shared_LSTM_' + str(cnt))(shared_layer)
+
+                if self.params[self.DROPOUT] > 0.0:
+                    shared_layer = TimeDistributed(
+                        Dropout(self.params[self.DROPOUT]),
+                        name=f'shared_dropout_{self.params[self.DROPOUT]}'
+                    )(shared_layer)
+
+        n_class_labels = output_size
+        output = shared_layer
+        classifier = self.params[self.CLASSIFIER]
+
+        if classifier == 'Softmax':
+            output = TimeDistributed(
+                Dense(n_class_labels, activation='softmax'),
+                name='Softmax')(output)
+            loss_fct = 'sparse_categorical_crossentropy'
+        elif classifier == 'CRF':
+            output = TimeDistributed(
+                Dense(n_class_labels, activation=None),
+                name='hidden_lin_layer')(output)
+            crf = ChainCRF(name='CRF')
+            output = crf(output)
+            loss_fct = crf.sparse_loss
+        else:
+            raise ValueError(f'Unsupported classifier: {classifier}')
+
+        optimizerParams = {}
+        if self.params.get(self.CLIPNORM, 0) > 0:
+            optimizerParams[self.CLIPNORM] = self.params[self.CLIPNORM]
+        if self.params.get(self.CLIPVALUE, 0) > 0:
+            optimizerParams[self.CLIPVALUE] = self.params[self.CLIPVALUE]
+
+        optimizer = self.params[self.OPTIMIZER].lower()
+        if optimizer == 'adam':
+            opt = Adam(**optimizerParams)
+        elif optimizer == 'nadam':
+            opt = Nadam(**optimizerParams)
+        elif optimizer == 'rmsprop':
+            opt = RMSprop(**optimizerParams)
+        elif optimizer == 'adadelta':
+            opt = Adadelta(**optimizerParams)
+        elif optimizer == 'adagrad':
+            opt = Adagrad(**optimizerParams)
+        elif optimizer == 'sgd':
+            opt = SGD(lr=0.1, **optimizerParams)
+        else:
+            raise ValueError(f'Unsupported optimizer: {optimizer}')
+
+        model = Model(inputs=input_nodes, outputs=[output])
+        model.compile(loss=loss_fct, optimizer=opt)
+        model.summary(line_length=125)
+
+        learning_rate = self.params[self.LEARNING_RATE]
+        K.set_value(model.optimizer.lr, learning_rate)
+
+        return model
 
     def fit(self, X, y, **kwargs):
-        return self.model.fit(X, y)
+        self.model.train_on_batch(X, np.expand_dims(y, -1))
 
     def predict(self, X, **kwargs):
-        return self.model.predict(X)
+        predictions = self.model.predict(X, verbose=False)
+        y_pred = predictions.argmax(axis=-1)
+        return {AbstractSupervisedModel.PREDICTION_KEY: y_pred}

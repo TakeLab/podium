@@ -45,8 +45,7 @@ def label_mapper_hook(data, tokens):
         if tokens[i] == 'O':
             continue
 
-        prefix = tokens[i][:2]
-        value = tokens[i][2:]
+        prefix, value = tokens[i].split('-')
 
         mapped_token = label_mapping[value]
         if mapped_token is None:
@@ -57,24 +56,24 @@ def label_mapper_hook(data, tokens):
     return data, tokens
 
 
-def sort_by_word_count_key(example):
+def example_word_count(example):
     return len(example.tokens[1])
 
 
 def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
-    output_dim = len(fields['labels'].vocab.itos)
+    output_size = len(fields['labels'].vocab.itos)
 
     train_set, test_set = dataset.split(split_ratio=0.8)
 
-    train_iter = BucketIterator(train_set, 32, sort_key=sort_by_word_count_key)
-    test_iter = BucketIterator(test_set, 32, sort_key=sort_by_word_count_key)
+    train_iter = BucketIterator(train_set, 32, sort_key=example_word_count)
+    test_iter = BucketIterator(test_set, 32, sort_key=example_word_count)
 
     model = BLCCModel(**{
-        'output_dim': output_dim,
-        'classifier': 'CRF',
-        'embedding_size': 300,
-        'LSTM-Size': [100, 100],
-        'dropout': (0.25, 0.25)
+        BLCCModel.OUTPUT_SIZE: output_size,
+        BLCCModel.CLASSIFIER: 'CRF',
+        BLCCModel.EMBEDDING_SIZE: 300,
+        BLCCModel.LSTM_SIZE: [100, 100],
+        BLCCModel.DROPOUT: (0.25, 0.25)
     })
     trainer = SimpleTrainer(model=model)
 
@@ -85,7 +84,7 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
     print('Training finished')
 
     x_test, y_test = batch_transform_function(*next(test_iter.__iter__()))
-    prediction = model.predict(X=x_test)
+    prediction = model.predict(X=x_test)[BLCCModel.PREDICTION_KEY]
 
     pad_symbol = fields['labels'].vocab.pad_symbol()
     prediction_filtered, y_test_filtered = filter_out_padding(
@@ -100,7 +99,12 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
     print('Actual:')
     print(prediction_filtered)
 
-    print(f'F1: {multiclass_f1_metric(y_test_filtered, prediction_filtered)}')
+    f1 = multiclass_f1_metric(
+        y_test_filtered,
+        prediction_filtered,
+        average='weighted'
+    )
+    print(f'F1: {f1}')
 
 
 def filter_out_padding(pad_symbol, prediction, y_test):
