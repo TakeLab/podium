@@ -159,7 +159,7 @@ class CroatianStemmer:
 
 def _stemmer_posttokenized_hook(raw, tokenized, stemmer):
     """Stemmer postokenized hook that can be used in field processing.
-    It is intented for user to use `CROATIAN_STEMMER_POSTOKENIZED_HOOK` instead
+    It is intented for user to use `get_croatian_stemmer_hook` instead
     of this function as it hides Stemmer initialization and ensures that
     constructor is called once.
 
