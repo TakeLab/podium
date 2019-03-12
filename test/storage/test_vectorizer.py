@@ -344,6 +344,19 @@ def test_load_plain_text():
         assert np.all(vec == vec_storage[token])
 
 
+@pytest.mark.parametrize(
+    "name, dim",
+    [
+        ("not_valid_glove", 11),  # both name and dimension are invalid
+        ("name_not_valid", 300),  # invalid name
+        ("glove-wikipedia", 77)  # invalid dimension
+    ]
+)
+def test_glove_wrong_params(name, dim):
+    with pytest.raises(ValueError):
+        vectorizer.GloVe(name=name, dim=dim)
+
+
 def create_temp_vect_file(vect_file_name, file_data,
                           file_header=None, base_dir=None, binary=True):
     """Helper function that creates temporary vector file with given data.
