@@ -58,7 +58,7 @@ def extract_zip_file(archive_file, destination_dir):
     zip_ref.close()
 
 
-def extract_tar_file(archive_file, destination_dir):
+def extract_tar_file(archive_file, destination_dir, encoding='uft-8'):
     """Method extracts tar archive to destination, including those archives
     that are created using gzip, bz2 and lzma compression.
 
@@ -78,6 +78,5 @@ def extract_tar_file(archive_file, destination_dir):
         error_msg = f"Given archive file doesn't exists. Given {archive_file}."
         _LOGGER.error(error_msg)
         raise ValueError(error_msg)
-    tar_ref = tarfile.TarFile(name=archive_file, mode='r')
-    tar_ref.extractall(path=destination_dir)
-    tar_ref.close()
+    with tarfile.open(name=archive_file, mode='r') as tar_ref:
+        tar_ref.extractall(path=destination_dir)
