@@ -1,6 +1,7 @@
 """Module contains dataset's field definition and methods for construction."""
-from collections import deque
 import logging
+from collections import deque
+
 import numpy as np
 
 from takepod.preproc.tokenizers import get_tokenizer
@@ -24,7 +25,8 @@ class Field(object):
                  eager=True,
                  custom_numericalize=float,
                  is_target=False,
-                 fixed_length=None
+                 fixed_length=None,
+                 allow_missing_data=False
                  ):
         """Create a Field from arguments.
 
@@ -80,6 +82,15 @@ class Field(object):
             To which length should the field be fixed. If it is not None every
             example in the field will be truncated or padded to given length.
             Default: None.
+        allow_missing_data : bool
+            Whether the field allows missing data. In the case 'allow_missing_data'
+            is false and None is sent to be preprocessed, an ValueError will be raised.
+            If 'allow_missing_data' is True, if a None is sent to be preprocessed, it will
+            be stored and later numericalized properly.
+            If the field is sequential the numericalization of a missing data field will
+            be an empty numpy Array, else the numericalization will be a numpy Array
+            containing a single np.Nan ([np.Nan])
+            Default: False
 
         Raises
         ------
@@ -93,22 +104,22 @@ class Field(object):
         self._tokenizer_arg = tokenizer
 
         if store_as_tokenized and tokenize:
-            error_msg = "Store_as_tokenized' and 'tokenize' both set to True."\
-                        " You can either store the data as tokenized, "\
+            error_msg = "Store_as_tokenized' and 'tokenize' both set to True." \
+                        " You can either store the data as tokenized, " \
                         "tokenize it or do neither, but you can't do both."
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
         if not store_as_raw and not tokenize and not store_as_tokenized:
-            error_msg = "At least one of 'store_as_raw', 'tokenize'"\
+            error_msg = "At least one of 'store_as_raw', 'tokenize'" \
                         " or 'store_as_tokenized' must be True."
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
         if store_as_raw and store_as_tokenized:
-            error_msg = "'store_as_raw' and 'store_as_tokenized' both set to"\
-                        " True. You can't store the same value as raw and as "\
-                        "tokenized. Maybe you wanted to tokenize the raw "\
+            error_msg = "'store_as_raw' and 'store_as_tokenized' both set to" \
+                        " True. You can't store the same value as raw and as " \
+                        "tokenized. Maybe you wanted to tokenize the raw " \
                         "data? (the 'tokenize' parameter)"
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
@@ -129,6 +140,7 @@ class Field(object):
 
         self.pretokenize_hooks = deque()
         self.posttokenize_hooks = deque()
+        self.allow_missing_data = allow_missing_data
 
     @property
     def use_vocab(self):
@@ -210,12 +222,42 @@ class Field(object):
         self.posttokenize_hooks.clear()
 
     def _run_pretokenization_hooks(self, data):
+        """Runs pretokenization hooks on the raw data and returns the result.
+
+        Parameters
+        ----------
+        data : hashable
+            data to be processed
+
+        Returns
+        -------
+        hashable
+            processed data
+
+        """
         for hook in self.pretokenize_hooks:
             data = hook(data)
 
         return data
 
     def _run_posttokenization_hooks(self, data, tokens):
+        """Runs posttokenization hooks on tokenized data.
+
+        Parameters
+        ----------
+        data : hashable
+            raw data that was processed with '_run_pretokenization_hooks'.
+
+        tokens : iterable(hashable)
+            iterable of tokens resulting from the tokenization of the processed raw data.
+
+        Returns
+        -------
+        (data, list(tokens))
+            Returns a tuple containing the data and list of tokens processed by
+            posttokenization hooks.
+
+        """
         for hook in self.posttokenize_hooks:
             data, tokens = hook(data, tokens)
 
@@ -245,6 +287,15 @@ class Field(object):
         """
 
         tokens = None
+
+        if data is None:
+            if not self.allow_missing_data:
+                error_msg = f"Missing data not allowed in field {self.name}"
+                _LOGGER.error(error_msg)
+                raise ValueError(error_msg)
+
+            else:
+                return None, None
 
         if self.store_as_tokenized:
             # Store data as tokens
@@ -310,7 +361,9 @@ class Field(object):
         ----------
         tokens : iterable(hashable)
             Iterable of hashable objects to be numericalized.
-
+error_msg = f"Missing data not allowed in field {self.name}"
+                _LOGGER.error(error_msg)
+                raise ValueError(error_msg)
         Returns
         -------
         numpy array
@@ -324,6 +377,13 @@ class Field(object):
             # custom numericalization for non-vocab data
             # (such as floating point data Fields)
             return np.array([self.custom_numericalize(tok) for tok in tokens])
+
+    def get_default_value(self):
+        if self.sequential:
+            return np.empty(0)
+
+        else:
+            return np.array([np.nan])
 
     def numericalize(self, data):
         """Numericalize the already preprocessed data point based either on
@@ -344,6 +404,15 @@ class Field(object):
 
         """
         raw, tokenized = data
+
+        if raw is None and tokenized is None:
+            if not self.allow_missing_data:
+                error_msg = f"Missing value found in field {self.name}."
+                _LOGGER.error(error_msg)
+                raise ValueError(error_msg)
+
+            else:
+                return self.get_default_value()
 
         # raw data is just a string, so we need to wrap it into an iterable
         tokens = tokenized if self.tokenize or self.store_as_tokenized else [raw]
@@ -397,7 +466,7 @@ class Field(object):
                 pad_symbol = custom_pad_symbol
 
             if pad_symbol is None:
-                error_msg = 'Must provide a custom pad symbol if the '\
+                error_msg = 'Must provide a custom pad symbol if the ' \
                             'field has no vocab.'
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
@@ -451,8 +520,8 @@ class TokenizedField(Field):
                  eager=True,
                  custom_numericalize=float,
                  is_target=False,
-                 fixed_length=None):
-
+                 fixed_length=None,
+                 allow_missing_data=False):
         super().__init__(
             name=name,
             vocab=vocab,
@@ -462,7 +531,8 @@ class TokenizedField(Field):
             eager=eager,
             custom_numericalize=custom_numericalize,
             is_target=is_target,
-            fixed_length=fixed_length
+            fixed_length=fixed_length,
+            allow_missing_data=allow_missing_data
         )
 
 
@@ -477,11 +547,11 @@ class MultilabelField(TokenizedField):
                  vocab=None,
                  eager=True,
                  custom_numericalize=float,
-                 fixed_length=None):
-
+                 fixed_length=None,
+                 allow_missing_data=False):
         if vocab is not None and vocab.has_specials:
-            error_msg = "Vocab contains special symbols."\
-                        " Vocabs with special symbols cannot be used"\
+            error_msg = "Vocab contains special symbols." \
+                        " Vocabs with special symbols cannot be used" \
                         " with multilabel fields."
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
@@ -491,4 +561,5 @@ class MultilabelField(TokenizedField):
                          eager=eager,
                          custom_numericalize=custom_numericalize,
                          is_target=True,
-                         fixed_length=fixed_length)
+                         fixed_length=fixed_length,
+                         allow_missing_data=allow_missing_data)

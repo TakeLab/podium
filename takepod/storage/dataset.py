@@ -773,7 +773,11 @@ class HierarchicalDataset:
 
         """
         self._root_nodes = tuple(self._parse(root, None, 0) for root in root_examples)
-        for field in self.fields:
+
+    def finalize_fields(self):
+        """Finalizes all fields in this dataset."""
+
+        for field in unpack_fields(self.fields):
             field.finalize()
 
     def _parse(self, raw_object, parent, depth):
@@ -941,8 +945,11 @@ class HierarchicalDataset:
         """
         levels = float('Inf') if levels is None else levels
         if levels < 0:
-            raise ValueError(f"Number of context levels must be greater or equal to 0."
-                             f" Passed value: {levels}")
+            error_msg = f"Number of context levels must be greater or equal to 0."\
+                        f" Passed value: {levels}"
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
+
 
         parent = node
         while parent.parent is not None and levels >= 0:
