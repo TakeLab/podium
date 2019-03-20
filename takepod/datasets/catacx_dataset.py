@@ -77,13 +77,18 @@ class CatacxDataset(HierarchicalDataset):
         def catacx_parser(raw, fields, depth):
             example = Example.from_dict(raw, fields)
 
+            # the catacx dataset has different names for fields containing the children
+            # of a node depending on the depth of the parent node.
             if depth == 0:
+                # children of root nodes are stored in the 'comments' field
                 children = raw.get('comments')
 
             elif depth == 1:
+                # children of comments are stored in the 'replies' field
                 children = raw.get('replies')
 
             else:
+                # posts don't have any children, so return an unit tuple
                 children = ()
 
             return example, children
@@ -91,11 +96,14 @@ class CatacxDataset(HierarchicalDataset):
         return catacx_parser
 
     @staticmethod
-    def get_sentences_tokenizer(key):
+    def get_sentence_tokenizer(key):
         def extractor_tokenizer(raw):
+            # raw : list of lists of dicts containing the preprocessed data
             tokens = []
             for sentence in raw:
+                # sentence : list of dicts containing the preprocessed data
                 for token in sentence:
+                    # tokend : dict containing preprocessed data
                     tokens.append(token.get(key))
 
             return tokens
@@ -181,29 +189,29 @@ class CatacxDataset(HierarchicalDataset):
 
         pos_tag_field = Field("pos_tags",
                               store_as_raw=False,
-                              tokenizer=CatacxDataset.get_sentences_tokenizer("pos_tag"))
+                              tokenizer=CatacxDataset.get_sentence_tokenizer("pos_tag"))
 
         lemma_field = Field("lemmas",
                             store_as_raw=False,
-                            tokenizer=CatacxDataset.get_sentences_tokenizer("lemma"))
+                            tokenizer=CatacxDataset.get_sentence_tokenizer("lemma"))
 
         parent_ids_field = Field("parent_ids",
                                  store_as_raw=False,
                                  tokenizer=CatacxDataset
-                                 .get_sentences_tokenizer("parent_id"))
+                                 .get_sentence_tokenizer("parent_id"))
 
         tokens_field = Field("tokens",
                              store_as_raw=False,
-                             tokenizer=CatacxDataset.get_sentences_tokenizer("token"))
+                             tokenizer=CatacxDataset.get_sentence_tokenizer("token"))
 
         dependency_tags_field = Field("dependency_tags",
                                       store_as_raw=False,
-                                      tokenizer=CatacxDataset.get_sentences_tokenizer(
+                                      tokenizer=CatacxDataset.get_sentence_tokenizer(
                                           "dependency_tag"))
 
         token_id_field = Field("id_tags",
                                store_as_raw=False,
-                               tokenizer=CatacxDataset.get_sentences_tokenizer("id"))
+                               tokenizer=CatacxDataset.get_sentence_tokenizer("id"))
 
         return {
             "sentiment": sentiment_field,
