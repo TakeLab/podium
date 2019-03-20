@@ -1,10 +1,6 @@
 """Module contains PauzaHR datasets."""
 import os
-from takepod.storage import dataset
-from takepod.storage.example import Example
-from takepod.storage.field import Field
-from takepod.storage.vocab import Vocab
-from takepod.storage.large_resource import LargeResource
+from takepod.storage import (dataset, Example, Field, Vocab, LargeResource)
 
 
 class PauzaHRDataset(dataset.Dataset):
