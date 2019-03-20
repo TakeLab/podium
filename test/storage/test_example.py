@@ -1,5 +1,5 @@
 import os
-import pickle
+import dill
 from xml.etree.ElementTree import ParseError
 import pytest
 from takepod.storage.example import Example
@@ -275,10 +275,10 @@ def test_from_csv_fields_pickle(csv_line, fields_dict, field_to_index,
     example_file = os.path.join(tmpdir, "example.pkl")
 
     with open(example_file, "wb") as fdata:
-        pickle.dump(example, fdata)
+        dill.dump(example, fdata)
 
     with open(example_file, "rb") as fdata:
-        loaded_example = pickle.load(fdata)
+        loaded_example = dill.load(fdata)
 
         assert example.__dict__ == loaded_example.__dict__
 

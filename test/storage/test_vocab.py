@@ -1,4 +1,4 @@
-import pickle
+import dill
 import os
 import pytest
 
@@ -243,10 +243,10 @@ def test_vocab_pickle(tmpdir):
     vocab_file = os.path.join(tmpdir, "vocab.pkl")
 
     with open(vocab_file, "wb") as fdata:
-        pickle.dump(voc, fdata)
+        dill.dump(voc, fdata)
 
     with open(vocab_file, "rb") as fdata:
-        loaded_voc = pickle.load(fdata)
+        loaded_voc = dill.load(fdata)
 
         assert voc == loaded_voc
 
@@ -259,10 +259,10 @@ def test_finalized_vocab_pickle(tmpdir):
     vocab_file = os.path.join(tmpdir, "vocab.pkl")
 
     with open(vocab_file, "wb") as fdata:
-        pickle.dump(voc, fdata)
+        dill.dump(voc, fdata)
 
     with open(vocab_file, "rb") as fdata:
-        loaded_voc = pickle.load(fdata)
+        loaded_voc = dill.load(fdata)
 
         assert voc == loaded_voc
 

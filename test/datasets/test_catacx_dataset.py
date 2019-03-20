@@ -1,6 +1,7 @@
 import os
 import tempfile
 
+import dill
 import pytest
 
 from takepod.datasets import CatacxDataset
@@ -18,8 +19,8 @@ def example_catacx_dataset():
     return ds
 
 
-def test_catacx_dataset_loading(example_catacx_dataset):
-    root_nodes = example_catacx_dataset._root_nodes
+def validate_example_catacx_dataset(dataset):
+    root_nodes = dataset._root_nodes
 
     root_example_1 = root_nodes[0].example
 
@@ -48,6 +49,21 @@ def test_catacx_dataset_loading(example_catacx_dataset):
     assert reply_1.dependency_tags[1] == ["dep_tag_1", "dep_tag_2", "dep_tag_3"]
     assert reply_1.id_tags[1] == ["1", "2", "3"]
     assert reply_1.topics[1] == ["opcenito podrska", "dijalog"]
+
+
+def test_catacx_dataset_loading(example_catacx_dataset):
+    validate_example_catacx_dataset(example_catacx_dataset)
+
+
+def test_catacx_dataset_pickle(example_catacx_dataset, tmpdir):
+    pickle_filename = tmpdir.join("catacx_dill.pkl")
+    with open(pickle_filename, mode="wb") as file:
+        dill.dump(example_catacx_dataset, file)
+
+    with open(pickle_filename, mode="rb") as file:
+        loaded_data = dill.load(file)
+
+    validate_example_catacx_dataset(loaded_data)
 
 
 EXAMPLE_CATACX_DATASET_JSON = """

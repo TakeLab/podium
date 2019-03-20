@@ -1,5 +1,5 @@
 import os
-import pickle
+import dill
 import numpy as np
 import pytest
 from mock import patch
@@ -117,10 +117,10 @@ def test_field_pickle_tokenized(value, store_raw, sequential,
     field_file = os.path.join(tmpdir, "field.pkl")
 
     with open(field_file, "wb") as fdata:
-        pickle.dump(fld, fdata)
+        dill.dump(fld, fdata)
 
     with open(field_file, "rb") as fdata:
-        loaded_fld = pickle.load(fdata)
+        loaded_fld = dill.load(fdata)
         raw_value, tokenized_value = loaded_fld.preprocess(value)
 
         assert raw_value == expected_raw_value
@@ -294,10 +294,10 @@ def test_field_pickle_spacy_tokenizer(vocab, tmpdir):
     field_file = os.path.join(tmpdir, "field.pkl")
 
     with open(field_file, "wb") as fdata:
-        pickle.dump(fld, fdata)
+        dill.dump(fld, fdata)
 
     with open(field_file, "rb") as fdata:
-        loaded_fld = pickle.load(fdata)
+        loaded_fld = dill.load(fdata)
 
         assert loaded_fld._tokenizer_arg == "spacy"
         assert loaded_fld.preprocess("bla blu") == (None, ["bla", "blu"])
