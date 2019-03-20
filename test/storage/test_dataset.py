@@ -613,7 +613,7 @@ def test_create_hierarchical_dataset_from_json(hierarchical_dataset):
     assert root_nodes[1].children[0].example.name[0] == "c21"
     assert root_nodes[1].children[0].example.number[0] == 6
 
-    assert len(hierarchical_dataset) == 9
+    assert len(hierarchical_dataset) == 10
     assert hierarchical_dataset.depth == 2
 
 
@@ -623,7 +623,7 @@ def test_flatten_hierarchical_dataset(hierarchical_dataset):
         assert example.number[0] == index + 1
         count += 1
 
-    assert count == 9
+    assert count == 10
 
 
 def test_hierarchical_dataset_example_indexing(hierarchical_dataset):
@@ -636,7 +636,8 @@ def test_hierarchical_dataset_example_indexing(hierarchical_dataset):
     assert hierarchical_dataset[5].name[0] == "c21"
     assert hierarchical_dataset[6].name[0] == "c22"
     assert hierarchical_dataset[7].name[0] == "c23"
-    assert hierarchical_dataset[8].name[0] == "c24"
+    assert hierarchical_dataset[8].name[0] == "c231"
+    assert hierarchical_dataset[9].name[0] == "c24"
 
 
 def test_hierarchical_dataset_invalid_json_fail(hierarchical_dataset_fields):
@@ -651,6 +652,32 @@ def test_hierarchical_dataset_json_root_element_not_list_fail():
         HierarchicalDataset.from_json(JSON_ROOT_NOT_LIST, hierarchical_dataset_fields,
                                       HierarchicalDataset
                                       .get_default_dict_parser("children"))
+
+
+def test_hierarchical_dataset_context_iteration(hierarchical_dataset):
+    c111_expected_context = ["parent1", "c11"]
+    c111_context = list(map(lambda x: x.name[0], hierarchical_dataset.get_context(2)))
+    assert c111_context == c111_expected_context
+
+    c23_expected_context_0_lvl = ["parent2", "c21", "c22"]
+    c23_context_0_lvl = list(
+        map(
+            lambda x: x.name[0], hierarchical_dataset.get_context(7, 0)
+        )
+    )
+
+    assert c23_context_0_lvl == c23_expected_context_0_lvl
+
+
+def test_hierarchical_dataset_pickle(tmpdir, hierarchical_dataset):
+    dataset_file = os.path.join(tmpdir, "dataset.pkl")
+
+    with open(dataset_file, "wb") as fdata:
+        pickle.dump(hierarchical_dataset, fdata)
+
+    with open(dataset_file, "rb") as fdata:
+        loaded_dataset = pickle.load(fdata)
+        test_create_hierarchical_dataset_from_json(loaded_dataset)
 
 
 HIERARCHIAL_DATASET_JSON_EXAMPLE = """
@@ -691,15 +718,19 @@ HIERARCHIAL_DATASET_JSON_EXAMPLE = """
         {
             "name" : "c23",
             "number" : 8,
-            "children" : []
+            "children" : [
+                {
+                    "name" : "c231",
+                    "number" : 9
+                }
+            ]
         },
         {
             "name" : "c24",
-            "number" : 9,
-            "children" : []
+            "number" : 10
         }
     ]
-    }
+}
 ]
 """
 
