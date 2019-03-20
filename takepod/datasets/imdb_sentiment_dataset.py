@@ -47,6 +47,10 @@ class BasicSupervisedImdbDataset(dataset.Dataset):
         name of the field containing comment text
     LABEL_FIELD_NAME : str
         name of the field containing label value
+    POSITIVE_LABEL : int
+        positive sentiment label
+    NEGATIVE_LABEL : int
+        negative sentiment label
     """
     NAME = "imdb"
     URL = "http://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz"
@@ -59,6 +63,9 @@ class BasicSupervisedImdbDataset(dataset.Dataset):
 
     TEXT_FIELD_NAME = "text"
     LABEL_FIELD_NAME = "label"
+
+    POSITIVE_LABEL = 1
+    NEGATIVE_LABEL = 0
 
     def __init__(self, dir_path, fields):
         """
@@ -84,6 +91,23 @@ class BasicSupervisedImdbDataset(dataset.Dataset):
 
     @staticmethod
     def _create_examples(dir_path, fields):
+        """
+        Method creates examples for imdb dataset. Examples are arranged in two
+        folders, one for examples with positive sentiment and other with negative
+        sentiment. One file in each folder represents one example.
+
+        Parameters
+        ----------
+        dir_path : str
+            file where files with examples are positioned
+        fields : dict(str, Field)
+            dictionary mapping field names to fields
+
+        Returns
+        -------
+        examples : list(Example)
+            list of examples from given dir_path
+        """
         dir_pos_path = os.path.join(
             dir_path, BasicSupervisedImdbDataset.POSITIVE_LABEL_DIR)
         dir_neg_path = os.path.join(
@@ -91,14 +115,32 @@ class BasicSupervisedImdbDataset(dataset.Dataset):
         examples = []
         examples.append(
             BasicSupervisedImdbDataset._create_labeled_examples(
-                dir_pos_path, 1, fields))
+                dir_pos_path, BasicSupervisedImdbDataset.POSITIVE_LABEL, fields))
         examples.append(
             BasicSupervisedImdbDataset._create_labeled_examples(
-                dir_neg_path, 0, fields))
+                dir_neg_path, BasicSupervisedImdbDataset.NEGATIVE_LABEL, fields))
         return examples
 
     @staticmethod
     def _create_labeled_examples(dir_path, label, fields):
+        """
+        Method creates examples for imdb dataset with given label. Examples are
+        positioned in multiple files that are in one folder.
+
+        Parameters
+        ----------
+        dir_path : str
+            file where files with examples are positioned
+        label : int
+            examples label
+        fields : dict(str, Field)
+            dictionary mapping field names to fields
+
+        Returns
+        -------
+        examples : list(Example)
+            list of examples from given dir_path
+        """
         files_list = [f for f in os.listdir(dir_path) if os.path.isfile(
             os.path.join(dir_path, f))]
         examples = []
@@ -146,7 +188,7 @@ class BasicSupervisedImdbDataset(dataset.Dataset):
 
     @staticmethod
     def get_default_fields():
-         """Method returns default Imdb fields: text and label.
+        """Method returns default Imdb fields: text and label.
 
         Returns
         -------
