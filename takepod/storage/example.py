@@ -111,13 +111,7 @@ class Example(object):
         # we ignore columns with field mappings set to None
         items = filter(lambda el: el[1] is not None, fields.items())
         for key, field in items:
-            if key not in data:
-                error_msg = f"Specified key {key} was not found "\
-                            "in the input data"
-                _LOGGER.error(error_msg)
-                raise ValueError(error_msg)
-
-            val = data[key]
+            val = data.get(key)
             set_example_attributes(example, field, val)
 
         return example

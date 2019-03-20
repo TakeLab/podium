@@ -1,5 +1,5 @@
 import os
-import pickle
+import dill
 from xml.etree.ElementTree import ParseError
 import pytest
 from takepod.storage.example import Example
@@ -49,22 +49,6 @@ def test_fromdict_ok(data_dict, fields_dict):
 
 
 @pytest.mark.parametrize(
-    "data_dict, fields_dict",
-    [
-        (
-            {"text": "this is a review", "rating": 4.5, "sentiment": 1},
-            {"not_text": (MockField("words"), MockField("chars")),
-             "rating": MockField("label"),
-             "sentiment": (MockField("sentiment"), MockField("polarity"))},
-        ),
-    ]
-)
-def test_fromdict_exception(data_dict, fields_dict):
-    with pytest.raises(ValueError):
-        Example.from_dict(data_dict, fields_dict)
-
-
-@pytest.mark.parametrize(
     "json_data, fields_dict, expected_data_dict",
     [
         (
@@ -93,22 +77,6 @@ def test_from_json_ok(json_data, fields_dict, expected_data_dict):
     expected_example = create_expected_example(field_data_tuples)
 
     assert received_example.__dict__ == expected_example.__dict__
-
-
-@pytest.mark.parametrize(
-    "json_data, fields_dict",
-    [
-        (
-            '{"text": "this is a review", "rating": 4.5, "sentiment": 1}',
-            {"not_text": (MockField("words"), MockField("chars")),
-             "rating": MockField("label"),
-             "sentiment": (MockField("sentiment"), MockField("polarity"))},
-        ),
-    ]
-)
-def test_from_json_exception(json_data, fields_dict):
-    with pytest.raises(ValueError):
-        Example.from_json(json_data, fields_dict)
 
 
 @pytest.mark.parametrize(
@@ -307,10 +275,10 @@ def test_from_csv_fields_pickle(csv_line, fields_dict, field_to_index,
     example_file = os.path.join(tmpdir, "example.pkl")
 
     with open(example_file, "wb") as fdata:
-        pickle.dump(example, fdata)
+        dill.dump(example, fdata)
 
     with open(example_file, "rb") as fdata:
-        loaded_example = pickle.load(fdata)
+        loaded_example = dill.load(fdata)
 
         assert example.__dict__ == loaded_example.__dict__
 

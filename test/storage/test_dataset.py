@@ -1,5 +1,5 @@
 import os
-import pickle
+import dill
 import pytest
 
 from collections import Counter
@@ -109,10 +109,10 @@ def test_finalize_fields_pickle(data, field_list, tmpdir):
     dataset_file = os.path.join(tmpdir, "dataset.pkl")
 
     with open(dataset_file, "wb") as fdata:
-        pickle.dump(dataset, fdata)
+        dill.dump(dataset, fdata)
 
     with open(dataset_file, "rb") as fdata:
-        loaded_dataset = pickle.load(fdata)
+        loaded_dataset = dill.load(fdata)
         for f in loaded_dataset.field_dict.values():
             assert f.updated_count == (len(data) if (not f.eager) else 0)
             assert f.finalized
@@ -123,10 +123,10 @@ def test_not_finalize_fields_pickle(data, field_list, tmpdir):
     dataset_file = os.path.join(tmpdir, "dataset.pkl")
 
     with open(dataset_file, "wb") as fdata:
-        pickle.dump(dataset, fdata)
+        dill.dump(dataset, fdata)
 
     with open(dataset_file, "rb") as fdata:
-        loaded_dataset = pickle.load(fdata)
+        loaded_dataset = dill.load(fdata)
         for f in loaded_dataset.field_dict.values():
             assert f.updated_count == 0
             assert not f.finalized
@@ -387,10 +387,10 @@ def test_tabular_dataset_pickle_sort_key(
     dataset_file = os.path.join(tmpdir, "dataset.pkl")
 
     with open(dataset_file, "wb") as fdata:
-        pickle.dump(dataset, fdata)
+        dill.dump(dataset, fdata)
 
     with open(dataset_file, "rb") as fdata:
-        loaded_dataset = pickle.load(fdata)
+        loaded_dataset = dill.load(fdata)
         assert loaded_dataset.sort_key == sort_key_str
 
 
@@ -673,10 +673,10 @@ def test_hierarchical_dataset_pickle(tmpdir, hierarchical_dataset):
     dataset_file = os.path.join(tmpdir, "dataset.pkl")
 
     with open(dataset_file, "wb") as fdata:
-        pickle.dump(hierarchical_dataset, fdata)
+        dill.dump(hierarchical_dataset, fdata)
 
     with open(dataset_file, "rb") as fdata:
-        loaded_dataset = pickle.load(fdata)
+        loaded_dataset = dill.load(fdata)
         test_create_hierarchical_dataset_from_json(loaded_dataset)
 
 

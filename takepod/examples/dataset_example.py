@@ -1,5 +1,5 @@
 """Example how to use simple PauzaHR dataset."""
-import pickle
+import dill
 import logging
 
 from takepod.storage.large_resource import LargeResource
@@ -21,8 +21,8 @@ if __name__ == "__main__":
 
     # save dataset
     with open("dataset.pkl", "wb") as f:
-        pickle.dump(train_set, f)
+        dill.dump(train_set, f)
 
     # load dataset
     with open("dataset.pkl", "rb") as f:
-        loaded_train_set = pickle.load(f)
+        loaded_train_set = dill.load(f)

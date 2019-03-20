@@ -1,5 +1,5 @@
 import os
-import pickle
+import dill
 import numpy as np
 import pytest
 from mock import patch
@@ -117,10 +117,10 @@ def test_field_pickle_tokenized(value, store_raw, sequential,
     field_file = os.path.join(tmpdir, "field.pkl")
 
     with open(field_file, "wb") as fdata:
-        pickle.dump(fld, fdata)
+        dill.dump(fld, fdata)
 
     with open(field_file, "rb") as fdata:
-        loaded_fld = pickle.load(fdata)
+        loaded_fld = dill.load(fdata)
         raw_value, tokenized_value = loaded_fld.preprocess(value)
 
         assert raw_value == expected_raw_value
@@ -294,10 +294,10 @@ def test_field_pickle_spacy_tokenizer(vocab, tmpdir):
     field_file = os.path.join(tmpdir, "field.pkl")
 
     with open(field_file, "wb") as fdata:
-        pickle.dump(fld, fdata)
+        dill.dump(fld, fdata)
 
     with open(field_file, "rb") as fdata:
-        loaded_fld = pickle.load(fdata)
+        loaded_fld = dill.load(fdata)
 
         assert loaded_fld._tokenizer_arg == "spacy"
         assert loaded_fld.preprocess("bla blu") == (None, ["bla", "blu"])
@@ -561,3 +561,50 @@ def test_field_fail_initialization(store_as_raw, store_as_tokenized, tokenize):
               store_as_raw=store_as_raw,
               store_as_tokenized=store_as_tokenized,
               tokenize=tokenize)
+
+
+def test_missing_values_default_sequential():
+    fld = Field("bla",
+                store_as_raw=False,
+                tokenize=True,
+                custom_numericalize=lambda x: hash(x),
+                allow_missing_data=True)
+
+    data_missing = fld.preprocess(None)
+    data_exists = fld.preprocess("data_string")
+
+    assert data_missing == (None, None)
+    assert data_exists == (None, ["data_string"])
+    fld.finalize()
+
+    assert np.all(fld.numericalize(data_missing) == np.empty(0))
+    assert np.all(fld.numericalize(data_exists) == np.array([hash("data_string")]))
+
+
+def test_missing_values_default_not_sequential():
+    fld = Field("bla",
+                store_as_raw=True,
+                tokenize=False,
+                custom_numericalize=int,
+                allow_missing_data=True)
+
+    data_missing = fld.preprocess(None)
+    data_exists = fld.preprocess("404")
+
+    assert data_missing == (None, None)
+    assert data_exists == ("404", None)
+
+    fld.finalize()
+
+    assert np.allclose(fld.numericalize(data_missing), np.array([np.nan]), equal_nan=True)
+    assert np.all(fld.numericalize(data_exists) == np.array([404]))
+
+
+def test_missing_values_fail():
+    fld = Field("bla",
+                store_as_raw=True,
+                tokenize=False,
+                custom_numericalize=lambda x: hash(x))
+
+    with pytest.raises(ValueError):
+        fld.preprocess(None)

@@ -331,9 +331,11 @@ def hierarchical_dataset_parser():
 
 @pytest.fixture()
 def hierarchical_dataset(hierarchical_dataset_fields, hierarchical_dataset_parser):
-    return HierarchicalDataset.from_json(HIERARCHIAL_DATASET_JSON_EXAMPLE,
-                                         hierarchical_dataset_fields,
-                                         hierarchical_dataset_parser)
+    dataset = HierarchicalDataset.from_json(HIERARCHIAL_DATASET_JSON_EXAMPLE,
+                                            hierarchical_dataset_fields,
+                                            hierarchical_dataset_parser)
+    dataset.finalize_fields()
+    return dataset
 
 
 def test_hierarchical_dataset_iteration(hierarchical_dataset):
