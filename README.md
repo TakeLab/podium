@@ -93,8 +93,6 @@ flake8 takepod
 flake8 test
 ```
 
-For automatic flake8 compliance we recommend use of [Black](https://github.com/ambv/black).
-
 ## Contributing
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
@@ -125,5 +123,5 @@ This project is licensed under the (TODO) - see the [LICENSE.md](LICENSE.md) fil
 - Add used references
 - Add deployment notes
 - Add small examples
-
+- For automatic flake8 compliance we currently don't recommend use of [Black](https://github.com/ambv/black).
 
