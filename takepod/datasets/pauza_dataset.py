@@ -14,6 +14,8 @@ class PauzaHRDataset(dataset.Dataset):
         dataset name
     DATASET_DIR : str
         name of the folder in the dataset containing train and test directories
+    ARCHIVE_TYPE : str
+        string that defines archive type, used for unpacking dataset
     TRAIN_DIR : str
         name of the training directory
     TEST_DIR : str
@@ -83,7 +85,7 @@ class PauzaHRDataset(dataset.Dataset):
         ----------
         fields : dict(str, Field), optional
             dictionary mapping field name to field, if not given method will
-            use ```_get_default_fields```.
+            use ```get_default_fields```.
 
         Returns
         -------
@@ -93,7 +95,7 @@ class PauzaHRDataset(dataset.Dataset):
         data_location = os.path.join(LargeResource.BASE_RESOURCE_DIR,
                                      PauzaHRDataset.DATASET_DIR)
         if not fields:
-            fields = PauzaHRDataset._get_default_fields()
+            fields = PauzaHRDataset.get_default_fields()
 
         train_dataset = PauzaHRDataset(dir_path=os.path.join(
             data_location, PauzaHRDataset.TRAIN_DIR), fields=fields)
@@ -104,7 +106,7 @@ class PauzaHRDataset(dataset.Dataset):
         return (train_dataset, test_dataset)
 
     @staticmethod
-    def _get_default_fields():
+    def get_default_fields():
         """Method returns default PauzaHR fields: rating, source and text.
 
         Returns
