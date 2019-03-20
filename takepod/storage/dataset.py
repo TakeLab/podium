@@ -945,8 +945,11 @@ class HierarchicalDataset:
         """
         levels = float('Inf') if levels is None else levels
         if levels < 0:
-            raise ValueError(f"Number of context levels must be greater or equal to 0."
-                             f" Passed value: {levels}")
+            error_msg = f"Number of context levels must be greater or equal to 0."\
+                        f" Passed value: {levels}"
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
+
 
         parent = node
         while parent.parent is not None and levels >= 0:
