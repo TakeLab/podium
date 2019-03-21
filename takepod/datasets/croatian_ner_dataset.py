@@ -94,7 +94,7 @@ class CroatianNERDataset(dataset.Dataset):
                                                        tag_schema, **kwargs)
         tokenized_documents = ner_croatian_xml_loader.load_dataset()
 
-        ner_dataset = cls(tokenized_documents, dataset.unpack_fields(fields))
+        ner_dataset = cls(tokenized_documents, fields.values())
         ner_dataset.finalize_fields()
 
         return ner_dataset

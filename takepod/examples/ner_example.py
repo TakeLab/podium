@@ -1,4 +1,5 @@
 import sys
+from collections import namedtuple
 from functools import partial
 
 import numpy as np
@@ -33,13 +34,6 @@ label_mapping = {
 }
 
 
-def batch_transform_fun(x_batch, y_batch, embedding_matrix):
-    x_numericalized = x_batch.tokens.astype(int)
-    X = np.take(embedding_matrix, x_numericalized, axis=0).astype(int)
-    y = y_batch.labels.astype(int)
-    return X, y
-
-
 def label_mapper_hook(data, tokens):
     for i in range(len(tokens)):
         if tokens[i] == 'O':
@@ -56,12 +50,44 @@ def label_mapper_hook(data, tokens):
     return data, tokens
 
 
+def casing_mapper_hook(data, tokens):
+    tokens_casing = []
+
+    for token in tokens:
+        token_casing = 'other'
+        if token.isdigit():
+            token_casing = 'numeric'
+        elif token.islower():
+            token_casing = 'lowercase'
+        elif token.isupper():
+            token_casing = 'uppercase'
+        elif token[0].isupper():
+            token_casing = 'initial_uppercase'
+
+        tokens_casing.append(token_casing)
+
+    return data, tokens_casing
+
+
+def batch_transform_fun(x_batch, y_batch, embedding_matrix):
+    tokens_numericalized = x_batch.tokens.astype(int)
+    casing_numericalized = x_batch.casing.astype(int)
+    y = y_batch.labels.astype(int)
+
+    X = [
+        np.take(embedding_matrix, tokens_numericalized, axis=0).astype(int),
+        casing_numericalized
+    ]
+    return X, y
+
+
 def example_word_count(example):
     return len(example.tokens[1])
 
 
 def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
     output_size = len(fields['labels'].vocab.itos)
+    casing_feature_size = len(fields['inputs'].casing.vocab.itos)
 
     train_set, test_set = dataset.split(split_ratio=0.8)
 
@@ -73,7 +99,10 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
         BLCCModel.CLASSIFIER: 'CRF',
         BLCCModel.EMBEDDING_SIZE: 300,
         BLCCModel.LSTM_SIZE: [100, 100],
-        BLCCModel.DROPOUT: (0.25, 0.25)
+        BLCCModel.DROPOUT: (0.25, 0.25),
+        BLCCModel.FEATURE_INPUT_SIZES: (casing_feature_size,),
+        BLCCModel.FEATURE_OUTPUT_SIZES: (30,),
+        BLCCModel.FEATURE_NAMES: ('casing',)
     })
     trainer = SimpleTrainer(model=model)
 
@@ -115,29 +144,33 @@ def filter_out_padding(pad_symbol, prediction, y_test):
 
 
 def ner_dataset_classification_fields():
-    tokens = TokenizedField(name="tokens",
+    tokens = TokenizedField(name='tokens',
                             vocab=Vocab())
-    labels = TokenizedField(name="labels",
+    casing = TokenizedField(name='casing',
+                            vocab=Vocab(specials=(SpecialVocabSymbols.PAD,)))
+    labels = TokenizedField(name='labels',
                             is_target=True,
                             vocab=Vocab(specials=(SpecialVocabSymbols.PAD,)))
 
+    casing.add_posttokenize_hook(casing_mapper_hook)
     labels.add_posttokenize_hook(label_mapper_hook)
 
-    fields = {"tokens": tokens, "labels": labels}
-    return fields
+    Inputs = namedtuple('Inputs', ['tokens', 'casing'])
+
+    return {'inputs': Inputs(tokens, casing), 'labels': labels}
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     vectors_path = sys.argv[1]
-    LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
+    LargeResource.BASE_RESOURCE_DIR = 'downloaded_datasets'
 
     fields = ner_dataset_classification_fields()
     dataset = CroatianNERDataset.get_dataset(fields=fields)
 
     vectorizer = BasicVectorStorage(path=vectors_path)
-    vectorizer.load_vocab(vocab=fields['tokens'].vocab)
+    vectorizer.load_vocab(vocab=fields['inputs'].tokens.vocab)
     embedding_matrix = vectorizer.get_embedding_matrix(
-        fields['tokens'].vocab)
+        fields['inputs'].tokens.vocab)
 
     batch_transform = partial(
         batch_transform_fun,

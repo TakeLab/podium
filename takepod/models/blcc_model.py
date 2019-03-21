@@ -1,5 +1,5 @@
 from keras import backend as K
-from keras.layers import Bidirectional, Dense, Dropout
+from keras.layers import Bidirectional, concatenate, Dense, Dropout, Embedding
 from keras.layers import Input, LSTM, TimeDistributed
 from keras.models import Model
 from keras.optimizers import Adadelta, Adagrad, Adam, Nadam, RMSprop, SGD
@@ -14,6 +14,11 @@ class BLCCModel(AbstractSupervisedModel):
 
     EMBEDDING_SIZE = 'embedding_size'
     OUTPUT_SIZE = 'output_size'
+
+    FEATURE_NAMES = 'feature_names'
+    FEATURE_INPUT_SIZES = 'feature_input_sizes'
+    FEATURE_OUTPUT_SIZES = 'feature_output_sizes'
+
     LEARNING_RATE = 'learning_rate'
     CLIPNORM = 'clipnorm'
     CLIPVALUE = 'clipvalue'
@@ -26,7 +31,10 @@ class BLCCModel(AbstractSupervisedModel):
         default_hyperparameters = {
             self.EMBEDDING_SIZE: None,
             self.OUTPUT_SIZE: None,
-            
+
+            self.FEATURE_NAMES: (),
+            self.FEATURE_INPUT_SIZES: (),
+            self.FEATURE_OUTPUT_SIZES: (),
             self.DROPOUT: (0.5, 0.5),
             self.CLASSIFIER: 'CRF',
             self.LSTM_SIZE: (100,),
@@ -44,16 +52,40 @@ class BLCCModel(AbstractSupervisedModel):
 
     def _build_model(self):
         embedding_size = self.params.get(self.EMBEDDING_SIZE)
+
         output_size = self.params.get(self.OUTPUT_SIZE)
 
         tokens_input = Input(shape=(None, embedding_size),
                              dtype='float32',
                              name='embeddings_input')
+
         input_nodes = [tokens_input]
+        input_layers_to_concatenate = [tokens_input]
 
-        # TODO add character embeddings and casing
+        # TODO add character embeddings
 
-        shared_layer = input_nodes
+        custom_feature_properties = zip(
+            self.params.get(self.FEATURE_NAMES),
+            self.params.get(self.FEATURE_INPUT_SIZES),
+            self.params.get(self.FEATURE_OUTPUT_SIZES)
+        )
+        for name, input_size, output_size in custom_feature_properties:
+            feature_input = Input(shape=(None,), dtype='int32',
+                                  name=f'{name}_input')
+
+            feature_embedding = Embedding(
+                input_dim=input_size,
+                output_dim=output_size,
+                name=f'{name}_embeddings')(feature_input)
+
+            input_nodes.append(feature_input)
+            input_layers_to_concatenate.append(feature_embedding)
+
+        if len(input_layers_to_concatenate) > 1:
+            shared_layer = concatenate(input_layers_to_concatenate)
+        else:
+            shared_layer = input_layers_to_concatenate[0]
+
         cnt = 0
 
         for size in self.params[self.LSTM_SIZE]:
@@ -66,12 +98,12 @@ class BLCCModel(AbstractSupervisedModel):
                         dropout=self.params[self.DROPOUT][0],
                         recurrent_dropout=self.params[self.DROPOUT][1]
                     ),
-                    name='shared_varLSTM_' + str(cnt))(shared_layer)
+                    name=f'shared_varLSTM_{cnt}')(shared_layer)
             else:
                 # Naive dropout
                 shared_layer = Bidirectional(
                     LSTM(size, return_sequences=True),
-                    name='shared_LSTM_' + str(cnt))(shared_layer)
+                    name=f'shared_LSTM_{cnt}')(shared_layer)
 
                 if self.params[self.DROPOUT] > 0.0:
                     shared_layer = TimeDistributed(

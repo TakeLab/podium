@@ -44,8 +44,8 @@ class Dataset(ABC):
         """
 
         self.examples = examples
-        self.fields = fields
-        self.field_dict = {field.name: field for field in fields}
+        self.fields = unpack_fields(fields)
+        self.field_dict = {field.name: field for field in self.fields}
         self.sort_key = sort_key
 
     def __getitem__(self, i):
