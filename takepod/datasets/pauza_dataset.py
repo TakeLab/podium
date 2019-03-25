@@ -1,11 +1,10 @@
 """Module contains PauzaHR datasets."""
 import os
-from takepod.storage import dataset
+from takepod.storage import dataset, ExampleFactory
 from takepod.storage.example import Example
 from takepod.storage.field import Field
 from takepod.storage.vocab import Vocab
 from takepod.storage.large_resource import LargeResource
-
 
 class PauzaHRDataset(dataset.Dataset):
     """Simple PauzaHR dataset class which uses original reviews.
@@ -71,12 +70,12 @@ class PauzaHRDataset(dataset.Dataset):
         """
         files_list = [f for f in os.listdir(dir_path) if os.path.isfile(
             os.path.join(dir_path, f))]
+        example_factory = ExampleFactory(fields)
         examples = []
         for file_path in files_list:
             with open(file=os.path.join(dir_path, file_path),
                       mode='r', encoding='utf8') as fpr:
-                examples.append(Example.from_xml_str(data=fpr.read(),
-                                                     fields=fields))
+                examples.append(example_factory.from_xml_str(fpr.read()))
         return examples
 
     @staticmethod

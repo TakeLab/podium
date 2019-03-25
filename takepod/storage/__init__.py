@@ -10,6 +10,7 @@ from .iterator import Iterator, BucketIterator, HierarchicalDatasetIterator
 from .large_resource import LargeResource, SCPLargeResource
 from .vectorizer import VectorStorage, BasicVectorStorage
 from .vocab import SpecialVocabSymbols, Vocab
+from .example_factory import ExampleFactory
 
 # Convention: class imports from same module are continuous in one line until the length
 # limit, when they continue in the next line. Imports from subsequent modules are broken
@@ -27,4 +28,5 @@ __all__ = ["Dataset", "HierarchicalDataset", "TabularDataset",
            "LargeResource", "SCPLargeResource",
            "VectorStorage", "BasicVectorStorage",
            "SpecialVocabSymbols", "Vocab",
-           "stratified_split", "rationed_split"]
+           "stratified_split", "rationed_split",
+           "example_factory"]
