@@ -102,7 +102,7 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
         BLCCModel.LSTM_SIZE: (100, 100),
         BLCCModel.DROPOUT: (0.25, 0.25),
         BLCCModel.FEATURE_INPUT_SIZES: (casing_feature_size,),
-        BLCCModel.FEATURE_OUTPUT_SIZES: (30,),
+        BLCCModel.FEATURE_OUTPUT_SIZES: (6,),
         BLCCModel.FEATURE_NAMES: ('casing',)
     })
     trainer = SimpleTrainer(model=model)
