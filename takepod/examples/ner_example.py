@@ -70,6 +70,7 @@ def casing_mapper_hook(data, tokens):
 
 
 def batch_transform_fun(x_batch, y_batch, embedding_matrix):
+    # TODO remove casting to int after fixing the numericalization
     tokens_numericalized = x_batch.tokens.astype(int)
     casing_numericalized = x_batch.casing.astype(int)
     y = y_batch.labels.astype(int)
@@ -98,7 +99,7 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
         BLCCModel.OUTPUT_SIZE: output_size,
         BLCCModel.CLASSIFIER: 'CRF',
         BLCCModel.EMBEDDING_SIZE: 300,
-        BLCCModel.LSTM_SIZE: [100, 100],
+        BLCCModel.LSTM_SIZE: (100, 100),
         BLCCModel.DROPOUT: (0.25, 0.25),
         BLCCModel.FEATURE_INPUT_SIZES: (casing_feature_size,),
         BLCCModel.FEATURE_OUTPUT_SIZES: (30,),

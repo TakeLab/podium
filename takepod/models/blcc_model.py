@@ -86,10 +86,9 @@ class BLCCModel(AbstractSupervisedModel):
         else:
             shared_layer = input_layers_to_concatenate[0]
 
-        cnt = 0
+        cnt = 1
 
         for size in self.params[self.LSTM_SIZE]:
-            cnt += 1
             if isinstance(self.params[self.DROPOUT], (list, tuple)):
                 shared_layer = Bidirectional(
                     LSTM(
@@ -110,6 +109,7 @@ class BLCCModel(AbstractSupervisedModel):
                         Dropout(self.params[self.DROPOUT]),
                         name=f'shared_dropout_{self.params[self.DROPOUT]}'
                     )(shared_layer)
+            cnt += 1
 
         n_class_labels = output_size
         output = shared_layer
