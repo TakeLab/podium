@@ -1,3 +1,4 @@
+"""Module contains deep learning based sequence labelling model.."""
 from keras import backend as K
 from keras.layers import Bidirectional, concatenate, Dense, Dropout, Embedding
 from keras.layers import Input, LSTM, TimeDistributed
@@ -11,6 +12,46 @@ import numpy as np
 
 
 class BLCCModel(AbstractSupervisedModel):
+    """
+    Deeo learning model for sequence labelling tasks.
+
+    Originally proposed in the following paper:
+    https://arxiv.org/pdf/1603.01354.pdf
+
+    Attributes
+    ----------
+    EMBEDDING_SIZE : int
+        Size of the word embeddings
+    OUTPUT_SIZE : int
+        Number of output classes
+    FEATURE_NAMES : iterable(str)
+        Names of the custom features
+    FEATURE_INPUT_SIZES : iterable(str)
+        Input sizes of the custom features
+    FEATURE_OUTPUT_SIZES : iterable(str)
+        Output sizes of the custom features
+    LEARNING_RATE : float
+        Learning rate
+    CLIPNORM : float
+        Optimizer clip norm
+    CLIPVALUE : float
+        Optimizer clip value
+    OPTIMIZER : str
+        Optimizer name
+        Supported optimizers: ['adam', 'nadam', 'rmsprop', 'adadelta',
+        'adagrad', 'sgd']
+    CLASSIFIER : str
+        Classifier name
+        Supported classifiers: ['Softmax', 'CRF']
+    LSTM_SIZE = iterable(int)
+        Sizes of the bidirectional LSTM layers.
+    DROPOUT : float | iterable(float)
+        If the single float value is given, a naive dropout with the given value
+        is applied after each LSTM layer.
+        If the iterable value is given, the first element is applied as a
+        standard dropout and a second is applied as a recurrent dropout within
+        a LSTM layer.
+    """
 
     # TODO : model expects keras=2.2.4 to be installed
 
@@ -28,7 +69,7 @@ class BLCCModel(AbstractSupervisedModel):
     CLASSIFIER = 'classifier'
     LSTM_SIZE = 'LSTM-Size'
     DROPOUT = 'dropout'
-    
+
     def __init__(self, **kwargs):
         default_hyperparameters = {
             self.EMBEDDING_SIZE: None,
@@ -41,8 +82,8 @@ class BLCCModel(AbstractSupervisedModel):
             self.CLASSIFIER: 'CRF',
             self.LSTM_SIZE: (100,),
             self.OPTIMIZER: 'adam',
-            self.CLIPVALUE: 0,
-            self.CLIPNORM: 1,
+            self.CLIPVALUE: 0.0,
+            self.CLIPNORM: 1.0,
             self.LEARNING_RATE: 0.01
         }
 
@@ -53,6 +94,7 @@ class BLCCModel(AbstractSupervisedModel):
         self.model = self._build_model()
 
     def _build_model(self):
+        """Method initializes and compiles the model."""
         embedding_size = self.params.get(self.EMBEDDING_SIZE)
 
         output_size = self.params.get(self.OUTPUT_SIZE)
@@ -164,6 +206,10 @@ class BLCCModel(AbstractSupervisedModel):
         return model
 
     def fit(self, X, y, **kwargs):
+        """
+        Method calls fit on BLCC model with the given batch.
+        It is supposed to be used as online learning.
+        """
         self.model.train_on_batch(X, np.expand_dims(y, -1))
 
     def predict(self, X, **kwargs):

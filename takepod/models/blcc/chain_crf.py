@@ -313,7 +313,7 @@ class ChainCRF(Layer):
 
     def _fetch_mask(self):
         mask = None
-        
+
         if self._inbound_nodes:
             mask = self._inbound_nodes[0].input_masks[0]
 

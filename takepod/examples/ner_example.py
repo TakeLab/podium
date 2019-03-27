@@ -1,3 +1,5 @@
+"""Example how to use BLCC model on Croatian NER dataset for NER task."""
+
 import sys
 from collections import namedtuple
 from functools import partial
@@ -35,6 +37,7 @@ label_mapping = {
 
 
 def label_mapper_hook(data, tokens):
+    """Function maps the labels to a reduced set."""
     for i in range(len(tokens)):
         if tokens[i] == 'O':
             continue
@@ -51,6 +54,7 @@ def label_mapper_hook(data, tokens):
 
 
 def casing_mapper_hook(data, tokens):
+    """Hook for generating the casing feature from the tokenized text."""
     tokens_casing = []
 
     for token in tokens:
@@ -70,6 +74,8 @@ def casing_mapper_hook(data, tokens):
 
 
 def batch_transform_fun(x_batch, y_batch, embedding_matrix):
+    """Function transforms iterator batches to a form acceptable by
+    the model."""
     # TODO remove casting to int after fixing the numericalization
     tokens_numericalized = x_batch.tokens.astype(int)
     casing_numericalized = x_batch.casing.astype(int)
@@ -83,10 +89,12 @@ def batch_transform_fun(x_batch, y_batch, embedding_matrix):
 
 
 def example_word_count(example):
+    """Function returns the number of tokens in an Example."""
     return len(example.tokens[1])
 
 
 def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
+    """Example of training the BLCCModel with Croatian NER dataset"""
     output_size = len(fields['labels'].vocab.itos)
     casing_feature_size = len(fields['inputs'].casing.vocab.itos)
 
@@ -138,6 +146,8 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
 
 
 def filter_out_padding(pad_symbol, prediction, y_test):
+    """Filters out padding from the predictiopytn and test arrays. The
+     resulting arrays are flattened."""
     indices_to_leave = np.where(np.ravel(y_test) != pad_symbol)
     y_test_filtered = np.ravel(y_test)[indices_to_leave]
     prediction_filtered = np.ravel(prediction)[indices_to_leave]
@@ -145,6 +155,8 @@ def filter_out_padding(pad_symbol, prediction, y_test):
 
 
 def ner_dataset_classification_fields():
+    """Function creates fields to use with the Croatian NER dataset on
+    NER task."""
     tokens = TokenizedField(name='tokens',
                             vocab=Vocab())
     casing = TokenizedField(name='casing',
