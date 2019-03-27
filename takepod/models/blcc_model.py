@@ -12,6 +12,8 @@ import numpy as np
 
 class BLCCModel(AbstractSupervisedModel):
 
+    # TODO : model expects keras=2.2.4 to be installed
+
     EMBEDDING_SIZE = 'embedding_size'
     OUTPUT_SIZE = 'output_size'
 
