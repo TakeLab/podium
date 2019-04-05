@@ -113,10 +113,10 @@ class BasicSupervisedImdbDataset(dataset.Dataset):
         dir_neg_path = os.path.join(
             dir_path, BasicSupervisedImdbDataset.NEGATIVE_LABEL_DIR)
         examples = []
-        examples.append(
+        examples.extend(
             BasicSupervisedImdbDataset._create_labeled_examples(
                 dir_pos_path, BasicSupervisedImdbDataset.POSITIVE_LABEL, fields))
-        examples.append(
+        examples.extend(
             BasicSupervisedImdbDataset._create_labeled_examples(
                 dir_neg_path, BasicSupervisedImdbDataset.NEGATIVE_LABEL, fields))
         return examples
