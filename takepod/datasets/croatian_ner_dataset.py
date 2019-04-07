@@ -86,7 +86,7 @@ class CroatianNERDataset(dataset.Dataset):
             The loaded dataset.
         """
         if not fields:
-            fields = CroatianNERDataset._get_default_fields()
+            fields = CroatianNERDataset.get_default_fields()
 
         path = LargeResource.BASE_RESOURCE_DIR
 
@@ -100,7 +100,7 @@ class CroatianNERDataset(dataset.Dataset):
         return ner_dataset
 
     @staticmethod
-    def _get_default_fields():
+    def get_default_fields():
         """
         Method returns default Croatian NER dataset fields.
 

@@ -29,7 +29,7 @@ class CatacxCommentsDataset(dataset.Dataset):
             dictionary that maps field name to the field
             if passed None the default set of fields will be used
         """
-        fields = fields if fields else CatacxCommentsDataset._get_default_fields()
+        fields = fields if fields else CatacxCommentsDataset.get_default_fields()
         examples = CatacxCommentsDataset._create_examples(dir_path, fields)
         unpacked_fields = dataset.unpack_fields(fields)
         super(CatacxCommentsDataset, self).__init__(examples, unpacked_fields)
@@ -115,7 +115,7 @@ class CatacxCommentsDataset(dataset.Dataset):
         return examples
 
     @staticmethod
-    def _get_default_fields():
+    def get_default_fields():
         """
         Method returns a dict of default Catacx comment fields.
         fields : author_name, author_id, id, likes_cnt, message
