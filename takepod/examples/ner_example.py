@@ -109,9 +109,10 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
         BLCCModel.EMBEDDING_SIZE: 300,
         BLCCModel.LSTM_SIZE: (100, 100),
         BLCCModel.DROPOUT: (0.25, 0.25),
+        BLCCModel.FEATURE_NAMES: ('casing',),
         BLCCModel.FEATURE_INPUT_SIZES: (casing_feature_size,),
-        BLCCModel.FEATURE_OUTPUT_SIZES: (6,),
-        BLCCModel.FEATURE_NAMES: ('casing',)
+        # set to a high value because of a tensorflow-cpu bug
+        BLCCModel.FEATURE_OUTPUT_SIZES: (30,)
     })
     trainer = SimpleTrainer(model=model)
 
