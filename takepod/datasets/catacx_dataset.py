@@ -28,8 +28,6 @@ class CatacxDataset(HierarchicalDataset):
         fields = fields if fields else CatacxDataset.get_default_fields()
         super().__init__(fields, CatacxDataset._get_catacx_parser())
 
-
-
     @staticmethod
     def get_dataset(fields=None):
         """Downloads (if necessary) and loads the dataset. Not supported yet.
@@ -75,6 +73,7 @@ class CatacxDataset(HierarchicalDataset):
     @staticmethod
     def _get_catacx_parser():
         example_factory = ExampleFactory(CatacxDataset.get_default_fields())
+
         def catacx_parser(raw, fields, depth):
             example = example_factory.from_dict(raw)
 

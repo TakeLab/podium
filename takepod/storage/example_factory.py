@@ -1,10 +1,12 @@
-from recordclass import recordclass
-import xml.etree.ElementTree as ET
 import logging
+import xml.etree.ElementTree as ET
+
+from recordclass import recordclass
 
 from takepod.storage.dataset import unpack_fields
 
 _LOGGER = logging.getLogger(__name__)
+
 
 class ExampleFactory:
 
@@ -29,15 +31,14 @@ class ExampleFactory:
 
         for key, fields in self.fields.items():
             val = data.get(key)
-            set_example_attributes(example, fields, val)
+            _set_example_attributes(example, fields, val)
 
         return example
 
     def from_list(self, data):
         example = self.example_factory()
         for value, field in filter(lambda el: el[1] is not None, zip(data, self.fields)):
-            set_example_attributes(example, field, value)
-
+            _set_example_attributes(example, field, value)
 
     def from_xml_str(self, data):
         """Method creates and Example from xml string.
@@ -77,18 +78,18 @@ class ExampleFactory:
                 if root.tag == name:
                     node = root
                 else:
-                    error_msg = f"Specified name {name} was not found in the "\
-                                "input data"
+                    error_msg = f"Specified name {name} was not found in the " \
+                        "input data"
                     _LOGGER.error(error_msg)
                     raise ValueError(error_msg)
 
             val = node.text
-            set_example_attributes(example, field, val)
+            _set_example_attributes(example, field, val)
 
         return example
 
 
-def set_example_attributes(example, field, val):
+def _set_example_attributes(example, field, val):
     """Method sets example attributes with given values.
 
     Parameters

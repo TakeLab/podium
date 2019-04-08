@@ -85,15 +85,14 @@ def create_examples(base_dir, examples):
 
 def create_mock_xml(base_dir, file_name, example):
     with open(file=os.path.join(base_dir, file_name),
-              mode='w', encoding="utf8") as fp:
-        fp.write('<?xml version="1.0" encoding="utf-8"?>\n')
-        fp.write('<CrawlItem xmlns:xsi='
-                 '"http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd='
-                 '"http://www.w3.org/2001/XMLSchema">\n')
-        fp.write('<Text>{}</Text>\n<Rating>{}</Rating>\n<Source>{}</Source>\n'
-                 .format(example['Text'], example['Rating'], example['Source'])
-                 )
-        fp.write("</CrawlItem>")
+              mode='w', encoding="utf8") as fpr:
+        fpr.write('<?xml version="1.0" encoding="utf-8"?>\n')
+        fpr.write('<CrawlItem xmlns:xsi='
+                  '"http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd='
+                  '"http://www.w3.org/2001/XMLSchema">\n')
+        fpr.write('<Text>{}</Text>\n<Rating>{}</Rating>\n<Source>{}</Source>\n'
+                  .format(example['Text'], example['Rating'], example['Source']))
+        fpr.write("</CrawlItem>")
 
 
 def test_return_params(mock_dataset_path):
@@ -104,7 +103,7 @@ def test_return_params(mock_dataset_path):
 
 
 def test_default_fields():
-    fields = PauzaHRDataset._get_default_fields()
+    fields = PauzaHRDataset.get_default_fields()
     assert len(fields) == 3
     field_names = ["Text", "Rating", "Source"]
     assert all([name in fields for name in field_names])

@@ -29,4 +29,4 @@ __all__ = ["Dataset", "HierarchicalDataset", "TabularDataset",
            "VectorStorage", "BasicVectorStorage",
            "SpecialVocabSymbols", "Vocab",
            "stratified_split", "rationed_split",
-           "example_factory"]
+           "ExampleFactory"]

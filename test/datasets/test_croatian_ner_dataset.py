@@ -62,7 +62,7 @@ def test_return_params(base_download_dir):
 
 
 def test_default_fields():
-    fields = CroatianNERDataset._get_default_fields()
+    fields = CroatianNERDataset.get_default_fields()
     assert len(fields) == 2
     field_names = {"tokens", "labels"}
     assert all([name in field_names for name in fields])
