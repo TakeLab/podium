@@ -9,8 +9,9 @@ import random
 
 from abc import ABC
 from functools import partial
+from takepod.storage.example_factory import ExampleFactory
 
-from takepod.storage.example import Example
+#from takepod.storage.example import Example
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -373,10 +374,11 @@ def create_examples(reader, format, fields, skip_header):
 
     # fromlist is used for CSV/TSV because csv_reader yields data rows as
     # lists, not strings
+    example_factory = ExampleFactory(fields)
     make_example_function = {
-        "json": Example.from_json,
-        "csv": Example.from_list,
-        "tsv": Example.from_list
+        "json": example_factory.from_json,
+        "csv": example_factory.from_list,
+        "tsv": example_factory.from_list
     }
 
     if skip_header:
@@ -699,6 +701,7 @@ class HierarchicalDataset:
             Dict mapping keys in the raw_example dict to their corresponding fields.
         """
         self._field_dict = fields
+        self._example_factory = ExampleFactory(fields)
         self._parser = parser
         self._size = 0
         self._max_depth = 0
@@ -756,8 +759,8 @@ class HierarchicalDataset:
             Callable(raw_example, fields, depth) returning (example, raw_children).
 
         """
-        def default_dict_parser(raw_example, fields, depth):
-            example = Example.from_dict(raw_example, fields)
+        def default_dict_parser(raw_example, example_factory, depth):
+            example = example_factory.from_dict(raw_example)
             children = raw_example.get(child_attribute_name, ())
             return example, children
 
@@ -799,7 +802,7 @@ class HierarchicalDataset:
         Node
             Node parsed from the raw example.
         """
-        example, raw_children = self._parser(raw_object, self._field_dict, depth)
+        example, raw_children = self._parser(raw_object, self._example_factory, depth)
 
         index = self._size
         self._size += 1

@@ -10,7 +10,7 @@ _LOGGER = logging.getLogger(__name__)
 
 class ExampleFactory:
 
-    def __init__(self, fields):
+    def __init__(self, fields, example_class_name="Example"):
 
         if isinstance(fields, dict):
             self.fields = {val_name: fields_
@@ -21,7 +21,7 @@ class ExampleFactory:
             self.fields = fields
 
         fieldnames = tuple(field.name for field in unpack_fields(fields))
-        self.example_factory = recordclass("Example",
+        self.example_factory = recordclass(example_class_name,
                                            fieldnames,
                                            defaults=[None] * len(fieldnames)
                                            )
