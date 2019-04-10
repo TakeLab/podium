@@ -1,16 +1,18 @@
 import logging
+import json
+
 import xml.etree.ElementTree as ET
 
-from recordclass import recordclass
+from recordclass import structclass
+from uuid import uuid4
 
-from takepod.storage.dataset import unpack_fields
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class ExampleFactory:
 
-    def __init__(self, fields, example_class_name="Example"):
+    def __init__(self, fields):
 
         if isinstance(fields, dict):
             self.fields = {val_name: fields_
@@ -21,10 +23,13 @@ class ExampleFactory:
             self.fields = fields
 
         fieldnames = tuple(field.name for field in unpack_fields(fields))
-        self.example_factory = recordclass(example_class_name,
+        uid = uuid4()
+        example_class_name = "Example_class_" + str(uid).replace("-", "_")
+        self.example_factory = structclass(example_class_name,
                                            fieldnames,
                                            defaults=[None] * len(fieldnames)
                                            )
+        globals()[example_class_name] = self.example_factory
 
     def from_dict(self, data):
         example = self.example_factory()
@@ -39,6 +44,8 @@ class ExampleFactory:
         example = self.example_factory()
         for value, field in filter(lambda el: el[1] is not None, zip(data, self.fields)):
             _set_example_attributes(example, field, value)
+
+        return example
 
     def from_xml_str(self, data):
         """Method creates and Example from xml string.
@@ -87,6 +94,63 @@ class ExampleFactory:
             _set_example_attributes(example, field, val)
 
         return example
+
+    def from_json(self, data):
+        """ Creates an Example from a JSON object and the
+        corresponding fields.
+
+
+        Parameters
+        ----------
+        data : str
+            A string containing a single JSON object
+            (key-value pairs surrounded by curly braces).
+        fields : dict
+            A dict mapping column names to Fields (or tuples of Fields).
+            Columns that map to None will be ignored.
+
+        Returns
+        -------
+        Example
+            An Example whose attributes are the given Fields created with the
+            given column values. These Fields can be accessed by their names.
+
+        Raises
+        ------
+        ValueError
+            if JSON doesn't contain key name
+        """
+
+        return self.from_dict(json.loads(data))
+
+
+def unpack_fields(fields):
+    """Flattens the given fields object into a flat list of fields.
+
+    Parameters
+    ----------
+    fields : (list | dict)
+        List or dict that can contain nested tuples and None as values and
+        column names as keys (dict).
+
+    Returns
+    -------
+    list[Field]
+        A flat list of Fields found in the given 'fields' object.
+    """
+
+    unpacked_fields = list()
+
+    fields = fields.values() if isinstance(fields, dict) else fields
+
+    # None values represent columns that should be ignored
+    for field in filter(lambda f: f is not None, fields):
+        if isinstance(field, tuple):
+            unpacked_fields.extend(field)
+        else:
+            unpacked_fields.append(field)
+
+    return unpacked_fields
 
 
 def _set_example_attributes(example, field, val):

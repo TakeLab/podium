@@ -372,15 +372,6 @@ def create_examples(reader, format, fields, skip_header):
         skip_header is True.
     """
 
-    # fromlist is used for CSV/TSV because csv_reader yields data rows as
-    # lists, not strings
-    example_factory = ExampleFactory(fields)
-    make_example_function = {
-        "json": example_factory.from_json,
-        "csv": example_factory.from_list,
-        "tsv": example_factory.from_list
-    }
-
     if skip_header:
         if format == "json":
             error_msg = f'When using a {format} file, skip_header must be'\
@@ -406,7 +397,16 @@ def create_examples(reader, format, fields, skip_header):
         fields = [fields.get(column, None) for column in header]
 
     # fields argument is the same for all examples
-    make_example = partial(make_example_function[format], fields=fields)
+    # fromlist is used for CSV/TSV because csv_reader yields data rows as
+    # lists, not strings
+    example_factory = ExampleFactory(fields)
+    make_example_function = {
+        "json": example_factory.from_json,
+        "csv": example_factory.from_list,
+        "tsv": example_factory.from_list
+    }
+
+    make_example = partial(make_example_function[format])
 
     # map each line from the reader to an example
     examples = map(make_example, reader)
