@@ -1,5 +1,5 @@
 """Module contains Croatian NER dataset."""
-from takepod.storage import dataset, example
+from takepod.storage import dataset, ExampleFactory
 from takepod.storage.field import TokenizedField
 from takepod.storage.vocab import Vocab
 from takepod.storage.large_resource import LargeResource
@@ -29,6 +29,7 @@ class CroatianNERDataset(dataset.Dataset):
         fields : list(Field)
             Dictionary that maps field name to the field
         """
+        example_factory = ExampleFactory(fields)
         examples = []
 
         tokens = []
@@ -38,7 +39,7 @@ class CroatianNERDataset(dataset.Dataset):
             for line in document:
                 if _is_delimiter_line(line):
                     examples.append(
-                        example.Example.from_list((tokens, labels), fields))
+                        example_factory.from_list((tokens, labels)))
                     tokens = []
                     labels = []
                 else:

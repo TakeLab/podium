@@ -1,6 +1,6 @@
 import os
 
-from takepod.storage import HierarchicalDataset, Example, Field, \
+from takepod.storage import HierarchicalDataset, Field, \
     MultilabelField, Vocab, ExampleFactory
 
 

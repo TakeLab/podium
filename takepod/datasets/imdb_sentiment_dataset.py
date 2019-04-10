@@ -19,7 +19,7 @@ When using this dataset, please cite:
 """
 
 import os
-from takepod.storage import (dataset, Example, Field, Vocab, LargeResource)
+from takepod.storage import (dataset,ExampleFactory, Field, Vocab, LargeResource)
 
 
 class BasicSupervisedImdbDataset(dataset.Dataset):
@@ -141,6 +141,7 @@ class BasicSupervisedImdbDataset(dataset.Dataset):
         examples : list(Example)
             list of examples from given dir_path
         """
+        example_factory = ExampleFactory(fields)
         files_list = [f for f in os.listdir(dir_path) if os.path.isfile(
             os.path.join(dir_path, f))]
         examples = []
@@ -149,7 +150,7 @@ class BasicSupervisedImdbDataset(dataset.Dataset):
                       mode='r', encoding='utf8') as fpr:
                 data = {BasicSupervisedImdbDataset.TEXT_FIELD_NAME: fpr.read(),
                         BasicSupervisedImdbDataset.LABEL_FIELD_NAME: label}
-                examples.append(Example.from_dict(data=data, fields=fields))
+                examples.append(example_factory.from_dict(data))
         return examples
 
     @staticmethod

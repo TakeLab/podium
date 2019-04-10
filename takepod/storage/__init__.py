@@ -4,7 +4,6 @@ from .dataset import Dataset, HierarchicalDataset, \
     TabularDataset, stratified_split, rationed_split
 from .downloader import (BaseDownloader, SCPDownloader, HttpDownloader,
                          SimpleHttpDownloader)
-from .example import Example
 from .field import Field, TokenizedField, MultilabelField
 from .iterator import Iterator, BucketIterator, HierarchicalDatasetIterator
 from .large_resource import LargeResource, SCPLargeResource
@@ -22,7 +21,6 @@ from .example_factory import ExampleFactory
 
 __all__ = ["Dataset", "HierarchicalDataset", "TabularDataset",
            "BaseDownloader", "SCPDownloader", "HttpDownloader", "SimpleHttpDownloader",
-           "Example",
            "Field", "TokenizedField", "MultilabelField",
            "Iterator", "BucketIterator", "HierarchicalDatasetIterator",
            "LargeResource", "SCPLargeResource",
