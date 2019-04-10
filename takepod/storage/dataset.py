@@ -11,8 +11,6 @@ from abc import ABC
 from functools import partial
 from takepod.storage.example_factory import ExampleFactory
 
-#from takepod.storage.example import Example
-
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -952,7 +950,6 @@ class HierarchicalDataset:
                         f" Passed value: {levels}"
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
-
 
         parent = node
         while parent.parent is not None and levels >= 0:

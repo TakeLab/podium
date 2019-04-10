@@ -19,7 +19,7 @@ When using this dataset, please cite:
 """
 
 import os
-from takepod.storage import (dataset,ExampleFactory, Field, Vocab, LargeResource)
+from takepod.storage import (dataset, ExampleFactory, Field, Vocab, LargeResource)
 
 
 class BasicSupervisedImdbDataset(dataset.Dataset):
