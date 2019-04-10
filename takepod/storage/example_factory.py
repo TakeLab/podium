@@ -1,3 +1,6 @@
+"""Module containing the Example Factory method used to dynamically create example classes
+used for storage in Dataset classes"""
+
 import logging
 import json
 import csv
@@ -11,9 +14,23 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class ExampleFactory:
+    """Class used to create Example instances. Every ExampleFactory dynamically creates
+    its own example class definition optimised for the fields provided in __init__.
 
+    Parameters
+        ----------
+        fields : (dict | list)
+                Can be either a dict mapping column names to Fields
+                (or tuples of Fields), or a list of Fields (or tuples of Fields).
+                A Field value of None means the corresponding column will
+                be ignored.
+
+    """
     def __init__(self, fields):
+        """Creates a ExampleFactory used to instantiate Examples.
 
+        :param fields:
+        """
         if isinstance(fields, dict):
             self.fields = {val_name: fields_
                            for val_name, fields_
@@ -60,9 +77,6 @@ class ExampleFactory:
         data : str
             XML formated string that contains the values of a single data
             instance, that are to be mapped to Fields.
-        fields : dict
-            A dict mapping column names to Fields (or tuples of Fields).
-            Columns that map to None will be ignored.
 
         Returns
         -------
@@ -110,9 +124,6 @@ class ExampleFactory:
         data : str
             A string containing a single JSON object
             (key-value pairs surrounded by curly braces).
-        fields : dict
-            A dict mapping column names to Fields (or tuples of Fields).
-            Columns that map to None will be ignored.
 
         Returns
         -------
@@ -137,11 +148,6 @@ class ExampleFactory:
             data : str
                 A string containing a single row of values separated by the
                 given delimiter.
-            fields : (dict | list)
-                Can be either a dict mapping column names to Fields
-                (or tuples of Fields), or a list of Fields (or tuples of Fields).
-                A Field value of None means the corresponding column will
-                be ignored.
             field_to_index : dict
                 A dict that maps column names to their indices in the line of data.
                 Only needed if fields is a dict, otherwise ignored.
