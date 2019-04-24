@@ -46,7 +46,7 @@ class CroatianNERDataset(dataset.Dataset):
                     tokens.append(token)
                     labels.append(label)
 
-        super().__init__(examples, fields)
+        super().__init__(examples, dataset.unpack_fields(fields))
 
     @classmethod
     def get_dataset(cls, tokenizer='split', tag_schema='IOB', fields=None, **kwargs):
