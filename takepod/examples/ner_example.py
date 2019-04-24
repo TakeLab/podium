@@ -1,6 +1,7 @@
 """Example how to use BLCC model on Croatian NER dataset for NER task."""
 
 import sys
+import logging
 from collections import namedtuple
 from functools import partial
 
@@ -14,6 +15,8 @@ from takepod.storage import TokenizedField, Vocab, SpecialVocabSymbols
 from takepod.storage.iterator import BucketIterator
 from takepod.storage.large_resource import LargeResource
 from takepod.storage.vectorizer import BasicVectorStorage
+
+_LOGGER = logging.getLogger(__name__)
 
 label_numericalized = {}
 
@@ -116,11 +119,11 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
     })
     trainer = SimpleTrainer(model=model)
 
-    print('Training started')
+    _LOGGER.info('Training started')
     trainer.train(iterator=train_iter, **{
         trainer.MAX_EPOCH_KEY: 25,
         trainer.BATCH_TRANSFORM_FUN_KEY: batch_transform_function})
-    print('Training finished')
+    _LOGGER.info('Training finished')
 
     x_test, y_test = batch_transform_function(*next(test_iter.__iter__()))
     prediction = model.predict(X=x_test)[BLCCModel.PREDICTION_KEY]
@@ -132,18 +135,18 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
         y_test
     )
 
-    print('Expected:')
-    print(y_test_filtered)
+    _LOGGER.info('Expected:')
+    _LOGGER.info(y_test_filtered)
 
-    print('Actual:')
-    print(prediction_filtered)
+    _LOGGER.info('Actual:')
+    _LOGGER.info(prediction_filtered)
 
     f1 = multiclass_f1_metric(
         y_test_filtered,
         prediction_filtered,
         average='weighted'
     )
-    print(f'F1: {f1}')
+    _LOGGER.info(f'F1: {f1}')
 
 
 def filter_out_padding(pad_symbol, prediction, y_test):
