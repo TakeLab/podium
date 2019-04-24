@@ -5,7 +5,6 @@ https://github.com/phipleg/keras/blob/crf/keras/layers/crf.py
 
 from __future__ import absolute_import
 
-import keras
 from keras import backend as K
 from keras import regularizers
 from keras import constraints
