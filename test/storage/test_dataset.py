@@ -152,6 +152,33 @@ def test_finalize_fields_after_split(data, field_list):
         assert not example.accessed
 
 
+def test_filter_dataset(data, field_list):
+    dataset = create_dataset(data, field_list)
+    assert len(dataset) == 12
+    dataset.filter(lambda ex: ex.label[0] > 7)
+    assert len(dataset) == 5
+    for ex in dataset:
+        assert ex.label[0] > 7
+
+
+def test_filtered_dataset_pickling(data, field_list, tmpdir):
+    dataset = create_dataset(data, field_list)
+    assert len(dataset) == 12
+    dataset.filter(lambda ex: ex.label[0] > 7)
+    assert len(dataset) == 5
+
+    dataset_file = os.path.join(tmpdir, "dataset.pkl")
+
+    with open(dataset_file, "wb") as fdata:
+        dill.dump(dataset, fdata)
+
+    with open(dataset_file, "rb") as fdata:
+        loaded_dataset = dill.load(fdata)
+        assert len(loaded_dataset) == 5
+        for ex in dataset:
+            assert ex.label[0] > 7
+
+
 @pytest.mark.parametrize(
     "float_ratio, expected_train_len, expected_test_len",
     [

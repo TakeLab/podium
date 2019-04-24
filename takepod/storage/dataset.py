@@ -90,6 +90,17 @@ class Dataset(ABC):
             _LOGGER.error(error_msg)
             raise AttributeError(error_msg)
 
+    def filter(self, predicate):
+        """Method filters examples with given predicate.
+
+        Parameters
+        ----------
+        predicate : callable
+            predicate should be a callable that accepts example as input and returns
+            true if the example shouldn't be filtered, otherwise returns false
+        """
+        self.examples = list(filter(predicate, self.examples))
+
     def finalize_fields(self, *args):
         """
         Builds vocabularies of all the non-eager fields in the dataset,
