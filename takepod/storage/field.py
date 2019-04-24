@@ -515,7 +515,7 @@ class Field(object):
 
     def __str__(self):
         return f"{self.__class__.__name__}[name: {self.name}, "\
-               f"sequential: {self.sequential}], is_target: {self.is_target}"
+               f"sequential: {self.sequential}, is_target: {self.is_target}]"
 
 
 class TokenizedField(Field):

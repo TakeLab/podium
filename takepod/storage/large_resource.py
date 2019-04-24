@@ -139,6 +139,11 @@ class LargeResource:
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
+    def __str__(self):
+        return f"{self.__class__.__name__}"\
+               f"[name: {self.config[LargeResource.RESOURCE_NAME]}, "\
+               f"uri: {self.config[LargeResource.URI]}]"
+
 
 class SCPLargeResource(LargeResource):
     """Large resource that needs to download files from URI using scp protocol.
