@@ -75,6 +75,21 @@ def test_field_preprocess_eager(vocab):
     assert len(vocab.values) > 0
 
 
+def test_field_str(vocab):
+    f = Field(name="F", vocab=vocab, eager=True)
+    assert str(f).startswith("Field")
+
+
+def test_tokenized_field_str(vocab):
+    f = TokenizedField(name="F", vocab=vocab, eager=True)
+    assert str(f).startswith("TokenizedField")
+
+
+def test_multilabel_field_str():
+    f = MultilabelField(name="F", eager=True)
+    assert str(f).startswith("MultilabelField")
+
+
 @pytest.mark.parametrize(
     "value, store_raw, sequential, expected_raw_value, "
     "expected_tokenized_value",

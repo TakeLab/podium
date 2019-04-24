@@ -178,7 +178,6 @@ class Field(object):
         hook : callable
             The pre-tokenization hook that we want to add to the field.
         """
-
         self.pretokenize_hooks.append(hook)
 
     def add_posttokenize_hook(self, hook):
@@ -361,7 +360,7 @@ class Field(object):
         ----------
         tokens : iterable(hashable)
             Iterable of hashable objects to be numericalized.
-error_msg = f"Missing data not allowed in field {self.name}"
+        error_msg = f"Missing data not allowed in field {self.name}"
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
         Returns
@@ -379,9 +378,16 @@ error_msg = f"Missing data not allowed in field {self.name}"
             return np.array([self.custom_numericalize(tok) for tok in tokens])
 
     def get_default_value(self):
+        """Method obtains default field value for missing data.
+
+        Returns
+        -------
+            missing : iterable
+                empty numpy array if the field is sequential or numpy array with one
+                None value otherwise.
+        """
         if self.sequential:
             return np.empty(0)
-
         else:
             return np.array([np.nan])
 
@@ -506,6 +512,10 @@ error_msg = f"Missing data not allowed in field {self.name}"
         """
         self.__dict__.update(state)
         self.tokenizer = get_tokenizer(self._tokenizer_arg, self.language)
+
+    def __str__(self):
+        return f"{self.__class__.__name__}[name: {self.name}, "\
+               f"sequential: {self.sequential}], is_target: {self.is_target}"
 
 
 class TokenizedField(Field):
