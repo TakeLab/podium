@@ -308,8 +308,3 @@ def test_vocab_has_no_specials():
 def test_vocab_has_specials():
     voc = vocab.Vocab()
     assert voc.has_specials
-
-
-def test_vocab_str():
-    voc = vocab.Vocab()
-    assert str(voc).startswith("Vocab")
