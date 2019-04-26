@@ -152,19 +152,30 @@ def test_finalize_fields_after_split(data, field_list):
         assert not example.accessed
 
 
-def test_filter_dataset(data, field_list):
+def test_filter_dataset_inplace(data, field_list):
     dataset = create_dataset(data, field_list)
     assert len(dataset) == 12
-    dataset.filter(lambda ex: ex.label[0] > 7)
+    dataset.filter(lambda ex: ex.label[0] > 7, inplace=True)
     assert len(dataset) == 5
     for ex in dataset:
         assert ex.label[0] > 7
 
 
-def test_filtered_dataset_pickling(data, field_list, tmpdir):
+def test_filter_dataset_copy(data, field_list):
     dataset = create_dataset(data, field_list)
     assert len(dataset) == 12
-    dataset.filter(lambda ex: ex.label[0] > 7)
+    filtered_dataset = dataset.filter(
+        lambda ex: ex.label[0] > 7, inplace=False)
+    assert len(dataset) == 12
+    assert len(filtered_dataset) == 5
+    for ex in filtered_dataset:
+        assert ex.label[0] > 7
+
+
+def test_filtered_inplace_dataset_pickling(data, field_list, tmpdir):
+    dataset = create_dataset(data, field_list)
+    assert len(dataset) == 12
+    dataset.filter(lambda ex: ex.label[0] > 7, inplace=True)
     assert len(dataset) == 5
 
     dataset_file = os.path.join(tmpdir, "dataset.pkl")
