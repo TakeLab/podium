@@ -340,3 +340,7 @@ class Vocab:
         if not self.finalized:
             return iter(self._freqs.keys())
         return iter(self.itos)
+
+    def __str__(self):
+        return f"{self.__class__.__name__}[finalized: {self.finalized}, "\
+               f"size: {len(self)}]"
