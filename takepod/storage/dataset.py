@@ -109,7 +109,7 @@ class Dataset(ABC):
         filtered_examples = [copy.deepcopy(ex)
                              for ex in self.examples if predicate(ex)]
         fields_copy = copy.deepcopy(self.fields)
-        
+
         return Dataset(examples=filtered_examples, fields=fields_copy,
                        sort_key=self.sort_key)
 
