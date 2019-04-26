@@ -153,6 +153,17 @@ class VectorStorage(ABC):
         """
         pass
 
+    @abstractmethod
+    def __len__(self):
+        """Method returns number of vectors in vector storage.
+
+        Returns
+        -------
+        len : int
+            number of loaded vectors in vector storage
+        """
+        pass
+
     def get_embedding_matrix(self, vocab):
         """Method constructs embedding matrix.
 
@@ -168,6 +179,9 @@ class VectorStorage(ABC):
             if vector storage is not initialized
         """
         return np.vstack([self.token_to_vector(token) for token in vocab])
+
+    def __str__(self):
+        return f"{self.__class__.__name__}[size: {len(self)}]"
 
 
 class BasicVectorStorage(VectorStorage):
