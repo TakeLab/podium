@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 from takepod.models.svm_model import ScikitSVCModel
 
@@ -6,6 +7,7 @@ Y = np.array([0, 1, 0])
 
 
 def test_scikit_svc_model_shape():
+    pytest.importorskip("sklearn")
     svc = ScikitSVCModel(gamma='auto')
     svc.fit(X=X, y=Y)
     result = svc.predict(X=X)

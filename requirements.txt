@@ -1,11 +1,7 @@
 flake8==3.5.0
-ipython==6.5.0
-ipython-genutils==0.2.0
 mccabe==0.6.1
 mock==2.0.0
-more-itertools==4.3.0
 msgpack-numpy==0.4.3.1
-nltk==3.3
 numpy==1.15.1
 pandas==0.23.4
 plac==0.9.6
@@ -21,15 +17,9 @@ pytest-cov==2.6.0
 pytest-mock==1.10.1
 regex==2017.4.5
 requests==2.19.1
-scikit-learn==0.20.2
 scipy==1.1.0
 simplegeneric==0.8.1
 six==1.11.0
-sklearn==0.0
-msgpack==0.5.6
-spacy==2.0.12
-torch==0.4.1
-torchtext==0.2.3
 tqdm==4.25.0
 urllib3==1.23
 wget==3.2

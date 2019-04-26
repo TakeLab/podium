@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 from takepod.models.fc_model import ScikitMLPClassifier
 
@@ -6,6 +7,7 @@ Y = np.array([0, 1, 0])
 
 
 def test_scikit_mlp_model_shape():
+    pytest.importorskip("sklearn")
     model = ScikitMLPClassifier(classes=np.unique(Y))
     model.fit(X=X, y=Y)
     result = model.predict(X=X)
