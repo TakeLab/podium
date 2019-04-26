@@ -54,12 +54,12 @@ def get_tokenizer(tokenizer, language='en'):
                         spacy_tokenizer.tokenizer(string)]
 
             return spacy_tokenize
-        except OSError:
+        except (ImportError, OSError) as ex:
             error_msg = f'Please install SpaCy and the SpaCy {language} '\
                         f'tokenizer. See the docs at https://spacy.io for '\
                         f'more information.'
             _LOGGER.error(error_msg)
-            raise
+            raise ex
 
     elif tokenizer == "split":
         return str.split
