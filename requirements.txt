@@ -5,7 +5,6 @@ mccabe==0.6.1
 mock==2.0.0
 more-itertools==4.3.0
 msgpack-numpy==0.4.3.1
-nltk==3.3
 numpy==1.15.1
 pandas==0.23.4
 plac==0.9.6
@@ -26,10 +25,6 @@ scipy==1.1.0
 simplegeneric==0.8.1
 six==1.11.0
 sklearn==0.0
-msgpack==0.5.6
-spacy==2.0.12
-torch==0.4.1
-torchtext==0.2.3
 tqdm==4.25.0
 urllib3==1.23
 wget==3.2
