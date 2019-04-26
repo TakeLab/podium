@@ -1,6 +1,15 @@
 """Module contains svm models."""
-from sklearn.svm import SVC
+import logging
 from takepod.models.base_model import AbstractSupervisedModel
+
+_LOGGER = logging.getLogger(__name__)
+
+try:
+    from sklearn.svm import SVC
+except ImportError as ex:
+    _LOGGER.debug("Problem occured while trying to import sklearn. If the "
+                  "library is not installed visit https://scikit-learn.org"
+                  " for more details.")
 
 
 class ScikitSVCModel(AbstractSupervisedModel):

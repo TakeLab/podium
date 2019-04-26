@@ -223,7 +223,13 @@ class Example(object):
             If subtrees was True, returns a list of such Examples for every
             subtree in the given tree.
         """
-        from nltk.tree import Tree
+        try:
+            from nltk.tree import Tree
+        except ImportError as ex:
+            _LOGGER.exception("Problem occured while trying to import nltk. If the "
+                              "library is not installed visit https://www.nltk.org/"
+                              " for more details.")
+            raise ex
 
         tree = Tree.fromstring(data)
         if subtrees:

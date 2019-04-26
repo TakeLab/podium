@@ -340,6 +340,7 @@ def test_from_csv_fields_is_list(csv_line, fields_list, delimiter,
     ]
 )
 def test_fromtree_no_subtrees(data, fields_list, expected_attributes):
+    pytest.importorskip("nltk")
     received_example = Example.from_tree(data, fields_list, subtrees=False)
     expected_example = create_expected_example(
         zip(fields_list, expected_attributes))
@@ -364,6 +365,7 @@ def test_fromtree_no_subtrees(data, fields_list, expected_attributes):
     ]
 )
 def test_fromtree_with_subtrees(data, fields_list, expected_attributes_list):
+    pytest.importorskip("nltk")
     received_examples = Example.from_tree(data, fields_list, subtrees=True)
     assert len(received_examples) == len(expected_attributes_list)
 
