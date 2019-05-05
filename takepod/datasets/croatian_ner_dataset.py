@@ -46,7 +46,7 @@ class CroatianNERDataset(dataset.Dataset):
                     tokens.append(token)
                     labels.append(label)
 
-        super().__init__(examples, fields)
+        super().__init__(examples, dataset.unpack_fields(fields))
 
     @classmethod
     def get_dataset(cls, tokenizer='split', tag_schema='IOB', fields=None, **kwargs):
@@ -94,7 +94,7 @@ class CroatianNERDataset(dataset.Dataset):
                                                        tag_schema, **kwargs)
         tokenized_documents = ner_croatian_xml_loader.load_dataset()
 
-        ner_dataset = cls(tokenized_documents, dataset.unpack_fields(fields))
+        ner_dataset = cls(tokenized_documents, fields.values())
         ner_dataset.finalize_fields()
 
         return ner_dataset
@@ -110,7 +110,7 @@ class CroatianNERDataset(dataset.Dataset):
             Dictionary mapping field name to field.
         """
 
-        tokens = TokenizedField(name="tokens", vocab=Vocab(specials=()))
+        tokens = TokenizedField(name="tokens", vocab=Vocab())
         labels = TokenizedField(name="labels", is_target=True)
 
         fields = {"tokens": tokens, "labels": labels}

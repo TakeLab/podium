@@ -14,3 +14,8 @@ except ImportError as ex:
 def f1_metric(true, pred):
     """Function calculates F1 score."""
     return f1_score(true, pred)
+
+
+def multiclass_f1_metric(true, pred, average='weighted'):
+    """Function calculates F1 score on multiclass classification."""
+    return f1_score(true, pred, average=average)
