@@ -6,6 +6,7 @@ import json
 import os
 import logging
 import random
+import copy
 
 from abc import ABC
 from functools import partial
@@ -88,6 +89,28 @@ class Dataset(ABC):
             error_msg = f"Dataset has no field '{attr}'."
             _LOGGER.error(error_msg)
             raise AttributeError(error_msg)
+
+    def filter(self, predicate, inplace=False):
+        """Method filters examples with given predicate.
+
+        Parameters
+        ----------
+        predicate : callable
+            predicate should be a callable that accepts example as input and returns
+            true if the example shouldn't be filtered, otherwise returns false
+        inplace : bool, default False
+            if True, do operation inplace and return None
+        """
+        if inplace:
+            self.examples = list(filter(predicate, self.examples))
+            return
+
+        filtered_examples = [copy.deepcopy(ex)
+                             for ex in self.examples if predicate(ex)]
+        fields_copy = copy.deepcopy(self.fields)
+
+        return Dataset(examples=filtered_examples, fields=fields_copy,
+                       sort_key=self.sort_key)
 
     def finalize_fields(self, *args):
         """

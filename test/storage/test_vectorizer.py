@@ -258,8 +258,8 @@ def test_basic_both_paths_none():
         vect.load_all()
 
 
-def test_basic_both_paths_doesnt_exist():
-    base = tempfile.mkdtemp()
+def test_basic_both_paths_doesnt_exist(tmpdir):
+    base = tmpdir
     assert os.path.exists(base)
     file_path = os.path.join(base, 'file.t')
     assert not os.path.exists(file_path)
@@ -271,8 +271,8 @@ def test_basic_both_paths_doesnt_exist():
         vect.load_all()
 
 
-def test_basic_path_none_cache_doesnt_exist():
-    base = tempfile.mkdtemp()
+def test_basic_path_none_cache_doesnt_exist(tmpdir):
+    base = tmpdir
     assert os.path.exists(base)
     cache_path = os.path.join(base, 'cache.t')
     assert not os.path.exists(cache_path)
