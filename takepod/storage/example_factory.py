@@ -43,7 +43,7 @@ class ExampleFactory:
 
         # create unique class identifier required for pickling
         uid = uuid4()
-        example_class_name = "Example_class_" + str(uid).replace("-", "_")
+        example_class_name = "Example_class_{}".format(str(uid).replace("-", "_"))
 
         self.example_class = structclass(example_class_name,
                                          fieldnames,
