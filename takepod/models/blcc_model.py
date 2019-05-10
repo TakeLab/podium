@@ -1,7 +1,8 @@
 """Module contains deep learning based sequence labelling model.."""
 from keras import backend as K
-from keras.layers import Bidirectional, concatenate, Dense, Dropout, Embedding
-from keras.layers import Input, LSTM, TimeDistributed
+from keras.layers import Bidirectional, concatenate, Conv1D, Dense, Dropout
+from keras.layers import Embedding, GlobalMaxPool1D, Input, LSTM
+from keras.layers import Reshape, TimeDistributed
 from keras.models import Model
 from keras.optimizers import Adadelta, Adagrad, Adam, Nadam, RMSprop, SGD
 from takepod.models import AbstractSupervisedModel
@@ -13,7 +14,7 @@ import numpy as np
 
 class BLCCModel(AbstractSupervisedModel):
     """
-    Deeo learning model for sequence labelling tasks.
+    Deep learning model for sequence labelling tasks.
 
     Originally proposed in the following paper:
     https://arxiv.org/pdf/1603.01354.pdf
@@ -58,6 +59,13 @@ class BLCCModel(AbstractSupervisedModel):
     EMBEDDING_SIZE = 'embedding_size'
     OUTPUT_SIZE = 'output_size'
 
+    CHAR_EMBEDDINGS_ENABLED = 'char_embeddings_enabled'
+    CHAR_EMBEDDINGS_INPUT_SIZE = 'char_embeddings_input_size'
+    CHAR_EMBEDDINGS_OUTPUT_SIZE = 'char_embeddings_output_size'
+    CHAR_EMBEDDINGS_NUM_OF_CHARS = 'char_embeddings_num_of_chars'
+    CHAR_EMBEDDINGS_NUM_OF_FILTERS = 'char_embeddings_num_of_filters'
+    CHAR_EMBEDDINGS_KERNEL_SIZE = 'char_embeddings_kernel_size'
+
     FEATURE_NAMES = 'feature_names'
     FEATURE_INPUT_SIZES = 'feature_input_sizes'
     FEATURE_OUTPUT_SIZES = 'feature_output_sizes'
@@ -75,9 +83,17 @@ class BLCCModel(AbstractSupervisedModel):
             self.EMBEDDING_SIZE: None,
             self.OUTPUT_SIZE: None,
 
+            self.CHAR_EMBEDDINGS_ENABLED: False,
+            self.CHAR_EMBEDDINGS_INPUT_SIZE: 25,
+            self.CHAR_EMBEDDINGS_OUTPUT_SIZE: 30,
+            self.CHAR_EMBEDDINGS_NUM_OF_CHARS: None,  # TODO make mandatory parameter
+            self.CHAR_EMBEDDINGS_NUM_OF_FILTERS: 30,
+            self.CHAR_EMBEDDINGS_KERNEL_SIZE: 3,
+
             self.FEATURE_NAMES: (),
             self.FEATURE_INPUT_SIZES: (),
             self.FEATURE_OUTPUT_SIZES: (),
+
             self.DROPOUT: (0.5, 0.5),
             self.CLASSIFIER: 'CRF',
             self.LSTM_SIZE: (100,),
@@ -106,8 +122,54 @@ class BLCCModel(AbstractSupervisedModel):
         input_nodes = [tokens_input]
         input_layers_to_concatenate = [tokens_input]
 
-        # TODO add character embeddings
+        # Character embeddings
+        char_embeddings_enabled = self.params.get(self.CHAR_EMBEDDINGS_ENABLED)
+        char_embeddings_input_size = \
+            self.params.get(self.CHAR_EMBEDDINGS_INPUT_SIZE)
+        num_of_chars = self.params.get(self.CHAR_EMBEDDINGS_NUM_OF_CHARS)
+        char_embedding_output_size = \
+            self.params.get(self.CHAR_EMBEDDINGS_OUTPUT_SIZE)
+        char_num_of_filters = \
+            self.params.get(self.CHAR_EMBEDDINGS_NUM_OF_FILTERS)
+        char_kernel_size = self.params.get(self.CHAR_EMBEDDINGS_KERNEL_SIZE)
 
+        if char_embeddings_enabled:
+            char_input = Input(
+                shape=(None,),
+                dtype='int32',
+                name='char_flat_input'
+            )
+
+            char_input_reshape = Reshape(
+                target_shape=(-1, char_embeddings_input_size),
+                name='char_input_reshape'
+            )(char_input)
+
+            char_embedding = TimeDistributed(
+                Embedding(
+                    input_dim=num_of_chars,
+                    output_dim=char_embedding_output_size,
+                    trainable=True
+                ),
+                name='char_embeddings')(char_input_reshape)
+
+            char_embedding = TimeDistributed(
+                Conv1D(
+                    char_num_of_filters,
+                    char_kernel_size,
+                    padding='same'
+                ),
+                name="char_cnn"
+            )(char_embedding)
+
+            char_embedding = TimeDistributed(
+                GlobalMaxPool1D(), name="char_pooling"
+            )(char_embedding)
+
+            input_nodes.append(char_input)
+            input_layers_to_concatenate.append(char_embedding)
+
+        # Custom features
         custom_feature_properties = zip(
             self.params.get(self.FEATURE_NAMES),
             self.params.get(self.FEATURE_INPUT_SIZES),
@@ -130,8 +192,8 @@ class BLCCModel(AbstractSupervisedModel):
         else:
             shared_layer = input_layers_to_concatenate[0]
 
+        # Core LSTM layer(s)
         cnt = 1
-
         for size in self.params[self.LSTM_SIZE]:
             if isinstance(self.params[self.DROPOUT], (list, tuple)):
                 shared_layer = Bidirectional(
@@ -155,10 +217,10 @@ class BLCCModel(AbstractSupervisedModel):
                     )(shared_layer)
             cnt += 1
 
+        # Classifier layer
         n_class_labels = output_size
         output = shared_layer
         classifier = self.params[self.CLASSIFIER]
-
         if classifier == 'Softmax':
             output = TimeDistributed(
                 Dense(n_class_labels, activation='softmax'),

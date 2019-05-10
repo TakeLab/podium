@@ -205,7 +205,7 @@ class Vocab:
             try:
                 self._freqs.update(values)
             except TypeError:
-                error_msg = "TypeError exception ocured while adding values "\
+                error_msg = "TypeError exception occurred while adding values "\
                             "to counter object. Vocab supports only adding "\
                             "vocab or iterable to vocab"
                 _LOGGER.exception(error_msg)
@@ -257,6 +257,8 @@ class Vocab:
         for word, freq in words_and_freqs:
             if freq < self._min_freq or len(self.itos) >= self._max_size:
                 break
+            if word in self.stoi:  # prevent re-adding of the specials
+                continue
             self.itos.append(word)
             self.stoi[word] = len(self.stoi)
 

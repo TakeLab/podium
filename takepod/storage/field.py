@@ -26,7 +26,8 @@ class Field(object):
                  custom_numericalize=None,
                  is_target=False,
                  fixed_length=None,
-                 allow_missing_data=False
+                 allow_missing_data=False,
+                 prevent_padding=False
                  ):
         """Create a Field from arguments.
 
@@ -141,6 +142,7 @@ class Field(object):
         self.pretokenize_hooks = deque()
         self.posttokenize_hooks = deque()
         self.allow_missing_data = allow_missing_data
+        self.prevent_padding = prevent_padding
 
     @property
     def use_vocab(self):
@@ -542,7 +544,8 @@ class TokenizedField(Field):
                  custom_numericalize=None,
                  is_target=False,
                  fixed_length=None,
-                 allow_missing_data=False):
+                 allow_missing_data=False,
+                 prevent_padding=False):
         super().__init__(
             name=name,
             vocab=vocab,
@@ -553,7 +556,8 @@ class TokenizedField(Field):
             custom_numericalize=custom_numericalize,
             is_target=is_target,
             fixed_length=fixed_length,
-            allow_missing_data=allow_missing_data
+            allow_missing_data=allow_missing_data,
+            prevent_padding=prevent_padding
         )
 
 

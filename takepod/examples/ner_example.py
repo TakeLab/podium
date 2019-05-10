@@ -18,6 +18,8 @@ from takepod.storage.vectorizer import BasicVectorStorage
 
 _LOGGER = logging.getLogger(__name__)
 
+max_word_length = 25
+
 label_numericalized = {}
 
 # using the same label set as original CroNER
@@ -76,16 +78,36 @@ def casing_mapper_hook(data, tokens):
     return data, tokens_casing
 
 
+def token_to_characters(token):
+    characters = list(token)
+
+    if len(characters) > max_word_length:  # truncate
+        return characters[:max_word_length]
+
+    # pad
+    padding_length = max_word_length - len(token)
+    return characters + [SpecialVocabSymbols.PAD] * padding_length
+
+
+def character_mapper_hook(data, tokens):
+    characters = []
+    for token in tokens:
+        characters += token_to_characters(token)
+    return data, characters
+
+
 def batch_transform_fun(x_batch, y_batch, embedding_matrix):
     """Function transforms iterator batches to a form acceptable by
     the model."""
     # TODO remove casting to int after fixing the numericalization
     tokens_numericalized = x_batch.tokens.astype(int)
     casing_numericalized = x_batch.casing.astype(int)
+    characters_numericalized = x_batch.characters.astype(int)
     y = y_batch.labels.astype(int)
 
     X = [
         np.take(embedding_matrix, tokens_numericalized, axis=0).astype(int),
+        characters_numericalized,
         casing_numericalized
     ]
     return X, y
@@ -100,6 +122,7 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
     """Example of training the BLCCModel with Croatian NER dataset"""
     output_size = len(fields['labels'].vocab.itos)
     casing_feature_size = len(fields['inputs'].casing.vocab.itos)
+    characters_feature_size = len(fields['inputs'].characters.vocab.itos)
 
     train_set, test_set = dataset.split(split_ratio=0.8)
 
@@ -115,7 +138,11 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
         BLCCModel.FEATURE_NAMES: ('casing',),
         BLCCModel.FEATURE_INPUT_SIZES: (casing_feature_size,),
         # set to a high value because of a tensorflow-cpu bug
-        BLCCModel.FEATURE_OUTPUT_SIZES: (30,)
+        BLCCModel.FEATURE_OUTPUT_SIZES: (30,),
+
+        BLCCModel.CHAR_EMBEDDINGS_ENABLED: True,
+        BLCCModel.CHAR_EMBEDDINGS_NUM_OF_CHARS: characters_feature_size,
+        BLCCModel.CHAR_EMBEDDINGS_INPUT_SIZE: 25
     })
     trainer = SimpleTrainer(model=model)
 
@@ -165,22 +192,29 @@ def ner_dataset_classification_fields():
                             vocab=Vocab())
     casing = TokenizedField(name='casing',
                             vocab=Vocab(specials=(SpecialVocabSymbols.PAD,)))
+    characters = TokenizedField(name='characters',
+                                prevent_padding=True,
+                                vocab=Vocab(
+                                    specials=(SpecialVocabSymbols.PAD,),
+                                    keep_freqs=False))
     labels = TokenizedField(name='labels',
                             is_target=True,
                             vocab=Vocab(specials=(SpecialVocabSymbols.PAD,)))
 
     casing.add_posttokenize_hook(casing_mapper_hook)
+    characters.add_posttokenize_hook(character_mapper_hook)
     labels.add_posttokenize_hook(label_mapper_hook)
 
-    Inputs = namedtuple('Inputs', ['tokens', 'casing'])
+    Inputs = namedtuple('Inputs', ['tokens', 'casing', 'characters'])
 
-    return {'inputs': Inputs(tokens, casing), 'labels': labels}
+    return {'inputs': Inputs(tokens, casing, characters), 'labels': labels}
 
 
 if __name__ == '__main__':
     vectors_path = sys.argv[1]
     LargeResource.BASE_RESOURCE_DIR = 'downloaded_datasets'
 
+    # global fields
     fields = ner_dataset_classification_fields()
     dataset = CroatianNERDataset.get_dataset(fields=fields)
 

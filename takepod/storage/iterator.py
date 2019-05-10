@@ -564,7 +564,7 @@ class HierarchicalDatasetIterator(Iterator):
                 matrix = np.empty(shape=(n_rows, pad_length))
 
                 # non-sequential fields all have length = 1, no padding necessary
-                should_pad = True if field.sequential else False
+                should_pad = field.sequential and not field.prevent_padding
 
                 for i, example in enumerate(node_context_examples):
                     # Get cached value
