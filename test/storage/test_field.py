@@ -176,15 +176,16 @@ def test_field_finalize(vocab):
 
 
 @pytest.mark.parametrize(
-    "use_vocab, expected_numericalized",
+    "use_vocab, expected_numericalized, custom_numericalize",
     [
-        (False, False),
-        (True, True),
+        (False, False, float),
+        (True, True, None),
     ]
 )
-def test_field_numericalize_vocab(use_vocab, expected_numericalized, vocab):
+def test_field_numericalize_vocab(use_vocab, expected_numericalized, vocab,
+                                  custom_numericalize):
     f = Field(name="F", vocab=vocab if use_vocab else None, tokenize=False,
-              custom_numericalize=None if use_vocab else float)
+              custom_numericalize=custom_numericalize)
     f.numericalize(("4.32", None))
 
     assert vocab.numericalized == expected_numericalized
