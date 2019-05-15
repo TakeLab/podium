@@ -15,9 +15,13 @@ _LOGGER = logging.getLogger(__name__)
 
 class ExampleFactory:
     """Class used to create Example instances. Every ExampleFactory dynamically creates
-    its own example class definition optimised for the fields provided in __init__.
+    its own example class definition optimised for the fields provided in __init__."""
 
-    Parameters
+    def __init__(self, fields):
+        """
+        Creates a new ExampleFactory instance.
+
+        Parameters
         ----------
         fields : (dict | list)
                 Can be either a dict mapping column names to Fields
@@ -25,15 +29,10 @@ class ExampleFactory:
                 A Field value of None means the corresponding column will
                 be ignored.
 
-    """
-    def __init__(self, fields):
-        """Creates a ExampleFactory used to instantiate Examples.
-
-        :param fields:
         """
         if isinstance(fields, dict):
-            self.fields = {val_name: fields_
-                           for val_name, fields_
+            self.fields = {input_value_name: fields_
+                           for input_value_name, fields_
                            in fields.items()
                            if fields_ is not None}
         else:

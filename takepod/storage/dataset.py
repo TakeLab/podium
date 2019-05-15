@@ -9,7 +9,6 @@ import random
 import copy
 
 from abc import ABC
-from functools import partial
 from takepod.storage.example_factory import ExampleFactory
 
 _LOGGER = logging.getLogger(__name__)
@@ -427,7 +426,7 @@ def create_examples(reader, format, fields, skip_header):
         "tsv": example_factory.from_list
     }
 
-    make_example = partial(make_example_function[format])
+    make_example = make_example_function[format]
 
     # map each line from the reader to an example
     examples = map(make_example, reader)
