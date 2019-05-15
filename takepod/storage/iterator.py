@@ -100,7 +100,7 @@ class Iterator:
 
         if self.shuffle:
             if seed is None and internal_random_state is None:
-                error_msg = "If shuffle==True, either seed or "\
+                error_msg = "If shuffle==True, either seed or " \
                             "internal_random_state have to be != None."
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
@@ -179,7 +179,7 @@ class Iterator:
         """
 
         if not self.shuffle:
-            error_msg = "Iterator with shuffle=False does not have "\
+            error_msg = "Iterator with shuffle=False does not have " \
                         "an internal random state."
             _LOGGER.error(error_msg)
             raise RuntimeError(error_msg)
@@ -204,7 +204,7 @@ class Iterator:
         """
 
         if not self.shuffle:
-            error_msg = "Iterator with shuffle=False does not have "\
+            error_msg = "Iterator with shuffle=False does not have " \
                         "an internal random state."
             _LOGGER.error(error_msg)
             raise RuntimeError(error_msg)
@@ -230,7 +230,15 @@ class Iterator:
             should_pad = True if field.sequential else False
 
             for i, example in enumerate(examples):
-                row = field.numericalize(getattr(example, field.name))
+
+                # Get cached value
+                row = getattr(example, f"{field.name}_")
+
+                if row is None:
+                    # If value wasn't cached
+                    row = field.numericalize(getattr(example, field.name))
+
+                    setattr(example, f"{field.name}_", row)
 
                 if should_pad:
                     row = field.pad_to_length(row, pad_length)
@@ -261,8 +269,13 @@ class Iterator:
         # if fixed_length is None, then return the maximum length of all the
         # examples in the batch
         def length_of_field(example):
-            _, tokens = getattr(example, field.name)
-            return len(tokens)
+
+            cached_numericalization = getattr(example, f"{field.name}_")
+            if cached_numericalization is not None:
+                return len(cached_numericalization)
+            else:
+                _, tokens = getattr(example, field.name)
+                return len(tokens)
 
         return max(map(length_of_field, examples))
 
