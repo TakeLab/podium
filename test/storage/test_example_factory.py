@@ -371,6 +371,7 @@ def test_cache_data_field_from_list(expected_values):
         assert hasattr(example, field_name)
         assert hasattr(example, f"{field_name}_")
 
+
 @pytest.mark.parametrize('expected_values',
                          [
                              {"Name": "Mark Dark",

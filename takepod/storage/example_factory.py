@@ -40,7 +40,7 @@ class ExampleFactory:
 
         fieldnames = [field.name for field in unpack_fields(fields)]
 
-        #add cache data fields
+        # add cache data fields
         fieldnames += [f"{fieldname}_" for fieldname in fieldnames]
 
         # create unique class identifier required for pickling
