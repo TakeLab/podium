@@ -38,7 +38,10 @@ class ExampleFactory:
         else:
             self.fields = fields
 
-        fieldnames = tuple(field.name for field in unpack_fields(fields))
+        fieldnames = [field.name for field in unpack_fields(fields)]
+
+        #add cache data fields
+        fieldnames += [f"{fieldname}_" for fieldname in fieldnames]
 
         # create unique class identifier required for pickling
         uid = uuid4()
