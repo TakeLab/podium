@@ -109,6 +109,29 @@ def test_create_batch(tabular_dataset):
             assert x_batch.text.shape[0] == batch_size
             assert y_batch.rating.shape[0] == batch_size
 
+@pytest.mark.usefixtures("tabular_dataset")
+def test_lazy_numericalization_caching(tabular_dataset):
+
+    tabular_dataset.finalize_fields()
+
+    # Check if caches are empty
+    for example in tabular_dataset:
+        for field in tabular_dataset.fields:
+            assert getattr(example, f"{field.name}_") is None
+
+    # Run one epoch to cause lazy numericalization
+    for _ in Iterator(tabular_dataset, 10):
+        pass
+
+    # Test if cached data is equal to numericalized data
+    for example in tabular_dataset:
+        for field in tabular_dataset.fields:
+            example_data = getattr(example, field.name)
+            numericalized_data = field.numericalize(example_data)
+
+            cached_data = getattr(example, f"{field.name}_")
+            assert np.all(numericalized_data == cached_data)
+
 
 @pytest.mark.usefixtures("tabular_dataset")
 def test_sort_key(tabular_dataset):
