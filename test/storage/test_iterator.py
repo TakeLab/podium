@@ -400,6 +400,29 @@ def test_hierarchical_dataset_iteration_with_depth_limitation(hierarchical_datas
     assert np.all(input_batch.number[8] == [[8], [9]])
 
 
+def test_hierarchial_dataset_iterator_numericalization_caching(hierarchical_dataset):
+    # Check if caches are empty
+    for example in hierarchical_dataset:
+        for field in hierarchical_dataset.fields:
+            assert getattr(example, f"{field.name}_") is None
+
+
+    # Run one epoch to cause lazy numericalization
+    hit = HierarchicalDatasetIterator(hierarchical_dataset, 20, context_max_depth=2)
+    for _ in hit:
+        pass
+
+    # Test if cached data is equal to numericalized data
+    for example in hierarchical_dataset:
+        for field in hierarchical_dataset.fields:
+            example_data = getattr(example, field.name)
+            numericalized_data = field.numericalize(example_data)
+
+            cached_data = getattr(example, f"{field.name}_")
+            assert np.all(numericalized_data == cached_data)
+
+
+
 HIERARCHIAL_DATASET_JSON_EXAMPLE = """
 [
 {

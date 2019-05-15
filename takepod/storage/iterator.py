@@ -578,12 +578,18 @@ class HierarchicalDatasetIterator(Iterator):
                 should_pad = True if field.sequential else False
 
                 for i, example in enumerate(node_context_examples):
-                    row = field.numericalize(getattr(example, field.name))
+                    # Get cached value
+                    row = getattr(example, f"{field.name}_")
+
+                    if row is None:
+                        # If value wasn't cached
+                        row = field.numericalize(getattr(example, field.name))
+
+                        setattr(example, f"{field.name}_", row)
 
                     if should_pad:
                         row = field.pad_to_length(row, pad_length)
 
-                    # set the matrix row to the numericalized, padded array
                     matrix[i] = row
 
                 field_contextualized_example_matrices.append(matrix)
