@@ -176,17 +176,28 @@ def test_field_finalize(vocab):
 
 
 @pytest.mark.parametrize(
-    "use_vocab, expected_numericalized",
+    "use_vocab, expected_numericalized, custom_numericalize",
     [
-        (False, False),
-        (True, True),
+        (False, False, float),
+        (True, True, None),
     ]
 )
-def test_field_numericalize_vocab(use_vocab, expected_numericalized, vocab):
-    f = Field(name="F", vocab=vocab if use_vocab else None, tokenize=False)
+def test_field_numericalize_vocab(use_vocab, expected_numericalized, vocab,
+                                  custom_numericalize):
+    f = Field(name="F", vocab=vocab if use_vocab else None, tokenize=False,
+              custom_numericalize=custom_numericalize)
     f.numericalize(("4.32", None))
 
     assert vocab.numericalized == expected_numericalized
+
+
+def test_field_custom_numericalize_with_vocab(vocab):
+    f = Field(name="F", vocab=vocab, tokenize=False,
+              custom_numericalize=float)
+    numericalized = f.numericalize(("4.32", None))
+
+    assert not vocab.numericalized
+    assert abs(numericalized - 4.32) < 1e-6
 
 
 @pytest.mark.parametrize(
@@ -363,7 +374,7 @@ def test_field_posttokenize_hooks():
 
 
 def test_field_posttokenize_hooks_detach():
-    f = Field(name="F", tokenize=True)
+    f = Field(name="F", tokenize=True, custom_numericalize=float)
 
     def remove_tags_hook(raw, tokenized):
         raw = raw.replace("<tag>", "")
@@ -405,7 +416,7 @@ def test_field_repeated_hooks():
 
     to_lower_hook.call_count = 0
 
-    f = Field(name="F", tokenize=True)
+    f = Field(name="F", tokenize=True, custom_numericalize=float)
 
     # TAG -> tag
     f.add_posttokenize_hook(to_lower_hook)
