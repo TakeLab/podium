@@ -152,25 +152,37 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
         trainer.BATCH_TRANSFORM_FUN_KEY: batch_transform_function})
     _LOGGER.info('Training finished')
 
-    x_test, y_test = batch_transform_function(*next(test_iter.__iter__()))
-    prediction = model.predict(X=x_test)[BLCCModel.PREDICTION_KEY]
-
     pad_symbol = fields['labels'].vocab.pad_symbol()
-    prediction_filtered, y_test_filtered = filter_out_padding(
-        pad_symbol,
-        prediction,
-        y_test
-    )
+
+    actual = []
+    expected = []
+
+    for x_batch, y_batch in test_iter:
+        x_test, y_test = batch_transform_function(x_batch, y_batch)
+
+        prediction = model.predict(X=x_test)[BLCCModel.PREDICTION_KEY]
+
+        prediction_filtered, y_test_filtered = filter_out_padding(
+            pad_symbol,
+            prediction,
+            y_test
+        )
+
+        actual.append(prediction_filtered)
+        expected.append(y_test_filtered)
+
+    actual = np.concatenate(actual)
+    expected = np.concatenate(expected)
 
     _LOGGER.info('Expected:')
-    _LOGGER.info(y_test_filtered)
+    _LOGGER.info(expected)
 
     _LOGGER.info('Actual:')
-    _LOGGER.info(prediction_filtered)
+    _LOGGER.info(actual)
 
     f1 = multiclass_f1_metric(
-        y_test_filtered,
-        prediction_filtered,
+        expected,
+        actual,
         average='weighted'
     )
     _LOGGER.info(f'F1: {f1}')
@@ -211,6 +223,8 @@ def ner_dataset_classification_fields():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
     vectors_path = sys.argv[1]
     LargeResource.BASE_RESOURCE_DIR = 'downloaded_datasets'
 
