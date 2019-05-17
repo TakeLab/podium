@@ -1,7 +1,7 @@
 import os
 
-from takepod.storage import HierarchicalDataset, Example, Field, \
-    MultilabelField, Vocab
+from takepod.storage import HierarchicalDataset, Field, \
+    MultilabelField, Vocab, ExampleFactory
 
 
 class CatacxDataset(HierarchicalDataset):
@@ -72,8 +72,10 @@ class CatacxDataset(HierarchicalDataset):
 
     @staticmethod
     def _get_catacx_parser():
+        example_factory = ExampleFactory(CatacxDataset.get_default_fields())
+
         def catacx_parser(raw, fields, depth):
-            example = Example.from_dict(raw, fields)
+            example = example_factory.from_dict(raw)
 
             # the catacx dataset has different names for fields containing the children
             # of a node depending on the depth of the parent node.
