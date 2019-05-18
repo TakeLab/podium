@@ -53,7 +53,7 @@ def label_mapper_hook(data, tokens):
         if mapped_token is None:
             tokens[i] = 'O'
         else:
-            tokens[i] = prefix + '-' +  mapped_token
+            tokens[i] = prefix + '-' + mapped_token
 
     return data, tokens
 
@@ -118,11 +118,19 @@ def example_word_count(example):
     return len(example.tokens[1])
 
 
-def print_to_file(inputs_str, expected_str, actual_str):
+def print_to_file(inputs_list, expected_str, actual_str):
     value = ''
 
-    for token, correct, guessed in zip(inputs_str, expected_str, actual_str):
-        value += f'{token}\t{correct}\t{guessed}\n'
+    index = 0
+    for line in inputs_list:
+        if line is None:
+            value += '\n'  # sentence delimiter
+            continue
+        for token in line:
+            expected = expected_str[index]
+            actual = actual_str[index]
+            value += f'{token}\t{expected}\t{actual}\n'
+            index += 1
 
     with open('results.txt', 'w') as f:
         f.write(value)
@@ -144,7 +152,7 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
         BLCCModel.OUTPUT_SIZE: output_size,
         BLCCModel.CLASSIFIER: 'CRF',
         BLCCModel.EMBEDDING_SIZE: 300,
-        BLCCModel.LSTM_SIZE: (100, 100),
+        BLCCModel.LSTM_SIZE: (10, 10),
         BLCCModel.DROPOUT: (0.25, 0.25),
         BLCCModel.FEATURE_NAMES: ('casing',),
         BLCCModel.FEATURE_INPUT_SIZES: (casing_feature_size,),
@@ -159,7 +167,7 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
 
     _LOGGER.info('Training started')
     trainer.train(iterator=train_iter, **{
-        trainer.MAX_EPOCH_KEY: 25,
+        trainer.MAX_EPOCH_KEY: 1,
         trainer.BATCH_TRANSFORM_FUN_KEY: batch_transform_function})
     _LOGGER.info('Training finished')
 
@@ -179,19 +187,27 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
             y_test
         )
 
-        inputs.append(np.ravel(x_batch.tokens.astype(int)))
+        for line in x_batch.tokens.astype(int):
+            inputs.append(line)
+            inputs.append(None)  # sentence delimiters
         actual.append(prediction_filtered)
         expected.append(y_test_filtered)
 
-    inputs = np.concatenate(inputs)
+    # inputs = np.concatenate(inputs)
     actual = np.concatenate(actual)
     expected = np.concatenate(expected)
 
     vocab_tokens = fields['inputs'].tokens.vocab.itos
     vocab_labels = fields['labels'].vocab.itos
 
-    inputs_str = [vocab_tokens[x] for x in inputs
-                  if vocab_tokens[x] != SpecialVocabSymbols.PAD]
+    inputs_str = []
+    for line in inputs:
+        if line is None:
+            inputs_str.append(None)
+            continue
+        inputs_str.append([vocab_tokens[x] for x in line
+                           if vocab_tokens[x] != SpecialVocabSymbols.PAD])
+
     actual_str = [vocab_labels[x] for x in actual]
     expected_str = [vocab_labels[x] for x in expected]
 
