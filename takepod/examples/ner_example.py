@@ -8,6 +8,8 @@ from functools import partial
 import numpy as np
 
 from takepod.datasets.croatian_ner_dataset import CroatianNERDataset
+from takepod.examples import tokenizer
+from takepod.examples.tokenizer import tokenize
 from takepod.metrics import multiclass_f1_metric
 from takepod.models.blcc_model import BLCCModel
 from takepod.models.simple_trainers import SimpleTrainer
@@ -152,7 +154,7 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
         BLCCModel.OUTPUT_SIZE: output_size,
         BLCCModel.CLASSIFIER: 'CRF',
         BLCCModel.EMBEDDING_SIZE: 300,
-        BLCCModel.LSTM_SIZE: (10, 10),
+        BLCCModel.LSTM_SIZE: (200, 200),
         BLCCModel.DROPOUT: (0.25, 0.25),
         BLCCModel.FEATURE_NAMES: ('casing',),
         BLCCModel.FEATURE_INPUT_SIZES: (casing_feature_size,),
@@ -167,7 +169,7 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
 
     _LOGGER.info('Training started')
     trainer.train(iterator=train_iter, **{
-        trainer.MAX_EPOCH_KEY: 1,
+        trainer.MAX_EPOCH_KEY: 20,
         trainer.BATCH_TRANSFORM_FUN_KEY: batch_transform_function})
     _LOGGER.info('Training finished')
 
@@ -267,9 +269,8 @@ if __name__ == '__main__':
     vectors_path = sys.argv[1]
     LargeResource.BASE_RESOURCE_DIR = 'downloaded_datasets'
 
-    # global fields
     fields = ner_dataset_classification_fields()
-    dataset = CroatianNERDataset.get_dataset(fields=fields)
+    dataset = CroatianNERDataset.get_dataset(fields=fields, tokenizer=tokenize)
 
     vectorizer = BasicVectorStorage(path=vectors_path)
     vectorizer.load_vocab(vocab=fields['inputs'].tokens.vocab)
