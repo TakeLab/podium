@@ -53,7 +53,7 @@ def label_mapper_hook(data, tokens):
         if mapped_token is None:
             tokens[i] = 'O'
         else:
-            tokens[i] = prefix + mapped_token
+            tokens[i] = prefix + '-' +  mapped_token
 
     return data, tokens
 
@@ -118,6 +118,17 @@ def example_word_count(example):
     return len(example.tokens[1])
 
 
+def print_to_file(inputs_str, expected_str, actual_str):
+    value = ''
+
+    for token, correct, guessed in zip(inputs_str, expected_str, actual_str):
+        value += f'{token}\t{correct}\t{guessed}\n'
+
+    with open('results.txt', 'w') as f:
+        f.write(value)
+        f.flush()
+
+
 def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
     """Example of training the BLCCModel with Croatian NER dataset"""
     output_size = len(fields['labels'].vocab.itos)
@@ -154,6 +165,7 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
 
     pad_symbol = fields['labels'].vocab.pad_symbol()
 
+    inputs = []
     actual = []
     expected = []
 
@@ -161,18 +173,29 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
         x_test, y_test = batch_transform_function(x_batch, y_batch)
 
         prediction = model.predict(X=x_test)[BLCCModel.PREDICTION_KEY]
-
         prediction_filtered, y_test_filtered = filter_out_padding(
             pad_symbol,
             prediction,
             y_test
         )
 
+        inputs.append(np.ravel(x_batch.tokens.astype(int)))
         actual.append(prediction_filtered)
         expected.append(y_test_filtered)
 
+    inputs = np.concatenate(inputs)
     actual = np.concatenate(actual)
     expected = np.concatenate(expected)
+
+    vocab_tokens = fields['inputs'].tokens.vocab.itos
+    vocab_labels = fields['labels'].vocab.itos
+
+    inputs_str = [vocab_tokens[x] for x in inputs
+                  if vocab_tokens[x] != SpecialVocabSymbols.PAD]
+    actual_str = [vocab_labels[x] for x in actual]
+    expected_str = [vocab_labels[x] for x in expected]
+
+    print_to_file(inputs_str, expected_str, actual_str)
 
     _LOGGER.info('Expected:')
     _LOGGER.info(expected)
