@@ -74,6 +74,8 @@ def casing_mapper_hook(data, tokens):
             token_casing = 'uppercase'
         elif token[0].isupper():
             token_casing = 'initial_uppercase'
+        elif token in {'.', '?', ',', '!'}:
+            token_casing = 'punctuation'
 
         tokens_casing.append(token_casing)
 
