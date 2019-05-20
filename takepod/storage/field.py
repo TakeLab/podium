@@ -548,8 +548,7 @@ class TokenizedField(Field):
 
 
 class MultilabelField(TokenizedField):
-    """
-    Class used for storing pre-tokenized labels.
+    """Class used for storing pre-tokenized labels.
     Used for multilabeled datasets.
     """
 
@@ -566,16 +565,16 @@ class MultilabelField(TokenizedField):
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
-        def numericalization(tokens):
-            return numericalize_multihot(tokens, vocab, num_of_classes)
-
+        self.num_of_classes = num_of_classes
         super().__init__(name,
                          vocab=vocab,
                          eager=eager,
-                         custom_numericalize=numericalization,
                          is_target=True,
                          fixed_length=num_of_classes,
                          allow_missing_data=allow_missing_data)
+
+    def _numericalize_tokens(self, tokens):
+        return numericalize_multihot(tokens, self.vocab, self.num_of_classes)
 
 
 def numericalize_multihot(tokens, vocab, num_of_classes):
