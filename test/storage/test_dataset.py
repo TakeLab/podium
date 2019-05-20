@@ -685,11 +685,14 @@ def test_hierarchical_dataset_invalid_json_fail(hierarchical_dataset_fields):
                                       .get_default_dict_parser("children"))
 
 
-def test_hierarchical_dataset_json_root_element_not_list_fail():
+def test_hierarchical_dataset_json_root_element_not_list_fail(
+        hierarchical_dataset_fields):
     with pytest.raises(ValueError):
-        HierarchicalDataset.from_json(JSON_ROOT_NOT_LIST, hierarchical_dataset_fields,
-                                      HierarchicalDataset
-                                      .get_default_dict_parser("children"))
+        HierarchicalDataset.from_json(JSON_ROOT_NOT_LIST,
+                                      hierarchical_dataset_fields,
+                                      HierarchicalDataset.get_default_dict_parser(
+                                          "children")
+                                      )
 
 
 def test_hierarchical_dataset_context_iteration(hierarchical_dataset):

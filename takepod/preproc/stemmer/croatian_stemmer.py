@@ -135,7 +135,7 @@ class CroatianStemmer:
         return word
 
     @capitalize_target_like_source
-    def stem_word(self, word):
+    def stem_word(self, word, **kwargs):
         '''
         Returns the root or roots of a word,
         together with any derivational affixes

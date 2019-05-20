@@ -24,7 +24,7 @@ class Field(object):
                  store_as_raw=True,
                  store_as_tokenized=False,
                  eager=True,
-                 custom_numericalize=float,
+                 custom_numericalize=None,
                  is_target=False,
                  fixed_length=None,
                  allow_missing_data=False
@@ -370,7 +370,7 @@ class Field(object):
             Array of numericalized representations of the tokens.
 
         """
-        if self.use_vocab:
+        if self.custom_numericalize is None and self.use_vocab:
             return self.vocab.numericalize(tokens)
 
         else:
@@ -529,7 +529,7 @@ class TokenizedField(Field):
                  name,
                  vocab=None,
                  eager=True,
-                 custom_numericalize=float,
+                 custom_numericalize=None,
                  is_target=False,
                  fixed_length=None,
                  allow_missing_data=False):
@@ -550,8 +550,6 @@ class TokenizedField(Field):
 class MultilabelField(TokenizedField):
     """Class used for storing pre-tokenized labels.
     Used for multilabeled datasets.
-
-
     """
 
     def __init__(self,
