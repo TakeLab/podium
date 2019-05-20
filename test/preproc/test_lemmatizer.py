@@ -141,3 +141,9 @@ def mock_lemmatizer(molex14_lemma2word, molex14_word2lemma):
         lemmatizer.MOLEX14_LEMMA2WORD = molex14_lemma2word
         lemmatizer.MOLEX14_WORD2LEMMA = molex14_word2lemma
         return lemmatizer
+
+
+def test_lemmatize_oov(mock_lemmatizer):
+    oov_word = 'outofvocabularyword'
+    received_lemma = mock_lemmatizer.lemmatize_word(oov_word, none_if_oov=True)
+    assert received_lemma is None
