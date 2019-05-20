@@ -4,7 +4,8 @@ import numpy as np
 import pytest
 from mock import patch
 
-from takepod.storage import Field, TokenizedField, MultilabelField, Vocab, SpecialVocabSymbols
+from takepod.storage import Field, TokenizedField, MultilabelField,\
+    Vocab, SpecialVocabSymbols
 
 ONE_TO_FIVE = [1, 2, 3, 4, 5]
 
@@ -558,7 +559,9 @@ def test_tokenized_field_vocab_non_string():
 
 def test_multilabel_field_specials_in_vocab_fail():
     with pytest.raises(ValueError):
-        MultilabelField("bla", vocab=Vocab(specials=(SpecialVocabSymbols.UNK,)), num_of_classes=10)
+        MultilabelField("bla",
+                        vocab=Vocab(specials=(SpecialVocabSymbols.UNK,)),
+                        num_of_classes=10)
 
 
 @pytest.mark.parametrize("tokens",

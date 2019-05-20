@@ -1,6 +1,5 @@
 """Module contains dataset's field definition and methods for construction."""
 import logging
-import functools
 from collections import deque
 
 import numpy as np
@@ -567,7 +566,8 @@ class MultilabelField(TokenizedField):
                     Field name, used for referencing data in the dataset.
 
                 num_of_classes : int
-                    Number of valid classes. Also defines size of the numericalized vector.
+                    Number of valid classes.
+                    Also defines size of the numericalized vector.
 
                 vocab : Vocab
                     A vocab that this field will update after preprocessing and
@@ -581,17 +581,20 @@ class MultilabelField(TokenizedField):
                     preprocesses raw data.
 
                 allow_missing_data : bool
-                    Whether the field allows missing data. In the case 'allow_missing_data'
-                    is false and None is sent to be preprocessed, an ValueError will be raised.
-                    If 'allow_missing_data' is True, if a None is sent to be preprocessed, it will
-                    be stored and later numericalized properly.
-                    If the field is sequential the numericalization of a missing data field will
-                    be an empty numpy Array, else the numericalization will be a numpy Array
+                    Whether the field allows missing data.
+                    In the case 'allow_missing_data'
+                    is false and None is sent to be preprocessed, an ValueError
+                    will be raised. If 'allow_missing_data' is True, if a None is sent to
+                    be preprocessed, it will be stored and later numericalized properly.
+                    If the field is sequential the numericalization
+                    of a missing data field will be an empty numpy Array,
+                    else the numericalization will be a numpy Array
                     containing a single np.Nan ([np.Nan])
                     Default: False
 
                 custom_numericalize : callable(str) -> int
-                    Callable that takes a string and returns an int. Used to index classes.
+                    Callable that takes a string and returns an int.
+                    Used to index classes.
 
                 Raises
                 ------
@@ -616,7 +619,12 @@ class MultilabelField(TokenizedField):
                          custom_numericalize=custom_numericalize)
 
     def _numericalize_tokens(self, tokens):
-        index_function = self.vocab.stoi.get if self.use_vocab else self.custom_numericalize
+        if self.use_vocab:
+            index_function = self.vocab.stoi.get
+
+        else:
+            index_function = self.custom_numericalize
+
         return numericalize_multihot(tokens, index_function, self.num_of_classes)
 
 
