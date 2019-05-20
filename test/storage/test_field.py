@@ -549,6 +549,27 @@ def test_multilabel_field_specials_in_vocab_fail():
     with pytest.raises(ValueError):
         MultilabelField("bla", vocab=Vocab())
 
+@pytest.mark.parametrize("tokens",
+                         [
+                             ["class1", "class2", "class3", "class4"],
+                             ["class1", "class2", "class4"],
+                             ["class2", "class22", "class42"]
+                         ])
+def test_multilabel_field_numericalization(tokens):
+    vocab = Vocab(specials=())
+    vocab += tokens
+
+    field = MultilabelField("test field", 5, vocab)
+    preprocessed = field.preprocess(tokens)
+
+    field.finalize()
+    multilabel_from_vocab = np.zeros(5, dtype=np.int32)
+    for token in tokens:
+        multilabel_from_vocab[vocab.stoi[token]] = 1
+
+    multilabel_from_field = field.numericalize(preprocessed)
+
+    assert np.all(multilabel_from_field, multilabel_from_vocab)
 
 @pytest.mark.parametrize("store_as_raw, store_as_tokenized, tokenize",
                          [[True, True, True],

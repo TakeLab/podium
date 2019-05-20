@@ -1,5 +1,6 @@
 """Module contains dataset's field definition and methods for construction."""
 import logging
+import functools
 from collections import deque
 
 import numpy as np
@@ -514,8 +515,8 @@ class Field(object):
         self.tokenizer = get_tokenizer(self._tokenizer_arg, self.language)
 
     def __str__(self):
-        return f"{self.__class__.__name__}[name: {self.name}, "\
-               f"sequential: {self.sequential}, is_target: {self.is_target}]"
+        return f"{self.__class__.__name__}[name: {self.name}, " \
+            f"sequential: {self.sequential}, is_target: {self.is_target}]"
 
 
 class TokenizedField(Field):
@@ -554,10 +555,9 @@ class MultilabelField(TokenizedField):
 
     def __init__(self,
                  name,
+                 num_of_classes,
                  vocab=None,
                  eager=True,
-                 custom_numericalize=float,
-                 fixed_length=None,
                  allow_missing_data=False):
         if vocab is not None and vocab.has_specials:
             error_msg = "Vocab contains special symbols." \
@@ -566,10 +566,20 @@ class MultilabelField(TokenizedField):
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
+        def numericalization(tokens):
+            return numericalize_multihot(tokens, vocab, num_of_classes)
+
         super().__init__(name,
                          vocab=vocab,
                          eager=eager,
-                         custom_numericalize=custom_numericalize,
+                         custom_numericalize=numericalization,
                          is_target=True,
-                         fixed_length=fixed_length,
+                         fixed_length=num_of_classes,
                          allow_missing_data=allow_missing_data)
+
+
+def numericalize_multihot(tokens, vocab, num_of_classes):
+    active_classes = vocab.numericalize(tokens)
+    multihot_encoding = np.zeros(num_of_classes, dtype=np.uint32)
+    multihot_encoding[active_classes] = 1
+    return multihot_encoding
