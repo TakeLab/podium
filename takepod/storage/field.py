@@ -591,7 +591,7 @@ class MultilabelField(TokenizedField):
                     be an empty numpy Array, else the numericalization will be a numpy Array
                     containing a single np.Nan ([np.Nan])
                     Default: False
-                
+
                 custom_numericalize : callable(str) -> int
                     Callable that takes a string and returns an int. Used to index classes.
 

@@ -547,7 +547,8 @@ def test_tokenized_field_vocab_non_string():
 
 def test_multilabel_field_specials_in_vocab_fail():
     with pytest.raises(ValueError):
-        MultilabelField("bla", vocab=Vocab(specials=(SpecialVocabSymbols.UNK,)), num_of_classes=10 )
+        MultilabelField("bla", vocab=Vocab(specials=(SpecialVocabSymbols.UNK,)), num_of_classes=10)
+
 
 @pytest.mark.parametrize("tokens",
                          [
@@ -555,7 +556,7 @@ def test_multilabel_field_specials_in_vocab_fail():
                              ["class1", "class2", "class4"],
                              ["class2", "class22", "class42"]
                          ])
-def test_multilabel_field_numericalization(tokens):
+def test_multilabel_field_vocab_numericalization(tokens):
     vocab = Vocab(specials=())
     vocab += tokens
 
@@ -570,6 +571,36 @@ def test_multilabel_field_numericalization(tokens):
     multilabel_from_field = field.numericalize(preprocessed)
 
     assert np.all(multilabel_from_field == multilabel_from_vocab)
+
+
+@pytest.mark.parametrize("tokens",
+                         [
+                             ["class1", "class2", "class3", "class4"],
+                             ["class1", "class2", "class4"],
+                             ["class2", "class22", "class42"]
+                         ])
+def test_multilabel_field_custom_numericalization(tokens):
+    index_dict = {
+        "class1": 0,
+        "class2": 1,
+        "class3": 2,
+        "class4": 3,
+        "class22": 4,
+        "class42": 5
+    }
+
+    field = MultilabelField("test field", 6, custom_numericalize=index_dict.get)
+    preprocessed = field.preprocess(tokens)
+    field.finalize()
+
+    multilabel_expected = np.zeros(6, dtype=np.int32)
+    for token in tokens:
+        multilabel_expected[index_dict[token]] = 1
+
+    multilabel_from_field = field.numericalize(preprocessed)
+
+    assert np.all(multilabel_from_field == multilabel_expected)
+
 
 @pytest.mark.parametrize("store_as_raw, store_as_tokenized, tokenize",
                          [[True, True, True],
