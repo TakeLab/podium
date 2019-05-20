@@ -550,6 +550,8 @@ class TokenizedField(Field):
 class MultilabelField(TokenizedField):
     """Class used for storing pre-tokenized labels.
     Used for multilabeled datasets.
+
+
     """
 
     def __init__(self,
@@ -557,7 +559,48 @@ class MultilabelField(TokenizedField):
                  num_of_classes,
                  vocab=None,
                  eager=True,
-                 allow_missing_data=False):
+                 allow_missing_data=False,
+                 custom_numericalize=None):
+        """Create a MultilabelField from arguments.
+
+                Parameters
+                ----------
+                name : str
+                    Field name, used for referencing data in the dataset.
+
+                num_of_classes : int
+                    Number of valid classes. Also defines size of the numericalized vector.
+
+                vocab : Vocab
+                    A vocab that this field will update after preprocessing and
+                    use to numericalize data.
+                    If None, the field won't use a vocab, in which case a custom
+                    numericalization function has to be given.
+                    Default is None.
+
+                eager : bool
+                    Whether to build the vocabulary online, each time the field
+                    preprocesses raw data.
+
+                allow_missing_data : bool
+                    Whether the field allows missing data. In the case 'allow_missing_data'
+                    is false and None is sent to be preprocessed, an ValueError will be raised.
+                    If 'allow_missing_data' is True, if a None is sent to be preprocessed, it will
+                    be stored and later numericalized properly.
+                    If the field is sequential the numericalization of a missing data field will
+                    be an empty numpy Array, else the numericalization will be a numpy Array
+                    containing a single np.Nan ([np.Nan])
+                    Default: False
+                
+                custom_numericalize : callable(str) -> int
+                    Callable that takes a string and returns an int. Used to index classes.
+
+                Raises
+                ------
+                ValueError
+                    If the provided Vocab contains special symbols.
+                """
+
         if vocab is not None and vocab.has_specials:
             error_msg = "Vocab contains special symbols." \
                         " Vocabs with special symbols cannot be used" \
@@ -571,14 +614,16 @@ class MultilabelField(TokenizedField):
                          eager=eager,
                          is_target=True,
                          fixed_length=num_of_classes,
-                         allow_missing_data=allow_missing_data)
+                         allow_missing_data=allow_missing_data,
+                         custom_numericalize=custom_numericalize)
 
     def _numericalize_tokens(self, tokens):
-        return numericalize_multihot(tokens, self.vocab, self.num_of_classes)
+        index_function = self.vocab.stoi.get if self.use_vocab else self.custom_numericalize
+        return numericalize_multihot(tokens, index_function, self.num_of_classes)
 
 
-def numericalize_multihot(tokens, vocab, num_of_classes):
-    active_classes = vocab.numericalize(tokens)
+def numericalize_multihot(tokens, token_indexer, num_of_classes):
+    active_classes = list(map(token_indexer, tokens))
     multihot_encoding = np.zeros(num_of_classes, dtype=np.uint32)
     multihot_encoding[active_classes] = 1
     return multihot_encoding
