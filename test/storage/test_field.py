@@ -90,7 +90,7 @@ def test_field_preprocess_raw_sequential(value, store_raw, sequential,
                                          expected_tokenized_value):
     f = Field(name="F", store_as_raw=store_raw, tokenize=sequential)
 
-    received_raw_value, received_tokenized_value = f.preprocess(value)
+    (_, (received_raw_value, received_tokenized_value)), = f.preprocess(value)
 
     assert received_raw_value == expected_raw_value
     assert received_tokenized_value == expected_tokenized_value
@@ -110,7 +110,7 @@ def test_field_pickle_tokenized(value, store_raw, sequential,
                                 expected_tokenized_value, tmpdir):
     fld = Field(name="F", store_as_raw=store_raw, tokenize=sequential)
 
-    received_raw_value, received_tokenized_value = fld.preprocess(value)
+    (_, (received_raw_value, received_tokenized_value)), = fld.preprocess(value)
 
     assert received_raw_value == expected_raw_value
     assert received_tokenized_value == expected_tokenized_value
@@ -122,7 +122,7 @@ def test_field_pickle_tokenized(value, store_raw, sequential,
 
     with open(field_file, "rb") as fdata:
         loaded_fld = dill.load(fdata)
-        raw_value, tokenized_value = loaded_fld.preprocess(value)
+        (_, (raw_value, tokenized_value)), = loaded_fld.preprocess(value)
 
         assert raw_value == expected_raw_value
         assert tokenized_value == expected_tokenized_value
@@ -264,7 +264,8 @@ def test_field_get_tokenizer_callable(vocab):
     f = Field(name="F", vocab=vocab, tokenizer=my_tokenizer, tokenize=True,
               store_as_raw=False)
 
-    assert f.preprocess("asd dsa") == (None, ["a", "sd dsa"])
+    _, data = f.preprocess("asd dsa")[0]
+    assert data == (None, ["a", "sd dsa"])
 
 
 def test_field_get_tokenizer_spacy_exception(vocab):
@@ -281,7 +282,8 @@ def test_field_get_tokenizer_spacy_exception(vocab):
 def test_field_get_tokenizer_default(vocab):
     f = Field(name="F", vocab=vocab, tokenize=True, store_as_raw=False)
 
-    assert f.preprocess("asd dsa") == (None, ["asd", "dsa"])
+    _, data = f.preprocess("asd dsa")[0]
+    assert data == (None, ["asd", "dsa"])
 
 
 def test_field_get_tokenizer_exception(vocab):
@@ -294,14 +296,16 @@ def test_field_get_tokenizer_spacy_ok(vocab):
     patch.dict("sys.modules", spacy=MockSpacy()).start()
     f = Field(name="F", vocab=vocab, tokenizer="spacy", tokenize=True,
               store_as_raw=False)
-    assert f.preprocess("bla blu") == (None, ["bla", "blu"])
+    _, data = f.preprocess("bla blu")[0]
+    assert  data == (None, ["bla", "blu"])
 
 
 def test_field_pickle_spacy_tokenizer(vocab, tmpdir):
     patch.dict("sys.modules", spacy=MockSpacy()).start()
     fld = Field(name="F", vocab=vocab, tokenizer="spacy", tokenize=True,
                 store_as_raw=False)
-    assert fld.preprocess("bla blu") == (None, ["bla", "blu"])
+    _, data = fld.preprocess("bla blu")[0]
+    assert data == (None, ["bla", "blu"])
 
     field_file = os.path.join(tmpdir, "field.pkl")
 
@@ -312,7 +316,9 @@ def test_field_pickle_spacy_tokenizer(vocab, tmpdir):
         loaded_fld = dill.load(fdata)
 
         assert loaded_fld._tokenizer_arg == "spacy"
-        assert loaded_fld.preprocess("bla blu") == (None, ["bla", "blu"])
+
+        _, data = loaded_fld.preprocess("bla blu")[0]
+        assert data == (None, ["bla", "blu"])
 
 
 def test_field_pretokenize_hooks():
@@ -325,7 +331,7 @@ def test_field_pretokenize_hooks():
 
     raw_str = "asd;123,BLA"
 
-    received = f.preprocess(raw_str)
+    _, received = f.preprocess(raw_str)[0]
     expected = ("asd 123 blu", ["asd", "123", "blu"])
 
     assert received == expected
@@ -343,7 +349,7 @@ def test_field_pretokenize_hooks_detach():
 
     raw_str = "asd;123,BLA"
 
-    received = f.preprocess(raw_str)
+    _, received = f.preprocess(raw_str)[0]
 
     expected = (raw_str, [raw_str])
 
@@ -368,7 +374,7 @@ def test_field_posttokenize_hooks():
     f.add_posttokenize_hook(remove_tags_hook)
     f.add_posttokenize_hook(to_upper_hook)
 
-    received = f.preprocess("asd 123<tag> B<tag>LA")
+    _, received = f.preprocess("asd 123<tag> B<tag>LA")[0]
     expected = ("ASD 123 BLA", ["ASD", "123", "BLA"])
 
     assert received == expected
@@ -395,7 +401,7 @@ def test_field_posttokenize_hooks_detach():
     # detaching the hooks
     f.remove_posttokenize_hooks()
 
-    received = f.preprocess("asd 123<tag> B<tag>LA")
+    _, received = f.preprocess("asd 123<tag> B<tag>LA")[0]
     expected = ("asd 123<tag> B<tag>LA", ["asd", "123<tag>", "B<tag>LA"])
 
     assert received == expected
@@ -428,7 +434,7 @@ def test_field_repeated_hooks():
     # ABC -> abc
     f.add_posttokenize_hook(to_lower_hook)
 
-    received = f.preprocess("BLA <TAG> bla")
+    _, received = f.preprocess("BLA <TAG> bla")[0]
 
     expected = ("BLA <TAG> bla", ["bla", "abc", "bla"])
 
@@ -470,10 +476,10 @@ def test_tokenized_field_numericalization():
 
     tokenized_field = TokenizedField("test_field", vocab=vocab)
 
-    data1 = tokenized_field.preprocess(pretokenized_input1)
-    data2 = tokenized_field.preprocess(pretokenized_input2)
-    data3 = tokenized_field.preprocess(pretokenized_input3)
-    data4 = tokenized_field.preprocess(pretokenized_input4)
+    _, data1 = tokenized_field.preprocess(pretokenized_input1)[0]
+    _, data2 = tokenized_field.preprocess(pretokenized_input2)[0]
+    _, data3 = tokenized_field.preprocess(pretokenized_input3)[0]
+    _, data4 = tokenized_field.preprocess(pretokenized_input4)[0]
 
     tokenized_field.finalize()
 
@@ -502,10 +508,10 @@ def test_tokenized_field_custom_numericalization():
     tfield = TokenizedField("bla",
                             custom_numericalize=lambda x: x)
 
-    data1 = tfield.preprocess([1, 2, 3])
-    data2 = tfield.preprocess([3, 2, 1])
-    data3 = tfield.preprocess([3, 4, 5, 6])
-    data4 = tfield.preprocess([2, 3, 6])
+    _, data1 = tfield.preprocess([1, 2, 3])[0]
+    _, data2 = tfield.preprocess([3, 2, 1])[0]
+    _, data3 = tfield.preprocess([3, 4, 5, 6])[0]
+    _, data4 = tfield.preprocess([2, 3, 6])[0]
 
     tfield.finalize()
 
@@ -526,10 +532,10 @@ def test_tokenized_field_custom_numericalization_2():
     tfield = TokenizedField("bla",
                             custom_numericalize=label_indexer.get)
 
-    data1 = tfield.preprocess(["one", "two", "three"])
-    data2 = tfield.preprocess(["three", "two", "one"])
-    data3 = tfield.preprocess(["three", "four", "four", "two"])
-    data4 = tfield.preprocess(["two", "three", "one"])
+    _, data1 = tfield.preprocess(["one", "two", "three"])[0]
+    _, data2 = tfield.preprocess(["three", "two", "one"])[0]
+    _, data3 = tfield.preprocess(["three", "four", "four", "two"])[0]
+    _, data4 = tfield.preprocess(["two", "three", "one"])[0]
 
     tfield.finalize()
 
@@ -544,10 +550,10 @@ def test_tokenized_field_vocab_non_string():
     tfield = TokenizedField("bla",
                             vocab=vocab)
 
-    data1 = tfield.preprocess([1, 2, 3])
-    data2 = tfield.preprocess([3, 2, 1])
-    data3 = tfield.preprocess([3, 4, 5, 6])
-    data4 = tfield.preprocess([2, 3, 6])
+    _, data1 = tfield.preprocess([1, 2, 3])[0]
+    _, data2 = tfield.preprocess([3, 2, 1])[0]
+    _, data3 = tfield.preprocess([3, 4, 5, 6])[0]
+    _, data4 = tfield.preprocess([2, 3, 6])[0]
 
     tfield.finalize()
 
@@ -575,7 +581,7 @@ def test_multilabel_field_vocab_numericalization(tokens):
     vocab += tokens
 
     field = MultilabelField("test field", 5, vocab)
-    preprocessed = field.preprocess(tokens)
+    _, preprocessed = field.preprocess(tokens)[0]
     field.finalize()
 
     multilabel_from_vocab = np.zeros(5, dtype=np.int32)
@@ -604,7 +610,7 @@ def test_multilabel_field_custom_numericalization(tokens):
     }
 
     field = MultilabelField("test field", 6, custom_numericalize=index_dict.get)
-    preprocessed = field.preprocess(tokens)
+    _, preprocessed = field.preprocess(tokens)[0]
     field.finalize()
 
     multilabel_expected = np.zeros(6, dtype=np.int32)
@@ -636,8 +642,8 @@ def test_missing_values_default_sequential():
                 custom_numericalize=lambda x: hash(x),
                 allow_missing_data=True)
 
-    data_missing = fld.preprocess(None)
-    data_exists = fld.preprocess("data_string")
+    _, data_missing = fld.preprocess(None)[0]
+    _, data_exists = fld.preprocess("data_string")[0]
 
     assert data_missing == (None, None)
     assert data_exists == (None, ["data_string"])
@@ -654,8 +660,8 @@ def test_missing_values_default_not_sequential():
                 custom_numericalize=int,
                 allow_missing_data=True)
 
-    data_missing = fld.preprocess(None)
-    data_exists = fld.preprocess("404")
+    _, data_missing = fld.preprocess(None)[0]
+    _, data_exists = fld.preprocess("404")[0]
 
     assert data_missing == (None, None)
     assert data_exists == ("404", None)

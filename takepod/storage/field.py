@@ -362,7 +362,7 @@ class Field(object):
                 raise ValueError(error_msg)
 
             else:
-                return None, None
+                return (self.name, (None, None)),
 
         if self.store_as_tokenized:
             # Store data as tokens

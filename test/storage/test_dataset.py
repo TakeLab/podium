@@ -58,7 +58,8 @@ class MockField:
         self.is_target = is_target
 
     def preprocess(self, data):
-        return (data, [data]) if self.sequential else (data, None)
+        return ((self.name, (data, [data])),) if self.sequential \
+            else ((self.name, (data, None)),)
 
     def update_vocab(self, raw, tokenized):
         assert not self.eager
@@ -66,6 +67,9 @@ class MockField:
 
     def finalize(self):
         self.finalized = True
+
+    def get_output_fields(self):
+        return self,
 
     def __repr__(self):
         return self.name
@@ -76,7 +80,8 @@ class MockExample:
         self.accessed = False
 
         for f, d in zip(fields, data):
-            self.__setattr__(f.name, f.preprocess(d))
+            for name, data in f.preprocess(d):
+                self.__setattr__(name, data)
 
     def __getattribute__(self, item):
         if item not in {"accessed", "__setattr__"}:
