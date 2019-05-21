@@ -5,7 +5,7 @@ import pytest
 from mock import patch
 
 from takepod.storage import Field, TokenizedField, MultilabelField,\
-    Vocab, SpecialVocabSymbols
+    Vocab, SpecialVocabSymbols, MultioutputField
 
 ONE_TO_FIVE = [1, 2, 3, 4, 5]
 
@@ -680,3 +680,27 @@ def test_missing_values_fail():
 
     with pytest.raises(ValueError):
         fld.preprocess(None)
+
+
+def test_multioutput_field():
+    field1 = Field("field1")
+    field2 = Field("field2")
+    mo_field = MultioutputField(tokenizer='split')
+
+
+    def postTokenizationAllUpper(raw, tokenized):
+        return raw, list(map(str.upper, tokenized))
+
+    def postTokenizationAllLower(raw, tokenized):
+        return raw, list(map(str.lower, tokenized))
+
+    field1.add_posttokenize_hook(postTokenizationAllUpper)
+    field2.add_posttokenize_hook(postTokenizationAllLower)
+
+    for f in field1, field2:
+        mo_field.add_output_field(f)
+
+    result1, result2 = mo_field.preprocess("mOcK TeXt")
+
+    assert result1 == (field1.name, ("mOcK TeXt", ["MOCK", "TEXT"]))
+    assert result2 == (field2.name, ("mOcK TeXt", ["mock", 'text']))
