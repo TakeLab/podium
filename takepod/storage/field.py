@@ -10,10 +10,35 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MultioutputField:
+    """Field that does pretokenization and tokenization once and passes it to its
+    output fields. Output fields are any type of field. The output fields are used only
+    for posttokenization processing (posttokenization hooks and vocab updating)."""
 
     def __init__(self,
                  tokenizer='split',
                  language='en'):
+        """Field that does pretokenization and tokenization once and passes it to its
+        output fields. Output fields are any type of field. The output fields are used only
+        for posttokenization processing (posttokenization hooks and vocab updating).
+
+        Parameters
+        ----------
+         tokenizer : str | callable
+            The tokenizer that is to be used when preprocessing raw data
+            (only if 'tokenize' is True). The user can provide his own
+            tokenizer as a callable object or specify one of the premade
+            tokenizers by a string. The available premade tokenizers are:
+                - 'split' - default str.split()
+                - 'spacy' - the spacy tokenizer, using the 'en' language
+                model by default (unless the user provides a different
+                'language' parameter)
+
+        language : str
+            The language argument for the tokenizer (if necessary, e. g. for
+            spacy).
+            Default is 'en'.
+        """
+
         self.language = language
         self._tokenizer_arg = tokenizer
         self.pretokenize_hooks = deque()
@@ -66,6 +91,14 @@ class MultioutputField:
         return data
 
     def add_output_field(self, field):
+        """
+        Adds the passed field to this field's output fields.
+
+        Parameters
+        ----------
+        field : Field
+            Field to add to output fields.
+        """
         self.output_fields.append(field)
 
     def preprocess(self, data):
@@ -74,6 +107,14 @@ class MultioutputField:
         return tuple(field._process_tokens(data, tokens) for field in self.output_fields)
 
     def get_output_fields(self):
+        """
+        Returns an Iterable of the contained output fields.
+
+        Returns
+        -------
+        Iterable :
+            an Iterable of the contained output fields.
+        """
         return self.output_fields
 
 
@@ -420,15 +461,33 @@ class Field(object):
             self.vocab.finalize()
 
     def _process_tokens(self, data, tokens):
+        """
+        Runs posttokenization processing on the provided data and tokens and updates
+        the vocab if needed. Used by Multioutput field.
+
+        Parameters
+        ----------
+        data
+            data processed by Pretokenization hooks
+
+        tokens : list
+            tokenized data
+
+        Returns
+        -------
+        name , (data, tokens)
+            Returns and tuple containing this both field's name and a tuple containing
+            the data and tokens processed by posttokenization hooks.
+        """
 
         data, tokens = self._run_posttokenization_hooks(data, tokens)
 
         if self.eager and self.use_vocab:
             self.update_vocab(data, tokens)
 
-        raw = data if self.store_as_raw else None
+        data = data if self.store_as_raw else None
 
-        return self.name, (raw, tokens)
+        return self.name, (data, tokens)
 
     def _numericalize_tokens(self, tokens):
         """Numericalizes an iterable of tokens.
@@ -597,6 +656,13 @@ class Field(object):
             f"sequential: {self.sequential}, is_target: {self.is_target}]"
 
     def get_output_fields(self):
+        """Returns an Iterable of the contained output fields.
+
+        Returns
+        -------
+        Iterable :
+            an Iterable of the contained output fields.
+        """
         return self,
 
 
