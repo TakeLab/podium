@@ -13,8 +13,9 @@ def capitalize_target_like_source(func):
     Parameters
     ----------
     func : function
-        function which gets called, MUST be a class member with one argument
-        like def func(self, word)
+        function which gets called, MUST be a class member with one
+        positional argument (like def func(self, word), but may contain
+        additional keyword arguments (like func(self, word, my_arg='my_value'))
 
     Returns
     -------
@@ -28,7 +29,7 @@ def capitalize_target_like_source(func):
         is_lower = source.islower()
         source_lower = source if is_lower else source.lower()
 
-        target = func(args[0], source_lower)
+        target = func(args[0], source_lower, **kwargs)
 
         if is_lower:
             return target
