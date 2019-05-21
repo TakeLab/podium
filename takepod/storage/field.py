@@ -9,6 +9,74 @@ from takepod.preproc.tokenizers import get_tokenizer
 _LOGGER = logging.getLogger(__name__)
 
 
+class MultioutputField:
+
+    def __init__(self,
+                 tokenizer='split',
+                 language='en'):
+        self.language = language
+        self._tokenizer_arg = tokenizer
+        self.pretokenize_hooks = deque()
+        self.tokenizer = get_tokenizer(tokenizer, language)
+        self.output_fields = deque()
+
+    def add_pretokenize_hook(self, hook):
+        """Add a pre-tokenization hook to the MultioutputField.
+        If multiple hooks are added to the field, the order of their execution
+        will be the same as the order in which they were added to the field,
+        each subsequent hook taking the output of the previous hook as its
+        input.
+        If the same function is added to the Field as a hook multiple times,
+        it will be executed that many times.
+        The output of the final pre-tokenization hook is the raw data that the
+        tokenizer will get as its input.
+
+        Pretokenize hooks have the following signature:
+            func pre_tok_hook(raw_data):
+                raw_data_out = do_stuff(raw_data)
+                return raw_data_out
+
+        This can be used to eliminate encoding errors in data, replace numbers
+        and names, etc.
+
+        Parameters
+        ----------
+        hook : callable
+            The pre-tokenization hook that we want to add to the field.
+        """
+        self.pretokenize_hooks.append(hook)
+
+    def _run_pretokenization_hooks(self, data):
+        """Runs pretokenization hooks on the raw data and returns the result.
+
+        Parameters
+        ----------
+        data : hashable
+            data to be processed
+
+        Returns
+        -------
+        hashable
+            processed data
+
+        """
+        for hook in self.pretokenize_hooks:
+            data = hook(data)
+
+        return data
+
+    def add_output_field(self, field):
+        self.output_fields.append(field)
+
+    def preprocess(self, data):
+        data = self._run_pretokenization_hooks(data)
+        tokens = self.tokenizer(data)
+        return tuple(field._process_tokens(data, tokens) for field in self.output_fields)
+
+    def get_output_fields(self):
+        return self.output_fields
+
+
 class Field(object):
     """Holds the preprocessing and numericalization logic for a single
     field of a dataset.
@@ -317,7 +385,7 @@ class Field(object):
 
         raw = data if self.store_as_raw else None
 
-        return raw, tokens
+        return (self.name, (raw, tokens)),
 
     def update_vocab(self, raw, tokenized):
         """Updates the vocab with a data point in its raw and tokenized form.
@@ -350,6 +418,17 @@ class Field(object):
 
         if self.use_vocab:
             self.vocab.finalize()
+
+    def _process_tokens(self, data, tokens):
+
+        data, tokens = self._run_posttokenization_hooks(data, tokens)
+
+        if self.eager and self.use_vocab:
+            self.update_vocab(data, tokens)
+
+        raw = data if self.store_as_raw else None
+
+        return self.name, (raw, tokens)
 
     def _numericalize_tokens(self, tokens):
         """Numericalizes an iterable of tokens.
@@ -516,6 +595,9 @@ class Field(object):
     def __str__(self):
         return f"{self.__class__.__name__}[name: {self.name}, " \
             f"sequential: {self.sequential}, is_target: {self.is_target}]"
+
+    def get_output_fields(self):
+        return self,
 
 
 class TokenizedField(Field):

@@ -4,8 +4,8 @@ import pytest
 
 from collections import Counter
 from json import JSONDecodeError
-from takepod.storage import Dataset, HierarchicalDataset, TabularDataset, Field
-
+from takepod.storage import Dataset, HierarchicalDataset, TabularDataset, Field, \
+    MultioutputField, unpack_fields
 
 FORMAT_USE_DICT_COMBINATIONS = (
     ("csv", True),
@@ -253,7 +253,6 @@ def test_split_train_test_ratio(train_test_ratio, expected_train_len,
 def test_split_train_val_test_ratio(
         train_val_test_ratio, exp_train_len, exp_val_len, exp_test_len,
         data, field_list):
-
     exp_total_len = exp_train_len + exp_val_len + exp_test_len
 
     dataset = create_dataset(data, field_list)
@@ -300,10 +299,10 @@ def test_split_non_overlap(split_ratio, data, field_list):
         1.5,
         -0.2,
         [0.3, 0.0, 0.7],
-        [0.998, 0.001, 0.001],   # these are incorrect ratios because for the
-        (0.998, 0.001, 0.001),   # given dataset they would result in some
-        [0.999, 0.001],          # splits having 0 (the same ratios could be
-        0.999,                   # valid with larger datasets)
+        [0.998, 0.001, 0.001],  # these are incorrect ratios because for the
+        (0.998, 0.001, 0.001),  # given dataset they would result in some
+        [0.999, 0.001],  # splits having 0 (the same ratios could be
+        0.999,  # valid with larger datasets)
     ]
 )
 def test_split_wrong_ratio(data, field_list, ratio):
@@ -605,6 +604,30 @@ def test_attribute_iteration(data, field_list):
     assert len(TEXT) == i
 
 
+def test_unpack_fields():
+    field1 = Field("field1")
+    field2 = Field("field2")
+    field3 = Field("field3")
+    mo_field = MultioutputField()
+
+    for f in field1, field2:
+        mo_field.add_output_field(f)
+
+    assert unpack_fields([field1, field2]) == [field1, field2]
+    assert unpack_fields([field1, (field2, field3)]) == [field1, field2, field3]
+    assert unpack_fields([field3, mo_field]) == [field3, field1, field2]
+
+    field_dict = {
+        "1": field3,
+        "2": mo_field
+    }
+
+    unpacked_fields = unpack_fields(field_dict)
+
+    assert len(unpacked_fields) == 3
+    assert all(f in unpacked_fields for f in (field1, field2, field3))
+
+
 @pytest.fixture()
 def hierarchical_dataset_fields():
     name_field = Field("name", store_as_raw=True, tokenize=False)
@@ -630,7 +653,6 @@ def hierarchical_dataset(hierarchical_dataset_fields, hierarchical_dataset_parse
 
 
 def test_create_hierarchical_dataset_from_json(hierarchical_dataset):
-
     root_nodes = hierarchical_dataset._root_nodes
 
     assert root_nodes[0].example.name[0] == "parent1"
@@ -665,7 +687,6 @@ def test_flatten_hierarchical_dataset(hierarchical_dataset):
 
 
 def test_hierarchical_dataset_example_indexing(hierarchical_dataset):
-
     assert hierarchical_dataset[0].name[0] == "parent1"
     assert hierarchical_dataset[1].name[0] == "c11"
     assert hierarchical_dataset[2].name[0] == "c111"
@@ -774,7 +795,6 @@ HIERARCHIAL_DATASET_JSON_EXAMPLE = """
 }
 ]
 """
-
 
 INVALID_JSON = """
 [

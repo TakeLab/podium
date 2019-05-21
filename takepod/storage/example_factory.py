@@ -263,6 +263,8 @@ def _set_example_attributes(example, field, val):
     """
     if isinstance(field, tuple):
         for f in field:
-            setattr(example, f.name, f.preprocess(val))
+            for name, data in f.preprocess(val):
+                setattr(example, name, data)
     else:
-        setattr(example, field.name, field.preprocess(val))
+        for name, data in field.preprocess(val):
+            setattr(example, name, data)

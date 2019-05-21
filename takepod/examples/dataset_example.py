@@ -12,8 +12,8 @@ if __name__ == "__main__":
 
     # for logging settings see
     # https://github.com/FilipBolt/takepod/wiki/Logging
-    logging.config.fileConfig(
-        fname='logging.ini', disable_existing_loggers=False)
+    # logging.config.fileConfig(
+    #     fname='logging.ini', disable_existing_loggers=False)
 
     train_set, test_set = PauzaHRDataset.get_train_test_dataset()
     print("train set {}".format(len(train_set)))

@@ -222,7 +222,7 @@ class Dataset(ABC):
             strata_field_name = self._get_strata_field_name(strata_field_name)
 
             if strata_field_name is None:
-                error_msg = "If strata_field_name is not provided, at least"\
+                error_msg = "If strata_field_name is not provided, at least" \
                             " one field has to have is_target equal to True."
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
@@ -394,14 +394,14 @@ def create_examples(reader, format, fields, skip_header):
 
     if skip_header:
         if format == "json":
-            error_msg = f'When using a {format} file, skip_header must be'\
-                        f' False.'
+            error_msg = f'When using a {format} file, skip_header must be' \
+                f' False.'
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
         elif format in {"csv", "tsv"} and isinstance(fields, dict):
-            error_msg = f'When using a dict to specify fields with a {format}'\
-                        ' file, skip_header must be False and the file must '\
-                        'have a header.'
+            error_msg = f'When using a dict to specify fields with a {format}' \
+                ' file, skip_header must be False and the file must ' \
+                'have a header.'
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
@@ -456,9 +456,16 @@ def unpack_fields(fields):
     # None values represent columns that should be ignored
     for field in filter(lambda f: f is not None, fields):
         if isinstance(field, tuple):
-            unpacked_fields.extend(field)
+            # Map fields to their output field lists
+            output_fields = map(lambda f: f.get_output_fields(), field)
+
+            # Flatten output fields to a flat list
+            output_fields = itertools.chain.from_iterable(output_fields)
+
         else:
-            unpacked_fields.append(field)
+            output_fields = field.get_output_fields()
+
+        unpacked_fields.extend(output_fields)
 
     return unpacked_fields
 
@@ -508,15 +515,15 @@ def check_split_ratio(split_ratio):
         length = len(split_ratio)
 
         if length not in {2, 3}:
-            error_msg = f'Split ratio list/tuple should be of length 2 or 3, '\
-                        f'got {length}.'
+            error_msg = f'Split ratio list/tuple should be of length 2 or 3, ' \
+                f'got {length}.'
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
         for i, ratio in enumerate(split_ratio):
             if float(ratio) <= 0.0:
-                error_msg = f'Elements of ratio tuple/list must be > 0.0 '\
-                            f'(got value {ratio} at index {i}).'
+                error_msg = f'Elements of ratio tuple/list must be > 0.0 ' \
+                    f'(got value {ratio} at index {i}).'
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
@@ -534,8 +541,8 @@ def check_split_ratio(split_ratio):
             val_ratio = split_ratio[1]
             test_ratio = split_ratio[2]
     else:
-        error_msg = f'Split ratio must be a float, a list or a tuple, '\
-                    f'got {type(split_ratio)}'
+        error_msg = f'Split ratio must be a float, a list or a tuple, ' \
+            f'got {type(split_ratio)}'
         _LOGGER.error(error_msg)
         raise ValueError(error_msg)
 
@@ -684,6 +691,7 @@ class HierarchicalDataset:
     """Container for datasets with a hierarchical structure of examples which have the
     same structure on every level of the hierarchy.
     """
+
     class Node(object):
         __slots__ = 'example', 'index', 'parent', 'children'
 
@@ -779,6 +787,7 @@ class HierarchicalDataset:
             Callable(raw_example, fields, depth) returning (example, raw_children).
 
         """
+
         def default_dict_parser(raw_example, example_factory, depth):
             example = example_factory.from_dict(raw_example)
             children = raw_example.get(child_attribute_name, ())
@@ -968,8 +977,8 @@ class HierarchicalDataset:
         """
         levels = float('Inf') if levels is None else levels
         if levels < 0:
-            error_msg = f"Number of context levels must be greater or equal to 0."\
-                        f" Passed value: {levels}"
+            error_msg = f"Number of context levels must be greater or equal to 0." \
+                f" Passed value: {levels}"
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
