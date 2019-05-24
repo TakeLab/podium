@@ -84,8 +84,6 @@ class TfIdfVectorizer:
             values = cached_numericalization
         else:
             values = field.numericalize(getattr(example, field.name))
-            if field.eager:
-                setattr(example, f"{field.name}_", values)
         return values
 
     def _build_count_matrix(self, data, unpack_data):
@@ -109,14 +107,13 @@ class TfIdfVectorizer:
         for example in data:
             feature_counter = {}
             example_values = unpack_data(example)
-            for feature in example_values:
+            for feature_idx in example_values:
                 try:
-                    feature_idx = self._vocab[feature]
                     if feature_idx not in feature_counter:
                         feature_counter[feature_idx] = 1
                     else:
                         feature_counter[feature_idx] += 1
-                except KeyError:
+                except ValueError:
                     # Ignore out-of-vocabulary items
                     continue
 
