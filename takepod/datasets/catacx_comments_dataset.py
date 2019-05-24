@@ -2,8 +2,7 @@
 import json
 import os
 
-from takepod.storage import dataset
-from takepod.storage.example import Example
+from takepod.storage import dataset, ExampleFactory
 from takepod.storage.field import Field
 from takepod.storage.large_resource import LargeResource
 
@@ -103,14 +102,14 @@ class CatacxCommentsDataset(dataset.Dataset):
             A list of examples containing comments from the Catacx dataset.
 
         """
-
+        example_factory = ExampleFactory(fields)
         with open(dir_path, encoding="utf8", mode="r") as f:
             ds = json.load(f)
 
         examples = list()
 
         for comment in CatacxCommentsDataset._get_comments(ds):
-            examples.append(Example.from_dict(comment, fields))
+            examples.append(example_factory.from_dict(comment))
 
         return examples
 

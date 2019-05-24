@@ -64,14 +64,18 @@ class CroatianLemmatizer(SCPLargeResource):
             **kwargs)
 
     @capitalize_target_like_source
-    def lemmatize_word(self, word):
+    def lemmatize_word(self, word, **kwargs):
         """Returns the lemma for the provided word if
-        there is a word in a dictionary, otherwise returns the word.
+        there is a word in a dictionary. If not found,
+        returns the word if none_if_oov=False, and None otherwise.
 
         Parameters
         ----------
         word : str
             A Croatian language word to lemmatize
+        none_if_oov : bool
+            A flag indicating whether to return None or the original
+            word if the word is not in a dictionary. Passed via kwargs.
 
         Returns
         -------
@@ -79,12 +83,16 @@ class CroatianLemmatizer(SCPLargeResource):
             Lemma of the word uppercased at the same chars as
             the original word
         """
+        try:
+                none_if_oov = kwargs['none_if_oov']
+        except KeyError:
+                none_if_oov = False
 
         try:
             return self._word2lemma[word]
         except KeyError:
             _LOGGER.info("Word is being returned instead of lemma.")
-            return word
+            return word if not none_if_oov else None
 
     def get_words_for_lemma(self, lemma):
         """Returns a list of words that shares the provided lemma.
