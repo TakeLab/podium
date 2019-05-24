@@ -25,7 +25,7 @@ from takepod.storage import Iterator, BucketIterator, HierarchicalDatasetIterato
 def test_len(batch_size, expected_len, tabular_dataset):
     tabular_dataset.finalize_fields()
 
-    iterator = Iterator(tabular_dataset, batch_size)
+    iterator = Iterator(dataset=tabular_dataset, batch_size=batch_size)
 
     assert expected_len == len(iterator)
 
@@ -42,32 +42,33 @@ def test_len(batch_size, expected_len, tabular_dataset):
 )
 @pytest.mark.usefixtures("json_file_path")
 def test_padding(fixed_length, expected_shape, json_file_path):
-    fields = tabular_dataset_fields(fixed_length)
-    ds = create_tabular_dataset_from_json(fields, json_file_path)
+    fields = tabular_dataset_fields(fixed_length=fixed_length)
+    ds = create_tabular_dataset_from_json(fields=fields,
+                                          json_file_path=json_file_path)
 
     batch_size = 7
     ds.finalize_fields()
 
-    iterator = Iterator(ds, batch_size=batch_size, shuffle=False)
+    iterator = Iterator(dataset=ds, batch_size=batch_size, shuffle=False)
 
     input_batch, _ = next(iter(iterator))
 
     assert input_batch.text.shape == expected_shape
 
-    PAD_SYMBOL = fields["text"].vocab.pad_symbol()
+    pad_symbol = fields["text"].vocab.pad_symbol()
 
     for i, row in enumerate(input_batch.text):
         n_el = len(TABULAR_TEXT[i].split())
 
-        assert (row[:n_el].astype(np.int32) != PAD_SYMBOL).all()
-        assert (row[n_el:].astype(np.int32) == PAD_SYMBOL).all()
+        assert (row[:n_el].astype(np.int32) != pad_symbol).all()
+        assert (row[n_el:].astype(np.int32) == pad_symbol).all()
 
 
 @pytest.mark.usefixtures("tabular_dataset")
 def test_iterate_new_epoch(tabular_dataset):
     tabular_dataset.finalize_fields()
 
-    iterator = Iterator(tabular_dataset, 2)
+    iterator = Iterator(dataset=tabular_dataset, batch_size=2)
 
     it = iter(iterator)
     assert iterator.iterations == 0
@@ -90,7 +91,8 @@ def test_create_batch(tabular_dataset):
 
     tabular_dataset.finalize_fields()
     batch_size = 2
-    iterator = Iterator(tabular_dataset, batch_size=batch_size, shuffle=False)
+    iterator = Iterator(dataset=tabular_dataset, batch_size=batch_size,
+                        shuffle=False)
 
     iter_len = len(iterator)
     assert iter_len == 4
@@ -109,6 +111,7 @@ def test_create_batch(tabular_dataset):
             assert x_batch.text.shape[0] == batch_size
             assert y_batch.rating.shape[0] == batch_size
 
+
 @pytest.mark.usefixtures("tabular_dataset")
 def test_lazy_numericalization_caching(tabular_dataset):
 
@@ -120,7 +123,7 @@ def test_lazy_numericalization_caching(tabular_dataset):
             assert getattr(example, f"{field.name}_") is None
 
     # Run one epoch to cause lazy numericalization
-    for _ in Iterator(tabular_dataset, 10):
+    for _ in Iterator(dataset=tabular_dataset, batch_size=10):
         pass
 
     # Test if cached data is equal to numericalized data
@@ -141,7 +144,7 @@ def test_sort_key(tabular_dataset):
         tokens = example.text[1]
         return len(tokens)
 
-    iterator = Iterator(tabular_dataset, batch_size=2,
+    iterator = Iterator(dataset=tabular_dataset, batch_size=2,
                         sort_key=text_len_sort_key, shuffle=False)
 
     expected_row_lengths = [1, 3, 4, 6]
@@ -406,9 +409,9 @@ def test_hierarchial_dataset_iterator_numericalization_caching(hierarchical_data
         for field in hierarchical_dataset.fields:
             assert getattr(example, f"{field.name}_") is None
 
-
     # Run one epoch to cause lazy numericalization
-    hit = HierarchicalDatasetIterator(hierarchical_dataset, 20, context_max_depth=2)
+    hit = HierarchicalDatasetIterator(dataset=hierarchical_dataset, batch_size=20,
+                                      context_max_depth=2)
     for _ in hit:
         pass
 
@@ -420,7 +423,6 @@ def test_hierarchial_dataset_iterator_numericalization_caching(hierarchical_data
 
             cached_data = getattr(example, f"{field.name}_")
             assert np.all(numericalized_data == cached_data)
-
 
 
 HIERARCHIAL_DATASET_JSON_EXAMPLE = """
