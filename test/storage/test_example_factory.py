@@ -325,9 +325,10 @@ def test_ignore_values_list(expected_values):
     example_factory = ExampleFactory(fields)
     example = example_factory.from_list(expected_values)
 
-    assert len(example) == 1
+    # one is original field and one is for cached value
+    assert len(example) == 2
 
-    raw, tokenized = example.Favorite_food
+    raw, _ = example.Favorite_food
     assert raw == expected_values[2]
 
 
@@ -348,7 +349,49 @@ def test_ignore_values_dict(expected_values):
     example_factory = ExampleFactory(fields)
     example = example_factory.from_dict(expected_values)
 
-    assert len(example) == 1
+    # one is original field and one is for cached value
+    assert len(example) == 2
 
-    raw, tokenized = example.Name
+    raw, _ = example.Name
     assert raw == expected_values['Name']
+
+
+@pytest.mark.parametrize('expected_values',
+                         [
+                             ["Mark Dark", 5, "Hawaiian pizza"],
+                             ["Stephen Smith", 10, "Fried squid"],
+                             ["Ann Mann", 15, "Tofu"]
+                         ]
+                         )
+def test_cache_data_field_from_list(expected_values):
+    example_factory = ExampleFactory(field_list)
+    example = example_factory.from_list(expected_values)
+
+    for field in field_list:
+        field_name = field.name
+
+        assert hasattr(example, field_name)
+        assert hasattr(example, f"{field_name}_")
+
+
+@pytest.mark.parametrize('expected_values',
+                         [
+                             {"Name": "Mark Dark",
+                              "Score": 5,
+                              "Favorite_food": "Hawaiian pizza"},
+                             {"Name": "Stephen Smith", "Score": 10,
+                              "Favorite_food": "Fried squid"},
+                             {"Name": "Ann Mann",
+                              "Score": 15,
+                              "Favorite_food": "Tofu"}
+                         ]
+                         )
+def test_cache_data_field_from_dict(expected_values):
+    example_factory = ExampleFactory(field_dict)
+    example = example_factory.from_dict(expected_values)
+
+    for field in field_dict.values():
+        field_name = field.name
+
+        assert hasattr(example, field_name)
+        assert hasattr(example, f"{field_name}_")

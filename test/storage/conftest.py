@@ -60,11 +60,11 @@ def tabular_dataset(json_file_path):
 
 @pytest.fixture()
 def tabular_dataset_fields(fixed_length=None):
-    TEXT = Field('text', eager=True, vocab=Vocab(), fixed_length=fixed_length)
-    RATING = Field('rating', tokenize=False, eager=False, is_target=True,
+    text = Field('text', eager=True, vocab=Vocab(), fixed_length=fixed_length)
+    rating = Field('rating', tokenize=False, eager=False, is_target=True,
                    custom_numericalize=float)
 
-    fields = {"text": TEXT, "rating": RATING}
+    fields = {"text": text, "rating": rating}
 
     return fields
 
