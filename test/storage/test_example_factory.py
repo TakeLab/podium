@@ -326,7 +326,8 @@ def test_ignore_values_list(expected_values):
     example = example_factory.from_list(expected_values)
 
     # one is original field and one is for cached value
-    assert len(example) == 2
+    assert hasattr(example, "Favorite_food")
+    assert hasattr(example, "Favorite_food_")
 
     raw, _ = example.Favorite_food
     assert raw == expected_values[2]
@@ -350,7 +351,8 @@ def test_ignore_values_dict(expected_values):
     example = example_factory.from_dict(expected_values)
 
     # one is original field and one is for cached value
-    assert len(example) == 2
+    assert hasattr(example, "Name")
+    assert hasattr(example, "Name_")
 
     raw, _ = example.Name
     assert raw == expected_values['Name']
