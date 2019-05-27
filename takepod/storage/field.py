@@ -488,6 +488,17 @@ class Field(object):
 
         return row
 
+    def get_numericalization_for_example(self, example):
+        cache_field_name = f"{self.name}_"
+        cached_numericalization = getattr(example, cache_field_name)
+
+        if cached_numericalization is None:
+            example_data = getattr(example, self.name)
+            cached_numericalization = self.numericalize(example_data)
+            setattr(example, cache_field_name, cached_numericalization)
+
+        return cached_numericalization
+
     def __getstate__(self):
         """Method obtains field state. It is used for pickling dataset data
         to file.

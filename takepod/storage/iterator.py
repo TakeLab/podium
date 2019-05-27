@@ -100,7 +100,7 @@ class Iterator:
 
         if self.shuffle:
             if seed is None and internal_random_state is None:
-                error_msg = "If shuffle==True, either seed or "\
+                error_msg = "If shuffle==True, either seed or " \
                             "internal_random_state have to be != None."
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
@@ -179,7 +179,7 @@ class Iterator:
         """
 
         if not self.shuffle:
-            error_msg = "Iterator with shuffle=False does not have "\
+            error_msg = "Iterator with shuffle=False does not have " \
                         "an internal random state."
             _LOGGER.error(error_msg)
             raise RuntimeError(error_msg)
@@ -204,7 +204,7 @@ class Iterator:
         """
 
         if not self.shuffle:
-            error_msg = "Iterator with shuffle=False does not have "\
+            error_msg = "Iterator with shuffle=False does not have " \
                         "an internal random state."
             _LOGGER.error(error_msg)
             raise RuntimeError(error_msg)
@@ -230,7 +230,9 @@ class Iterator:
             should_pad = True if field.sequential else False
 
             for i, example in enumerate(examples):
-                row = field.numericalize(getattr(example, field.name))
+
+                # Get cached value
+                row = field.get_numericalization_for_example(example)
 
                 if should_pad:
                     row = field.pad_to_length(row, pad_length)
@@ -565,12 +567,12 @@ class HierarchicalDatasetIterator(Iterator):
                 should_pad = True if field.sequential else False
 
                 for i, example in enumerate(node_context_examples):
-                    row = field.numericalize(getattr(example, field.name))
+                    # Get cached value
+                    row = field.get_numericalization_for_example(example)
 
                     if should_pad:
                         row = field.pad_to_length(row, pad_length)
 
-                    # set the matrix row to the numericalized, padded array
                     matrix[i] = row
 
                 field_contextualized_example_matrices.append(matrix)
