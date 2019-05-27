@@ -4,12 +4,8 @@ used for storage in Dataset classes"""
 import logging
 import json
 import csv
-from types import SimpleNamespace
 
 import xml.etree.ElementTree as ET
-
-from recordclass import structclass
-from uuid import uuid4
 
 _LOGGER = logging.getLogger(__name__)
 
