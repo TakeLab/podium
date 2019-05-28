@@ -618,18 +618,28 @@ class MultilabelField(TokenizedField):
                          allow_missing_data=allow_missing_data,
                          custom_numericalize=custom_numericalize)
 
+    def finalize(self):
+        if self.use_vocab and len(self.vocab) > self.num_of_classes:
+            error_msg = f"Number of classes in data is greater" \
+                        f" than the declared number of classes." \
+                        f" Declared: {self.num_of_classes}, Actual: {len(self.vocab)}"
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
+
+        super().finalize()
+
     def _numericalize_tokens(self, tokens):
         if self.use_vocab:
-            index_function = self.vocab.stoi.get
+            token_numericalize = self.vocab.stoi.get
 
         else:
-            index_function = self.custom_numericalize
+            token_numericalize = self.custom_numericalize
 
-        return numericalize_multihot(tokens, index_function, self.num_of_classes)
+        return numericalize_multihot(tokens, token_numericalize, self.num_of_classes)
 
 
 def numericalize_multihot(tokens, token_indexer, num_of_classes):
     active_classes = list(map(token_indexer, tokens))
-    multihot_encoding = np.zeros(num_of_classes, dtype=np.uint32)
+    multihot_encoding = np.zeros(num_of_classes, dtype=np.bool)
     multihot_encoding[active_classes] = 1
     return multihot_encoding
