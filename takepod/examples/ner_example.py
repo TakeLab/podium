@@ -66,7 +66,10 @@ def casing_mapper_hook(data, tokens):
 
     for token in tokens:
         token_casing = 'other'
-        if token.isdigit():
+
+        if token == SpecialVocabSymbols.PAD:
+            token_casing = 'padding'
+        elif token.isdigit():
             token_casing = 'numeric'
         elif token.islower():
             token_casing = 'lowercase'
