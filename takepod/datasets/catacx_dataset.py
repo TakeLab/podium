@@ -167,7 +167,8 @@ class CatacxDataset(HierarchicalDataset):
 
         emotions_field = MultilabelField("emotions",
                                          vocab=Vocab(specials=()),
-                                         allow_missing_data=True)
+                                         allow_missing_data=True,
+                                         num_of_classes=19)
 
         irony_field = Field("irony",
                             store_as_raw=True,
@@ -177,15 +178,18 @@ class CatacxDataset(HierarchicalDataset):
 
         speech_acts_field = MultilabelField("speech_acts",
                                             vocab=Vocab(specials=()),
-                                            allow_missing_data=True)
+                                            allow_missing_data=True,
+                                            num_of_classes=8)
 
         topics_field = MultilabelField("topics",
                                        vocab=Vocab(specials=()),
-                                       allow_missing_data=True)
+                                       allow_missing_data=True,
+                                       num_of_classes=31)
 
         cs_field = MultilabelField("cs",
                                    vocab=Vocab(specials=()),
-                                   allow_missing_data=True)
+                                   allow_missing_data=True,
+                                   num_of_classes=8)
 
         pos_tag_field = Field("pos_tags",
                               store_as_raw=False,

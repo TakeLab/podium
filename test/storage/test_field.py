@@ -4,7 +4,8 @@ import numpy as np
 import pytest
 from mock import patch
 
-from takepod.storage import Field, TokenizedField, MultilabelField, Vocab
+from takepod.storage import Field, TokenizedField, MultilabelField, \
+    Vocab, SpecialVocabSymbols
 
 ONE_TO_FIVE = [1, 2, 3, 4, 5]
 
@@ -558,7 +559,71 @@ def test_tokenized_field_vocab_non_string():
 
 def test_multilabel_field_specials_in_vocab_fail():
     with pytest.raises(ValueError):
-        MultilabelField("bla", vocab=Vocab())
+        MultilabelField("bla",
+                        vocab=Vocab(specials=(SpecialVocabSymbols.UNK,)),
+                        num_of_classes=10)
+
+
+@pytest.mark.parametrize("tokens",
+                         [
+                             ["class1", "class2", "class3", "class4"]
+                         ])
+def test_multilabel_field_vocab_numericalization(tokens):
+    vocab = Vocab(specials=())
+    vocab += tokens
+
+    field = MultilabelField("test field", 5, vocab)
+    preprocessed = field.preprocess(tokens)
+    field.finalize()
+
+    multilabel_from_vocab = np.zeros(5, dtype=np.bool)
+    for token in tokens:
+        multilabel_from_vocab[vocab.stoi[token]] = 1
+
+    multilabel_from_field = field.numericalize(preprocessed)
+
+    assert np.all(multilabel_from_field == multilabel_from_vocab)
+
+
+@pytest.mark.parametrize("tokens, expected_numericalization",
+                         [
+                             (
+                                     ["class1", "class2", "class3", "class4"],
+                                     np.array([1, 1, 1, 1, 0, 0])
+                             ),
+                             (
+                                     [],
+                                     np.array([0, 0, 0, 0, 0, 0])
+                             )
+                         ])
+def test_multilabel_field_custom_numericalization(tokens, expected_numericalization):
+    index_dict = {
+        "class1": 0,
+        "class2": 1,
+        "class3": 2,
+        "class4": 3,
+        "class5": 4,
+        "class6": 5
+    }
+
+    field = MultilabelField("test field", 6, custom_numericalize=index_dict.get)
+    preprocessed = field.preprocess(tokens)
+    field.finalize()
+
+    multilabel_from_field = field.numericalize(preprocessed)
+
+    assert np.all(multilabel_from_field == expected_numericalization)
+
+
+def test_multilabel_too_many_classes_in_data_exception():
+    vocab = Vocab(specials=())
+    field = MultilabelField("test_field", num_of_classes=3, vocab=vocab)
+
+    for data in "cls1", "cls2", "cls3", "cls4":
+        field.preprocess(data)
+
+    with pytest.raises(ValueError):
+        field.finalize()
 
 
 @pytest.mark.parametrize("store_as_raw, store_as_tokenized, tokenize",
