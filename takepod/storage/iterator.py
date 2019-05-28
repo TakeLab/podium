@@ -232,13 +232,7 @@ class Iterator:
             for i, example in enumerate(examples):
 
                 # Get cached value
-                row = getattr(example, f"{field.name}_")
-
-                if row is None:
-                    # If value wasn't cached
-                    row = field.numericalize(getattr(example, field.name))
-
-                    setattr(example, f"{field.name}_", row)
+                row = field.get_numericalization_for_example(example)
 
                 if should_pad:
                     row = field.pad_to_length(row, pad_length)
@@ -269,13 +263,8 @@ class Iterator:
         # if fixed_length is None, then return the maximum length of all the
         # examples in the batch
         def length_of_field(example):
-
-            cached_numericalization = getattr(example, f"{field.name}_")
-            if cached_numericalization is not None:
-                return len(cached_numericalization)
-            else:
-                _, tokens = getattr(example, field.name)
-                return len(tokens)
+            _, tokens = getattr(example, field.name)
+            return len(tokens)
 
         return max(map(length_of_field, examples))
 
@@ -579,13 +568,7 @@ class HierarchicalDatasetIterator(Iterator):
 
                 for i, example in enumerate(node_context_examples):
                     # Get cached value
-                    row = getattr(example, f"{field.name}_")
-
-                    if row is None:
-                        # If value wasn't cached
-                        row = field.numericalize(getattr(example, field.name))
-
-                        setattr(example, f"{field.name}_", row)
+                    row = field.get_numericalization_for_example(example)
 
                     if should_pad:
                         row = field.pad_to_length(row, pad_length)

@@ -672,7 +672,8 @@ def test_missing_values_default_not_sequential():
 
     fld.finalize()
 
-    assert np.allclose(fld.numericalize(data_missing), np.array([np.nan]), equal_nan=True)
+    assert np.allclose(fld.numericalize(data_missing), np.array([np.nan]),
+                       equal_nan=True)
     assert np.all(fld.numericalize(data_exists) == np.array([404]))
 
 
