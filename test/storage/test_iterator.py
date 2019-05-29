@@ -25,7 +25,7 @@ from takepod.storage import Iterator, BucketIterator, HierarchicalDatasetIterato
 def test_len(batch_size, expected_len, tabular_dataset):
     tabular_dataset.finalize_fields()
 
-    iterator = Iterator(tabular_dataset, batch_size)
+    iterator = Iterator(dataset=tabular_dataset, batch_size=batch_size)
 
     assert expected_len == len(iterator)
 
@@ -42,32 +42,33 @@ def test_len(batch_size, expected_len, tabular_dataset):
 )
 @pytest.mark.usefixtures("json_file_path")
 def test_padding(fixed_length, expected_shape, json_file_path):
-    fields = tabular_dataset_fields(fixed_length)
-    ds = create_tabular_dataset_from_json(fields, json_file_path)
+    fields = tabular_dataset_fields(fixed_length=fixed_length)
+    ds = create_tabular_dataset_from_json(fields=fields,
+                                          json_file_path=json_file_path)
 
     batch_size = 7
     ds.finalize_fields()
 
-    iterator = Iterator(ds, batch_size=batch_size, shuffle=False)
+    iterator = Iterator(dataset=ds, batch_size=batch_size, shuffle=False)
 
     input_batch, _ = next(iter(iterator))
 
     assert input_batch.text.shape == expected_shape
 
-    PAD_SYMBOL = fields["text"].vocab.pad_symbol()
+    pad_symbol = fields["text"].vocab.pad_symbol()
 
     for i, row in enumerate(input_batch.text):
         n_el = len(TABULAR_TEXT[i].split())
 
-        assert (row[:n_el].astype(np.int32) != PAD_SYMBOL).all()
-        assert (row[n_el:].astype(np.int32) == PAD_SYMBOL).all()
+        assert (row[:n_el].astype(np.int32) != pad_symbol).all()
+        assert (row[n_el:].astype(np.int32) == pad_symbol).all()
 
 
 @pytest.mark.usefixtures("tabular_dataset")
 def test_iterate_new_epoch(tabular_dataset):
     tabular_dataset.finalize_fields()
 
-    iterator = Iterator(tabular_dataset, 2)
+    iterator = Iterator(dataset=tabular_dataset, batch_size=2)
 
     it = iter(iterator)
     assert iterator.iterations == 0
@@ -90,7 +91,8 @@ def test_create_batch(tabular_dataset):
 
     tabular_dataset.finalize_fields()
     batch_size = 2
-    iterator = Iterator(tabular_dataset, batch_size=batch_size, shuffle=False)
+    iterator = Iterator(dataset=tabular_dataset, batch_size=batch_size,
+                        shuffle=False)
 
     iter_len = len(iterator)
     assert iter_len == 4
@@ -109,6 +111,7 @@ def test_create_batch(tabular_dataset):
             assert x_batch.text.shape[0] == batch_size
             assert y_batch.rating.shape[0] == batch_size
 
+
 @pytest.mark.usefixtures("tabular_dataset")
 def test_lazy_numericalization_caching(tabular_dataset):
 
@@ -120,7 +123,7 @@ def test_lazy_numericalization_caching(tabular_dataset):
             assert getattr(example, f"{field.name}_") is None
 
     # Run one epoch to cause lazy numericalization
-    for _ in Iterator(tabular_dataset, 10):
+    for _ in Iterator(dataset=tabular_dataset, batch_size=10):
         pass
 
     # Test if cached data is equal to numericalized data
@@ -141,7 +144,7 @@ def test_sort_key(tabular_dataset):
         tokens = example.text[1]
         return len(tokens)
 
-    iterator = Iterator(tabular_dataset, batch_size=2,
+    iterator = Iterator(dataset=tabular_dataset, batch_size=2,
                         sort_key=text_len_sort_key, shuffle=False)
 
     expected_row_lengths = [1, 3, 4, 6]
@@ -170,13 +173,13 @@ def test_shuffle_deterministic_sequence(seed_1, seed_2, num_epochs_1,
 
     random.seed(42)  # internal random state independent from global seed
 
-    iterator = Iterator(tabular_dataset, batch_size=2, shuffle=True,
+    iterator = Iterator(dataset=tabular_dataset, batch_size=2, shuffle=True,
                         seed=seed_1)
     run_n_epochs(iterator, num_epochs_1)  # iterate for num_epochs_1 epochs
 
     random.seed(43)  # internal random state independent from global seed
 
-    iterator_2 = Iterator(tabular_dataset, batch_size=2, shuffle=True,
+    iterator_2 = Iterator(dataset=tabular_dataset, batch_size=2, shuffle=True,
                           seed=seed_2)
     run_n_epochs(iterator_2, num_epochs_2)  # iterate for num_epochs_2 epochs
 
@@ -197,7 +200,7 @@ def test_shuffle_random_state(tabular_dataset):
 
     random.seed(5)  # internal random state independent from global seed
     # run first iterator for 3 epochs
-    iterator = Iterator(tabular_dataset, batch_size=2, shuffle=True)
+    iterator = Iterator(dataset=tabular_dataset, batch_size=2, shuffle=True)
     run_n_epochs(iterator, 3)
 
     # get first iterator's internal state
@@ -206,7 +209,7 @@ def test_shuffle_random_state(tabular_dataset):
     random.seed(6)  # internal random state independent from global seed
 
     # initialize second iterator with the state
-    iterator_2 = Iterator(tabular_dataset, batch_size=2, shuffle=True,
+    iterator_2 = Iterator(dataset=tabular_dataset, batch_size=2, shuffle=True,
                           internal_random_state=state)
 
     # run both iterators for 2 epochs
@@ -217,7 +220,7 @@ def test_shuffle_random_state(tabular_dataset):
     # the iterators should behave identically
     assert iterators_behave_identically(iterator, iterator_2)
 
-    iterator_3 = Iterator(tabular_dataset, batch_size=2, shuffle=True)
+    iterator_3 = Iterator(dataset=tabular_dataset, batch_size=2, shuffle=True)
     iterator_3.set_internal_random_state(
         iterator_2.get_internal_random_state())
 
@@ -230,7 +233,7 @@ def test_shuffle_no_seed_or_state_exception(tabular_dataset):
     tabular_dataset.finalize_fields()
 
     with pytest.raises(ValueError):
-        Iterator(tabular_dataset, batch_size=2, shuffle=True, seed=None,
+        Iterator(dataset=tabular_dataset, batch_size=2, shuffle=True, seed=None,
                  internal_random_state=None)
 
 
@@ -238,12 +241,12 @@ def test_shuffle_no_seed_or_state_exception(tabular_dataset):
 def test_shuffle_random_state_exception(tabular_dataset):
     tabular_dataset.finalize_fields()
 
-    iterator = Iterator(tabular_dataset, batch_size=2, shuffle=False)
+    iterator = Iterator(dataset=tabular_dataset, batch_size=2, shuffle=False)
 
     with pytest.raises(RuntimeError):
         iterator.get_internal_random_state()
 
-    iterator_2 = Iterator(tabular_dataset, batch_size=2, shuffle=True)
+    iterator_2 = Iterator(dataset=tabular_dataset, batch_size=2, shuffle=True)
     state = iterator_2.get_internal_random_state()
 
     with pytest.raises(RuntimeError):
@@ -277,7 +280,7 @@ def test_bucket_iterator(look_ahead_multiplier, expected_row_lengths,
     tabular_dataset.finalize_fields()
 
     iterator = BucketIterator(
-        tabular_dataset,
+        dataset=tabular_dataset,
         batch_size=2,
         shuffle=False,
         sort_key=sort_key,
@@ -295,7 +298,7 @@ def test_bucket_iterator_exception(tabular_dataset):
     tabular_dataset.finalize_fields()
 
     with pytest.raises(ValueError):
-        BucketIterator(tabular_dataset, batch_size=2, sort_key=None,
+        BucketIterator(dataset=tabular_dataset, batch_size=2, sort_key=None,
                        bucket_sort_key=None, look_ahead_multiplier=2)
 
 
@@ -336,8 +339,8 @@ def np_arrays_equal(arr_1, arr_2):
 
 @pytest.fixture()
 def hierarchical_dataset_fields():
-    name_field = Field("name", store_as_raw=True, tokenize=False, vocab=Vocab())
-    number_field = Field("number", store_as_raw=True, tokenize=False,
+    name_field = Field(name="name", store_as_raw=True, tokenize=False, vocab=Vocab())
+    number_field = Field(name="number", store_as_raw=True, tokenize=False,
                          custom_numericalize=int)
 
     fields = {
@@ -362,7 +365,7 @@ def hierarchical_dataset(hierarchical_dataset_fields, hierarchical_dataset_parse
 
 
 def test_hierarchical_dataset_iteration(hierarchical_dataset):
-    hit = HierarchicalDatasetIterator(hierarchical_dataset, 3)
+    hit = HierarchicalDatasetIterator(dataset=hierarchical_dataset, batch_size=3)
     batch_iter = hit.__iter__()
 
     input_batch_1, _ = batch_iter.__next__()
@@ -392,7 +395,8 @@ def test_hierarchical_dataset_iteration(hierarchical_dataset):
 
 
 def test_hierarchical_dataset_iteration_with_depth_limitation(hierarchical_dataset):
-    hit = HierarchicalDatasetIterator(hierarchical_dataset, 20, context_max_depth=0)
+    hit = HierarchicalDatasetIterator(dataset=hierarchical_dataset, batch_size=20,
+                                      context_max_depth=0)
     batch_iter = hit.__iter__()
 
     input_batch, _ = batch_iter.__next__()
@@ -408,7 +412,8 @@ def test_hierarchial_dataset_iterator_numericalization_caching(hierarchical_data
 
 
     # Run one epoch to cause lazy numericalization
-    hit = HierarchicalDatasetIterator(hierarchical_dataset, 20, context_max_depth=2)
+    hit = HierarchicalDatasetIterator(hierarchical_dataset, batch_size=20,
+                                      context_max_depth=2)
     for _ in hit:
         pass
 

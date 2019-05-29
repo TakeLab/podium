@@ -626,6 +626,17 @@ class Field(object):
 
         return row
 
+    def get_numericalization_for_example(self, example):
+        cache_field_name = f"{self.name}_"
+        cached_numericalization = getattr(example, cache_field_name)
+
+        if cached_numericalization is None:
+            example_data = getattr(example, self.name)
+            cached_numericalization = self.numericalize(example_data)
+            setattr(example, cache_field_name, cached_numericalization)
+
+        return cached_numericalization
+
     def __getstate__(self):
         """Method obtains field state. It is used for pickling dataset data
         to file.
@@ -761,23 +772,33 @@ class MultilabelField(TokenizedField):
         super().__init__(name,
                          vocab=vocab,
                          eager=eager,
+                         custom_numericalize=custom_numericalize,
                          is_target=True,
                          fixed_length=num_of_classes,
-                         allow_missing_data=allow_missing_data,
-                         custom_numericalize=custom_numericalize)
+                         allow_missing_data=allow_missing_data)
+
+    def finalize(self):
+        if self.use_vocab and len(self.vocab) > self.num_of_classes:
+            error_msg = f"Number of classes in data is greater" \
+                f" than the declared number of classes." \
+                f" Declared: {self.num_of_classes}, Actual: {len(self.vocab)}"
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
+
+        super().finalize()
 
     def _numericalize_tokens(self, tokens):
         if self.use_vocab:
-            index_function = self.vocab.stoi.get
+            token_numericalize = self.vocab.stoi.get
 
         else:
-            index_function = self.custom_numericalize
+            token_numericalize = self.custom_numericalize
 
-        return numericalize_multihot(tokens, index_function, self.num_of_classes)
+        return numericalize_multihot(tokens, token_numericalize, self.num_of_classes)
 
 
 def numericalize_multihot(tokens, token_indexer, num_of_classes):
     active_classes = list(map(token_indexer, tokens))
-    multihot_encoding = np.zeros(num_of_classes, dtype=np.uint32)
+    multihot_encoding = np.zeros(num_of_classes, dtype=np.bool)
     multihot_encoding[active_classes] = 1
     return multihot_encoding

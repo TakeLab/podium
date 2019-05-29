@@ -325,9 +325,11 @@ def test_ignore_values_list(expected_values):
     example_factory = ExampleFactory(fields)
     example = example_factory.from_list(expected_values)
 
-    assert len(example) == 2
+    # one is original field and one is for cached value
+    assert hasattr(example, "Favorite_food")
+    assert hasattr(example, "Favorite_food_")
 
-    raw, tokenized = example.Favorite_food
+    raw, _ = example.Favorite_food
     assert raw == expected_values[2]
 
 
@@ -348,9 +350,11 @@ def test_ignore_values_dict(expected_values):
     example_factory = ExampleFactory(fields)
     example = example_factory.from_dict(expected_values)
 
-    assert len(example) == 2
+    # one is original field and one is for cached value
+    assert hasattr(example, "Name")
+    assert hasattr(example, "Name_")
 
-    raw, tokenized = example.Name
+    raw, _ = example.Name
     assert raw == expected_values['Name']
 
 
