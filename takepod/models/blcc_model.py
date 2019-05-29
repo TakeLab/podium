@@ -113,8 +113,6 @@ class BLCCModel(AbstractSupervisedModel):
         """Method initializes and compiles the model."""
         embedding_size = self.params.get(self.EMBEDDING_SIZE)
 
-        output_size = self.params.get(self.OUTPUT_SIZE)
-
         tokens_input = Input(shape=(None, embedding_size),
                              dtype='float32',
                              name='embeddings_input')
@@ -218,7 +216,7 @@ class BLCCModel(AbstractSupervisedModel):
             cnt += 1
 
         # Classifier layer
-        n_class_labels = output_size
+        n_class_labels = self.params.get(self.OUTPUT_SIZE)
         output = shared_layer
         classifier = self.params[self.CLASSIFIER]
         if classifier == 'Softmax':
@@ -236,25 +234,25 @@ class BLCCModel(AbstractSupervisedModel):
         else:
             raise ValueError(f'Unsupported classifier: {classifier}')
 
-        optimizerParams = {}
+        optimizer_params = {}
         if self.params.get(self.CLIPNORM, 0) > 0:
-            optimizerParams[self.CLIPNORM] = self.params[self.CLIPNORM]
+            optimizer_params[self.CLIPNORM] = self.params[self.CLIPNORM]
         if self.params.get(self.CLIPVALUE, 0) > 0:
-            optimizerParams[self.CLIPVALUE] = self.params[self.CLIPVALUE]
+            optimizer_params[self.CLIPVALUE] = self.params[self.CLIPVALUE]
 
         optimizer = self.params[self.OPTIMIZER].lower()
         if optimizer == 'adam':
-            opt = Adam(**optimizerParams)
+            opt = Adam(**optimizer_params)
         elif optimizer == 'nadam':
-            opt = Nadam(**optimizerParams)
+            opt = Nadam(**optimizer_params)
         elif optimizer == 'rmsprop':
-            opt = RMSprop(**optimizerParams)
+            opt = RMSprop(**optimizer_params)
         elif optimizer == 'adadelta':
-            opt = Adadelta(**optimizerParams)
+            opt = Adadelta(**optimizer_params)
         elif optimizer == 'adagrad':
-            opt = Adagrad(**optimizerParams)
+            opt = Adagrad(**optimizer_params)
         elif optimizer == 'sgd':
-            opt = SGD(lr=0.1, **optimizerParams)
+            opt = SGD(lr=0.1, **optimizer_params)
         else:
             raise ValueError(f'Unsupported optimizer: {optimizer}')
 
