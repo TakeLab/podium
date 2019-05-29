@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from mock import patch
 
-from takepod.storage import Field, TokenizedField, MultilabelField,\
+from takepod.storage import Field, TokenizedField, MultilabelField, \
     Vocab, SpecialVocabSymbols, MultioutputField
 
 ONE_TO_FIVE = [1, 2, 3, 4, 5]
@@ -297,7 +297,7 @@ def test_field_get_tokenizer_spacy_ok(vocab):
     f = Field(name="F", vocab=vocab, tokenizer="spacy", tokenize=True,
               store_as_raw=False)
     _, data = f.preprocess("bla blu")[0]
-    assert  data == (None, ["bla", "blu"])
+    assert data == (None, ["bla", "blu"])
 
 
 def test_field_pickle_spacy_tokenizer(vocab, tmpdir):
@@ -594,12 +594,12 @@ def test_multilabel_field_vocab_numericalization(tokens):
 @pytest.mark.parametrize("tokens, expected_numericalization",
                          [
                              (
-                                     ["class1", "class2", "class3", "class4"],
-                                     np.array([1, 1, 1, 1, 0, 0])
+                                 ["class1", "class2", "class3", "class4"],
+                                 np.array([1, 1, 1, 1, 0, 0])
                              ),
                              (
-                                     [],
-                                     np.array([0, 0, 0, 0, 0, 0])
+                                 [],
+                                 np.array([0, 0, 0, 0, 0, 0])
                              )
                          ])
 def test_multilabel_field_custom_numericalization(tokens, expected_numericalization):
@@ -697,7 +697,6 @@ def test_multioutput_field():
     field1 = Field("field1")
     field2 = Field("field2")
     mo_field = MultioutputField(tokenizer='split')
-
 
     def postTokenizationAllUpper(raw, tokenized):
         return raw, list(map(str.upper, tokenized))

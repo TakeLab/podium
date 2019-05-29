@@ -18,8 +18,8 @@ class MultioutputField:
                  tokenizer='split',
                  language='en'):
         """Field that does pretokenization and tokenization once and passes it to its
-        output fields. Output fields are any type of field. The output fields are used only
-        for posttokenization processing (posttokenization hooks and vocab updating).
+        output fields. Output fields are any type of field. The output fields are used
+        only for posttokenization processing (posttokenization hooks and vocab updating).
 
         Parameters
         ----------
