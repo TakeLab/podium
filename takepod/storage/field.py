@@ -564,7 +564,7 @@ class MultilabelField(TokenizedField):
 
     def __init__(self,
                  name,
-                 num_of_classes,
+                 num_of_classes = None,
                  vocab=None,
                  eager=True,
                  allow_missing_data=False,
@@ -630,6 +630,9 @@ class MultilabelField(TokenizedField):
                          custom_numericalize=custom_numericalize)
 
     def finalize(self):
+        if self.num_of_classes is None:
+            self.fixed_length = self.num_of_classes = len(self.vocab)
+
         if self.use_vocab and len(self.vocab) > self.num_of_classes:
             error_msg = f"Number of classes in data is greater" \
                         f" than the declared number of classes." \

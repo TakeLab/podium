@@ -585,6 +585,26 @@ def test_multilabel_field_vocab_numericalization(tokens):
     assert np.all(multilabel_from_field == multilabel_from_vocab)
 
 
+def test_multilabel_field_class_count():
+    vocab = Vocab(specials=())
+    field = MultilabelField("test field", vocab=vocab)
+
+    example_1 = ["class1", "class2", "class3", "class4"]
+    example_2 = ["class1", "class2", "class3"]
+
+    data_1 = field.preprocess(example_1)
+    data_2 = field.preprocess(example_2)
+    field.finalize()
+
+    assert field.num_of_classes == 4
+
+    numericalized = field.numericalize(data_1)
+    assert len(numericalized) == 4
+
+    numericalized = field.numericalize(data_2)
+    assert len(numericalized) == 4
+
+
 @pytest.mark.parametrize("tokens, expected_numericalization",
                          [
                              (
