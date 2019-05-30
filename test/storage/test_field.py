@@ -694,23 +694,23 @@ def test_missing_values_fail():
 
 
 def test_multioutput_field():
-    field1 = Field("field1")
-    field2 = Field("field2")
+    uppercase_field = Field("uppercase_field")
+    lowercase_field = Field("lowercase_field")
     mo_field = MultioutputField(tokenizer='split')
 
-    def postTokenizationAllUpper(raw, tokenized):
+    def post_tokenization_all_upper(raw, tokenized):
         return raw, list(map(str.upper, tokenized))
 
-    def postTokenizationAllLower(raw, tokenized):
+    def post_tokenization_all_lower(raw, tokenized):
         return raw, list(map(str.lower, tokenized))
 
-    field1.add_posttokenize_hook(postTokenizationAllUpper)
-    field2.add_posttokenize_hook(postTokenizationAllLower)
+    uppercase_field.add_posttokenize_hook(post_tokenization_all_upper)
+    lowercase_field.add_posttokenize_hook(post_tokenization_all_lower)
 
-    for f in field1, field2:
+    for f in uppercase_field, lowercase_field:
         mo_field.add_output_field(f)
 
     result1, result2 = mo_field.preprocess("mOcK TeXt")
 
-    assert result1 == (field1.name, ("mOcK TeXt", ["MOCK", "TEXT"]))
-    assert result2 == (field2.name, ("mOcK TeXt", ["mock", 'text']))
+    assert result1 == (uppercase_field.name, ("mOcK TeXt", ["MOCK", "TEXT"]))
+    assert result2 == (lowercase_field.name, ("mOcK TeXt", ["mock", 'text']))

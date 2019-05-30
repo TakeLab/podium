@@ -9,6 +9,27 @@ from takepod.preproc.tokenizers import get_tokenizer
 _LOGGER = logging.getLogger(__name__)
 
 
+class ProcessingPipeline:
+
+    def __init__(self, hooks=()):
+        self.hooks = deque(hooks)
+
+    def add_hook(self, hook):
+        self.hooks.append(hook)
+
+    def process(self, *data):
+        for hook in self.hooks:
+            data = hook(*data)
+
+        return data
+
+    def __call__(self, *args, **kwargs):
+        return self.process(*args, **kwargs)
+
+    def clear(self):
+        self.hooks.clear()
+
+
 class MultioutputField:
     """Field that does pretokenization and tokenization once and passes it to its
     output fields. Output fields are any type of field. The output fields are used only
@@ -41,7 +62,7 @@ class MultioutputField:
 
         self.language = language
         self._tokenizer_arg = tokenizer
-        self.pretokenize_hooks = deque()
+        self.pretokenization_pipeline = ProcessingPipeline()
         self.tokenizer = get_tokenizer(tokenizer, language)
         self.output_fields = deque()
 
@@ -69,7 +90,7 @@ class MultioutputField:
         hook : callable
             The pre-tokenization hook that we want to add to the field.
         """
-        self.pretokenize_hooks.append(hook)
+        self.pretokenization_pipeline.add_hook(hook)
 
     def _run_pretokenization_hooks(self, data):
         """Runs pretokenization hooks on the raw data and returns the result.
@@ -85,10 +106,8 @@ class MultioutputField:
             processed data
 
         """
-        for hook in self.pretokenize_hooks:
-            data = hook(data)
 
-        return data
+        return self.pretokenization_pipeline(data)
 
     def add_output_field(self, field):
         """
@@ -247,8 +266,8 @@ class Field(object):
         self.is_target = is_target
         self.fixed_length = fixed_length
 
-        self.pretokenize_hooks = deque()
-        self.posttokenize_hooks = deque()
+        self.pretokenize_pipeline = ProcessingPipeline()
+        self.posttokenize_pipeline = ProcessingPipeline()
         self.allow_missing_data = allow_missing_data
 
     @property
@@ -287,7 +306,7 @@ class Field(object):
         hook : callable
             The pre-tokenization hook that we want to add to the field.
         """
-        self.pretokenize_hooks.append(hook)
+        self.pretokenize_pipeline.add_hook(hook)
 
     def add_posttokenize_hook(self, hook):
         """Add a post-tokenization hook to the Field.
@@ -317,12 +336,12 @@ class Field(object):
             The post-tokenization hook that we want to add to the field.
         """
 
-        self.posttokenize_hooks.append(hook)
+        self.posttokenize_pipeline.add_hook(hook)
 
     def remove_pretokenize_hooks(self):
         """Remove all the pre-tokenization hooks that were added to the Field.
         """
-        self.pretokenize_hooks.clear()
+        self.pretokenize_pipeline.clear()
 
     def remove_posttokenize_hooks(self):
         """Remove all the post-tokenization hooks that were added to the Field.
@@ -343,10 +362,7 @@ class Field(object):
             processed data
 
         """
-        for hook in self.pretokenize_hooks:
-            data = hook(data)
-
-        return data
+        return self.pretokenize_pipeline(data)
 
     def _run_posttokenization_hooks(self, data, tokens):
         """Runs posttokenization hooks on tokenized data.
@@ -366,10 +382,7 @@ class Field(object):
             posttokenization hooks.
 
         """
-        for hook in self.posttokenize_hooks:
-            data, tokens = hook(data, tokens)
-
-        return data, list(tokens)
+        return self.posttokenize_pipeline(data, tokens)
 
     def preprocess(self, data):
         """Preprocesses raw data, tokenizing it if the field is sequential,
