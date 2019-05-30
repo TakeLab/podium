@@ -7,10 +7,14 @@ import csv
 
 import xml.etree.ElementTree as ET
 
-from recordclass import structclass
-from uuid import uuid4
-
 _LOGGER = logging.getLogger(__name__)
+
+
+class Example(object):
+
+    def __init__(self, fieldnames):
+        for fieldname in fieldnames:
+            setattr(self, fieldname, None)
 
 
 class ExampleFactory:
@@ -38,25 +42,16 @@ class ExampleFactory:
         else:
             self.fields = fields
 
-        fieldnames = [field.name for field in unpack_fields(fields)]
+        self.fieldnames = [field.name for field in unpack_fields(fields)]
 
         # add cache data fields
-        fieldnames += [f"{fieldname}_" for fieldname in fieldnames]
+        self.fieldnames += [f"{fieldname}_" for fieldname in self.fieldnames]
 
-        # create unique class identifier required for pickling
-        uid = uuid4()
-        example_class_name = "Example_class_{}".format(str(uid).replace("-", "_"))
-
-        self.example_class = structclass(example_class_name,
-                                         fieldnames,
-                                         defaults=[None] * len(fieldnames)
-                                         )
-
-        # add class object to globals so pickling can find the class definition
-        globals()[example_class_name] = self.example_class
+    def create_empty_example(self):
+        return Example(self.fieldnames)
 
     def from_dict(self, data):
-        example = self.example_class()
+        example = self.create_empty_example()
 
         for key, fields in self.fields.items():
             val = data.get(key)
@@ -65,7 +60,7 @@ class ExampleFactory:
         return example
 
     def from_list(self, data):
-        example = self.example_class()
+        example = self.create_empty_example()
         for value, field in filter(lambda el: el[1] is not None, zip(data, self.fields)):
             _set_example_attributes(example, field, value)
 
@@ -93,7 +88,7 @@ class ExampleFactory:
         ParseError
             if there was a problem while parsing xml sting, invalid xml
         """
-        example = self.example_class()
+        example = self.create_empty_example()
 
         # we ignore columns with field mappings set to None
         items = filter(lambda el: el[1] is not None, self.fields.items())

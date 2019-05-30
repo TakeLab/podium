@@ -232,13 +232,7 @@ class Iterator:
             for i, example in enumerate(examples):
 
                 # Get cached value
-                row = getattr(example, f"{field.name}_")
-
-                if row is None:
-                    # If value wasn't cached
-                    row = field.numericalize(getattr(example, field.name))
-
-                    setattr(example, f"{field.name}_", row)
+                row = field.get_numericalization_for_example(example)
 
                 if should_pad:
                     row = field.pad_to_length(row, pad_length)
@@ -579,13 +573,7 @@ class HierarchicalDatasetIterator(Iterator):
 
                 for i, example in enumerate(node_context_examples):
                     # Get cached value
-                    row = getattr(example, f"{field.name}_")
-
-                    if row is None:
-                        # If value wasn't cached
-                        row = field.numericalize(getattr(example, field.name))
-
-                        setattr(example, f"{field.name}_", row)
+                    row = field.get_numericalization_for_example(example)
 
                     if should_pad:
                         row = field.pad_to_length(row, pad_length)
