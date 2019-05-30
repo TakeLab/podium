@@ -1,9 +1,13 @@
 """Module contains classes related to creating tfidf vectors from examples."""
 import array
+import logging
 from functools import partial
 import numpy as np
 import scipy.sparse as sp
 from sklearn.feature_extraction.text import TfidfTransformer
+
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class TfIdfVectorizer:
@@ -12,7 +16,7 @@ class TfIdfVectorizer:
     https://scikit-learn.org.
     Class is dependant on TfidfTransformer defined in scikit-learn library.
     """
-    def __init__(self, vocab, norm='l2', use_idf=True,
+    def __init__(self, vocab=None, norm='l2', use_idf=True,
                  smooth_idf=True, sublinear_tf=False):
         """Constructor that initializes tfidf vectorizer. Parameters besides vocab
         are passed to TfidfTransformer, for further details on these parameters see
@@ -20,9 +24,9 @@ class TfIdfVectorizer:
 
         Parameters
         ----------
-        vocab : Vocab
+        vocab : Vocab, optional
             vocabulary instance that can be given as field.vocab or as vocab
-            from other source
+            from other source. If None, it will be initialized during fit from field.
         norm : 'l1', 'l2' or None, optional (default='l2')
             Each output row will have unit norm, either:
             * 'l2': Sum of squares of vector elements is 1. The cosine
@@ -78,12 +82,7 @@ class TfIdfVectorizer:
         values : array like
             numericalized tokens array
         """
-        values = None
-        cached_numericalization = getattr(example, f"{field.name}_")
-        if cached_numericalization is not None:
-            values = cached_numericalization
-        else:
-            values = field.numericalize(getattr(example, field.name))
+        values = field.get_numericalization_for_example(example)
         return values
 
     def _build_count_matrix(self, data, unpack_data):
@@ -146,6 +145,13 @@ class TfIdfVectorizer:
         self : TfIdfVectorizer
 
         """
+        if dataset is None or field is None:
+            error_msg = f"dataset or field mustn't be None, given dataset: "\
+                        f"{str(dataset)}, field: {str(field)}"
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
+        if self._vocab is None:
+            self._vocab = field.vocab
         count_matrix = self._build_count_matrix(
             data=dataset, unpack_data=partial(self._get_example_values,
                                               field=field))
@@ -166,6 +172,10 @@ class TfIdfVectorizer:
         X : sparse matrix, [n_samples, n_features]
             Tf-idf weighted document-term matrix
         """
+        if examples is None:
+            error_msg = f"examples mustn't be None"
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
         count_matrix = self._build_count_matrix(data=examples,
                                                 unpack_data=self._get_tensor_values)
         return self._tfidf.transform(count_matrix, copy=False)

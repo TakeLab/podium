@@ -1,6 +1,8 @@
 import numpy as np
 from takepod.storage.vocab import Vocab
 from takepod.storage.tfidf import TfIdfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+
 
 DATA = [
     'this is the first document',
@@ -8,6 +10,7 @@ DATA = [
     'and this is the third one',
     'is this the first document'
 ]
+
 
 NUMERICALIZED_DATA = [
     np.array([0, 1, 2, 4, 3]),
@@ -37,3 +40,6 @@ def test_build_count_matrix_from_tensor():
     assert np.all(count_matrix == expected)
 
 
+def test_tfidf_equality_with_scikit():
+    scikit_vectorizer = TfIdfVectorizer()
+    
