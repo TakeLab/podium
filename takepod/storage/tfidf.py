@@ -5,7 +5,7 @@ from functools import partial
 import numpy as np
 import scipy.sparse as sp
 from sklearn.feature_extraction.text import TfidfTransformer
-
+from takepod.storage.vocab import SpecialVocabSymbols
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,6 +46,21 @@ class TfIdfVectorizer:
         self._tfidf = TfidfTransformer(norm=norm, use_idf=use_idf,
                                        smooth_idf=smooth_idf,
                                        sublinear_tf=sublinear_tf)
+        self._fitted = False
+
+    def _check_vocab(self):
+        """Method checks if the vocab is valid before fitting. Vocab mustn't be None.
+        Also user is warned if the vocab contains unknown special symbol because all
+        unkown symbol is also part of tfidf matrix (different from scikit).
+        """
+        if self._vocab is None:
+            error_msg = "TfIdf can't fit without vocab, given vocab is None."
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
+        if SpecialVocabSymbols.UNK in self._vocab.stoi:
+            warning_msg = "Vocab contains unknown special symbol, it will be used " \
+                          "in tfidf matrix"
+            _LOGGER.warning(warning_msg)
 
     def _get_tensor_values(self, data):
         """Function obtains data for example in numericalized matrix. This function
@@ -150,12 +165,18 @@ class TfIdfVectorizer:
                         f"{str(dataset)}, field: {str(field)}"
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
+        if field.name not in dataset.field_dict:
+            error_msg = f"invalid field, given field: {str(field)}"
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
         if self._vocab is None:
             self._vocab = field.vocab
+        self._check_vocab()
         count_matrix = self._build_count_matrix(
             data=dataset, unpack_data=partial(self._get_example_values,
                                               field=field))
         self._tfidf.fit(count_matrix)
+        self._fitted = True
         return self
 
     def transform(self, examples):
@@ -172,8 +193,12 @@ class TfIdfVectorizer:
         X : sparse matrix, [n_samples, n_features]
             Tf-idf weighted document-term matrix
         """
+        if not self._fitted:
+            error_msg = "Vectorizer must be fitted before transforming."
+            _LOGGER.error(error_msg)
+            raise RuntimeError(error_msg)
         if examples is None:
-            error_msg = f"examples mustn't be None"
+            error_msg = "examples mustn't be None"
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
         count_matrix = self._build_count_matrix(data=examples,
