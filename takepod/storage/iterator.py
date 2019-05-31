@@ -263,7 +263,6 @@ class Iterator:
         # if fixed_length is None, then return the maximum length of all the
         # examples in the batch
         def length_of_field(example):
-
             cached_numericalization = getattr(example, f"{field.name}_")
             if cached_numericalization is not None:
                 return len(cached_numericalization)
