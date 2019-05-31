@@ -311,24 +311,24 @@ def test_vocab_has_specials():
 
 
 def test_vocab_dict_normal_dict_use():
-    d = vocab.VocabDict()
-    d["first"] = 2
-    d["second"] = 5
-    assert len(d) == 2
-    assert d["first"] == 2
-    assert d["second"] == 5
+    vocab_dict = vocab.VocabDict()
+    vocab_dict["first"] = 2
+    vocab_dict["second"] = 5
+    assert len(vocab_dict) == 2
+    assert vocab_dict["first"] == 2
+    assert vocab_dict["second"] == 5
 
 
 def test_vocab_dict_default_factory():
-    d = vocab.VocabDict(default_factory=lambda: "default")
-    d["item"] = 1
-    assert len(d) == 1
-    assert d["unkown_element"] == "default"
-    assert "unkown_element" not in d
-    assert len(d) == 1
+    vocab_dict = vocab.VocabDict(default_factory=lambda: "default")
+    vocab_dict["item"] = 1
+    assert len(vocab_dict) == 1
+    assert vocab_dict["unkown_element"] == "default"
+    assert "unkown_element" not in vocab_dict
+    assert len(vocab_dict) == 1
 
 
 def test_vocab_dict_default_factory_none_error():
-    d = vocab.VocabDict(default_factory=None)
+    vocab_dict = vocab.VocabDict(default_factory=None)
     with pytest.raises(KeyError):
-        d["item_not_in_dict"]
+        vocab_dict["item_not_in_dict"]
