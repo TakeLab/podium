@@ -1,5 +1,6 @@
 """Module contains classes related to creating tfidf vectors from examples."""
 import array
+from collections import Counter
 import logging
 from functools import partial
 import numpy as np
@@ -27,20 +28,14 @@ class TfIdfVectorizer:
         vocab : Vocab, optional
             vocabulary instance that can be given as field.vocab or as vocab
             from other source. If None, it will be initialized during fit from field.
-        norm : 'l1', 'l2' or None, optional (default='l2')
-            Each output row will have unit norm, either:
-            * 'l2': Sum of squares of vector elements is 1. The cosine
-            similarity between two vectors is their dot product when l2 norm has
-            been applied.
-            * 'l1': Sum of absolute values of vector elements is 1.
-        use_idf : boolean (default=True)
-            Enable inverse-document-frequency reweighting.
-        smooth_idf : boolean (default=True)
-            Smooth idf weights by adding one to document frequencies, as if an
-            extra document was seen containing every term in the collection
-            exactly once. Prevents zero divisions.
-        sublinear_tf : boolean (default=False)
-            Apply sublinear tf scaling, i.e. replace tf with 1 + log(tf).
+        norm
+            see scikit tfidf transformer documentation
+        use_idf
+            see scikit tfidf transformer documentation
+        smooth_idf
+            see scikit tfidf transformer documentation
+        sublinear_tf
+            see scikit tfidf transformer documentation
         """
         self._vocab = vocab
         self._tfidf = TfidfTransformer(norm=norm, use_idf=use_idf,
@@ -50,20 +45,21 @@ class TfIdfVectorizer:
 
     def _check_vocab(self):
         """Method checks if the vocab is valid before fitting. Vocab mustn't be None.
-        Also user is warned if the vocab contains unknown special symbol because all
-        unkown symbol is also part of tfidf matrix (different from scikit).
+        Also user is warned if the vocab contains unknown special symbol because
+        unknown symbol is also part of tfidf matrix (different from scikit).
         """
         if self._vocab is None:
             error_msg = "TfIdf can't fit without vocab, given vocab is None."
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
         if SpecialVocabSymbols.UNK in self._vocab.stoi:
-            warning_msg = "Vocab contains unknown special symbol, it will be used " \
-                          "in tfidf matrix"
+            warning_msg = "Vocab contains unknown special symbol. Tf-idf for all "\
+                          "non-vocabulary words will be counted towards the unknown"\
+                          " symbol"
             _LOGGER.warning(warning_msg)
 
     def _get_tensor_values(self, data):
-        """Function obtains data for example in numericalized matrix. This function
+        """Method obtains data for example in numericalized matrix. This method
         is used when transforming data with tfidf and in general pipeline it should
         be in moment when vectorization of numericalized batch happens
 
@@ -80,7 +76,7 @@ class TfIdfVectorizer:
         return data
 
     def _get_example_values(self, example, field):
-        """Function obtains data for given field in example. This function is used
+        """Method obtains data for given field in example. This method is used
         when fitting tfidf vectorizer with dataset. Fields that are not numericalized
         but are eager will be numericalized.
 
@@ -101,7 +97,7 @@ class TfIdfVectorizer:
         return values
 
     def _build_count_matrix(self, data, unpack_data):
-        """Function builds sparse count feature matrix. It is equivalent with using
+        """Method builds sparse count feature matrix. It is equivalent with using
         CountVectorizer in scikit-learn.
 
         Parameters
@@ -119,17 +115,10 @@ class TfIdfVectorizer:
         indptr.append(0)
 
         for example in data:
-            feature_counter = {}
+            feature_counter = Counter()
             example_values = unpack_data(example)
             for feature_idx in example_values:
-                try:
-                    if feature_idx not in feature_counter:
-                        feature_counter[feature_idx] = 1
-                    else:
-                        feature_counter[feature_idx] += 1
-                except ValueError:
-                    # Ignore out-of-vocabulary items
-                    continue
+                feature_counter[feature_idx] += 1
 
             j_indices.extend(feature_counter.keys())
             values.extend(feature_counter.values())
