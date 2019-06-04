@@ -308,3 +308,27 @@ def test_vocab_has_no_specials():
 def test_vocab_has_specials():
     voc = vocab.Vocab()
     assert voc.has_specials
+
+
+def test_vocab_dict_normal_dict_use():
+    vocab_dict = vocab.VocabDict()
+    vocab_dict["first"] = 2
+    vocab_dict["second"] = 5
+    assert len(vocab_dict) == 2
+    assert vocab_dict["first"] == 2
+    assert vocab_dict["second"] == 5
+
+
+def test_vocab_dict_default_factory():
+    vocab_dict = vocab.VocabDict(default_factory=lambda: "default")
+    vocab_dict["item"] = 1
+    assert len(vocab_dict) == 1
+    assert vocab_dict["unkown_element"] == "default"
+    assert "unkown_element" not in vocab_dict
+    assert len(vocab_dict) == 1
+
+
+def test_vocab_dict_default_factory_none_error():
+    vocab_dict = vocab.VocabDict(default_factory=None)
+    with pytest.raises(KeyError):
+        vocab_dict["item_not_in_dict"]
