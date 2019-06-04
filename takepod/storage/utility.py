@@ -50,7 +50,7 @@ def extract_zip_file(archive_file, destination_dir):
         if given archive file doesn't exists
     """
     if not os.path.exists(archive_file):
-        error_msg = "Given archive file doesn't exists. Given {archive_file}."
+        error_msg = f"Given archive file doesn't exists. Given {archive_file}."
         _LOGGER.error(error_msg)
         raise ValueError(error_msg)
     zip_ref = zipfile.ZipFile(file=archive_file, mode='r')
