@@ -1,7 +1,5 @@
 import os
 import tempfile
-import pytest
-import zipfile
 import shutil
 
 from mock import patch
@@ -304,4 +302,3 @@ def test_download_dataset_using_scp():
     assert len(crovoc_labels) == 3
     assert len(mappings) == 3
     assert len(documents) == 2
-
