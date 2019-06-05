@@ -725,7 +725,7 @@ class MultilabelField(TokenizedField):
 
     def __init__(self,
                  name,
-                 num_of_classes,
+                 num_of_classes=None,
                  vocab=None,
                  eager=True,
                  allow_missing_data=False,
@@ -737,9 +737,10 @@ class MultilabelField(TokenizedField):
                 name : str
                     Field name, used for referencing data in the dataset.
 
-                num_of_classes : int
+                num_of_classes : int, optional
                     Number of valid classes.
                     Also defines size of the numericalized vector.
+                    If none, size of the vocabulary is used.
 
                 vocab : Vocab
                     A vocab that this field will update after preprocessing and
@@ -791,14 +792,16 @@ class MultilabelField(TokenizedField):
                          allow_missing_data=allow_missing_data)
 
     def finalize(self):
+        super().finalize()
+        if self.num_of_classes is None:
+            self.fixed_length = self.num_of_classes = len(self.vocab)
+
         if self.use_vocab and len(self.vocab) > self.num_of_classes:
             error_msg = f"Number of classes in data is greater" \
                 f" than the declared number of classes." \
                 f" Declared: {self.num_of_classes}, Actual: {len(self.vocab)}"
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
-
-        super().finalize()
 
     def _numericalize_tokens(self, tokens):
         if self.use_vocab:
