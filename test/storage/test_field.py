@@ -632,7 +632,8 @@ def test_multilabel_field_custom_numericalization(tokens, expected_numericalizat
         "class6": 5
     }
 
-    field = MultilabelField("test field", 6, custom_numericalize=index_dict.get)
+    field = MultilabelField(name="test field", num_of_classes=6,
+                            custom_numericalize=index_dict.get)
     preprocessed = field.preprocess(tokens)
     field.finalize()
 
@@ -666,7 +667,7 @@ def test_field_fail_initialization(store_as_raw, store_as_tokenized, tokenize):
 
 
 def test_missing_values_default_sequential():
-    fld = Field("bla",
+    fld = Field(name="bla",
                 store_as_raw=False,
                 tokenize=True,
                 custom_numericalize=lambda x: hash(x),
@@ -684,7 +685,7 @@ def test_missing_values_default_sequential():
 
 
 def test_missing_values_default_not_sequential():
-    fld = Field("bla",
+    fld = Field(name="bla",
                 store_as_raw=True,
                 tokenize=False,
                 custom_numericalize=int,
@@ -704,7 +705,7 @@ def test_missing_values_default_not_sequential():
 
 
 def test_missing_values_fail():
-    fld = Field("bla",
+    fld = Field(name="bla",
                 store_as_raw=True,
                 tokenize=False,
                 custom_numericalize=lambda x: hash(x))
@@ -714,8 +715,8 @@ def test_missing_values_fail():
 
 
 def test_multioutput_field():
-    uppercase_field = Field("uppercase_field")
-    lowercase_field = Field("lowercase_field")
+    uppercase_field = Field(name="uppercase_field")
+    lowercase_field = Field(name="lowercase_field")
     mo_field = MultioutputField(tokenizer='split')
 
     def post_tokenization_all_upper(raw, tokenized):
