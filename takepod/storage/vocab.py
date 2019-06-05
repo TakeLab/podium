@@ -1,10 +1,24 @@
 """Module contains classes related to the vocabulary."""
 import logging
-from collections import Counter, defaultdict
+from collections import Counter
 import numpy as np
 
 
 _LOGGER = logging.getLogger(__name__)
+
+
+class VocabDict(dict):
+    def __init__(self, default_factory=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._default_factory = default_factory
+
+    def __missing__(self, key):
+        if self._default_factory is None:
+            error_msg = "Default factory is not defined and key is not in " \
+                        "the dictionary."
+            _LOGGER.error(error_msg)
+            raise KeyError
+        return self._default_factory()
 
 
 class SpecialVocabSymbols():
@@ -63,7 +77,7 @@ class Vocab:
 
         self.itos = list(specials)
         self._default_unk_index = self._init_default_unk_index(specials)
-        self.stoi = defaultdict(self._default_unk)
+        self.stoi = VocabDict(self._default_unk)
         self.stoi.update({k: v for v, k in enumerate(self.itos)})
 
         self._max_size = max_size
