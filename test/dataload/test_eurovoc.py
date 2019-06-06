@@ -1,6 +1,7 @@
 import os
 import tempfile
 import shutil
+import pytest
 
 from mock import patch
 
@@ -56,6 +57,16 @@ CROVOC_LABELS = r"""
 </DATABASE_THS>
 """
 
+INVALID_LABELS = r"""
+<DATABASE_THS>
+    <RECORD>
+        <Odrednica>thesaurus 1</Odrednica>
+        <Potpojmovnik>microthesaurus 2</Potpojmovnik>
+        <ID>000001</ID>
+    </RECORD>
+</DATABASE_THS>
+"""
+
 DOCUMENT_1 = r"""
 <doc>
     <HEAD>
@@ -66,6 +77,15 @@ DOCUMENT_1 = r"""
 """
 
 DOCUMENT_2 = r"""
+<doc>
+    <HEAD>
+        <TITLE>2 25.01.2010 Document title 2</TITLE>
+    </HEAD>
+    <BODY>Document body 2</BODY>
+</doc>
+"""
+
+DOCUMENT_2_BR = r"""
 <doc>
     <HEAD>
         <TITLE>2 25.01.2010 Document title 2</TITLE>
@@ -157,7 +177,11 @@ def test_creating_thesaurus_label():
     assert label.micro_thesaurus is None
 
 
-def create_mock_dataset(create_parent_dir=True):
+def create_mock_dataset(load_missing_doc=False,
+                        load_invalid_doc=False,
+                        load_doc_with_br_tag=False,
+                        invalid_labels=False,
+                        create_parent_dir=True):
     base_temp = tempfile.mkdtemp()
     assert os.path.exists(base_temp)
 
@@ -169,7 +193,11 @@ def create_mock_dataset(create_parent_dir=True):
 
     eurovoc_labels_path = os.path.join(base_dataset_dir,
                                        EuroVocLoader.EUROVOC_LABELS_FILENAME)
-    create_file(eurovoc_labels_path, EUROVOC_LABELS)
+    if invalid_labels:
+        create_file(eurovoc_labels_path, INVALID_LABELS)
+    else:
+        create_file(eurovoc_labels_path, EUROVOC_LABELS)
+
     crovoc_labels_path = os.path.join(base_dataset_dir,
                                       EuroVocLoader.CROVOC_LABELS_FILENAME)
     create_file(crovoc_labels_path, CROVOC_LABELS)
@@ -181,17 +209,24 @@ def create_mock_dataset(create_parent_dir=True):
                                    "NN00001.xml")
     create_file(document_1_path, DOCUMENT_1)
 
-    document_2_path = os.path.join(dataset_dir,
-                                   "NN00002.xml")
-    create_file(document_2_path, DOCUMENT_2)
+    if load_doc_with_br_tag:
+        document_2_path = os.path.join(dataset_dir,
+                                       "NN00002.xml")
+        create_file(document_2_path, DOCUMENT_2_BR)
+    else:
+        document_2_path = os.path.join(dataset_dir,
+                                       "NN00002.xml")
+        create_file(document_2_path, DOCUMENT_2)
 
-    document_3_path = os.path.join(dataset_dir,
-                                   "NN00003.xml")
-    create_file(document_3_path, INVALID_DOCUMENT)
+    if load_invalid_doc:
+        document_3_path = os.path.join(dataset_dir,
+                                       "NN00003.xml")
+        create_file(document_3_path, INVALID_DOCUMENT)
 
-    document_4_path = os.path.join(dataset_dir,
-                                   "NN00004.xml")
-    create_file(document_4_path, MISSING_DOCUMENT)
+    if load_missing_doc:
+        document_4_path = os.path.join(dataset_dir,
+                                       "NN00004.xml")
+        create_file(document_4_path, MISSING_DOCUMENT)
 
     mappings_path = os.path.join(base_dataset_dir,
                                  EuroVocLoader.MAPPING_FILENAME)
@@ -212,93 +247,148 @@ def create_file(file_path, file_content):
 
 def test_loading_dataset():
     path = create_mock_dataset()
-    LargeResource.BASE_RESOURCE_DIR = path
-    loader = EuroVocLoader()
-    eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
+    with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+        loader = EuroVocLoader()
+        eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
 
-    assert len(eurovoc_labels) == 4
-    assert len(crovoc_labels) == 3
-    assert len(mappings) == 3
-    assert len(documents) == 2
+        assert len(eurovoc_labels) == 4
+        assert len(crovoc_labels) == 3
+        assert len(mappings) == 3
+        assert len(documents) == 2
 
-    label_1 = eurovoc_labels[1]
-    assert label_1.id == 1
-    assert label_1.name == "thesaurus 1"
-    assert label_1.rank == LabelRank.THESAURUS
-    assert label_1.thesaurus == 1
-    assert label_1.micro_thesaurus is None
-    assert label_1.direct_parents == []
-    assert label_1.similar_terms == []
+        label_1 = eurovoc_labels[1]
+        assert label_1.id == 1
+        assert label_1.name == "thesaurus 1"
+        assert label_1.rank == LabelRank.THESAURUS
+        assert label_1.thesaurus == 1
+        assert label_1.micro_thesaurus is None
+        assert label_1.direct_parents == []
+        assert label_1.similar_terms == []
 
-    label_2 = eurovoc_labels[2]
-    assert label_2.id == 2
-    assert label_2.name == "microthesaurus 1"
-    assert label_2.rank == LabelRank.MICRO_THESAURUS
-    assert label_2.thesaurus == 1
-    assert label_2.micro_thesaurus == 2
-    assert label_2.direct_parents == [1]
-    assert label_2.similar_terms == []
+        label_2 = eurovoc_labels[2]
+        assert label_2.id == 2
+        assert label_2.name == "microthesaurus 1"
+        assert label_2.rank == LabelRank.MICRO_THESAURUS
+        assert label_2.thesaurus == 1
+        assert label_2.micro_thesaurus == 2
+        assert label_2.direct_parents == [1]
+        assert label_2.similar_terms == []
 
-    label_3 = eurovoc_labels[3]
-    assert label_3.id == 3
-    assert label_3.name == "term 1"
-    assert label_3.rank == LabelRank.TERM
-    assert label_3.thesaurus == 1
-    assert label_3.micro_thesaurus == 2
-    assert label_3.direct_parents == [2]
-    assert label_3.similar_terms == []
+        label_3 = eurovoc_labels[3]
+        assert label_3.id == 3
+        assert label_3.name == "term 1"
+        assert label_3.rank == LabelRank.TERM
+        assert label_3.thesaurus == 1
+        assert label_3.micro_thesaurus == 2
+        assert label_3.direct_parents == [2]
+        assert label_3.similar_terms == []
 
-    label_4 = eurovoc_labels[4]
-    assert label_4.micro_thesaurus is None
-    assert label_4.direct_parents == [3]
+        label_4 = eurovoc_labels[4]
+        assert label_4.micro_thesaurus is None
+        assert label_4.direct_parents == [3]
 
-    crovoc_label = crovoc_labels[13]
-    assert crovoc_label.id == 13
-    assert crovoc_label.name == "term cro 1"
-    assert crovoc_label.rank == LabelRank.TERM
-    assert crovoc_label.thesaurus == 11
-    assert crovoc_label.micro_thesaurus == 12
-    assert crovoc_label.direct_parents == [12]
-    assert crovoc_label.similar_terms == []
+        crovoc_label = crovoc_labels[13]
+        assert crovoc_label.id == 13
+        assert crovoc_label.name == "term cro 1"
+        assert crovoc_label.rank == LabelRank.TERM
+        assert crovoc_label.thesaurus == 11
+        assert crovoc_label.micro_thesaurus == 12
+        assert crovoc_label.direct_parents == [12]
+        assert crovoc_label.similar_terms == []
 
-    assert mappings[1] == [3, 13]
-    assert mappings[2] == [4]
+        assert mappings[1] == [3, 13]
+        assert mappings[2] == [4]
 
-    assert documents[0].filename == "NN00001.xml"
-    assert documents[0].title == "document title 1"
-    assert documents[0].text == "document body 1"
+        assert documents[0].filename == "NN00001.xml"
+        assert documents[0].title == "document title 1"
+        assert documents[0].text == "document body 1"
 
-    assert documents[1].filename == "NN00002.xml"
-    assert documents[1].title == "document title 2"
-    assert documents[1].text == "document body \n2"
+        assert documents[1].filename == "NN00002.xml"
+        assert documents[1].title == "document title 2"
+        assert documents[1].text == "document body 2"
 
-    shutil.rmtree(path)
-    assert not os.path.exists(path)
-
-
-def mock_download(uri, path, overwrite=False, **kwargs):
-    create_mock_zip_archive(path)
+        shutil.rmtree(path)
+        assert not os.path.exists(path)
 
 
-def create_mock_zip_archive(path):
-    base = create_mock_dataset(create_parent_dir=False)
-    shutil.make_archive(path, 'zip', root_dir=base, base_dir=None)
-    shutil.move(path + ".zip", path)
+def test_loading_dataset_with_missing_document():
+    path = create_mock_dataset(load_missing_doc=True)
+    with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+        loader = EuroVocLoader()
+        eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
+
+        assert len(eurovoc_labels) == 4
+        assert len(crovoc_labels) == 3
+        assert len(mappings) == 3
+        assert len(documents) == 2
+
+        assert documents[0].filename == "NN00001.xml"
+        assert documents[1].filename == "NN00002.xml"
+
+        shutil.rmtree(path)
+        assert not os.path.exists(path)
 
 
-@patch.object(SCPDownloader, 'download', mock_download)
+def test_loading_dataset_with_invalid_document():
+    path = create_mock_dataset(load_invalid_doc=True)
+    with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+        loader = EuroVocLoader()
+        eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
+
+        assert len(eurovoc_labels) == 4
+        assert len(crovoc_labels) == 3
+        assert len(mappings) == 3
+        assert len(documents) == 2
+
+        assert documents[0].filename == "NN00001.xml"
+        assert documents[1].filename == "NN00002.xml"
+
+        shutil.rmtree(path)
+        assert not os.path.exists(path)
+
+
+def test_loading_dataset_with_document_containing_br():
+    path = create_mock_dataset(load_doc_with_br_tag=True)
+    with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+        loader = EuroVocLoader()
+        eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
+
+        assert len(eurovoc_labels) == 4
+        assert len(crovoc_labels) == 3
+        assert len(mappings) == 3
+        assert len(documents) == 2
+
+        assert documents[0].filename == "NN00001.xml"
+        assert documents[1].filename == "NN00002.xml"
+        assert documents[1].title == "document title 2"
+        assert documents[1].text == "document body \n2"
+
+        shutil.rmtree(path)
+        assert not os.path.exists(path)
+
+
+def test_loading_dataset_with_invalid_labels():
+    with pytest.raises(ValueError):
+        path = create_mock_dataset(invalid_labels=True)
+        with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+            loader = EuroVocLoader()
+            eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
+
+
+def mock_download(self):
+    assert self.config['scp_user'] == 'username'
+    assert self.config['scp_priv'] == 'private_key'
+    assert self.config['scp_pass'] == 'pass'
+
+
+@patch.object(LargeResource, '_download_unarchive', mock_download)
 def test_download_dataset_using_scp():
-    LargeResource.BASE_RESOURCE_DIR = tempfile.mkdtemp()
-    assert os.path.exists(LargeResource.BASE_RESOURCE_DIR)
+    base = tempfile.mkdtemp()
+    with patch.object(LargeResource, "BASE_RESOURCE_DIR", base):
+        assert os.path.exists(LargeResource.BASE_RESOURCE_DIR)
 
-    loader = EuroVocLoader(
-        scp_user='username',
-        scp_private_key='private_key',
-        scp_pass_key='pass'
-    )
-
-    eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
-    assert len(eurovoc_labels) == 4
-    assert len(crovoc_labels) == 3
-    assert len(mappings) == 3
-    assert len(documents) == 2
+        loader = EuroVocLoader(
+            scp_user='username',
+            scp_private_key='private_key',
+            scp_pass_key='pass'
+        )

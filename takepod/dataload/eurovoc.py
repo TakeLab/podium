@@ -78,7 +78,7 @@ class EuroVocLoader():
     CROVOC_LABELS_FILENAME = 'CROVOC.xml'
     MAPPING_FILENAME = 'mapping.xlsx'
     DATASET_DIR = 'Data'
-    DOCUMET_PATHS = '*.xml'
+    DOCUMENT_PATHS = '*.xml'
     SCP_HOST = "djurdja.takelab.fer.hr"
     ARCHIVE_TYPE = "zip"
     NAME = "EuroVocDataset"
@@ -136,10 +136,12 @@ class EuroVocLoader():
             document mapping : dict(document_id : list of label ids)
             documents : list(Document)
         """
-        label_hierarchy_path = os.path.join(LargeResource.BASE_RESOURCE_DIR,
-                                            EuroVocLoader.NAME,
-                                            EuroVocLoader.EUROVOC_LABELS_FILENAME)
-        labels = EuroVocLoader._parse_label_hierarchy(label_hierarchy_path)
+        eurovoc_label_hierarchy_path = os.path.join(
+            LargeResource.BASE_RESOURCE_DIR,
+            EuroVocLoader.NAME,
+            EuroVocLoader.EUROVOC_LABELS_FILENAME)
+        eurovoc_labels = EuroVocLoader._parse_label_hierarchy(
+            eurovoc_label_hierarchy_path)
 
         crovoc_label_hierarchy_path = os.path.join(LargeResource.BASE_RESOURCE_DIR,
                                                    EuroVocLoader.NAME,
@@ -154,10 +156,10 @@ class EuroVocLoader():
         dataset_path = os.path.join(LargeResource.BASE_RESOURCE_DIR,
                                     EuroVocLoader.NAME,
                                     EuroVocLoader.DATASET_DIR,
-                                    EuroVocLoader.DOCUMET_PATHS)
+                                    EuroVocLoader.DOCUMENT_PATHS)
         documents = EuroVocLoader._parse_documents(dataset_path, mapping)
 
-        return labels, crovoc_labels, mapping, documents
+        return eurovoc_labels, crovoc_labels, mapping, documents
 
     @staticmethod
     def _parse_labels_by_name(label_hierarchy_path):
@@ -183,7 +185,7 @@ class EuroVocLoader():
             thesaurus_by_name : dict(thesaurus_name : thesaurus_id)
             labels_by_id : dict(label_id : Label)
         """
-        xml_document = glob.glob(label_hierarchy_path)[0]
+        xml_document = label_hierarchy_path
         tree = ET.parse(xml_document)
         root = tree.getroot()
 
@@ -200,35 +202,39 @@ class EuroVocLoader():
 
         for child in root:
             # If tag 'Podrucje' does not exist, it means this record is a thesaurus.
-            if child.find('Podrucje') is None:
+            if child.find('Podrucje') is None and child.find('Potpojmovnik') is None:
                 rank = LabelRank.THESAURUS
-                thesaurus = int(child.find('ID').text.lower().strip())
+                thesaurus = int(_get_text(child, 'ID'))
                 micro_thesaurus = None
 
-            elif child.find('Potpojmovnik') is None:
+            elif child.find('Podrucje') is not None \
+                    and child.find('Potpojmovnik') is None:
                 # If tag 'Podrucje' exists, but there is not 'Potpojmovnik' tag, it means
                 # this record is a microthesaurus.
                 rank = LabelRank.MICRO_THESAURUS
-                thesaurus = child.find('Podrucje').text.split(";")[1].lower().strip()
-                micro_thesaurus = int(child.find('ID').text.lower().strip())
+                thesaurus = _get_text(child, 'Podrucje').split(";")[1]
+                micro_thesaurus = int(_get_text(child, 'ID'))
 
-            else:
+            elif child.find('Podrucje') is not None \
+                    and child.find('Potpojmovnik') is not None:
                 # If both 'Podrucje' and 'Potpojmovnik' tags exist, it means this record
                 # is a term.
                 rank = LabelRank.TERM
-                thesaurus = child.find('Podrucje').text.split(";")[1].lower().strip()
-                micro_thesaurus = child.find('Potpojmovnik').text.lower().strip()
+                thesaurus = _get_text(child, 'Podrucje').split(";")[1]
+                micro_thesaurus = _get_text(child, 'Potpojmovnik')
+
+            else:
+                raise ValueError("Invalid label record. The record contains tag"
+                                 "<Potpojmovnik> but lacks the <Podrucje> tag.")
 
             name = child.find('Odrednica').text.lower().strip()
-            label_id = int(child.find('ID').text.lower().strip())
+            label_id = int(_get_text(child, 'ID'))
 
-            parents = []
-            for broader_term in child.findall('SiriPojam'):
-                parents.append(broader_term.text.lower().strip())
+            parents = [broader_term.text.lower().strip() for broader_term in
+                       child.findall('SiriPojam')]
 
-            similar_terms = []
-            for similar_term in child.findall('SrodniPojam'):
-                similar_terms.append(similar_term.text.lower().strip())
+            similar_terms = [similar_term.text.lower().strip() for similar_term in
+                             child.findall('SrodniPojam')]
 
             # Here parents, similar terms, thesaurus and micro-thesaurus are all stored
             # using string names. In the second pass, these fields will be replaces by
@@ -238,14 +244,17 @@ class EuroVocLoader():
                           thesaurus=thesaurus, micro_thesaurus=micro_thesaurus)
             labels_by_id[label_id] = label
 
-            if rank == LabelRank.MICRO_THESAURUS:
+            if rank == LabelRank.THESAURUS:
+                thesaurus_by_name[name] = label
+
+            elif rank == LabelRank.MICRO_THESAURUS:
                 microthesaurus_by_name[name] = label
 
             elif rank == LabelRank.TERM:
                 terms_by_name[name] = label
 
             else:
-                thesaurus_by_name[name] = label
+                raise ValueError("{} is an invalid value of LabelRank".format(rank))
 
         return terms_by_name, microthesaurus_by_name, thesaurus_by_name, labels_by_id
 
@@ -273,20 +282,16 @@ class EuroVocLoader():
             label = labels_by_id[label_id]
 
             # Names of the parents are replaced by their ids.
-            parents = []
-            for parent in label.direct_parents:
-                # Parents can only be terms here, never thesaurus of microthesaurus.
-                parents.append(terms_by_name[parent].id)
-            label.direct_parents = parents
+            # Parents can only be terms here, never thesaurus of microthesaurus.
+            label.direct_parents = [terms_by_name[parent].id for parent in
+                                    label.direct_parents]
 
             # Names of the similar terms are replaced by their ids.
-            similar_terms = []
-            for similar_term in label.similar_terms:
-                # Similar terms can only be terms, never thesaurus of microthesaurus.
-                similar_terms.append(terms_by_name[similar_term].id)
-            label.similar_terms = similar_terms
+            # Similar terms can only be terms, never thesaurus of microthesaurus.
+            label.similar_terms = [terms_by_name[similar_term].id for similar_term in
+                                   label.similar_terms]
 
-            # If label is not thesaurus, replace its thesaurus name by theraurus id
+            # If label is not thesaurus, replace its thesaurus name by thesaurus id
             if label.rank != LabelRank.THESAURUS:
                 if label.thesaurus not in thesaurus_by_name:
                     # Error: thesaurus name does not exist (this shouldn't happen)
@@ -433,3 +438,21 @@ class EuroVocLoader():
             return None
 
         return Document(title=title_text, text=body_text, filename=filename)
+
+
+def _get_text(child, filed_name):
+    """Extracts and returns lowercase striped text from field with the given name.
+
+    Parameters
+    ----------
+    child : Element
+        Element contaning label record from XML file.
+
+    field_name : str
+        Name of the field to be extracted.
+
+    Returns
+    -------
+    str : Lowercase striped contents of the field.
+    """
+    return child.find(filed_name).text.lower().strip()
