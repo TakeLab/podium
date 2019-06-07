@@ -16,11 +16,6 @@ EUROVOC_LABELS = r"""
         <ID>000001</ID>
     </RECORD>
     <RECORD>
-        <Odrednica>microthesaurus 1</Odrednica>
-        <Podrucje>04;thesaurus 1</Podrucje>
-        <ID>000002</ID>
-    </RECORD>
-    <RECORD>
         <Odrednica>term 1</Odrednica>
         <Podrucje>04;thesaurus 1</Podrucje>
         <Potpojmovnik>microthesaurus 1</Potpojmovnik>
@@ -33,6 +28,11 @@ EUROVOC_LABELS = r"""
         <SiriPojam>term 1</SiriPojam>
         <SrodniPojam>term 1</SrodniPojam>
         <ID>000004</ID>
+    </RECORD>
+    <RECORD>
+        <Odrednica>microthesaurus 1</Odrednica>
+        <Podrucje>04;thesaurus 1</Podrucje>
+        <ID>000002</ID>
     </RECORD>
 </DATABASE_THS>
 """
@@ -209,9 +209,9 @@ def create_mock_dataset(load_missing_doc=False,
                                    "NN00001.xml")
     create_file(document_1_path, DOCUMENT_1)
 
+    document_2_path = os.path.join(dataset_dir,
+                                   "NN00002.xml")
     if load_doc_with_br_tag:
-        document_2_path = os.path.join(dataset_dir,
-                                       "NN00002.xml")
         create_file(document_2_path, DOCUMENT_2_BR)
     else:
         document_2_path = os.path.join(dataset_dir,
@@ -246,6 +246,7 @@ def create_file(file_path, file_content):
 
 
 def test_loading_dataset():
+    pytest.importorskip("xlrd")
     path = create_mock_dataset()
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
         loader = EuroVocLoader()
@@ -286,6 +287,7 @@ def test_loading_dataset():
         label_4 = eurovoc_labels[4]
         assert label_4.micro_thesaurus is None
         assert label_4.direct_parents == [3]
+        assert label_4.similar_terms == [3]
 
         crovoc_label = crovoc_labels[13]
         assert crovoc_label.id == 13
@@ -312,6 +314,7 @@ def test_loading_dataset():
 
 
 def test_loading_dataset_with_missing_document():
+    pytest.importorskip("xlrd")
     path = create_mock_dataset(load_missing_doc=True)
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
         loader = EuroVocLoader()
@@ -330,6 +333,7 @@ def test_loading_dataset_with_missing_document():
 
 
 def test_loading_dataset_with_invalid_document():
+    pytest.importorskip("xlrd")
     path = create_mock_dataset(load_invalid_doc=True)
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
         loader = EuroVocLoader()
@@ -348,6 +352,7 @@ def test_loading_dataset_with_invalid_document():
 
 
 def test_loading_dataset_with_document_containing_br():
+    pytest.importorskip("xlrd")
     path = create_mock_dataset(load_doc_with_br_tag=True)
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
         loader = EuroVocLoader()
@@ -368,6 +373,7 @@ def test_loading_dataset_with_document_containing_br():
 
 
 def test_loading_dataset_with_invalid_labels():
+    pytest.importorskip("xlrd")
     with pytest.raises(ValueError):
         path = create_mock_dataset(invalid_labels=True)
         with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
@@ -383,6 +389,7 @@ def mock_download(self):
 
 @patch.object(LargeResource, '_download_unarchive', mock_download)
 def test_download_dataset_using_scp():
+    pytest.importorskip("xlrd")
     base = tempfile.mkdtemp()
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", base):
         assert os.path.exists(LargeResource.BASE_RESOURCE_DIR)

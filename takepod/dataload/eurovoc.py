@@ -2,13 +2,18 @@ import os
 import getpass
 import glob
 import xml.etree.ElementTree as ET
-import xlrd
-
+import logging
 from enum import Enum
 from collections import namedtuple
-
 from takepod.storage.large_resource import LargeResource, SCPLargeResource
 
+_LOGGER = logging.getLogger(__name__)
+try:
+    import xlrd
+except ImportError as ex:
+    _LOGGER.debug("Problem occured while trying to import xlrd. If the "
+                  "library is not installed visit http://www.python-excel.org/"
+                  " for more details.")
 
 Document = namedtuple('Document', 'filename title text')
 
@@ -295,6 +300,8 @@ class EuroVocLoader():
             if label.rank != LabelRank.THESAURUS:
                 if label.thesaurus not in thesaurus_by_name:
                     # Error: thesaurus name does not exist (this shouldn't happen)
+                    _LOGGER.debug("Label {} has a non-existing thesaurus name"
+                                  "assigned: {}".format(label.id, label.thesaurus))
                     label.thesaurus = None
                 else:
                     label.thesaurus = thesaurus_by_name[label.thesaurus].id
@@ -307,6 +314,8 @@ class EuroVocLoader():
             if label.rank == LabelRank.TERM:
                 if label.micro_thesaurus not in microthesaurus_by_name:
                     # Error: microthesaurus name does not exist (this shouldn't happen)
+                    _LOGGER.debug("Label {} has a non-existing microthesaurus name"
+                                  "assigned: {}".format(label.id, label.micro_thesaurus))
                     label.micro_thesaurus = None
                 else:
                     label.micro_thesaurus = \
@@ -388,12 +397,16 @@ class EuroVocLoader():
             filename = os.path.basename(doc)
             document_id = int(os.path.splitext(filename)[0].replace("NN", ""))
             if document_id not in document_mapping:
+                _LOGGER.debug("{} document id not found in document"
+                              "mappings.".format(document_id))
                 continue
             parsed_doc = EuroVocLoader._parse_document(doc)
             # parsed_doc is None if there's been an error on document text extraction
             if parsed_doc:
                 parsed_documents.append(parsed_doc)
 
+        _LOGGER.debug("Succesfully parsed documents: {}/{}".format(len(parsed_documents),
+                                                                   len(xml_documents)))
         return parsed_documents
 
     @staticmethod
@@ -421,13 +434,14 @@ class EuroVocLoader():
         # This is true for 99% of the documents and excpetions are ignored
         if title_text and title_text[0].isdigit():
             title_text = " ".join(title_text.split(" ")[2:])
-        title_text = title_text.lower().replace("\r\n", "")
+        title_text = title_text.lower().replace("\r", "").replace("\n", "")
 
         body_text = []
         for b in body.iter():
             if b.text:
                 body_text.append(b.text)
-            if b.tail.strip():  # everything after the </br> tag will end up in tail
+            # everything after the </br> tag will end up in tail
+            if b.tail and b.tail.strip():
                 body_text.append(b.tail)
         body_text = "\n".join(body_text).lower()
 
@@ -435,6 +449,7 @@ class EuroVocLoader():
         # generates an xml contaning the following string. Text for these documents is
         # not available and they are therefore ignored.
         if "postupak ekstrakcije teksta" in body_text:
+            _LOGGER.debug("{} XML file does not contain a valid text".format(filename))
             return None
 
         return Document(title=title_text, text=body_text, filename=filename)
