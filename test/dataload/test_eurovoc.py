@@ -115,6 +115,15 @@ MISSING_DOCUMENT = r"""
 </doc>
 """
 
+INVALID_DOCUMENT_TITLE = r"""
+<doc>
+    <HEAD>
+        <TITLE> HIDRA </TITLE>
+    </HEAD>
+    <BODY>Document body 5</BODY>
+</doc>
+"""
+
 
 def test_creating_term_label():
     name = "label 1"
@@ -180,6 +189,7 @@ def test_creating_thesaurus_label():
 def create_mock_dataset(load_missing_doc=False,
                         load_invalid_doc=False,
                         load_doc_with_br_tag=False,
+                        load_doc_with_invalid_title=False,
                         invalid_labels=False,
                         create_parent_dir=True):
     base_temp = tempfile.mkdtemp()
@@ -228,6 +238,11 @@ def create_mock_dataset(load_missing_doc=False,
                                        "NN00004.xml")
         create_file(document_4_path, MISSING_DOCUMENT)
 
+    if load_doc_with_invalid_title:
+        document_5_path = os.path.join(dataset_dir,
+                                       "NN00005.xml")
+        create_file(document_5_path, INVALID_DOCUMENT_TITLE)
+
     mappings_path = os.path.join(base_dataset_dir,
                                  EuroVocLoader.MAPPING_FILENAME)
 
@@ -254,8 +269,9 @@ def test_loading_dataset():
 
         assert len(eurovoc_labels) == 4
         assert len(crovoc_labels) == 3
-        assert len(mappings) == 3
+        assert len(mappings) == 4
         assert len(documents) == 2
+        documents.sort(key=lambda doc: doc.filename)
 
         label_1 = eurovoc_labels[1]
         assert label_1.id == 1
@@ -300,6 +316,8 @@ def test_loading_dataset():
 
         assert mappings[1] == [3, 13]
         assert mappings[2] == [4]
+        assert mappings[3] == [3, 13]
+        assert mappings[5] == [3]
 
         assert documents[0].filename == "NN00001.xml"
         assert documents[0].title == "document title 1"
@@ -322,8 +340,9 @@ def test_loading_dataset_with_missing_document():
 
         assert len(eurovoc_labels) == 4
         assert len(crovoc_labels) == 3
-        assert len(mappings) == 3
+        assert len(mappings) == 4
         assert len(documents) == 2
+        documents.sort(key=lambda doc: doc.filename)
 
         assert documents[0].filename == "NN00001.xml"
         assert documents[1].filename == "NN00002.xml"
@@ -341,8 +360,9 @@ def test_loading_dataset_with_invalid_document():
 
         assert len(eurovoc_labels) == 4
         assert len(crovoc_labels) == 3
-        assert len(mappings) == 3
+        assert len(mappings) == 4
         assert len(documents) == 2
+        documents.sort(key=lambda doc: doc.filename)
 
         assert documents[0].filename == "NN00001.xml"
         assert documents[1].filename == "NN00002.xml"
@@ -360,13 +380,38 @@ def test_loading_dataset_with_document_containing_br():
 
         assert len(eurovoc_labels) == 4
         assert len(crovoc_labels) == 3
-        assert len(mappings) == 3
+        assert len(mappings) == 4
         assert len(documents) == 2
+        documents.sort(key=lambda doc: doc.filename)
 
         assert documents[0].filename == "NN00001.xml"
         assert documents[1].filename == "NN00002.xml"
         assert documents[1].title == "document title 2"
         assert documents[1].text == "document body \n2"
+
+        shutil.rmtree(path)
+        assert not os.path.exists(path)
+
+
+def test_loading_dataset_with_invalid_title():
+    pytest.importorskip("xlrd")
+    path = create_mock_dataset(load_doc_with_invalid_title=True)
+    with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+        loader = EuroVocLoader()
+        eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
+
+        assert len(eurovoc_labels) == 4
+        assert len(crovoc_labels) == 3
+        assert len(mappings) == 4
+        assert len(documents) == 3
+        documents.sort(key=lambda doc: doc.filename)
+
+        assert documents[0].filename == "NN00001.xml"
+        assert documents[1].filename == "NN00002.xml"
+        assert documents[2].filename == "NN00005.xml"
+
+        assert documents[2].title == "hidra"
+        assert documents[2].text == "document body 5"
 
         shutil.rmtree(path)
         assert not os.path.exists(path)

@@ -258,9 +258,6 @@ class EuroVocLoader():
             elif rank == LabelRank.TERM:
                 terms_by_name[name] = label
 
-            else:
-                raise ValueError("{} is an invalid value of LabelRank".format(rank))
-
         return terms_by_name, microthesaurus_by_name, thesaurus_by_name, labels_by_id
 
     @staticmethod
@@ -357,7 +354,7 @@ class EuroVocLoader():
                 label = sheet_0.cell_value(row, 2)
                 if label:
                     label_id = label.split(";")[0]
-                    label_id = label_id.replace(".", "").replace("hrv ", "")
+                    label_id = label_id
                     label_ids.append(int(label_id))
                 row += 1
                 # If a row has an empty first column, then the row contains another label
@@ -434,6 +431,9 @@ class EuroVocLoader():
         # This is true for 99% of the documents and excpetions are ignored
         if title_text and title_text[0].isdigit():
             title_text = " ".join(title_text.split(" ")[2:])
+        else:
+            _LOGGER.debug("{} file contains invalid document title: {}".format(filename,
+                          title_text))
         title_text = title_text.lower().replace("\r", "").replace("\n", "")
 
         body_text = []
@@ -471,3 +471,13 @@ def _get_text(child, filed_name):
     str : Lowercase striped contents of the field.
     """
     return child.find(filed_name).text.lower().strip()
+
+
+if __name__ == "__main__":
+    LargeResource.BASE_RESOURCE_DIR = "/home/dunja/downloaded_resources"
+    loader = EuroVocLoader()
+    labels, crovoc_labels, mappings, documents = loader.load_dataset()
+    print(len(documents))
+    print(len(labels))
+    print(len(crovoc_labels))
+    print(len(mappings))
