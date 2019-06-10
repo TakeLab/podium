@@ -62,7 +62,7 @@ class Label():
         self.name = name
         self.id = id
         self.direct_parents = direct_parents
-        self.all_parents = set()
+        self.all_ancestors = set()
         self.similar_terms = similar_terms
         self.rank = rank
         self.micro_thesaurus = micro_thesaurus
@@ -305,7 +305,8 @@ class EuroVocLoader():
 
             # If label is microthesaurus, then its thesaurus is listed as its parent
             if label.rank == LabelRank.MICRO_THESAURUS:
-                label.direct_parents.append(label.thesaurus)
+                if label.thesaurus:
+                    label.direct_parents.append(label.thesaurus)
 
             # If label is term, replace its microthesaurus name by its id
             if label.rank == LabelRank.TERM:
@@ -319,9 +320,52 @@ class EuroVocLoader():
                         microthesaurus_by_name[label.micro_thesaurus].id
                     # if term has no parent term then its microthesaurus is listed as
                     # its parent
-                    if not label.direct_parents:
+                    if not label.direct_parents and label.micro_thesaurus:
                         label.direct_parents.append(label.micro_thesaurus)
+
+        EuroVocLoader._collect_all_ancestors(labels_by_id)
         return labels_by_id
+
+    @staticmethod
+    def _collect_all_ancestors(label_hierarchy):
+        """Finds and stores the ancestors of all the labels in the label hierarchy.
+
+        Parameters
+        ----------
+        label_hierarchy : dict(int, Label)
+            Dictionary that mapps label_id to Label.
+
+        """
+        for label_id in label_hierarchy:
+            ancestors = EuroVocLoader._get_all_ancestors(label_id, label_hierarchy)
+            label_hierarchy[label_id].all_ancestors = ancestors
+
+    @staticmethod
+    def _get_all_ancestors(label_id, label_hierarchy):
+        """Finds and returns the ancestors of the label with the given label_id.
+
+        Parameters
+        ----------
+        label_id : int
+
+        label_hierarchy : dict(int, Label)
+            Dictionary that mapps label_id to Label.
+
+        """
+        direct_parents = label_hierarchy[label_id].direct_parents
+        parents = set(direct_parents)
+        # while the iterations of the loop find new, untraversed parents
+        while direct_parents:
+            new_parents = set()
+            # for each parent, add all its parents to next iteration parents
+            for label in direct_parents:
+                label_direct_parents = label_hierarchy[label].direct_parents
+                for parent in label_direct_parents:
+                    if parent not in parents:
+                        new_parents.add(parent)
+            parents.update(new_parents)
+            direct_parents = new_parents
+        return parents
 
     @staticmethod
     def _parse_mappings(mappings_path):
@@ -471,13 +515,3 @@ def _get_text(child, filed_name):
     str : Lowercase striped contents of the field.
     """
     return child.find(filed_name).text.lower().strip()
-
-
-if __name__ == "__main__":
-    LargeResource.BASE_RESOURCE_DIR = "/home/dunja/downloaded_resources"
-    loader = EuroVocLoader()
-    labels, crovoc_labels, mappings, documents = loader.load_dataset()
-    print(len(documents))
-    print(len(labels))
-    print(len(crovoc_labels))
-    print(len(mappings))

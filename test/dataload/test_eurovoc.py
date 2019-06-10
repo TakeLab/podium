@@ -45,7 +45,7 @@ CROVOC_LABELS = r"""
     </RECORD>
     <RECORD>
         <Odrednica>microthesaurus cro 1</Odrednica>
-        <Podrucje>04;thesaurus 1</Podrucje>
+        <Podrucje>04;thesaurus cro 1</Podrucje>
         <ID>000012</ID>
     </RECORD>
     <RECORD>
@@ -63,6 +63,17 @@ INVALID_LABELS = r"""
         <Odrednica>thesaurus 1</Odrednica>
         <Potpojmovnik>microthesaurus 2</Potpojmovnik>
         <ID>000001</ID>
+    </RECORD>
+</DATABASE_THS>
+"""
+
+NON_EXISTING_THESAURUS = r"""
+<DATABASE_THS>
+    <RECORD>
+        <Odrednica>term 1</Odrednica>
+        <Podrucje>04;thesaurus 1</Podrucje>
+        <Potpojmovnik>microthesaurus 1</Potpojmovnik>
+        <ID>000003</ID>
     </RECORD>
 </DATABASE_THS>
 """
@@ -191,6 +202,7 @@ def create_mock_dataset(load_missing_doc=False,
                         load_doc_with_br_tag=False,
                         load_doc_with_invalid_title=False,
                         invalid_labels=False,
+                        non_existing_thesaurus=False,
                         create_parent_dir=True):
     base_temp = tempfile.mkdtemp()
     assert os.path.exists(base_temp)
@@ -205,6 +217,8 @@ def create_mock_dataset(load_missing_doc=False,
                                        EuroVocLoader.EUROVOC_LABELS_FILENAME)
     if invalid_labels:
         create_file(eurovoc_labels_path, INVALID_LABELS)
+    elif non_existing_thesaurus:
+        create_file(eurovoc_labels_path, NON_EXISTING_THESAURUS)
     else:
         create_file(eurovoc_labels_path, EUROVOC_LABELS)
 
@@ -280,6 +294,7 @@ def test_loading_dataset():
         assert label_1.thesaurus == 1
         assert label_1.micro_thesaurus is None
         assert label_1.direct_parents == []
+        assert label_1.all_ancestors == set()
         assert label_1.similar_terms == []
 
         label_2 = eurovoc_labels[2]
@@ -289,6 +304,7 @@ def test_loading_dataset():
         assert label_2.thesaurus == 1
         assert label_2.micro_thesaurus == 2
         assert label_2.direct_parents == [1]
+        assert label_2.all_ancestors == {1}
         assert label_2.similar_terms == []
 
         label_3 = eurovoc_labels[3]
@@ -298,11 +314,13 @@ def test_loading_dataset():
         assert label_3.thesaurus == 1
         assert label_3.micro_thesaurus == 2
         assert label_3.direct_parents == [2]
+        assert label_3.all_ancestors == {1, 2}
         assert label_3.similar_terms == []
 
         label_4 = eurovoc_labels[4]
         assert label_4.micro_thesaurus is None
         assert label_4.direct_parents == [3]
+        assert label_4.all_ancestors == {1, 2, 3}
         assert label_4.similar_terms == [3]
 
         crovoc_label = crovoc_labels[13]
@@ -313,6 +331,24 @@ def test_loading_dataset():
         assert crovoc_label.micro_thesaurus == 12
         assert crovoc_label.direct_parents == [12]
         assert crovoc_label.similar_terms == []
+
+        crovoc_label_1 = crovoc_labels[11]
+        assert crovoc_label_1.id == 11
+        assert crovoc_label_1.name == "thesaurus cro 1"
+        assert crovoc_label_1.rank == LabelRank.THESAURUS
+        assert crovoc_label_1.thesaurus == 11
+        assert crovoc_label_1.micro_thesaurus is None
+        assert crovoc_label_1.direct_parents == []
+        assert crovoc_label_1.similar_terms == []
+
+        crovoc_label_2 = crovoc_labels[12]
+        assert crovoc_label_2.id == 12
+        assert crovoc_label_2.name == "microthesaurus cro 1"
+        assert crovoc_label_2.rank == LabelRank.MICRO_THESAURUS
+        assert crovoc_label_2.thesaurus == 11
+        assert crovoc_label_2.micro_thesaurus == 12
+        assert crovoc_label_2.direct_parents == [11]
+        assert crovoc_label_2.similar_terms == []
 
         assert mappings[1] == [3, 13]
         assert mappings[2] == [4]
@@ -424,6 +460,17 @@ def test_loading_dataset_with_invalid_labels():
         with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
             loader = EuroVocLoader()
             eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
+
+
+def test_loading_dataset_with_non_existing_thesaurus():
+    pytest.importorskip("xlrd")
+    path = create_mock_dataset(non_existing_thesaurus=True)
+    with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+        loader = EuroVocLoader()
+        eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
+
+        label = eurovoc_labels[3]
+        assert label.thesaurus is None
 
 
 def mock_download(self):
