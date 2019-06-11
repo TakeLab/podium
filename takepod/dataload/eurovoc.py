@@ -37,7 +37,7 @@ class Label():
     """
 
     def __init__(self, name, id, direct_parents, similar_terms, rank, thesaurus=None,
-                 micro_thesaurus=None):
+                 micro_thesaurus=None, all_ancestors=None):
         """Defines a single label in the EuroVoc dataset.
 
         Parameters
@@ -58,11 +58,13 @@ class Label():
         micro_thesaurus : int
             id of the microthesaurus of the label (if the label represents
             a microthesaurus, it has its own id listed in this field)
+        all_ancestors : set(int)
+            set of ids of all ancestors of the label in the label hierarchy
         """
         self.name = name
         self.id = id
         self.direct_parents = direct_parents
-        self.all_ancestors = set()
+        self.all_ancestors = all_ancestors
         self.similar_terms = similar_terms
         self.rank = rank
         self.micro_thesaurus = micro_thesaurus
@@ -323,7 +325,7 @@ class EuroVocLoader():
                     if not label.direct_parents and label.micro_thesaurus:
                         label.direct_parents.append(label.micro_thesaurus)
 
-        EuroVocLoader._collect_all_ancestors(labels_by_id)
+        labels_by_id = EuroVocLoader._collect_all_ancestors(labels_by_id)
         return labels_by_id
 
     @staticmethod
@@ -333,12 +335,27 @@ class EuroVocLoader():
         Parameters
         ----------
         label_hierarchy : dict(int, Label)
-            Dictionary that mapps label_id to Label.
+            Dictionary that maps label_id to Label.
 
+        Returns
+        -------
+        dict:
+            Dictionary of (key, value) = (label_id, Label)
         """
+
+        new_label_hierarchy = dict()
+
         for label_id in label_hierarchy:
             ancestors = EuroVocLoader._get_all_ancestors(label_id, label_hierarchy)
-            label_hierarchy[label_id].all_ancestors = ancestors
+            label = label_hierarchy[label_id]
+            new_label_hierarchy[label_id] = Label(name=label.name, id=label.id,
+                                                  rank=label.rank,
+                                                  direct_parents=label.direct_parents,
+                                                  similar_terms=label.similar_terms,
+                                                  thesaurus=label.thesaurus,
+                                                  micro_thesaurus=label.micro_thesaurus,
+                                                  all_ancestors=ancestors)
+        return new_label_hierarchy
 
     @staticmethod
     def _get_all_ancestors(label_id, label_hierarchy):
@@ -349,7 +366,7 @@ class EuroVocLoader():
         label_id : int
 
         label_hierarchy : dict(int, Label)
-            Dictionary that mapps label_id to Label.
+            Dictionary that maps label_id to Label.
 
         """
         direct_parents = label_hierarchy[label_id].direct_parents
@@ -360,9 +377,8 @@ class EuroVocLoader():
             # for each parent, add all its parents to next iteration parents
             for label in direct_parents:
                 label_direct_parents = label_hierarchy[label].direct_parents
-                for parent in label_direct_parents:
-                    if parent not in parents:
-                        new_parents.add(parent)
+                new_parents.update(parent for parent in label_direct_parents if parent
+                                   not in parents)
             parents.update(new_parents)
             direct_parents = new_parents
         return parents
