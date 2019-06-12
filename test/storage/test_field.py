@@ -601,7 +601,8 @@ def test_multilabel_field_vocab_numericalization(tokens):
                                  [],
                                  np.array([0, 0, 0, 0, 0, 0])
                              )
-                         ])
+                         ]
+                         )
 def test_multilabel_field_custom_numericalization(tokens, expected_numericalization):
     index_dict = {
         "class1": 0,
@@ -693,10 +694,9 @@ def test_missing_values_fail():
         fld.preprocess(None)
 
 
-def test_multioutput_field():
+def test_multioutput_field_posttokenization():
     uppercase_field = Field("uppercase_field")
     lowercase_field = Field("lowercase_field")
-    mo_field = MultioutputField(tokenizer='split')
 
     def post_tokenization_all_upper(raw, tokenized):
         return raw, list(map(str.upper, tokenized))
@@ -707,10 +707,37 @@ def test_multioutput_field():
     uppercase_field.add_posttokenize_hook(post_tokenization_all_upper)
     lowercase_field.add_posttokenize_hook(post_tokenization_all_lower)
 
-    for f in uppercase_field, lowercase_field:
-        mo_field.add_output_field(f)
+    output_fields = uppercase_field, lowercase_field
+    mo_field = MultioutputField(output_fields,
+                                tokenizer='split'
+                                )
 
     result1, result2 = mo_field.preprocess("mOcK TeXt")
 
     assert result1 == (uppercase_field.name, ("mOcK TeXt", ["MOCK", "TEXT"]))
     assert result2 == (lowercase_field.name, ("mOcK TeXt", ["mock", 'text']))
+
+
+def test_multioutput_field_remove_pretokenization():
+    output_field_1 = Field("test_field_1")
+    output_field_2 = Field("test_field_2")
+
+    def first_lower(raw, tokenized):
+        def f(token):
+            if len(token) == 0:
+                return ""
+            else:
+                return token[0].lower() + token[1:]
+
+        return raw, list(map(f, tokenized))
+
+    output_field_2.add_posttokenize_hook(first_lower)
+
+    mo_field = MultioutputField((output_field_1, output_field_2))
+    mo_field.add_pretokenize_hook(str.upper)
+
+    (_, (raw_1, tokenized_1)), (_, (raw_2, tokenized_2)) = \
+        mo_field.preprocess("this is a test sentence")
+
+    assert tokenized_1 == ["THIS", "IS", "A", "TEST", "SENTENCE"]
+    assert tokenized_2 == ["tHIS", "iS", "a", "tEST", "sENTENCE"]

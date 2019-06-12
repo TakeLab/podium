@@ -613,10 +613,9 @@ def test_unpack_fields():
     field1 = Field("field1")
     field2 = Field("field2")
     field3 = Field("field3")
-    mo_field = MultioutputField()
 
-    for f in field1, field2:
-        mo_field.add_output_field(f)
+    output_fields = field1, field2
+    mo_field = MultioutputField(output_fields)
 
     assert unpack_fields([field1, field2]) == [field1, field2]
     assert unpack_fields([field1, (field2, field3)]) == [field1, field2, field3]

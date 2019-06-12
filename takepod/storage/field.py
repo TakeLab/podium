@@ -9,7 +9,7 @@ from takepod.preproc.tokenizers import get_tokenizer
 _LOGGER = logging.getLogger(__name__)
 
 
-class ProcessingPipeline:
+class PretokenizationPipeline:
 
     def __init__(self, hooks=()):
         self.hooks = deque(hooks)
@@ -17,14 +17,41 @@ class ProcessingPipeline:
     def add_hook(self, hook):
         self.hooks.append(hook)
 
-    def process(self, *data):
+    def process(self, raw):
+        processed = raw
+
         for hook in self.hooks:
-            data = hook(*data)
+            processed = hook(processed)
 
-        return data
+        return processed
 
-    def __call__(self, *args, **kwargs):
-        return self.process(*args, **kwargs)
+    def __call__(self, raw):
+        return self.process(raw)
+
+    def clear(self):
+        self.hooks.clear()
+
+
+class PosttokenizationPipeline:
+    def __init__(self, hooks=()):
+        self.hooks = deque(hooks)
+
+    def add_hook(self, hook):
+        self.hooks.append(hook)
+
+    def process(self, raw, tokenized):
+        processed_raw, processed_tokenized = raw, tokenized
+
+        for hook in self.hooks:
+            processed_raw, processed_tokenized = hook(processed_raw, processed_tokenized)
+
+        if processed_tokenized is not None:
+            processed_tokenized = list(processed_tokenized)
+
+        return processed_raw, processed_tokenized
+
+    def __call__(self, raw, tokenized):
+        return self.process(raw, tokenized)
 
     def clear(self):
         self.hooks.clear()
@@ -36,6 +63,7 @@ class MultioutputField:
     for posttokenization processing (posttokenization hooks and vocab updating)."""
 
     def __init__(self,
+                 output_fields,
                  tokenizer='split',
                  language='en'):
         """Field that does pretokenization and tokenization once and passes it to its
@@ -44,6 +72,9 @@ class MultioutputField:
 
         Parameters
         ----------
+         output_fields : iterable
+            iterable containig the output fields. The pretokenization hooks and tokenizer
+            in these fields are ignored and only posttokenization hooks are used.
          tokenizer : str | callable
             The tokenizer that is to be used when preprocessing raw data
             (only if 'tokenize' is True). The user can provide his own
@@ -62,9 +93,9 @@ class MultioutputField:
 
         self.language = language
         self._tokenizer_arg = tokenizer
-        self.pretokenization_pipeline = ProcessingPipeline()
+        self.pretokenization_pipeline = PretokenizationPipeline()
         self.tokenizer = get_tokenizer(tokenizer, language)
-        self.output_fields = deque()
+        self.output_fields = deque(output_fields)
 
     def add_pretokenize_hook(self, hook):
         """Add a pre-tokenization hook to the MultioutputField.
@@ -135,6 +166,11 @@ class MultioutputField:
             an Iterable of the contained output fields.
         """
         return self.output_fields
+
+    def remove_pretokenize_hooks(self):
+        """Remove all the pre-tokenization hooks that were added to the MultioutputField.
+        """
+        self.pretokenize_pipeline.clear()
 
 
 class Field(object):
@@ -266,8 +302,8 @@ class Field(object):
         self.is_target = is_target
         self.fixed_length = fixed_length
 
-        self.pretokenize_pipeline = ProcessingPipeline()
-        self.posttokenize_pipeline = ProcessingPipeline()
+        self.pretokenize_pipeline = PretokenizationPipeline()
+        self.posttokenize_pipeline = PosttokenizationPipeline()
         self.allow_missing_data = allow_missing_data
 
     @property
@@ -346,7 +382,7 @@ class Field(object):
     def remove_posttokenize_hooks(self):
         """Remove all the post-tokenization hooks that were added to the Field.
         """
-        self.posttokenize_hooks.clear()
+        self.posttokenize_pipeline.clear()
 
     def _run_pretokenization_hooks(self, data):
         """Runs pretokenization hooks on the raw data and returns the result.
@@ -407,8 +443,6 @@ class Field(object):
             will never all be False, so the function will never return (None, None).
         """
 
-        tokens = None
-
         if data is None:
             if not self.allow_missing_data:
                 error_msg = f"Missing data not allowed in field {self.name}"
@@ -426,20 +460,9 @@ class Field(object):
             # Preprocess the raw input
 
             data = self._run_pretokenization_hooks(data)
+            tokens = self.tokenizer(data) if self.tokenize else None
 
-            if self.tokenize:
-                # Tokenize the preprocessed raw data
-
-                tokens = self.tokenizer(data)
-
-                data, tokens = self._run_posttokenization_hooks(data, tokens)
-
-        if self.eager and self.use_vocab:
-            self.update_vocab(data, tokens)
-
-        raw = data if self.store_as_raw else None
-
-        return (self.name, (raw, tokens)),
+        return self._process_tokens(data, tokens),
 
     def update_vocab(self, raw, tokenized):
         """Updates the vocab with a data point in its raw and tokenized form.
