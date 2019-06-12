@@ -598,8 +598,8 @@ def test_multilabel_field_class_count():
     example_1 = ["class1", "class2", "class3", "class4"]
     example_2 = ["class1", "class2", "class3"]
 
-    data_1 = field.preprocess(example_1)
-    data_2 = field.preprocess(example_2)
+    (_, data_1), = field.preprocess(example_1)
+    (_, data_2), = field.preprocess(example_2)
     field.finalize()
 
     assert field.num_of_classes == 4
@@ -634,7 +634,7 @@ def test_multilabel_field_custom_numericalization(tokens, expected_numericalizat
 
     field = MultilabelField(name="test field", num_of_classes=6,
                             custom_numericalize=index_dict.get)
-    preprocessed = field.preprocess(tokens)
+    (_, preprocessed), = field.preprocess(tokens)
     field.finalize()
 
     multilabel_from_field = field.numericalize(preprocessed)
