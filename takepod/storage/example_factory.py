@@ -1,5 +1,5 @@
-"""Module containing the Example Factory method used to dynamically create example classes
-used for storage in Dataset classes"""
+"""Module containing the Example Factory method used to dynamically create example
+classes used for storage in Dataset classes"""
 
 import logging
 import json
