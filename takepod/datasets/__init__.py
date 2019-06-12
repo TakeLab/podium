@@ -3,4 +3,4 @@
 from .pauza_dataset import PauzaHRDataset
 from .catacx_dataset import CatacxDataset
 
-__all__ = ["PauzaHRDataset", CatacxDataset]
+__all__ = ["PauzaHRDataset", "CatacxDataset"]

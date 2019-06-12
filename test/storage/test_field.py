@@ -565,7 +565,7 @@ def test_tokenized_field_vocab_non_string():
 
 def test_multilabel_field_specials_in_vocab_fail():
     with pytest.raises(ValueError):
-        MultilabelField("bla",
+        MultilabelField(name="bla",
                         vocab=Vocab(specials=(SpecialVocabSymbols.UNK,)),
                         num_of_classes=10)
 
@@ -591,6 +591,26 @@ def test_multilabel_field_vocab_numericalization(tokens):
     assert np.all(multilabel_from_field == multilabel_from_vocab)
 
 
+def test_multilabel_field_class_count():
+    vocab = Vocab(specials=())
+    field = MultilabelField(name="test field", num_of_classes=None, vocab=vocab)
+
+    example_1 = ["class1", "class2", "class3", "class4"]
+    example_2 = ["class1", "class2", "class3"]
+
+    data_1 = field.preprocess(example_1)
+    data_2 = field.preprocess(example_2)
+    field.finalize()
+
+    assert field.num_of_classes == 4
+
+    numericalized = field.numericalize(data_1)
+    assert len(numericalized) == 4
+
+    numericalized = field.numericalize(data_2)
+    assert len(numericalized) == 4
+
+
 @pytest.mark.parametrize("tokens, expected_numericalization",
                          [
                              (
@@ -601,8 +621,7 @@ def test_multilabel_field_vocab_numericalization(tokens):
                                  [],
                                  np.array([0, 0, 0, 0, 0, 0])
                              )
-                         ]
-                         )
+                         ])
 def test_multilabel_field_custom_numericalization(tokens, expected_numericalization):
     index_dict = {
         "class1": 0,
@@ -613,8 +632,9 @@ def test_multilabel_field_custom_numericalization(tokens, expected_numericalizat
         "class6": 5
     }
 
-    field = MultilabelField("test field", 6, custom_numericalize=index_dict.get)
-    _, preprocessed = field.preprocess(tokens)[0]
+    field = MultilabelField(name="test field", num_of_classes=6,
+                            custom_numericalize=index_dict.get)
+    preprocessed = field.preprocess(tokens)
     field.finalize()
 
     multilabel_from_field = field.numericalize(preprocessed)
@@ -624,7 +644,7 @@ def test_multilabel_field_custom_numericalization(tokens, expected_numericalizat
 
 def test_multilabel_too_many_classes_in_data_exception():
     vocab = Vocab(specials=())
-    field = MultilabelField("test_field", num_of_classes=3, vocab=vocab)
+    field = MultilabelField(name="test_field", num_of_classes=3, vocab=vocab)
 
     for data in "cls1", "cls2", "cls3", "cls4":
         field.preprocess(data)
@@ -647,7 +667,7 @@ def test_field_fail_initialization(store_as_raw, store_as_tokenized, tokenize):
 
 
 def test_missing_values_default_sequential():
-    fld = Field("bla",
+    fld = Field(name="bla",
                 store_as_raw=False,
                 tokenize=True,
                 custom_numericalize=lambda x: hash(x),
@@ -665,7 +685,7 @@ def test_missing_values_default_sequential():
 
 
 def test_missing_values_default_not_sequential():
-    fld = Field("bla",
+    fld = Field(name="bla",
                 store_as_raw=True,
                 tokenize=False,
                 custom_numericalize=int,
@@ -685,7 +705,7 @@ def test_missing_values_default_not_sequential():
 
 
 def test_missing_values_fail():
-    fld = Field("bla",
+    fld = Field(name="bla",
                 store_as_raw=True,
                 tokenize=False,
                 custom_numericalize=lambda x: hash(x))
