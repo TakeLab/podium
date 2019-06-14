@@ -458,7 +458,6 @@ class Field(object):
 
         else:
             # Preprocess the raw input
-
             data = self._run_pretokenization_hooks(data)
             tokens = self.tokenizer(data) if self.tokenize else None
 
