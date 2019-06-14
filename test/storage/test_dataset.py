@@ -530,6 +530,25 @@ def test_tabular_dataset_exception(file_format, use_dict,
         next(getattr(td, "not_text"))
 
 
+def test_dataset_range(data, field_list):
+    dataset = create_dataset(data, field_list)
+
+    def fst(x):
+        return x[0]
+
+    def get_raw(example):
+        return example.text[0]
+
+    dataset_0_4 = dataset.get_range(end=4)
+    assert list(map(get_raw, dataset_0_4)) == list(map(fst, data[0:4]))
+
+    dataset_2_end = dataset.get_range(start=2)
+    assert list(map(get_raw, dataset_2_end)) == list(map(fst, data[2:None]))
+
+    dataset_2_4 = dataset.get_range(2, 4)
+    assert list(map(get_raw, dataset_2_4)) == list(map(fst, data[2:4]))
+
+
 @pytest.fixture
 def field_list():
     return [MockField(field_name, eager, is_target=(field_name == "label"))

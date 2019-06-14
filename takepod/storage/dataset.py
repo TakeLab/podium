@@ -276,6 +276,17 @@ class Dataset(ABC):
         """
         self.__dict__ = state
 
+    def get_range(self, start=None, end=None):
+        examples = self.examples[start:end]
+        return Dataset(examples,
+                       self.fields,
+                       self.sort_key)
+
+    def shuffle_examples(self, random_state=None):
+
+        random.setstate(random_state)
+        random.shuffle(self.examples)
+
 
 class TabularDataset(Dataset):
     """
