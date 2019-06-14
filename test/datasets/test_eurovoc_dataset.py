@@ -4,16 +4,16 @@ from takepod.dataload.eurovoc import Label, LabelRank, Document
 
 
 EXPECTED_EXAMPLES = [
-    {"title": r"title 1".split(),
-     "text": r"body text".split(),
+    {"title": "title 1".split(),
+     "text": "body text".split(),
      "eurovoc_labels": [3],
      "crovoc_labels": list()},
-    {"title": r"title 2".split(),
-     "text": r"body text".split(),
+    {"title": "title 2".split(),
+     "text": "body text".split(),
      "eurovoc_labels": [4],
      "crovoc_labels": [13]},
-    {"title": r"title 3".split(),
-     "text": r"body text".split(),
+    {"title": "title 3".split(),
+     "text": "body text".split(),
      "eurovoc_labels": [3, 4],
      "crovoc_labels": list()},
 ]
@@ -199,7 +199,7 @@ def mappings_missing_document():
     return mappings
 
 
-def mappings_non_exising_label():
+def mappings_non_existing_label():
     mappings = dict()
     mappings[100] = [3, 5]
     mappings[200] = [4, 13]
@@ -251,8 +251,6 @@ def test_loaded_eurovoc_labels(default_dataset):
                       "direct_parents": label.direct_parents,
                       "similar_terms": label.similar_terms,
                       "all_ancestors": label.all_ancestors}
-        print(label.id, label.name, label.all_ancestors)
-        print(label_data)
         assert label_data in EXPECTED_EUROVOC_LABELS
 
 
@@ -268,8 +266,6 @@ def test_loaded_crovoc_labels(default_dataset):
                       "direct_parents": label.direct_parents,
                       "similar_terms": label.similar_terms,
                       "all_ancestors": label.all_ancestors}
-        print(label.id, label.name, label.all_ancestors)
-        print(label_data)
         assert label_data in EXPECTED_CROVOC_LABELS
 
 
@@ -296,7 +292,7 @@ def test_missing_document_mapping():
 def test_non_existing_label():
     dataset = EuroVocDataset(eurovoc_labels=eurovoc_label_hierarchy(),
                              crovoc_labels=crovoc_label_hierarchy(),
-                             mappings=mappings_non_exising_label(),
+                             mappings=mappings_non_existing_label(),
                              documents=documents())
 
     assert len(dataset) == 3

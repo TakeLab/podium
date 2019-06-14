@@ -1,5 +1,6 @@
 "Module contains EuroVoc dataset."
 import os
+import re
 import functools
 import logging
 from takepod.storage import dataset
@@ -159,6 +160,8 @@ class EuroVocDataset(dataset.Dataset):
         boolean:
             True if label is ancestor to any of the example labels, False otherwise
         """
+        # the given label ca be either in crovoc or in eurovoc label hierarchy, therefore
+        # we need to check both hierarchies for ancestors
         example_labels = example.eurovoc_labels[1]
         example_labels.extend(example.crovoc_labels[1])
 
@@ -237,10 +240,9 @@ class EuroVocDataset(dataset.Dataset):
                       tokenize=True, store_as_raw=False)
         text = Field(name="text", vocab=Vocab(keep_freqs=True),
                      tokenizer='split', tokenize=True, store_as_raw=False)
-        text.add_posttokenize_hook(functools.partial(remove_punctuation_and_stopwords,
+        text.add_posttokenize_hook(functools.partial(remove_nonalpha_and_stopwords,
                                                      stop_words=set(CROATIAN_EXTENDED)))
-        text.add_posttokenize_hook(get_croatian_lemmatizer_hook(**{
-                                   SCPDownloader.USER_NAME_KEY: "dvesinger"}))
+        text.add_posttokenize_hook(get_croatian_lemmatizer_hook())
         labels = MultilabelField(name="eurovoc_labels", vocab=Vocab(specials=()))
         crovoc_labels = MultilabelField(name="crovoc_labels", vocab=Vocab(specials=()))
         fields = {"title": title, "text": text, "eurovoc_labels": labels,
@@ -248,7 +250,7 @@ class EuroVocDataset(dataset.Dataset):
         return fields
 
 
-def remove_punctuation_and_stopwords(raw, tokenized, stop_words):
+def remove_nonalpha_and_stopwords(raw, tokenized, stop_words):
     """Removes all non alphabetical characters and stop words from tokens.
 
     Parameters
@@ -264,8 +266,9 @@ def remove_punctuation_and_stopwords(raw, tokenized, stop_words):
     tuple(str, list(str))
     """
     tokens = []
+    pattern = re.compile('[\W_]+')
     for token in tokenized:
-        token = ''.join(c for c in token if c.isalpha())
+        pattern.sub('', token)
         if len(token) > 1 and token not in stop_words:
             tokens.append(token)
     return (raw, tokens)
