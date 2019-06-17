@@ -410,7 +410,7 @@ def test_hierarchial_dataset_iterator_numericalization_caching(hierarchical_data
             assert getattr(example, f"{field.name}_") is None
 
     # Run one epoch to cause lazy numericalization
-    hit = HierarchicalDatasetIterator(hierarchical_dataset, batch_size=20,
+    hit = HierarchicalDatasetIterator(dataset=hierarchical_dataset, batch_size=20,
                                       context_max_depth=2)
     for _ in hit:
         pass
