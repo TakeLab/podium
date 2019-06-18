@@ -7,7 +7,6 @@ from mock import patch
 
 from takepod.dataload.eurovoc import EuroVocLoader, Label, LabelRank
 from takepod.storage.large_resource import LargeResource
-from takepod.storage.downloader import SCPDownloader
 
 EUROVOC_LABELS = r"""
 <DATABASE_THS>
