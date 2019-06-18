@@ -48,7 +48,16 @@ class Dataset(ABC):
         self.sort_key = sort_key
 
     def __getitem__(self, i):
-        return self.examples[i]
+        if isinstance(i, slice):
+            return self._dataset_copy_with_examples(self.examples[i])
+
+        elif isinstance(i, int):
+            return self.examples[i]
+
+        else:
+            # Numpy style multi-indexing
+            indexed_examples = [self.examples[index] for index in i]
+            return self._dataset_copy_with_examples(indexed_examples)
 
     def __len__(self):
         return len(self.examples)
@@ -276,8 +285,8 @@ class Dataset(ABC):
         """
         self.__dict__ = state
 
-    def get_range(self, start=None, end=None):
-        examples = self.examples[start:end]
+    def _dataset_copy_with_examples(self, examples):
+        # TODO Deep copy of fields?
         return Dataset(examples,
                        self.fields,
                        self.sort_key)
