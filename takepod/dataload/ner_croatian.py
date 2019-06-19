@@ -2,11 +2,10 @@
 import glob
 import os
 import logging
-import getpass
 import xml.etree.ElementTree as ET
 
 from takepod.preproc.tokenizers import get_tokenizer
-from takepod.storage.large_resource import LargeResource, SCPLargeResource
+from takepod.storage.large_resource import init_scp_large_resource_from_kwargs
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -45,40 +44,25 @@ class NERCroatianXMLLoader:
                 same entity are prefixed with 'I-'. The tokens that don't
                 belong to any named entity are labeled 'O'
         **kwargs:
-            scp_user:
+            SCPLargeResource.SCP_USER_KEY:
                 User on the host machine. Not required if the user on the
                 local machine matches the user on the host machine.
-            scp_private_key:
+            SCPLargeResource.SCP_PRIVATE_KEY:
                 Path to the ssh private key eligible to access the host
                 machine. Not required on Unix if the private is in the default
                 location.
-            scp_pass_key:
+            SCPLargeResource.SCP_PASS_KEY:
                 Password for the ssh private key (optional). Can be omitted
                 if the private key is not encrypted.
         """
         self._data_dir = path
         self._tokenizer = get_tokenizer(tokenizer)
         self._label_resolver = self._get_label_resolver(tag_schema)
-
-        if 'scp_user' not in kwargs:
-            # if your username is same as one on djurdja
-            scp_user = getpass.getuser()
-        else:
-            scp_user = kwargs['scp_user']
-
-        scp_private_key = kwargs.get('scp_private_key', None)
-        scp_pass_key = kwargs.get('scp_pass_key', None)
-
-        config = {
-            LargeResource.URI: NERCroatianXMLLoader.URL,
-            LargeResource.RESOURCE_NAME: NERCroatianXMLLoader.NAME,
-            LargeResource.ARCHIVE: NERCroatianXMLLoader.ARCHIVE_TYPE,
-            SCPLargeResource.SCP_HOST_KEY: NERCroatianXMLLoader.SCP_HOST,
-            SCPLargeResource.SCP_USER_KEY: scp_user,
-            SCPLargeResource.SCP_PRIVATE_KEY: scp_private_key,
-            SCPLargeResource.SCP_PASS_KEY: scp_pass_key
-        }
-        SCPLargeResource(**config)
+        init_scp_large_resource_from_kwargs(
+            resource=NERCroatianXMLLoader.NAME, uri=NERCroatianXMLLoader.URL,
+            archive=NERCroatianXMLLoader.ARCHIVE_TYPE, user_dict=kwargs,
+            scp_host=NERCroatianXMLLoader.SCP_HOST
+        )
 
     def load_dataset(self):
         """
@@ -212,8 +196,6 @@ class NERCroatianXMLLoader:
         """
         if label is None:
             return 'O'
-
-        if index == 0:
+        elif index == 0:
             return 'B-' + label
-        else:
-            return 'I-' + label
+        return 'I-' + label

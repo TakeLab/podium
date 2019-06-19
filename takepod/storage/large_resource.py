@@ -2,6 +2,7 @@
 large resources that should be downloaded should use this module."""
 import os
 import tempfile
+import getpass
 import logging
 from takepod.storage.downloader import SimpleHttpDownloader, SCPDownloader
 from takepod.storage import utility
@@ -197,3 +198,43 @@ class SCPLargeResource(LargeResource):
                                path=download_destination,
                                overwrite=False,
                                **self._scp_config)
+
+
+def init_scp_large_resource_from_kwargs(resource, uri, archive, scp_host, user_dict):
+    """Method initializes scp resource from resource informations and user credentials
+
+    Parameters
+    ----------
+    resource : str
+        resource name, same as LargeResource.RESOURCE_NAME
+    uri : str
+        resource uri, same as LargeResource.URI
+    archive : str
+        archive type, see LargeResource.ARCHIVE
+    scp_host : str
+        remote host adress, see SCPLargeResource.SCP_HOST_KEY
+    user_dict : dict(str, str)
+        user dictionary that may contain scp_user that defines username,
+        scp_private_key that defines path to private key, scp_pass_key that defines user
+        password
+    """
+
+    if SCPLargeResource.SCP_USER_KEY not in user_dict:
+        # if your username is same as the one on the server
+        scp_user = getpass.getuser()
+    else:
+        scp_user = user_dict[SCPLargeResource.SCP_USER_KEY]
+
+    scp_private_key = user_dict.get(SCPLargeResource.SCP_PRIVATE_KEY, None)
+    scp_pass_key = user_dict.get(SCPLargeResource.SCP_PASS_KEY, None)
+
+    config = {
+        LargeResource.URI: uri,
+        LargeResource.RESOURCE_NAME: resource,
+        LargeResource.ARCHIVE: archive,
+        SCPLargeResource.SCP_HOST_KEY: scp_host,
+        SCPLargeResource.SCP_USER_KEY: scp_user,
+        SCPLargeResource.SCP_PRIVATE_KEY: scp_private_key,
+        SCPLargeResource.SCP_PASS_KEY: scp_pass_key
+    }
+    SCPLargeResource(**config)

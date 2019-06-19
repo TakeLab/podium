@@ -6,8 +6,7 @@ import pytest
 from mock import patch
 
 from takepod.dataload.eurovoc import EuroVocLoader, Label, LabelRank
-from takepod.storage.large_resource import LargeResource
-from takepod.storage.downloader import SCPDownloader
+from takepod.storage.large_resource import LargeResource, SCPLargeResource
 
 EUROVOC_LABELS = r"""
 <DATABASE_THS>
@@ -459,7 +458,7 @@ def test_loading_dataset_with_invalid_labels():
         path = create_mock_dataset(invalid_labels=True)
         with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
             loader = EuroVocLoader()
-            eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
+            loader.load_dataset()
 
 
 def test_loading_dataset_with_non_existing_thesaurus():
@@ -467,16 +466,16 @@ def test_loading_dataset_with_non_existing_thesaurus():
     path = create_mock_dataset(non_existing_thesaurus=True)
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
         loader = EuroVocLoader()
-        eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
+        eurovoc_labels, _, _, _ = loader.load_dataset()
 
         label = eurovoc_labels[3]
         assert label.thesaurus is None
 
 
 def mock_download(self):
-    assert self.config['scp_user'] == 'username'
-    assert self.config['scp_priv'] == 'private_key'
-    assert self.config['scp_pass'] == 'pass'
+    assert self.config[SCPLargeResource.SCP_USER_KEY] == 'username'
+    assert self.config[SCPLargeResource.SCP_PRIVATE_KEY] == 'private_key'
+    assert self.config[SCPLargeResource.SCP_PASS_KEY] == 'pass'
 
 
 @patch.object(LargeResource, '_download_unarchive', mock_download)
@@ -486,8 +485,8 @@ def test_download_dataset_using_scp():
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", base):
         assert os.path.exists(LargeResource.BASE_RESOURCE_DIR)
 
-        loader = EuroVocLoader(
-            scp_user='username',
-            scp_private_key='private_key',
-            scp_pass_key='pass'
-        )
+        EuroVocLoader(**{
+            SCPLargeResource.SCP_USER_KEY: 'username',
+            SCPLargeResource.SCP_PRIVATE_KEY: 'private_key',
+            SCPLargeResource.SCP_PASS_KEY: 'pass'
+        })

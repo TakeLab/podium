@@ -34,11 +34,25 @@ def capitalize_target_like_source(func):
         if is_lower:
             return target
         else:
-            return _uppercase_target_like_source(source, target)
+            return uppercase_target_like_source(source, target)
     return _wrapper
 
 
-def _uppercase_target_like_source(source, target):
+def uppercase_target_like_source(source, target):
+    """Function uppercases target on the same places source is uppercased.
+
+    Parameters
+    ----------
+    source : str
+        source string from which uppercasing is transfered
+    target : str
+        target string that needs to be uppercased
+
+    Returns
+    -------
+    uppercased_target : str
+        uppercased target string
+    """
     uppercased_target = ''.join([
         target[i].upper()
         if s.isupper() and s.lower() == target[i] else target[i]
@@ -79,9 +93,8 @@ def make_trie(words):
 
 
 def find_word_by_prefix(trie, word):
-    """Searches through a trie data structure and
-    returns an element of the trie is the word
-    is a prefix or exact match of one of the trie elements.
+    """Searches through a trie data structure and returns an element of the trie is the
+    word is a prefix or exact match of one of the trie elements.
     Otherwise returns None
 
     Parameters
@@ -112,6 +125,5 @@ def find_word_by_prefix(trie, word):
     # reached end of the given word
     if TRIE_END_SYMBOL in trie:
         return word
-    else:
-        # partial match in trie found
-        return None
+    # partial match in trie found
+    return None

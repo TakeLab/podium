@@ -70,14 +70,14 @@ class CroatianNERDataset(dataset.Dataset):
             default fields are used.
 
         **kwargs:
-            scp_user:
+            SCPLargeResource.SCP_USER_KEY:
                 User on the host machine. Not required if the user on the
                 local machine matches the user on the host machine.
-            scp_private_key:
+            SCPLargeResource.SCP_PRIVATE_KEY:
                 Path to the ssh private key eligible to access the host
                 machine. Not required on Unix if the private is in the default
                 location.
-            scp_pass_key:
+            SCPLargeResource.SCP_PASS_KEY:
                 Password for the ssh private key (optional). Can be omitted
                 if the private key is not encrypted.
 
