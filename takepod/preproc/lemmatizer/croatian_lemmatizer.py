@@ -4,16 +4,17 @@ inflections for a lemma, or return the lemma of any
 word inflexion for the Croatian language."""
 import os
 import logging
-import getpass
 import functools
 
-from takepod.preproc.util import capitalize_target_like_source
-from takepod.storage.large_resource import SCPLargeResource
+from takepod.preproc.util import (capitalize_target_like_source,
+                                  uppercase_target_like_source)
+from takepod.storage.large_resource import (init_scp_large_resource_from_kwargs,
+                                            SCPLargeResource)
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class CroatianLemmatizer(SCPLargeResource):
+class CroatianLemmatizer():
     """Class for lemmatizing words and fetching word
     inflections for a given lemma
 
@@ -50,18 +51,10 @@ class CroatianLemmatizer(SCPLargeResource):
 
         # automatically downloads molex resources
         # defaults should work for linux and access to djurdja.fer.hr
-        kwargs.update({
-            SCPLargeResource.URI: "/storage/molex/molex.zip",
-            SCPLargeResource.RESOURCE_NAME: self.BASE_FOLDER,
-            SCPLargeResource.ARCHIVE: "zip",
-            SCPLargeResource.SCP_HOST_KEY: "djurdja.takelab.fer.hr",
-            # if your username is same as one on djurdja
-            SCPLargeResource.SCP_USER_KEY: kwargs.get(
-                SCPLargeResource.SCP_USER_KEY, getpass.getuser()
-            ),
-        })
-        super(CroatianLemmatizer, self).__init__(
-            **kwargs)
+        init_scp_large_resource_from_kwargs(
+            resource=self.BASE_FOLDER, uri="/storage/molex/molex.zip", user_dict=kwargs,
+            archive="zip", scp_host="djurdja.takelab.fer.hr"
+        )
 
     @capitalize_target_like_source
     def lemmatize_word(self, word, **kwargs):
@@ -84,9 +77,9 @@ class CroatianLemmatizer(SCPLargeResource):
             the original word
         """
         try:
-                none_if_oov = kwargs['none_if_oov']
+            none_if_oov = kwargs['none_if_oov']
         except KeyError:
-                none_if_oov = False
+            none_if_oov = False
 
         try:
             return self._word2lemma[word]
@@ -119,7 +112,7 @@ class CroatianLemmatizer(SCPLargeResource):
             return [
                 w
                 if is_lower
-                else _uppercase_target_like_source(lemma, w)
+                else uppercase_target_like_source(lemma, w)
                 for w in words
             ]
         except KeyError:
@@ -158,16 +151,6 @@ class CroatianLemmatizer(SCPLargeResource):
                 words = words.rstrip().split(',')
                 molex_dict[lemma] = words
         return molex_dict
-
-
-def _uppercase_target_like_source(source, target):
-    uppercased_target = ''.join([
-        target[i].upper()
-        if s.isupper() and s.lower() == target[i] else target[i]
-        for i, s in zip(range(len(target)), source)
-    ])
-    uppercased_target += target[len(source):]
-    return uppercased_target
 
 
 def _lemmatizer_posttokenized_hook(

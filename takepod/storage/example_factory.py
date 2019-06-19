@@ -6,13 +6,25 @@ import json
 import csv
 
 import xml.etree.ElementTree as ET
+from takepod.storage.field import unpack_fields
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class Example(object):
+class Example:
+    """Method models one example with fields that hold
+    (raw, tokenized) values and special fields with "_"
+    at the end that can cache numericalized values"""
 
     def __init__(self, fieldnames):
+        """Method initializes example with given list of
+        fieldnames
+
+        Parameters
+        ----------
+        fieldnames : list(str)
+            list of field names
+        """
         for fieldname in fieldnames:
             setattr(self, fieldname, None)
 
@@ -48,6 +60,13 @@ class ExampleFactory:
         self.fieldnames += [f"{fieldname}_" for fieldname in self.fieldnames]
 
     def create_empty_example(self):
+        """Method creates empty example with field names stored in example factory.
+
+        Returns
+        -------
+        example : Example
+            empty Example instance with initialized field names
+        """
         return Example(self.fieldnames)
 
     def from_dict(self, data):
@@ -216,35 +235,6 @@ def tree_to_list(tree):
         tree represented as list with its label
     """
     return [' '.join(tree.leaves()), tree.label()]
-
-
-def unpack_fields(fields):
-    """Flattens the given fields object into a flat list of fields.
-
-    Parameters
-    ----------
-    fields : (list | dict)
-        List or dict that can contain nested tuples and None as values and
-        column names as keys (dict).
-
-    Returns
-    -------
-    list[Field]
-        A flat list of Fields found in the given 'fields' object.
-    """
-
-    unpacked_fields = list()
-
-    fields = fields.values() if isinstance(fields, dict) else fields
-
-    # None values represent columns that should be ignored
-    for field in filter(lambda f: f is not None, fields):
-        if isinstance(field, tuple):
-            unpacked_fields.extend(field)
-        else:
-            unpacked_fields.append(field)
-
-    return unpacked_fields
 
 
 def _set_example_attributes(example, field, val):

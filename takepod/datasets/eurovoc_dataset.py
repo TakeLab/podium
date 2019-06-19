@@ -9,7 +9,6 @@ from takepod.storage import Field, MultilabelField
 from takepod.storage import Vocab
 from takepod.preproc.stop_words import CROATIAN_EXTENDED
 from takepod.preproc.lemmatizer.croatian_lemmatizer import get_croatian_lemmatizer_hook
-from takepod.storage.downloader import SCPDownloader
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -198,8 +197,7 @@ class EuroVocDataset(dataset.Dataset):
             label = self._crovoc_label_hierarchy[label_id]
             return label.direct_parents
 
-        else:
-            return None
+        return None
 
     def get_all_ancestors(self, label_id):
         """Returns ids of all ancestors of the label with the given label id.
@@ -224,8 +222,7 @@ class EuroVocDataset(dataset.Dataset):
             label = self._crovoc_label_hierarchy[label_id]
             return label.all_ancestors
 
-        else:
-            return None
+        return None
 
     @staticmethod
     def _get_default_fields():

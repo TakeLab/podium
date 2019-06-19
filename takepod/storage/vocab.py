@@ -8,6 +8,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class VocabDict(dict):
+    """Vocab dictionary class that is used like default dict but without adding missing
+    key to the dictionary."""
     def __init__(self, default_factory=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._default_factory = default_factory
