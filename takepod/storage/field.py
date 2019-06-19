@@ -1,5 +1,6 @@
 """Module contains dataset's field definition and methods for construction."""
 import logging
+import itertools
 from collections import deque
 
 import numpy as np
@@ -170,10 +171,10 @@ class MultioutputField:
     def remove_pretokenize_hooks(self):
         """Remove all the pre-tokenization hooks that were added to the MultioutputField.
         """
-        self.pretokenize_pipeline.clear()
+        self.pretokenization_pipeline.clear()
 
 
-class Field(object):
+class Field:
     """Holds the preprocessing and numericalization logic for a single
     field of a dataset.
     """
@@ -863,8 +864,15 @@ def unpack_fields(fields):
     # None values represent columns that should be ignored
     for field in filter(lambda f: f is not None, fields):
         if isinstance(field, tuple):
-            unpacked_fields.extend(field)
+            # Map fields to their output field lists
+            output_fields = map(lambda f: f.get_output_fields(), field)
+
+            # Flatten output fields to a flat list
+            output_fields = itertools.chain.from_iterable(output_fields)
+
         else:
-            unpacked_fields.append(field)
+            output_fields = field.get_output_fields()
+
+        unpacked_fields.extend(output_fields)
 
     return unpacked_fields
