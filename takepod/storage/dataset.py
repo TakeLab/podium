@@ -287,6 +287,7 @@ class Dataset(ABC):
 
     def _dataset_copy_with_examples(self, examples):
         # TODO Deep copy of fields?
+        # TODO Deep copy of examples?
         return Dataset(examples,
                        self.fields,
                        self.sort_key)
