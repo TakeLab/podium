@@ -74,14 +74,14 @@ class ExampleFactory:
 
         for key, fields in self.fields.items():
             val = data.get(key)
-            _set_example_attributes(example, fields, val)
+            set_example_attributes(example, fields, val)
 
         return example
 
     def from_list(self, data):
         example = self.create_empty_example()
         for value, field in filter(lambda el: el[1] is not None, zip(data, self.fields)):
-            _set_example_attributes(example, field, value)
+            set_example_attributes(example, field, value)
 
         return example
 
@@ -126,7 +126,7 @@ class ExampleFactory:
                     raise ValueError(error_msg)
 
             val = node.text
-            _set_example_attributes(example, field, val)
+            set_example_attributes(example, field, val)
 
         return example
 
@@ -237,7 +237,7 @@ def tree_to_list(tree):
     return [' '.join(tree.leaves()), tree.label()]
 
 
-def _set_example_attributes(example, field, val):
+def set_example_attributes(example, field, val):
     """Method sets example attributes with given values.
 
     Parameters

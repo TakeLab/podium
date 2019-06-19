@@ -4,7 +4,7 @@ import re
 import functools
 import logging
 from takepod.storage import dataset
-from takepod.storage.example_factory import ExampleFactory, _set_example_attributes
+from takepod.storage.example_factory import ExampleFactory, set_example_attributes
 from takepod.storage import Field, MultilabelField
 from takepod.storage import Vocab
 from takepod.preproc.stop_words import CROATIAN_EXTENDED
@@ -134,11 +134,11 @@ class EuroVocDataset(dataset.Dataset):
                                   "given label hierarchies.".format(document_id, label))
 
             example = example_factory.create_empty_example()
-            _set_example_attributes(example, fields["title"], document.title)
-            _set_example_attributes(example, fields["text"], document.text)
-            _set_example_attributes(example, fields["eurovoc_labels"],
-                                    eurovoc_labels)
-            _set_example_attributes(example, fields["crovoc_labels"], crovoc_labels)
+            set_example_attributes(example, fields["title"], document.title)
+            set_example_attributes(example, fields["text"], document.text)
+            set_example_attributes(example, fields["eurovoc_labels"],
+                                   eurovoc_labels)
+            set_example_attributes(example, fields["crovoc_labels"], crovoc_labels)
             examples.append(example)
 
         return examples
