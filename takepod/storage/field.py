@@ -9,7 +9,7 @@ from takepod.preproc.tokenizers import get_tokenizer
 _LOGGER = logging.getLogger(__name__)
 
 
-class Field(object):
+class Field:
     """Holds the preprocessing and numericalization logic for a single
     field of a dataset.
     """
@@ -372,10 +372,9 @@ class Field(object):
         if self.custom_numericalize is None and self.use_vocab:
             return self.vocab.numericalize(tokens)
 
-        else:
-            # custom numericalization for non-vocab data
-            # (such as floating point data Fields)
-            return np.array([self.custom_numericalize(tok) for tok in tokens])
+        # custom numericalization for non-vocab data
+        # (such as floating point data Fields)
+        return np.array([self.custom_numericalize(tok) for tok in tokens])
 
     def get_default_value(self):
         """Method obtains default field value for missing data.
@@ -388,8 +387,8 @@ class Field(object):
         """
         if self.sequential:
             return np.empty(0)
-        else:
-            return np.array([np.nan])
+
+        return np.array([np.nan])
 
     def numericalize(self, data):
         """Numericalize the already preprocessed data point based either on
@@ -657,3 +656,32 @@ def numericalize_multihot(tokens, token_indexer, num_of_classes):
     multihot_encoding = np.zeros(num_of_classes, dtype=np.bool)
     multihot_encoding[active_classes] = 1
     return multihot_encoding
+
+
+def unpack_fields(fields):
+    """Flattens the given fields object into a flat list of fields.
+
+    Parameters
+    ----------
+    fields : (list | dict)
+        List or dict that can contain nested tuples and None as values and
+        column names as keys (dict).
+
+    Returns
+    -------
+    list[Field]
+        A flat list of Fields found in the given 'fields' object.
+    """
+
+    unpacked_fields = list()
+
+    fields = fields.values() if isinstance(fields, dict) else fields
+
+    # None values represent columns that should be ignored
+    for field in filter(lambda f: f is not None, fields):
+        if isinstance(field, tuple):
+            unpacked_fields.extend(field)
+        else:
+            unpacked_fields.append(field)
+
+    return unpacked_fields

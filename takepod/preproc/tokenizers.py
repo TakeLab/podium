@@ -64,8 +64,8 @@ def get_tokenizer(tokenizer, language='en'):
     elif tokenizer == "split":
         return str.split
 
-    else:
-        error_msg = f"Wrong value given for the tokenizer: "\
-                    f"{tokenizer}"
-        _LOGGER.error(error_msg)
-        raise ValueError(error_msg)
+    # if tokenizer not found
+    error_msg = f"Wrong value given for the tokenizer: "\
+                f"{tokenizer}"
+    _LOGGER.error(error_msg)
+    raise ValueError(error_msg)
