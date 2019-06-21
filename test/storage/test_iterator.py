@@ -336,6 +336,25 @@ def np_arrays_equal(arr_1, arr_2):
     return arrs_equal
 
 
+@pytest.mark.usefixtures("tabular_dataset")
+def test_batch_as_vector_list(tabular_dataset):
+    tabular_dataset.finalize_fields()
+    text_vocab = tabular_dataset.field_dict["text"].vocab
+
+    iterator = Iterator(tabular_dataset, batch_size=3, batch_to_matrix=False)
+
+    example_index = 0
+    for x_batch, y_batch in iterator:
+        assert isinstance(x_batch.text, list)
+        assert isinstance(y_batch.rating, list)
+
+        for x, y in zip(x_batch.text, y_batch.rating):
+            example = tabular_dataset[example_index]
+            assert all(x == text_vocab.numericalize(example.text[1]))
+            assert y == [example.rating[0]]
+            example_index += 1
+
+
 @pytest.fixture()
 def hierarchical_dataset_fields():
     name_field = Field(name="name", store_as_raw=True, tokenize=False, vocab=Vocab())

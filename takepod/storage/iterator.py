@@ -26,6 +26,7 @@ class Iterator:
             self,
             dataset,
             batch_size,
+            batch_to_matrix=True,
             sort_key=None,
             shuffle=False,
             seed=1,
@@ -42,6 +43,10 @@ class Iterator:
             number of examples in the dataset is not a multiple of
             batch_size the last returned batch will be smaller
             (dataset_len MOD batch_size).
+        batch_to_matrix : bool
+            A flag denoting whether the vectors for a field in a batch should be
+            returned as a list of numpy vectors or a matrix where each row is a padded
+            vector
         sort_key : callable
             A callable object used to sort the dataset prior to batching. If
             None, the dataset won't be sorted.
@@ -90,6 +95,7 @@ class Iterator:
 
         self.batch_size = batch_size
         self.dataset = dataset
+        self.batch_to_matrix = batch_to_matrix
 
         self.shuffle = shuffle
 
@@ -214,20 +220,18 @@ class Iterator:
     def _create_batch(self, examples):
         # dicts that will be used to create the InputBatch and TargetBatch
         # objects
+        # TODO do profiling old vs new matrix creation (direct vs from vector list)
         input_batch_dict, target_batch_dict = {}, {}
-
         for field in self.dataset.fields:
-            # the length to which all the rows are padded (or truncated)
-            pad_length = Iterator._get_pad_length(field, examples)
+            # non-sequential fields all have length = 1, no padding necessary
+            should_pad = field.sequential and self.batch_to_matrix
 
-            # the last batch can have < batch_size examples
-            n_rows = min(self.batch_size, len(examples))
+            if should_pad:
+                # the length to which all the rows are padded (or truncated)
+                pad_length = Iterator._get_pad_length(field, examples)
 
             # empty matrix to be filled with numericalized fields
-            matrix = np.empty(shape=(n_rows, pad_length))
-
-            # non-sequential fields all have length = 1, no padding necessary
-            should_pad = True if field.sequential else False
+            vectors = list()
 
             for i, example in enumerate(examples):
 
@@ -238,12 +242,17 @@ class Iterator:
                     row = field.pad_to_length(row, pad_length)
 
                 # set the matrix row to the numericalized, padded array
-                matrix[i] = row
+                vectors.append(row)
+
+            if self.batch_to_matrix:
+                field_numericalization = np.vstack(vectors)
+            else:
+                field_numericalization = vectors
 
             if field.is_target:
-                target_batch_dict[field.name] = matrix
+                target_batch_dict[field.name] = field_numericalization
             else:
-                input_batch_dict[field.name] = matrix
+                input_batch_dict[field.name] = field_numericalization
 
         input_batch = self.input_batch_class(**input_batch_dict)
         target_batch = self.target_batch_class(**target_batch_dict)
@@ -307,6 +316,7 @@ class BucketIterator(Iterator):
             self,
             dataset,
             batch_size,
+            batch_to_matrix=True,
             sort_key=None,
             shuffle=True,
             seed=42,
@@ -347,9 +357,12 @@ class BucketIterator(Iterator):
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
-        super().__init__(
-            dataset, batch_size, sort_key=sort_key, shuffle=shuffle, seed=seed
-        )
+        super().__init__(dataset,
+                         batch_size,
+                         batch_to_matrix=batch_to_matrix,
+                         sort_key=sort_key,
+                         shuffle=shuffle,
+                         seed=seed)
 
         self.bucket_sort_key = bucket_sort_key
         self.look_ahead_multiplier = look_ahead_multiplier
