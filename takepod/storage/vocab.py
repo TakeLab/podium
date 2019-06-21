@@ -74,11 +74,11 @@ class Vocab:
         self._keep_freqs = keep_freqs
         self._min_freq = min_freq
 
-        specials = () if specials is None else specials
-        self._has_specials = len(specials) > 0
+        self.specials = () if specials is None else specials
+        self._has_specials = len(self.specials) > 0
 
-        self.itos = list(specials)
-        self._default_unk_index = self._init_default_unk_index(specials)
+        self.itos = list(self.specials)
+        self._default_unk_index = self._init_default_unk_index(self.specials)
         self.stoi = VocabDict(self._default_unk)
         self.stoi.update({k: v for v, k in enumerate(self.itos)})
 
