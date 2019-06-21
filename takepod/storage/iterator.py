@@ -573,6 +573,7 @@ class HierarchicalDatasetIterator(Iterator):
                     if should_pad:
                         row = field.pad_to_length(row, pad_length)
 
+                    # set the matrix row to the numericalized, padded array
                     matrix[i] = row
 
                 field_contextualized_example_matrices.append(matrix)

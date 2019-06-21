@@ -1,10 +1,10 @@
 """Package contains modules for storing and loading datasets and vectors."""
 
 from .dataset import Dataset, HierarchicalDataset, \
-    TabularDataset, stratified_split, rationed_split
+    TabularDataset, stratified_split, rationed_split, unpack_fields
 from .downloader import (BaseDownloader, SCPDownloader, HttpDownloader,
                          SimpleHttpDownloader)
-from .field import Field, TokenizedField, MultilabelField
+from .field import Field, TokenizedField, MultilabelField, MultioutputField
 from .iterator import Iterator, BucketIterator, HierarchicalDatasetIterator
 from .large_resource import LargeResource, SCPLargeResource
 from .vectorizer import VectorStorage, BasicVectorStorage
@@ -21,7 +21,8 @@ from .example_factory import ExampleFactory
 
 __all__ = ["Dataset", "HierarchicalDataset", "TabularDataset",
            "BaseDownloader", "SCPDownloader", "HttpDownloader", "SimpleHttpDownloader",
-           "Field", "TokenizedField", "MultilabelField",
+           "Field", "TokenizedField", "MultilabelField", "MultioutputField",
+           "unpack_fields",
            "Iterator", "BucketIterator", "HierarchicalDatasetIterator",
            "LargeResource", "SCPLargeResource",
            "VectorStorage", "BasicVectorStorage",

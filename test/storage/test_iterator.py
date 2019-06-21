@@ -114,7 +114,6 @@ def test_create_batch(tabular_dataset):
 
 @pytest.mark.usefixtures("tabular_dataset")
 def test_lazy_numericalization_caching(tabular_dataset):
-
     tabular_dataset.finalize_fields()
 
     # Check if caches are empty
@@ -160,7 +159,7 @@ def test_sort_key(tabular_dataset):
         (1, 2, 3, 3, False),
         (1, 2, 3, 4, False),
         (1, 1, 3, 3, True),  # expect identical behaviour only in the case of
-                             # same seeds and same number of epochs elapsed
+        # same seeds and same number of epochs elapsed
         (1, 1, 3, 4, False),
     ]
 )
