@@ -22,7 +22,7 @@ def get_numericalized_data(data, vocab):
     return numericalized_data
 
 
-def test_build_count_matrix_from_tensor():
+def test_build_count_matrix_from_tensor_without_specials():
     vocab = Vocab(specials=())
     for i in DATA:
         vocab += i.split(" ")
@@ -53,13 +53,72 @@ def test_build_count_matrix_from_tensor_with_specials():
     numericalized_data = get_numericalized_data(data=DATA, vocab=vocab)
     count_matrix = tfidf._build_count_matrix(data=numericalized_data,
                                              unpack_data=tfidf._get_tensor_values)
-
-    print(count_matrix.todense())
     expected = np.array([
         [1, 1, 1, 1, 1, 0, 0, 0, 0],
         [1, 1, 1, 2, 0, 1, 0, 0, 0],
         [1, 1, 1, 0, 0, 0, 1, 1, 1],
         [1, 1, 1, 1, 1, 0, 0, 0, 0]])
+    assert np.all(count_matrix == expected)
+
+
+def test_build_count_matrix_out_of_vocab_words():
+    vocab = Vocab(specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD))
+    vocab_words = ["this", "is", "the", "first", "document"]
+    for i in vocab_words:
+        vocab += i.split(" ")
+    vocab.finalize()
+    tfidf = TfIdfVectorizer(vocab=vocab)
+    tfidf._init_special_indexes()
+
+    numericalized_data = get_numericalized_data(data=DATA, vocab=vocab)
+    count_matrix = tfidf._build_count_matrix(data=numericalized_data,
+                                             unpack_data=tfidf._get_tensor_values)
+    expected = np.array([
+        [1, 1, 1, 1, 1],
+        [1, 1, 1, 0, 2],
+        [1, 1, 1, 0, 0],
+        [1, 1, 1, 1, 1]])
+    assert np.all(count_matrix == expected)
+
+
+def test_build_count_matrix_costum_specials_vocab_without_specials():
+    vocab = Vocab(specials=())
+    for i in DATA:
+        vocab += i.split(" ")
+    vocab.finalize()
+    tfidf = TfIdfVectorizer(vocab=vocab,
+                            specials=["the", "first", "second", "one", "third", "and"])
+    tfidf._init_special_indexes()
+
+    numericalized_data = get_numericalized_data(data=DATA, vocab=vocab)
+    count_matrix = tfidf._build_count_matrix(data=numericalized_data,
+                                             unpack_data=tfidf._get_tensor_values)
+    expected = np.array([
+        [1, 1, 1],
+        [1, 1, 2],
+        [1, 1, 0],
+        [1, 1, 1]])
+    assert np.all(count_matrix == expected)
+
+
+def test_build_count_matrix_costum_specials_vocab_with_specials():
+    vocab = Vocab(specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD))
+    vocab_words = ["this", "is", "the", "first", "document"]
+    for i in vocab_words:
+        vocab += i.split(" ")
+    vocab.finalize()
+    tfidf = TfIdfVectorizer(vocab=vocab,
+                            specials=[SpecialVocabSymbols.PAD, "this", "first"])
+    tfidf._init_special_indexes()
+
+    numericalized_data = get_numericalized_data(data=DATA, vocab=vocab)
+    count_matrix = tfidf._build_count_matrix(data=numericalized_data,
+                                             unpack_data=tfidf._get_tensor_values)
+    expected = np.array([
+        [0, 1, 1, 1],
+        [1, 1, 1, 2],
+        [3, 1, 1, 0],
+        [0, 1, 1, 1]])
     assert np.all(count_matrix == expected)
 
 
