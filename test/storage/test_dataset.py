@@ -5,7 +5,7 @@ import pytest
 from collections import Counter
 from json import JSONDecodeError
 from takepod.storage import Dataset, HierarchicalDataset, TabularDataset, Field, \
-    MultioutputField, unpack_fields
+    MultioutputField, unpack_fields, ExampleFactory, Vocab
 
 FORMAT_USE_DICT_COMBINATIONS = (
     ("csv", True),
@@ -630,6 +630,30 @@ def test_unpack_fields():
 
     assert len(unpacked_fields) == 3
     assert all(f in unpacked_fields for f in (field1, field2, field3))
+
+
+def test_eager_tokenization():
+    fields = (
+        Field("text", vocab=Vocab()),
+        Field("source", vocab=Vocab(), tokenizer=list)
+    )
+    example_factory = ExampleFactory(fields)
+    examples = [example_factory.from_list(data)
+                for data
+                in zip(TABULAR_TEXT, TABULAR_SOURCES)]
+
+    dataset = Dataset(examples, fields)
+
+    for example in dataset:
+        assert example.text_ is None
+        assert example.source_ is None
+
+    dataset.finalize_fields()
+    dataset.numericalize_examples()
+
+    for example in dataset:
+        assert example.text_ is not None
+        assert example.source_ is not None
 
 
 @pytest.fixture()

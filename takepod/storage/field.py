@@ -662,6 +662,20 @@ class Field:
         return row
 
     def get_numericalization_for_example(self, example):
+        """Returns the numericalized data of this field for the provided example.
+        The numericalized data is generated and cached in the example if not already
+        present. If already cached, the cached data is returned.
+
+
+        Parameters
+        ----------
+        example : Example
+            example to get numericalized data for.
+
+        Returns
+        -------
+            The numericalized data.
+        """
         cache_field_name = f"{self.name}_"
         cached_numericalization = getattr(example, cache_field_name)
 
