@@ -218,20 +218,31 @@ class Iterator:
         self.shuffler.setstate(state)
 
     def _create_batch(self, examples):
+
+        if self.batch_to_matrix:
+            return self._create_matrix_batch(examples)
+
+        else:
+            return self._create_list_batch(examples)
+
+    def _create_matrix_batch(self, examples):
+
         # dicts that will be used to create the InputBatch and TargetBatch
         # objects
-        # TODO do profiling old vs new matrix creation (direct vs from vector list)
         input_batch_dict, target_batch_dict = {}, {}
-        for field in self.dataset.fields:
-            # non-sequential fields all have length = 1, no padding necessary
-            should_pad = field.sequential and self.batch_to_matrix
 
-            if should_pad:
-                # the length to which all the rows are padded (or truncated)
-                pad_length = Iterator._get_pad_length(field, examples)
+        for field in self.dataset.fields:
+            # the length to which all the rows are padded (or truncated)
+            pad_length = Iterator._get_pad_length(field, examples)
+
+            # the last batch can have < batch_size examples
+            n_rows = min(self.batch_size, len(examples))
 
             # empty matrix to be filled with numericalized fields
-            vectors = list()
+            matrix = np.empty(shape=(n_rows, pad_length))
+
+            # non-sequential fields all have length = 1, no padding necessary
+            should_pad = True if field.sequential else False
 
             for i, example in enumerate(examples):
 
@@ -242,17 +253,35 @@ class Iterator:
                     row = field.pad_to_length(row, pad_length)
 
                 # set the matrix row to the numericalized, padded array
-                vectors.append(row)
-
-            if self.batch_to_matrix:
-                field_numericalization = np.vstack(vectors)
-            else:
-                field_numericalization = vectors
+                matrix[i] = row
 
             if field.is_target:
-                target_batch_dict[field.name] = field_numericalization
+                target_batch_dict[field.name] = matrix
             else:
-                input_batch_dict[field.name] = field_numericalization
+                input_batch_dict[field.name] = matrix
+
+        input_batch = self.input_batch_class(**input_batch_dict)
+        target_batch = self.target_batch_class(**target_batch_dict)
+
+        return input_batch, target_batch
+
+    def _create_list_batch(self, examples):
+        # dicts that will be used to create the InputBatch and TargetBatch
+        # objects
+        input_batch_dict, target_batch_dict = {}, {}
+        for field in self.dataset.fields:
+
+            vectors = list()
+
+            for example in examples:
+
+                row = field.get_numericalization_for_example(example)
+                vectors.append(row)
+
+            if field.is_target:
+                target_batch_dict[field.name] = vectors
+            else:
+                input_batch_dict[field.name] = vectors
 
         input_batch = self.input_batch_class(**input_batch_dict)
         target_batch = self.target_batch_class(**target_batch_dict)
