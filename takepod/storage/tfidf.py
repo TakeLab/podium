@@ -36,8 +36,8 @@ class TfIdfVectorizer:
         sublinear_tf
             see scikit tfidf transformer documentation
         specials : list(str), optional
-            list of tokens that needs to be removed from count matrix, if None vocab
-            specials are used
+            list of tokens for which tfidf is not calculated,
+            if None vocab specials are used
         """
         self._vocab = vocab
         self._specials = specials

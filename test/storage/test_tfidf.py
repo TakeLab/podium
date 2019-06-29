@@ -65,7 +65,7 @@ def test_build_count_matrix_out_of_vocab_words():
     vocab = Vocab(specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD))
     vocab_words = ["this", "is", "the", "first", "document"]
     for i in vocab_words:
-        vocab += i.split(" ")
+        vocab += i
     vocab.finalize()
     tfidf = TfIdfVectorizer(vocab=vocab)
     tfidf._init_special_indexes()
@@ -105,7 +105,7 @@ def test_build_count_matrix_costum_specials_vocab_with_specials():
     vocab = Vocab(specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD))
     vocab_words = ["this", "is", "the", "first", "document"]
     for i in vocab_words:
-        vocab += i.split(" ")
+        vocab += i
     vocab.finalize()
     tfidf = TfIdfVectorizer(vocab=vocab,
                             specials=[SpecialVocabSymbols.PAD, "this", "first"])
