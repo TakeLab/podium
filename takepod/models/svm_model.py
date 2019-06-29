@@ -5,7 +5,7 @@ from takepod.models.base_model import AbstractSupervisedModel
 _LOGGER = logging.getLogger(__name__)
 
 try:
-    from sklearn.svm import SVC
+    from sklearn.svm import SVC, LinearSVC
 except ImportError as ex:
     _LOGGER.debug("Problem occured while trying to import sklearn. If the "
                   "library is not installed visit https://scikit-learn.org"
@@ -23,3 +23,9 @@ class ScikitSVCModel(AbstractSupervisedModel):
     def predict(self, X, **kwargs):
         y_pred = self._model.predict(X=X)
         return {AbstractSupervisedModel.PREDICTION_KEY: y_pred}
+
+
+class ScikitLinearSVCModel(ScikitSVCModel):
+    """Simple scikitlearn linear SVM model."""
+    def __init__(self, **kwargs):
+        self._model = LinearSVC(**kwargs)

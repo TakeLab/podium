@@ -6,7 +6,6 @@ from functools import partial
 import numpy as np
 import scipy.sparse as sp
 from sklearn.feature_extraction.text import TfidfTransformer
-from takepod.storage.vocab import SpecialVocabSymbols
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -18,7 +17,7 @@ class TfIdfVectorizer:
     Class is dependant on TfidfTransformer defined in scikit-learn library.
     """
     def __init__(self, vocab=None, norm='l2', use_idf=True,
-                 smooth_idf=True, sublinear_tf=False):
+                 smooth_idf=True, sublinear_tf=False, specials=None):
         """Constructor that initializes tfidf vectorizer. Parameters besides vocab
         are passed to TfidfTransformer, for further details on these parameters see
         scikit-learn documentation.
@@ -36,12 +35,23 @@ class TfIdfVectorizer:
             see scikit tfidf transformer documentation
         sublinear_tf
             see scikit tfidf transformer documentation
+        specials : list(str), optional
+            list of tokens for which tfidf is not calculated,
+            if None vocab specials are used
         """
         self._vocab = vocab
+        self._specials = specials
+        self._special_indexes = None
         self._tfidf = TfidfTransformer(norm=norm, use_idf=use_idf,
                                        smooth_idf=smooth_idf,
                                        sublinear_tf=sublinear_tf)
         self._fitted = False
+
+    def _init_special_indexes(self):
+        """Initializes set of special symbol indexes in vocabulary.
+        Used to skip special symbols while calculating tfidf."""
+        special_symbols = self._vocab.specials if not self._specials else self._specials
+        self._special_indexes = set([self._vocab.stoi[s] for s in special_symbols])
 
     def _check_vocab(self):
         """Method checks if the vocab is valid before fitting. Vocab mustn't be None.
@@ -52,11 +62,6 @@ class TfIdfVectorizer:
             error_msg = "TfIdf can't fit without vocab, given vocab is None."
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
-        if SpecialVocabSymbols.UNK in self._vocab.stoi:
-            warning_msg = "Vocab contains unknown special symbol. Tf-idf for all "\
-                          "non-vocabulary words will be counted towards the unknown"\
-                          " symbol"
-            _LOGGER.warning(warning_msg)
 
     def _get_tensor_values(self, data):
         """Method obtains data for example in numericalized matrix. This method
@@ -128,10 +133,14 @@ class TfIdfVectorizer:
         indptr = np.asarray(indptr, dtype=np.int64)
         values = np.frombuffer(values, dtype=np.intc)
 
-        count_matrix = sp.csr_matrix((values, j_indices, indptr),
-                                     shape=(len(indptr) - 1, len(self._vocab)),
-                                     dtype=np.int64)
+        count_matrix = sp.csr_matrix(
+            (values, j_indices, indptr),
+            shape=(len(indptr) - 1, len(self._vocab)),
+            dtype=np.int64)
         count_matrix.sort_indices()
+        if self._special_indexes:
+            keep_columns = list(set(range(count_matrix.shape[1])) - self._special_indexes)
+            count_matrix = count_matrix[:, keep_columns]
         return count_matrix
 
     def fit(self, dataset, field):
@@ -161,6 +170,7 @@ class TfIdfVectorizer:
         if self._vocab is None:
             self._vocab = field.vocab
         self._check_vocab()
+        self._init_special_indexes()
         count_matrix = self._build_count_matrix(
             data=dataset, unpack_data=partial(self._get_example_values,
                                               field=field))

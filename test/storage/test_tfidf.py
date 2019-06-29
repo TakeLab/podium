@@ -2,7 +2,7 @@ from test.storage.conftest import TABULAR_TEXT
 import numpy as np
 import pytest
 from sklearn.feature_extraction import text
-from takepod.storage.vocab import Vocab
+from takepod.storage.vocab import Vocab, SpecialVocabSymbols
 from takepod.storage.tfidf import TfIdfVectorizer
 from takepod.storage.field import Field
 
@@ -22,12 +22,13 @@ def get_numericalized_data(data, vocab):
     return numericalized_data
 
 
-def test_build_count_matrix_from_tensor():
+def test_build_count_matrix_from_tensor_without_specials():
     vocab = Vocab(specials=())
     for i in DATA:
         vocab += i.split(" ")
     vocab.finalize()
     tfidf = TfIdfVectorizer(vocab=vocab)
+    tfidf._init_special_indexes()
 
     numericalized_data = get_numericalized_data(data=DATA, vocab=vocab)
     count_matrix = tfidf._build_count_matrix(data=numericalized_data,
@@ -41,6 +42,99 @@ def test_build_count_matrix_from_tensor():
     assert np.all(count_matrix == expected)
 
 
+def test_build_count_matrix_from_tensor_with_specials():
+    vocab = Vocab(specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD))
+    for i in DATA:
+        vocab += i.split(" ")
+    vocab.finalize()
+    tfidf = TfIdfVectorizer(vocab=vocab)
+    tfidf._init_special_indexes()
+
+    numericalized_data = get_numericalized_data(data=DATA, vocab=vocab)
+    count_matrix = tfidf._build_count_matrix(data=numericalized_data,
+                                             unpack_data=tfidf._get_tensor_values)
+    expected = np.array([
+        [1, 1, 1, 1, 1, 0, 0, 0, 0],
+        [1, 1, 1, 2, 0, 1, 0, 0, 0],
+        [1, 1, 1, 0, 0, 0, 1, 1, 1],
+        [1, 1, 1, 1, 1, 0, 0, 0, 0]])
+    assert np.all(count_matrix == expected)
+
+
+def test_build_count_matrix_out_of_vocab_words():
+    vocab = Vocab(specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD))
+    vocab_words = ["this", "is", "the", "first", "document"]
+    vocab += vocab_words
+    vocab.finalize()
+    tfidf = TfIdfVectorizer(vocab=vocab)
+    tfidf._init_special_indexes()
+
+    numericalized_data = get_numericalized_data(data=DATA, vocab=vocab)
+    count_matrix = tfidf._build_count_matrix(data=numericalized_data,
+                                             unpack_data=tfidf._get_tensor_values)
+    expected = np.array([
+        [1, 1, 1, 1, 1],
+        [1, 1, 1, 0, 2],
+        [1, 1, 1, 0, 0],
+        [1, 1, 1, 1, 1]])
+    assert np.all(count_matrix == expected)
+
+
+def test_build_count_matrix_costum_specials_vocab_without_specials():
+    vocab = Vocab(specials=())
+    for i in DATA:
+        vocab += i.split(" ")
+    vocab.finalize()
+    tfidf = TfIdfVectorizer(vocab=vocab,
+                            specials=["the", "first", "second", "one", "third", "and"])
+    tfidf._init_special_indexes()
+
+    numericalized_data = get_numericalized_data(data=DATA, vocab=vocab)
+    count_matrix = tfidf._build_count_matrix(data=numericalized_data,
+                                             unpack_data=tfidf._get_tensor_values)
+    expected = np.array([
+        [1, 1, 1],
+        [1, 1, 2],
+        [1, 1, 0],
+        [1, 1, 1]])
+    assert np.all(count_matrix == expected)
+
+
+def test_build_count_matrix_costum_specials_vocab_with_specials():
+    vocab = Vocab(specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD))
+    vocab_words = ["this", "is", "the", "first", "document"]
+    vocab += vocab_words
+    vocab.finalize()
+    tfidf = TfIdfVectorizer(vocab=vocab,
+                            specials=[SpecialVocabSymbols.PAD, "this", "first"])
+    tfidf._init_special_indexes()
+
+    numericalized_data = get_numericalized_data(data=DATA, vocab=vocab)
+    count_matrix = tfidf._build_count_matrix(data=numericalized_data,
+                                             unpack_data=tfidf._get_tensor_values)
+    expected = np.array([
+        [0, 1, 1, 1],
+        [1, 1, 1, 2],
+        [3, 1, 1, 0],
+        [0, 1, 1, 1]])
+    assert np.all(count_matrix == expected)
+
+
+def test_specials_indexes():
+    specials = (SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD)
+    vocab = Vocab(specials=specials)
+    for i in DATA:
+        vocab += i.split(" ")
+    vocab.finalize()
+
+    tfidf = TfIdfVectorizer(vocab=vocab)
+    tfidf._init_special_indexes()
+
+    assert len(tfidf._special_indexes) == 2
+    for i in specials:
+        assert vocab.stoi[i] in tfidf._special_indexes
+
+
 @pytest.mark.usefixtures("tabular_dataset")
 def test_tfidf_equality_with_scikit(tabular_dataset):
     tabular_dataset.finalize_fields()
@@ -51,15 +145,17 @@ def test_tfidf_equality_with_scikit(tabular_dataset):
     tfidf.fit(dataset=tabular_dataset, field=text_field)
 
     numericalized_data = get_numericalized_data(data=TABULAR_TEXT, vocab=vocab)
-    vectorized_text = tfidf.transform(numericalized_data)
+    vectorized_text = tfidf.transform(numericalized_data).todense()
 
     scikit_vectorizer = text.TfidfVectorizer(vocabulary=vocab.stoi,
                                              token_pattern=r"(?u)\b\w+\b")
     scikit_vectorizer.fit(TABULAR_TEXT)
-    scikit_vectors = scikit_vectorizer.transform(TABULAR_TEXT)
+    scikit_vectors = scikit_vectorizer.transform(TABULAR_TEXT).todense()
+    scikit_vectors = np.delete(scikit_vectors, [0, 1], axis=1)
+    # delete weights for special symbols, in scikit they are 0 and in podium we skip them
 
-    assert np.allclose(a=vectorized_text.todense(),
-                       b=scikit_vectors.todense(),
+    assert np.allclose(a=vectorized_text,
+                       b=scikit_vectors,
                        rtol=0, atol=1.e-6)
 
 
