@@ -49,7 +49,16 @@ class Dataset(ABC):
         self.sort_key = sort_key
 
     def __getitem__(self, i):
-        return self.examples[i]
+        if isinstance(i, slice):
+            return self._dataset_copy_with_examples(self.examples[i])
+
+        elif isinstance(i, int):
+            return self.examples[i]
+
+        else:
+            # Numpy style multi-indexing
+            indexed_examples = [self.examples[index] for index in i]
+            return self._dataset_copy_with_examples(indexed_examples)
 
     def __len__(self):
         return len(self.examples)
@@ -276,6 +285,18 @@ class Dataset(ABC):
             dataset state dictionary
         """
         self.__dict__ = state
+
+    def _dataset_copy_with_examples(self, examples):
+        # TODO Deep copy of fields?
+        # TODO Deep copy of examples?
+        return Dataset(examples,
+                       self.fields,
+                       self.sort_key)
+
+    def shuffle_examples(self, random_state=None):
+
+        random.setstate(random_state)
+        random.shuffle(self.examples)
 
 
 class TabularDataset(Dataset):

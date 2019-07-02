@@ -1,6 +1,7 @@
 import os
 import dill
 import pytest
+import numpy as np
 
 from collections import Counter
 from json import JSONDecodeError
@@ -532,6 +533,50 @@ def test_tabular_dataset_exception(file_format, use_dict,
     # accessing a non-existing field
     with pytest.raises(AttributeError):
         next(getattr(td, "not_text"))
+
+
+def test_dataset_slicing(data, field_list):
+    dataset = create_dataset(data, field_list)
+
+    def fst(x):
+        return x[0]
+
+    def get_raw(example):
+        return example.text[0]
+
+    dataset_0_4 = dataset[:4]
+    assert list(map(get_raw, dataset_0_4)) == list(map(fst, data[0:4]))
+
+    dataset_2_end = dataset[2:]
+    assert list(map(get_raw, dataset_2_end)) == list(map(fst, data[2:None]))
+
+    dataset_2_4 = dataset[2:4]
+    assert list(map(get_raw, dataset_2_4)) == list(map(fst, data[2:4]))
+
+    dataset_2_5_neg1 = dataset[2:5:-1]
+    assert list(map(get_raw, dataset_2_5_neg1)) == list(map(fst, data[2:5:-1]))
+
+    dataset_2_6_neg2 = dataset[2:6:-2]
+    assert list(map(get_raw, dataset_2_6_neg2)) == list(map(fst, data[2:6:-2]))
+
+
+def test_dataset_multiindexing(data, field_list):
+    dataset = create_dataset(data, field_list)
+
+    def get_raw(example):
+        return example.text[0]
+
+    def test_indexing(indexes):
+        true_data = [data[i][0] for i in indexes]
+        indexed_dataset = dataset[indexes]
+        indexed_dataset_raw = map(get_raw, indexed_dataset)
+        assert all(a == b for a, b in zip(indexed_dataset_raw, true_data))
+
+    test_indexing(list(range(0, 10)))
+    test_indexing(list(range(9, 0, -1)))
+    test_indexing(list(range(8, 1, -2)))
+    test_indexing([0, 1, 1, 1, 2, 3, 4, 5, 1, 10, 2])
+    test_indexing(np.array([0, 2, 3, 5, 3]))
 
 
 @pytest.fixture
