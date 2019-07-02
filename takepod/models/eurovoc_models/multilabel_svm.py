@@ -1,29 +1,18 @@
 """Multilabe SVM classifier for EuroVoc dataset."""
-import array
 import dill
-import os
-import time
 import numpy as np
-import scipy.sparse as sp
-from sklearn import svm
-from sklearn.feature_extraction.text import TfidfTransformer, TfidfVectorizer
-from sklearn.feature_selection import VarianceThreshold
 
-from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
-from sklearn.model_selection import GridSearchCV, cross_val_score
-from sklearn.feature_selection import SelectKBest, chi2
-from sklearn.pipeline import Pipeline
+from sklearn import svm
+from sklearn.metrics import precision_score, recall_score, f1_score
+from sklearn.model_selection import GridSearchCV
+from sklearn import model_selection
 
 from takepod.storage import Iterator
 from takepod.models import AbstractSupervisedModel
-from takepod.models.simple_trainers import SimpleTrainer
 from takepod.datasets.eurovoc_dataset import EuroVocDataset
 from takepod.dataload.eurovoc import EuroVocLoader
-from takepod.storage.large_resource import LargeResource
 from takepod.storage.tfidf import TfIdfVectorizer
-
 from takepod.validation.validation import KFold
-from sklearn import model_selection
 
 
 class MultilabelSVM(AbstractSupervisedModel):
@@ -129,7 +118,7 @@ class MultilabelSVM(AbstractSupervisedModel):
         Y = np.empty(shape=(len(self._models), X.shape[0]))
         for i, model in enumerate(self._models):
             if model is None:
-                Y[i] = [0]*X.shape[0]
+                Y[i] = [0] * X.shape[0]
             else:
                 Y[i] = model.predict(X)
         # TODO u AbstractSupervisedModel piše da ova metoda treba vratiti neki

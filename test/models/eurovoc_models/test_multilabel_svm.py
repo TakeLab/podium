@@ -35,7 +35,7 @@ def test_fitting_multilable_svm():
     n_jobs = 1
 
     clf.fit(X=X, y=Y, parameter_grid=parameter_grid, n_splits=n_splits,
-            max_iter=max_iter, cut_off=cut_off, scoring=scoring, n_jobs=n_jobs)    
+            max_iter=max_iter, cut_off=cut_off, scoring=scoring, n_jobs=n_jobs)
     Y_pred = clf.predict(X)
     assert Y_pred.shape == Y.shape
 
