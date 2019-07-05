@@ -5,7 +5,7 @@ import pytest
 from collections import Counter
 from json import JSONDecodeError
 from takepod.storage import Dataset, HierarchicalDataset, TabularDataset, Field, \
-    MultioutputField, unpack_fields, ExampleFactory, Vocab
+    MultioutputField, unpack_fields, ExampleFactory, Vocab, Iterator
 
 FORMAT_USE_DICT_COMBINATIONS = (
     ("csv", True),
@@ -633,27 +633,44 @@ def test_unpack_fields():
 
 
 def test_eager_tokenization():
-    fields = (
-        Field("text", vocab=Vocab()),
-        Field("source", vocab=Vocab(), tokenizer=list)
-    )
-    example_factory = ExampleFactory(fields)
-    examples = [example_factory.from_list(data)
-                for data
-                in zip(TABULAR_TEXT, TABULAR_SOURCES)]
 
-    dataset = Dataset(examples, fields)
+    def create_dataset():
 
-    for example in dataset:
-        assert example.text_ is None
-        assert example.source_ is None
+        fields = (
+            Field("text", vocab=Vocab()),
+            Field("source", vocab=Vocab(), tokenizer=list)
+        )
+        example_factory = ExampleFactory(fields)
 
-    dataset.finalize_fields()
-    dataset.numericalize_examples()
+        examples = [example_factory.from_list(data)
+                    for data
+                    in zip(TABULAR_TEXT, TABULAR_SOURCES)]
 
-    for example in dataset:
-        assert example.text_ is not None
-        assert example.source_ is not None
+        dataset = Dataset(examples, fields)
+        return dataset
+
+    dataset_lazy = create_dataset()
+    dataset_eager = create_dataset()
+
+    for example_eager in dataset_eager:
+        assert example_eager.text_ is None
+        assert example_eager.source_ is None
+
+    dataset_eager.finalize_fields()
+    # Numericalize eagerly
+    dataset_eager.numericalize_examples()
+
+    dataset_lazy.finalize_fields()
+    # Numericalize Lazily
+    for _ in Iterator(dataset_lazy, 100):
+        pass
+
+    for example_eager, example_lazy in zip(dataset_eager, dataset_lazy):
+        assert example_eager.text_ is not None
+        assert all(example_eager.text_ == example_lazy.text_)
+
+        assert example_eager.source_ is not None
+        assert all(example_eager.source_ == example_lazy.source_)
 
 
 @pytest.fixture()
