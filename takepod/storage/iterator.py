@@ -271,15 +271,13 @@ class Iterator:
         input_batch_dict, target_batch_dict = {}, {}
         for field in self.dataset.fields:
 
-            vectors = list()
-
-            for example in examples:
-
-                row = field.get_numericalization_for_example(example)
-                vectors.append(row)
+            vectors = [field.get_numericalization_for_example(ex)
+                       for ex
+                       in examples]
 
             if field.is_target:
                 target_batch_dict[field.name] = vectors
+
             else:
                 input_batch_dict[field.name] = vectors
 
