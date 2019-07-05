@@ -256,7 +256,7 @@ class Dataset(ABC):
         return None
 
     def numericalize_examples(self):
-        """Generated and caches numericalized data for every example in the dataset.
+        """Generates and caches numericalized data for every example in the dataset.
         Call before using the dataset to avoid lazy numericalization during iteration.
         """
         for example in self.examples:
