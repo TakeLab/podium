@@ -255,6 +255,16 @@ class Dataset(ABC):
 
         return None
 
+    def numericalize_examples(self):
+        """Generates and caches numericalized data for every example in the dataset.
+        Call before using the dataset to avoid lazy numericalization during iteration.
+        """
+        for example in self.examples:
+            for field in self.fields:
+                # Generate and cache the numericalized data
+                # the return value is ignored
+                field.get_numericalization_for_example(example)
+
     def __getstate__(self):
         """Method obtains dataset state. It is used for pickling dataset data
         to file.
