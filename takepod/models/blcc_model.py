@@ -1,15 +1,14 @@
 """Module contains deep learning based sequence labelling model.."""
+import numpy as np
 from keras import backend as K
 from keras.layers import Bidirectional, concatenate, Conv1D, Dense, Dropout
 from keras.layers import Embedding, GlobalMaxPool1D, Input, LSTM
 from keras.layers import Reshape, TimeDistributed
 from keras.models import Model
 from keras.optimizers import Adadelta, Adagrad, Adam, Nadam, RMSprop, SGD
+
 from takepod.models import AbstractSupervisedModel
-
 from takepod.models.blcc.chain_crf import ChainCRF
-
-import numpy as np
 
 
 class BLCCModel(AbstractSupervisedModel):

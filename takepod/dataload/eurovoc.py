@@ -1,11 +1,12 @@
+"""Module for loading raw eurovoc dataset"""
 import os
-import getpass
 import glob
 import xml.etree.ElementTree as ET
 import logging
 from enum import Enum
 from collections import namedtuple
-from takepod.storage.large_resource import LargeResource, SCPLargeResource
+from takepod.storage.large_resource import (init_scp_large_resource_from_kwargs,
+                                            LargeResource)
 
 _LOGGER = logging.getLogger(__name__)
 try:
@@ -98,36 +99,21 @@ class EuroVocLoader():
         download it.
 
         **kwargs:
-            scp_user:
+            SCPLargeResource.SCP_USER_KEY:
                 Username on the host machine from which the dataset is downloaded. Not
                 required if the username on the local machine matches the username on the
                 host.
-            scp_private_key:
+            SCPLargeResource.SCP_PRIVATE_KEY:
                 Path to the ssh private key eligible to access the host. Not required on
                 Unix if the private key is stored in the default location.
-            scp_pass_key:
+            SCPLargeResource.SCP_PASS_KEY:
                 Password for the ssh private key (optional). Can be omitted
                 if the private key is not encrypted.
         """
-        if 'scp_user' not in kwargs:
-            # if your username is same as the one on djurdja
-            scp_user = getpass.getuser()
-        else:
-            scp_user = kwargs['scp_user']
-
-        scp_private_key = kwargs.get('scp_private_key', None)
-        scp_pass_key = kwargs.get('scp_pass_key', None)
-
-        config = {
-            LargeResource.URI: EuroVocLoader.URL,
-            LargeResource.RESOURCE_NAME: EuroVocLoader.NAME,
-            LargeResource.ARCHIVE: EuroVocLoader.ARCHIVE_TYPE,
-            SCPLargeResource.SCP_HOST_KEY: EuroVocLoader.SCP_HOST,
-            SCPLargeResource.SCP_USER_KEY: scp_user,
-            SCPLargeResource.SCP_PRIVATE_KEY: scp_private_key,
-            SCPLargeResource.SCP_PASS_KEY: scp_pass_key
-        }
-        SCPLargeResource(**config)
+        init_scp_large_resource_from_kwargs(
+            resource=EuroVocLoader.NAME, uri=EuroVocLoader.URL, user_dict=kwargs,
+            archive=EuroVocLoader.ARCHIVE_TYPE, scp_host=EuroVocLoader.SCP_HOST
+        )
 
     def load_dataset(self):
         """Loads and parses all the necessary files from the dataset folder.
@@ -481,8 +467,9 @@ class EuroVocLoader():
         """
         tree = ET.parse(doc)
         root = tree.getroot()
-        head = root.getchildren()[0]
-        body = root.getchildren()[1]
+        root_children = list(root)
+        head = root_children[0]
+        body = root_children[1]
 
         filename = os.path.basename(doc)
         title_text = " ".join([t.text for t in head.iter() if t.text]).strip()
@@ -492,8 +479,8 @@ class EuroVocLoader():
         if title_text and title_text[0].isdigit():
             title_text = " ".join(title_text.split(" ")[2:])
         else:
-            _LOGGER.debug("{} file contains invalid document title: {}".format(filename,
-                          title_text))
+            _LOGGER.debug("{} file contains invalid document title: {}".format(
+                filename, title_text))
         title_text = title_text.lower().replace("\r", "").replace("\n", "")
 
         body_text = []

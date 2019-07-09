@@ -200,6 +200,6 @@ class BasicSupervisedImdbDataset(dataset.Dataset):
                      tokenizer='split', language="hr", tokenize=True,
                      store_as_raw=False)
         label = Field(name=BasicSupervisedImdbDataset.LABEL_FIELD_NAME,
-                      tokenize=False, is_target=True)
+                      vocab=Vocab(specials=()), tokenize=False, is_target=True)
         return {BasicSupervisedImdbDataset.TEXT_FIELD_NAME: text,
                 BasicSupervisedImdbDataset.LABEL_FIELD_NAME: label}

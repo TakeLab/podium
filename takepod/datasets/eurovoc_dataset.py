@@ -4,12 +4,11 @@ import re
 import functools
 import logging
 from takepod.storage import dataset
-from takepod.storage.example_factory import ExampleFactory, _set_example_attributes
+from takepod.storage.example_factory import ExampleFactory, set_example_attributes
 from takepod.storage import Field, MultilabelField
 from takepod.storage import Vocab
 from takepod.preproc.stop_words import CROATIAN_EXTENDED
 from takepod.preproc.lemmatizer.croatian_lemmatizer import get_croatian_lemmatizer_hook
-from takepod.storage.downloader import SCPDownloader
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -135,11 +134,11 @@ class EuroVocDataset(dataset.Dataset):
                                   "given label hierarchies.".format(document_id, label))
 
             example = example_factory.create_empty_example()
-            _set_example_attributes(example, fields["title"], document.title)
-            _set_example_attributes(example, fields["text"], document.text)
-            _set_example_attributes(example, fields["eurovoc_labels"],
-                                    eurovoc_labels)
-            _set_example_attributes(example, fields["crovoc_labels"], crovoc_labels)
+            set_example_attributes(example, fields["title"], document.title)
+            set_example_attributes(example, fields["text"], document.text)
+            set_example_attributes(example, fields["eurovoc_labels"],
+                                   eurovoc_labels)
+            set_example_attributes(example, fields["crovoc_labels"], crovoc_labels)
             examples.append(example)
 
         return examples
@@ -198,8 +197,7 @@ class EuroVocDataset(dataset.Dataset):
             label = self._crovoc_label_hierarchy[label_id]
             return label.direct_parents
 
-        else:
-            return None
+        return None
 
     def get_all_ancestors(self, label_id):
         """Returns ids of all ancestors of the label with the given label id.
@@ -224,8 +222,7 @@ class EuroVocDataset(dataset.Dataset):
             label = self._crovoc_label_hierarchy[label_id]
             return label.all_ancestors
 
-        else:
-            return None
+        return None
 
     @staticmethod
     def _get_default_fields():

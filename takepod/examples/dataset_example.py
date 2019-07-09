@@ -1,6 +1,6 @@
 """Example how to use simple PauzaHR dataset."""
-import dill
 import logging
+import dill
 
 from takepod.storage.large_resource import LargeResource
 from takepod.datasets.pauza_dataset import PauzaHRDataset
