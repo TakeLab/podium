@@ -26,6 +26,7 @@ class Iterator:
             self,
             dataset,
             batch_size,
+            batch_to_matrix=True,
             sort_key=None,
             shuffle=False,
             seed=1,
@@ -42,6 +43,10 @@ class Iterator:
             number of examples in the dataset is not a multiple of
             batch_size the last returned batch will be smaller
             (dataset_len MOD batch_size).
+        batch_to_matrix : bool
+            A flag denoting whether the vectors for a field in a batch should be
+            returned as a list of numpy vectors or a matrix where each row is a padded
+            vector
         sort_key : callable
             A callable object used to sort the dataset prior to batching. If
             None, the dataset won't be sorted.
@@ -90,6 +95,7 @@ class Iterator:
 
         self.batch_size = batch_size
         self.dataset = dataset
+        self.batch_to_matrix = batch_to_matrix
 
         self.shuffle = shuffle
 
@@ -212,6 +218,15 @@ class Iterator:
         self.shuffler.setstate(state)
 
     def _create_batch(self, examples):
+
+        if self.batch_to_matrix:
+            return self._create_matrix_batch(examples)
+
+        else:
+            return self._create_list_batch(examples)
+
+    def _create_matrix_batch(self, examples):
+
         # dicts that will be used to create the InputBatch and TargetBatch
         # objects
         input_batch_dict, target_batch_dict = {}, {}
@@ -244,6 +259,27 @@ class Iterator:
                 target_batch_dict[field.name] = matrix
             else:
                 input_batch_dict[field.name] = matrix
+
+        input_batch = self.input_batch_class(**input_batch_dict)
+        target_batch = self.target_batch_class(**target_batch_dict)
+
+        return input_batch, target_batch
+
+    def _create_list_batch(self, examples):
+        # dicts that will be used to create the InputBatch and TargetBatch
+        # objects
+        input_batch_dict, target_batch_dict = {}, {}
+        for field in self.dataset.fields:
+
+            vectors = [field.get_numericalization_for_example(ex)
+                       for ex
+                       in examples]
+
+            if field.is_target:
+                target_batch_dict[field.name] = vectors
+
+            else:
+                input_batch_dict[field.name] = vectors
 
         input_batch = self.input_batch_class(**input_batch_dict)
         target_batch = self.target_batch_class(**target_batch_dict)
@@ -307,6 +343,7 @@ class BucketIterator(Iterator):
             self,
             dataset,
             batch_size,
+            batch_to_matrix=True,
             sort_key=None,
             shuffle=True,
             seed=42,
@@ -347,9 +384,12 @@ class BucketIterator(Iterator):
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
-        super().__init__(
-            dataset, batch_size, sort_key=sort_key, shuffle=shuffle, seed=seed
-        )
+        super().__init__(dataset,
+                         batch_size,
+                         batch_to_matrix=batch_to_matrix,
+                         sort_key=sort_key,
+                         shuffle=shuffle,
+                         seed=seed)
 
         self.bucket_sort_key = bucket_sort_key
         self.look_ahead_multiplier = look_ahead_multiplier
