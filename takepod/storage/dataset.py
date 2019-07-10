@@ -294,7 +294,7 @@ class Dataset(ABC):
 
     def shuffle_examples(self, random_state=None):
 
-        if not random_state:
+        if random_state:
             random.setstate(random_state)
 
         random.shuffle(self.examples)
