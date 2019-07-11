@@ -328,9 +328,16 @@ class Dataset(ABC):
                        self.sort_key)
 
     def shuffle_examples(self, random_state=None):
+        """Shuffles the examples in this dataset
+
+        Parameters
+        ----------
+        random_state : int
+            The random seed used for shuffling.
+        """
 
         if random_state:
-            random.setstate(random_state)
+            random.seed(random_state)
 
         random.shuffle(self.examples)
 
