@@ -336,7 +336,7 @@ class Dataset(ABC):
             The random seed used for shuffling.
         """
 
-        if random_state:
+        if random_state is not None:
             random.seed(random_state)
 
         random.shuffle(self.examples)
