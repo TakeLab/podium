@@ -48,6 +48,27 @@ class Dataset(ABC):
         self.sort_key = sort_key
 
     def __getitem__(self, i):
+        """Returns an example or a new dataset containing the indexed examples.
+        If indexed with an int, only the example at that position will be returned.
+        If Indexed with a slice or iterable, all examples indexed by the object
+        will be collected and a new dataset containing only those examples will be
+        returned. The new dataset will contain copies of the old dataset's fields and
+        will be identical to the original dataset, with the excepotion of the example
+        number and ordering.
+
+        Parameters
+        ----------
+        i : int or slice or iterable
+            Index used to index examples.
+
+        Returns
+        -------
+        single example or Dataset
+            If i is an int, a single example will be returned.
+            If i is a slice or iterable, a copy of this dataset containing
+            only the indexed examples will be returned.
+
+        """
         if isinstance(i, slice):
             return self._dataset_copy_with_examples(self.examples[i])
 
@@ -60,9 +81,23 @@ class Dataset(ABC):
             return self._dataset_copy_with_examples(indexed_examples)
 
     def __len__(self):
+        """Returns the number of examples in the dataset.
+
+        Returns
+        -------
+        int
+            The number of examples in the dataset.
+        """
         return len(self.examples)
 
     def __iter__(self):
+        """Iterates over all examples in the dataset in order.
+
+        Yields
+        ------
+        example
+            Yields examples in the dataset.
+        """
         for x in self.examples:
             yield x
 
