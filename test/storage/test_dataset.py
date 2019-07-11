@@ -580,6 +580,12 @@ def test_dataset_multiindexing(data, field_list):
     indexed_dataset_raw = map(get_raw, indexed_dataset)
     assert all(a == b for a, b in zip(indexed_dataset_raw, true_data))
 
+    # indexing by iterable
+    true_data = [data[i][0] for i in range(1, 10, 3)]
+    indexed_dataset = dataset[range(1, 10, 3)]
+    indexed_dataset_raw = map(get_raw, indexed_dataset)
+    assert all(a == b for a, b in zip(indexed_dataset_raw, true_data))
+
 
 @pytest.fixture
 def field_list():
