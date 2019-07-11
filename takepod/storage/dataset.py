@@ -53,8 +53,15 @@ class Dataset(ABC):
         If Indexed with a slice or iterable, all examples indexed by the object
         will be collected and a new dataset containing only those examples will be
         returned. The new dataset will contain copies of the old dataset's fields and
-        will be identical to the original dataset, with the excepotion of the example
-        number and ordering.
+        will be identical to the original dataset, with the exception of the example
+        number and ordering. See wiki for detailed examples.
+
+        Usage example:
+
+            example = dataset[1] # Indexing by single integer returns a single example
+
+            new_dataset = dataset[1:10] # Multiindexing returns a new dataset containing
+                                        # the indexed examples.
 
         Parameters
         ----------
