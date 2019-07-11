@@ -1,6 +1,7 @@
 import os
 import dill
 import pytest
+import tempfile
 import numpy as np
 
 from collections import Counter
@@ -542,18 +543,23 @@ def test_dataset_slicing(data, field_list):
 
     dataset_0_4 = dataset[:4]
     assert list(map(get_raw, dataset_0_4)) == list(map(fst, data[0:4]))
+    assert isinstance(dataset_0_4, Dataset)
 
     dataset_2_end = dataset[2:]
     assert list(map(get_raw, dataset_2_end)) == list(map(fst, data[2:None]))
+    assert isinstance(dataset_2_end, Dataset)
 
     dataset_2_4 = dataset[2:4]
     assert list(map(get_raw, dataset_2_4)) == list(map(fst, data[2:4]))
+    assert isinstance(dataset_2_4, Dataset)
 
     dataset_2_5_neg1 = dataset[2:5:-1]
     assert list(map(get_raw, dataset_2_5_neg1)) == list(map(fst, data[2:5:-1]))
+    assert isinstance(dataset_2_5_neg1, Dataset)
 
     dataset_2_6_neg2 = dataset[2:6:-2]
     assert list(map(get_raw, dataset_2_6_neg2)) == list(map(fst, data[2:6:-2]))
+    assert isinstance(dataset_2_6_neg2, Dataset)
 
 
 def test_dataset_multiindexing(data, field_list):
@@ -565,6 +571,7 @@ def test_dataset_multiindexing(data, field_list):
     def test_indexing(indexes):
         true_data = [data[i][0] for i in indexes]
         indexed_dataset = dataset[indexes]
+        assert isinstance(indexed_dataset, Dataset)
         indexed_dataset_raw = map(get_raw, indexed_dataset)
         assert all(a == b for a, b in zip(indexed_dataset_raw, true_data))
 
@@ -577,14 +584,34 @@ def test_dataset_multiindexing(data, field_list):
     # indexing by iterable
     true_data = [data[i][0] for i in range(1, 10, 3)]
     indexed_dataset = dataset[range(1, 10, 3)]
+    assert isinstance(indexed_dataset, Dataset)
     indexed_dataset_raw = map(get_raw, indexed_dataset)
     assert all(a == b for a, b in zip(indexed_dataset_raw, true_data))
 
     # indexing by iterable
     true_data = [data[i][0] for i in range(1, 10, 3)]
     indexed_dataset = dataset[range(1, 10, 3)]
+    assert isinstance(indexed_dataset, Dataset)
     indexed_dataset_raw = map(get_raw, indexed_dataset)
     assert all(a == b for a, b in zip(indexed_dataset_raw, true_data))
+
+
+def test_dataset_multiindexing_pickling(data, field_list):
+    dataset = create_dataset(data, field_list)
+
+    def example_equals(a, b):
+        return a.text == b.text and a.label == b.label
+
+    indexed_dataset = dataset[0, 2, 3]
+    with tempfile.TemporaryFile() as file:
+        dill.dump(indexed_dataset, file)
+        file.seek(0)
+        loaded_dataset = dill.load(file)
+
+    assert isinstance(loaded_dataset, Dataset)
+    assert len(indexed_dataset) == len(loaded_dataset)
+    assert all(example_equals(a, b) for a, b in zip(indexed_dataset, loaded_dataset))
+
 
 
 @pytest.fixture
