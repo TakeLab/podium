@@ -328,10 +328,9 @@ class Dataset(ABC):
         self.__dict__ = state
 
     def _dataset_copy_with_examples(self, examples):
-        # TODO Deep copy of fields?
         # TODO Deep copy of examples?
         return Dataset(examples,
-                       self.fields,
+                       copy.deepcopy(self.fields),
                        self.sort_key)
 
     def shuffle_examples(self, random_state=None):
