@@ -328,6 +328,21 @@ class Dataset(ABC):
         self.__dict__ = state
 
     def _dataset_copy_with_examples(self, examples):
+        """Creates a new dataset with the same fields and sort_key. The new dataset
+        contains only the fields passed to this function.Fields are deep-copied into
+        the new dataset, but examples are used as-is.
+
+        Parameters
+        ----------
+        examples
+            examples to be kept in the copy of the dataset.
+
+        Returns
+        -------
+        Dataset
+            a copy of this dataset containing only the passed examples.
+
+        """
         # TODO Deep copy of examples?
         return Dataset(examples,
                        copy.deepcopy(self.fields),
