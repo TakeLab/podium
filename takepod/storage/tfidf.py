@@ -10,41 +10,11 @@ from sklearn.feature_extraction.text import TfidfTransformer
 _LOGGER = logging.getLogger(__name__)
 
 
-class TfIdfVectorizer:
-    """Class converts data from one field in examples to matrix of tf-idf features.
-    It is equivalent to scikit-learn TfidfVectorizer available at
-    https://scikit-learn.org.
-    Class is dependant on TfidfTransformer defined in scikit-learn library.
-    """
-    def __init__(self, vocab=None, norm='l2', use_idf=True,
-                 smooth_idf=True, sublinear_tf=False, specials=None):
-        """Constructor that initializes tfidf vectorizer. Parameters besides vocab
-        are passed to TfidfTransformer, for further details on these parameters see
-        scikit-learn documentation.
-
-        Parameters
-        ----------
-        vocab : Vocab, optional
-            vocabulary instance that can be given as field.vocab or as vocab
-            from other source. If None, it will be initialized during fit from field.
-        norm
-            see scikit tfidf transformer documentation
-        use_idf
-            see scikit tfidf transformer documentation
-        smooth_idf
-            see scikit tfidf transformer documentation
-        sublinear_tf
-            see scikit tfidf transformer documentation
-        specials : list(str), optional
-            list of tokens for which tfidf is not calculated,
-            if None vocab specials are used
-        """
+class CountVectorizer:
+    def __init__(self, vocab=None, specials=None):
         self._vocab = vocab
         self._specials = specials
         self._special_indexes = None
-        self._tfidf = TfidfTransformer(norm=norm, use_idf=use_idf,
-                                       smooth_idf=smooth_idf,
-                                       sublinear_tf=sublinear_tf)
         self._fitted = False
 
     def _init_special_indexes(self):
@@ -52,54 +22,6 @@ class TfIdfVectorizer:
         Used to skip special symbols while calculating tfidf."""
         special_symbols = self._vocab.specials if not self._specials else self._specials
         self._special_indexes = set([self._vocab.stoi[s] for s in special_symbols])
-
-    def _check_vocab(self):
-        """Method checks if the vocab is valid before fitting. Vocab mustn't be None.
-        Also user is warned if the vocab contains unknown special symbol because
-        unknown symbol is also part of tfidf matrix (different from scikit).
-        """
-        if self._vocab is None:
-            error_msg = "TfIdf can't fit without vocab, given vocab is None."
-            _LOGGER.error(error_msg)
-            raise ValueError(error_msg)
-
-    def _get_tensor_values(self, data):
-        """Method obtains data for example in numericalized matrix. This method
-        is used when transforming data with tfidf and in general pipeline it should
-        be in moment when vectorization of numericalized batch happens
-
-        Parameters
-        ----------
-        data : array like
-            array containing numericalized tokens for one example (document)
-
-        Returns
-        -------
-        data : array like
-            numericalized tokens array
-        """
-        return data
-
-    def _get_example_values(self, example, field):
-        """Method obtains data for given field in example. This method is used
-        when fitting tfidf vectorizer with dataset. Fields that are not numericalized
-        but are eager will be numericalized.
-
-        Parameters
-        ----------
-        example : Example
-            example instance from dataset
-        field : Field
-            field instance, required to access data in example and to numericalize
-            data if necessary
-
-        Returns
-        -------
-        values : array like
-            numericalized tokens array
-        """
-        values = field.get_numericalization_for_example(example)
-        return values
 
     def _build_count_matrix(self, data, unpack_data):
         """Method builds sparse count feature matrix. It is equivalent with using
@@ -143,6 +65,134 @@ class TfIdfVectorizer:
             count_matrix = count_matrix[:, keep_columns]
         return count_matrix
 
+    def _get_tensor_values(self, data):
+        """Method obtains data for example in numericalized matrix. This method
+        is used when transforming data with tfidf and in general pipeline it should
+        be in moment when vectorization of numericalized batch happens
+
+        Parameters
+        ----------
+        data : array like
+            array containing numericalized tokens for one example (document)
+
+        Returns
+        -------
+        data : array like
+            numericalized tokens array
+        """
+        return data
+
+    def _get_example_values(self, example, field):
+        """Method obtains data for given field in example. This method is used
+        when fitting tfidf vectorizer with dataset. Fields that are not numericalized
+        but are eager will be numericalized.
+
+        Parameters
+        ----------
+        example : Example
+            example instance from dataset
+        field : Field
+            field instance, required to access data in example and to numericalize
+            data if necessary
+
+        Returns
+        -------
+        values : array like
+            numericalized tokens array
+        """
+        values = field.get_numericalization_for_example(example)
+        return values
+
+    def _check_fitted(self):
+        if not self._fitted:
+            error_msg = "Vectorizer must be fitted before transforming."
+            _LOGGER.error(error_msg)
+            raise RuntimeError(error_msg)
+
+    def fit(self, dataset, field):
+        """Method initializes count vectorizer.
+
+        Parameters
+        ----------
+        dataset : Dataset, optional
+            dataset instance which contains field
+        field : Field, optional
+            which field in dataset to use for vocab, if None vocab given in constructor is
+            used
+
+        Returns
+        -------
+        self : CountVectorizer
+        """
+        if self._vocab is None and field is None:
+            error_msg = "Vocab is not defined. User should define vocab in constructor "\
+                        "or by giving field."
+            _LOGGER.error(error_msg)
+            raise RuntimeError(error_msg)
+        self._vocab = field.vocab if self._vocab is None else self._vocab
+        self._init_special_indexes()
+        self._fitted = True
+
+    def transform(self, examples, **kwargs):
+        """
+        tokens_tensor=True, field=None
+        """
+        tokens_tensor = kwargs['tokens_tensor'] if 'tokens_tensor' in kwargs else True
+        field = kwargs['field'] if 'field' in kwargs else None
+
+        if examples is None:
+            error_msg = "Examples mustn't be None."
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
+        if not tokens_tensor and field is not None:
+            return self._build_count_matrix(
+                data=examples, unpack_data=partial(self._get_example_values, field=field))
+        elif tokens_tensor:
+            self._build_count_matrix(data=examples,
+                                     unpack_data=self._get_tensor_values)
+        error_msg = "Invalid method arguments. Method expects tensors of numericalized "\
+                    "tokens as examples or dataset as collection of examples from which "\
+                    " with given field to extract data."
+        _LOGGER.error(error_msg)
+        raise ValueError(error_msg)
+
+
+class TfIdfVectorizer(CountVectorizer):
+    """Class converts data from one field in examples to matrix of tf-idf features.
+    It is equivalent to scikit-learn TfidfVectorizer available at
+    https://scikit-learn.org.
+    Class is dependant on TfidfTransformer defined in scikit-learn library.
+    """
+    def __init__(self, vocab=None, norm='l2', use_idf=True,
+                 smooth_idf=True, sublinear_tf=False, specials=None):
+        """Constructor that initializes tfidf vectorizer. Parameters besides vocab
+        are passed to TfidfTransformer, for further details on these parameters see
+        scikit-learn documentation.
+
+        Parameters
+        ----------
+        vocab : Vocab, optional
+            vocabulary instance that can be given as field.vocab or as vocab
+            from other source. If None, it will be initialized during fit from field.
+        norm
+            see scikit tfidf transformer documentation
+        use_idf
+            see scikit tfidf transformer documentation
+        smooth_idf
+            see scikit tfidf transformer documentation
+        sublinear_tf
+            see scikit tfidf transformer documentation
+        specials : list(str), optional
+            list of tokens for which tfidf is not calculated,
+            if None vocab specials are used
+        """
+        super(TfIdfVectorizer, self).__init__(
+            **{"vocab": vocab, "specials": specials})
+        self._tfidf = TfidfTransformer(norm=norm, use_idf=use_idf,
+                                       smooth_idf=smooth_idf,
+                                       sublinear_tf=sublinear_tf)
+        self._fitted = False
+
     def fit(self, dataset, field):
         """Learn idf from dataset on data in given field.
 
@@ -158,6 +208,7 @@ class TfIdfVectorizer:
         self : TfIdfVectorizer
 
         """
+        super(TfIdfVectorizer, self).fit(dataset=dataset, field=field)
         if dataset is None or field is None:
             error_msg = f"dataset or field mustn't be None, given dataset: "\
                         f"{str(dataset)}, field: {str(field)}"
@@ -167,18 +218,13 @@ class TfIdfVectorizer:
             error_msg = f"invalid field, given field: {str(field)}"
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
-        if self._vocab is None:
-            self._vocab = field.vocab
-        self._check_vocab()
-        self._init_special_indexes()
-        count_matrix = self._build_count_matrix(
-            data=dataset, unpack_data=partial(self._get_example_values,
-                                              field=field))
+        count_matrix = super(TfIdfVectorizer, self).transform(
+            **{'examples': dataset, 'tokens_tensor': False, 'field': field})
         self._tfidf.fit(count_matrix)
         self._fitted = True
         return self
 
-    def transform(self, examples):
+    def transform(self, examples, **kwargs):
         """Transforms examples to example-term matrix. Uses vocabulary that is given
         in constructor.
 
@@ -192,14 +238,11 @@ class TfIdfVectorizer:
         X : sparse matrix, [n_samples, n_features]
             Tf-idf weighted document-term matrix
         """
-        if not self._fitted:
-            error_msg = "Vectorizer must be fitted before transforming."
-            _LOGGER.error(error_msg)
-            raise RuntimeError(error_msg)
+        self._check_fitted()
         if examples is None:
             error_msg = "examples mustn't be None"
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
-        count_matrix = self._build_count_matrix(data=examples,
-                                                unpack_data=self._get_tensor_values)
+        count_matrix = super(TfIdfVectorizer, self).transform(
+            **{'examples': examples, 'tokens_tensor': True, 'field': None})
         return self._tfidf.transform(count_matrix, copy=False)
