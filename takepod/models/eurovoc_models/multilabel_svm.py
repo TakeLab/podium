@@ -91,9 +91,6 @@ class MultilabelSVM(AbstractSupervisedModel):
             clf.fit(X, y_i)
             self._models.append(clf)
 
-            # TODO u AbstractSupervisedModel piše da ova metoda treba vratiti neki
-            # dictionary, ali nije mi baš jasno što bi u njemu trebalo biti
-
     def predict(self, X):
         """Predict labels for given data.
 
@@ -121,9 +118,7 @@ class MultilabelSVM(AbstractSupervisedModel):
                 Y[i] = [0] * X.shape[0]
             else:
                 Y[i] = model.predict(X)
-        # TODO u AbstractSupervisedModel piše da ova metoda treba vratiti neki
-        # dictionary, ali nije mi baš jasno što bi u njemu trebalo biti
-        return Y.transpose()
+        return {AbstractSupervisedModel.PREDICTION_KEY: Y.transpose()}
 
     def get_indexes_of_missing_models(self):
         """Returns the indexes of classes for which the models have not been trained due
@@ -156,7 +151,6 @@ def dill_dataset(output_path):
     dataset.finalize_fields()
 
     with open(output_path, "wb") as output_file:
-        print("dump dataset", output_path)
         dill.dump(dataset, output_file)
 
 
@@ -248,7 +242,8 @@ def train_multilabel_svm(dataset_path,
         for X, Y in test_iter:
             X = vectorizer.transform(X.text)
             Y = get_label_matrix(Y)
-            Y_pred = clf.predict(X)
+            prediction_dict = clf.predict(X)
+            Y_pred = prediction_dict[AbstractSupervisedModel.PREDICTION_KEY]
 
             if not include_calsses_with_no_train_examples:
                 Y_pred = np.delete(Y_pred, clf.get_indexes_of_missing_models(), axis=1)
