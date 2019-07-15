@@ -1,4 +1,4 @@
-from takepod.storage import (dataset, Field, ExampleFactory)
+from takepod.storage import ExampleFactory, Field, dataset
 from takepod.storage.yake import YAKE
 
 

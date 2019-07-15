@@ -1,5 +1,6 @@
-import yake
 import logging
+
+import yake
 
 _LOGGER = logging.getLogger(__name__)
 
