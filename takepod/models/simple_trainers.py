@@ -16,16 +16,7 @@ class SimpleTrainer(AbstractTrainer):
     MAX_EPOCH_KEY = "max_epoch"
     BATCH_TRANSFORM_FUN_KEY = "batch_transform"
 
-    def __init__(self, model):
-        """Constructor that initializes trainer.
-
-        Parameters
-        ----------
-            model : AbstractSupervisedModel
-        """
-        super(SimpleTrainer, self).__init__(model=model)
-
-    def train(self, iterator, **kwargs):
+    def train(self, model, iterator, **kwargs):
         self._check_kwargs(**kwargs)
         batch_transform_fun = kwargs.get(
             SimpleTrainer.BATCH_TRANSFORM_FUN_KEY, None)
@@ -33,7 +24,7 @@ class SimpleTrainer(AbstractTrainer):
             for x_batch, y_batch in iterator:
                 if batch_transform_fun:
                     x_batch, y_batch = batch_transform_fun(x_batch, y_batch)
-                self.model.fit(X=x_batch, y=y_batch)
+                model.fit(X=x_batch, y=y_batch)
 
     def _check_kwargs(self, **kwargs):
         """Method checks if kwargs contains neccessary training parameters.

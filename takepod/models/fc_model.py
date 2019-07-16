@@ -23,8 +23,11 @@ class ScikitMLPClassifier(AbstractSupervisedModel):
         classes : array, shape (n_classes)
             Classes across all calls to fit.
         """
-        self._model = MLPClassifier(max_iter=1, **kwargs)
         self.classes = classes
+        self.reset(**kwargs)
+
+    def reset(self, **kwargs):
+        self._model = MLPClassifier(max_iter=1, **kwargs)
 
     def fit(self, X, y, **kwargs):
         """Method calls fit on multiperceptron model with given batch.

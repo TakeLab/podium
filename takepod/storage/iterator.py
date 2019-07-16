@@ -24,8 +24,8 @@ class Iterator:
 
     def __init__(
             self,
-            dataset,
-            batch_size,
+            dataset=None,
+            batch_size=32,
             batch_to_matrix=True,
             sort_key=None,
             shuffle=False,
@@ -84,17 +84,7 @@ class Iterator:
             None.
         """
 
-        self.input_batch_class = namedtuple(
-            "InputBatch",
-            [field.name for field in dataset.fields if not field.is_target],
-        )
-
-        self.target_batch_class = namedtuple(
-            "TargetBatch", [field.name for field in dataset.fields if field.is_target]
-        )
-
         self.batch_size = batch_size
-        self.dataset = dataset
         self.batch_to_matrix = batch_to_matrix
 
         self.shuffle = shuffle
@@ -103,6 +93,12 @@ class Iterator:
 
         self.epoch = 0
         self.iterations = 0
+
+        if dataset is not None:
+            self.set_dataset(dataset)
+
+        else:
+            self.dataset = None
 
         if self.shuffle:
             if seed is None and internal_random_state is None:
@@ -117,6 +113,21 @@ class Iterator:
                 self.shuffler.setstate(internal_random_state)
         else:
             self.shuffler = None
+
+    def set_dataset(self, dataset):
+        self.epoch = 0
+        self.iterations = 0
+
+        self.input_batch_class = namedtuple(
+            "InputBatch",
+            [field.name for field in dataset.fields if not field.is_target],
+        )
+
+        self.target_batch_class = namedtuple(
+            "TargetBatch", [field.name for field in dataset.fields if field.is_target]
+        )
+
+        self.dataset = dataset
 
     def __len__(self):
         """ Returns the number of batches this iterator provides in one epoch.

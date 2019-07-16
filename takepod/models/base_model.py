@@ -54,6 +54,10 @@ class AbstractSupervisedModel(ABC):
         """
         pass
 
+    @abstractmethod
+    def reset(self, **kwargs):
+        pass
+
 
 class AbstractFrameworkModel(ABC):
     """Interface for framework models."""
