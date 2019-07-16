@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 from sklearn.feature_extraction import text
 from takepod.storage.vocab import Vocab, SpecialVocabSymbols
-from takepod.storage.tfidf import TfIdfVectorizer
+from takepod.storage.tfidf import TfIdfVectorizer, CountVectorizer
 from takepod.storage.field import Field
 
 
@@ -203,3 +203,59 @@ def test_transform_example_none(tabular_dataset):
 
     with pytest.raises(ValueError):
         tfidf.transform(examples=None)
+
+
+def test_count_vectorizer_transform_no_fit():
+    count_vectorizer = CountVectorizer()
+    with pytest.raises(RuntimeError):
+        count_vectorizer.transform(examples=[[1, 1, 1, 1, 1, 0, 0, 0, 0]])
+
+
+@pytest.mark.usefixtures("tabular_dataset")
+def test_count_vectorizer_examples_none(tabular_dataset):
+    tabular_dataset.finalize_fields()
+    text_field = tabular_dataset.field_dict["text"]
+    vocab = text_field.vocab
+
+    count_vectorizer = CountVectorizer(vocab=vocab)
+    count_vectorizer.fit(dataset=tabular_dataset, field=text_field)
+
+    with pytest.raises(ValueError):
+        count_vectorizer.transform(examples=None)
+
+
+def test_count_matrix_specials_indexes():
+    specials = (SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD)
+    vocab = Vocab(specials=specials)
+    for i in DATA:
+        vocab += i.split(" ")
+    vocab.finalize()
+
+    count_vectorizer = CountVectorizer(vocab=vocab)
+    count_vectorizer._init_special_indexes()
+
+    assert len(count_vectorizer._special_indexes) == 2
+    for i in specials:
+        assert vocab.stoi[i] in count_vectorizer._special_indexes
+
+
+@pytest.mark.usefixtures("tabular_dataset")
+def test_equality_count_vector_scikit(tabular_dataset):
+    tabular_dataset.finalize_fields()
+    text_field = tabular_dataset.field_dict["text"]
+    vocab = text_field.vocab
+
+    numericalized_data = get_numericalized_data(data=TABULAR_TEXT, vocab=vocab)
+
+    count_vectorizer = CountVectorizer(vocab=vocab)
+    count_vectorizer.fit(dataset=tabular_dataset, field=text_field)
+    transformed_data = count_vectorizer.transform(examples=numericalized_data).todense()
+
+    scikit_cv = text.CountVectorizer(vocabulary=vocab.stoi, token_pattern=r"(?u)\b\w+\b")
+    scikit_transform_data = scikit_cv.fit_transform(TABULAR_TEXT).todense()
+    scikit_transform_data = np.delete(scikit_transform_data, [0, 1], axis=1)
+    # delete weights for special symbols, in scikit they are 0 and in podium we skip them
+
+    assert np.allclose(a=transformed_data,
+                       b=scikit_transform_data,
+                       rtol=0, atol=1.e-6)

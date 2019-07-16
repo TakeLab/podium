@@ -11,7 +11,19 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class CountVectorizer:
+    """Class converts data from one field in examples to matrix of bag of words features.
+    It is equivalent to scikit-learn CountVectorizer available at
+    https://scikit-learn.org.
+    """
     def __init__(self, vocab=None, specials=None):
+        """Method initializes count vectorizer.
+
+        vocab : Vocab, optional
+            vocabulary instance that can be given as field.vocab or as vocab
+            from other source. If None, it will be initialized during fit from field.
+        specials : list(str), optional
+            list of tokens for which tfidf is not calculated,
+            if None vocab specials are used"""
         self._vocab = vocab
         self._specials = specials
         self._special_indexes = None
@@ -19,7 +31,7 @@ class CountVectorizer:
 
     def _init_special_indexes(self):
         """Initializes set of special symbol indexes in vocabulary.
-        Used to skip special symbols while calculating tfidf."""
+        Used to skip special symbols while calculating count matrix."""
         special_symbols = self._vocab.specials if not self._specials else self._specials
         self._special_indexes = set([self._vocab.stoi[s] for s in special_symbols])
 
@@ -67,8 +79,8 @@ class CountVectorizer:
 
     def _get_tensor_values(self, data):
         """Method obtains data for example in numericalized matrix. This method
-        is used when transforming data with tfidf and in general pipeline it should
-        be in moment when vectorization of numericalized batch happens
+        is used when transforming data with vectorizer and in general pipeline it should
+        be in moment when vectorization of numericalized batch happens.
 
         Parameters
         ----------
@@ -84,7 +96,7 @@ class CountVectorizer:
 
     def _get_example_values(self, example, field):
         """Method obtains data for given field in example. This method is used
-        when fitting tfidf vectorizer with dataset. Fields that are not numericalized
+        when fitting vectorizer with dataset. Fields that are not numericalized
         but are eager will be numericalized.
 
         Parameters
@@ -104,6 +116,13 @@ class CountVectorizer:
         return values
 
     def _check_fitted(self):
+        """Method checks if the current vectorizer is fitted.
+
+        Raises
+        ------
+        RuntimeError
+            if the vectorizer is not fitted before transforming
+        """
         if not self._fitted:
             error_msg = "Vectorizer must be fitted before transforming."
             _LOGGER.error(error_msg)
@@ -123,20 +142,44 @@ class CountVectorizer:
         Returns
         -------
         self : CountVectorizer
+
+        Raises
+        ------
+        ValueError
+            if the vocab or fields vocab are None
         """
-        if self._vocab is None and field is None:
+        if self._vocab is None and (field is None or field.vocab is None):
             error_msg = "Vocab is not defined. User should define vocab in constructor "\
                         "or by giving field."
             _LOGGER.error(error_msg)
-            raise RuntimeError(error_msg)
+            raise ValueError(error_msg)
         self._vocab = field.vocab if self._vocab is None else self._vocab
         self._init_special_indexes()
         self._fitted = True
 
     def transform(self, examples, **kwargs):
+        """Method transforms given examples to count matrix where rows are examples and
+        columns represent token counts.
+
+        Parameters
+        ----------
+        examples : iterable
+            an iterable which yields array with numericalized tokens or list of examples
+        tokens_tensor : bool, optional
+            if True method expects for examples to be a tensor of numericalized values,
+            otherwise it expects to receive list of examples(which can be in fact dataset)
+            and a field for numericalization
+        field : Field, optional
+            if tokens_tensor is False, method expects reference to field that is used for
+            numericalization
+
+        Raises
+        ------
+        ValueError
+            if user has given invalid arguments - if examples are None or the field is not
+            provided and given examples are not in token tensor format
         """
-        tokens_tensor=True, field=None
-        """
+        self._check_fitted()
         tokens_tensor = kwargs['tokens_tensor'] if 'tokens_tensor' in kwargs else True
         field = kwargs['field'] if 'field' in kwargs else None
 
@@ -148,8 +191,8 @@ class CountVectorizer:
             return self._build_count_matrix(
                 data=examples, unpack_data=partial(self._get_example_values, field=field))
         elif tokens_tensor:
-            self._build_count_matrix(data=examples,
-                                     unpack_data=self._get_tensor_values)
+            return self._build_count_matrix(data=examples,
+                                            unpack_data=self._get_tensor_values)
         error_msg = "Invalid method arguments. Method expects tensors of numericalized "\
                     "tokens as examples or dataset as collection of examples from which "\
                     " with given field to extract data."
@@ -207,6 +250,11 @@ class TfIdfVectorizer(CountVectorizer):
         -------
         self : TfIdfVectorizer
 
+        Raises
+        ------
+        ValueError
+            if dataset or field are None and if name of given field is not in dataset
+
         """
         super(TfIdfVectorizer, self).fit(dataset=dataset, field=field)
         if dataset is None or field is None:
@@ -237,6 +285,13 @@ class TfIdfVectorizer(CountVectorizer):
         -------
         X : sparse matrix, [n_samples, n_features]
             Tf-idf weighted document-term matrix
+
+        Raises
+        ------
+        ValueError
+            if examples are None
+        RuntimeError
+            if vectorizer is not fitted yet
         """
         self._check_fitted()
         if examples is None:
