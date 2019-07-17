@@ -1,20 +1,34 @@
-from takepod.storage import SingleBatchIterator
+from takepod.storage import Iterator, SingleBatchIterator, Dataset
+from takepod.models import AbstractSupervisedModel
+from takepod.models.simple_trainers import AbstractTrainer
 
 
 class ModelPipeline:
 
-    def __init__(self, model, trainer, iterator, batch_to_tensor):
+    def __init__(self,
+                 model: AbstractSupervisedModel,
+                 trainer: AbstractTrainer,
+                 iterator: Iterator,
+                 batch_to_tensor: callable
+                 ):
         self.model = model
         self.trainer = trainer
         self.iterator = iterator
         self.batch_to_tensor = batch_to_tensor
 
-    def fit(self, dataset, model_args, trainer_args):
-        self.model.reset(**model_args)
+    def fit(self,
+            dataset: Dataset,
+            model_kwargs: dict,
+            trainer_kwargs: dict
+            ):
+        self.model.reset(**model_kwargs)
         self.iterator.set_dataset(dataset)
-        self.trainer.train(self.model, self.iterator, self.batch_to_tensor, **trainer_args)
+        self.trainer.train(self.model, self.iterator, self.batch_to_tensor, **trainer_kwargs)
 
-    def predict(self, dataset, **kwargs):
+    def predict(self,
+                dataset: Dataset,
+                **kwargs
+                ):
         # TODO: examples is taken in dataset form as proof-of-concept.
         # new method of providing examples must be defined.
 
