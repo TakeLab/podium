@@ -22,16 +22,14 @@ class Iterator:
         The number of iterations elapsed in the current epoch.
     """
 
-    def __init__(
-            self,
-            dataset=None,
-            batch_size=32,
-            batch_to_matrix=True,
-            sort_key=None,
-            shuffle=False,
-            seed=1,
-            internal_random_state=None,
-    ):
+    def __init__(self,
+                 dataset=None,
+                 batch_size=32,
+                 batch_to_matrix=True,
+                 sort_key=None,
+                 shuffle=False,
+                 seed=1,
+                 internal_random_state=None):
         """ Creates an iterator for the given dataset and batch size.
 
         Parameters
@@ -340,6 +338,26 @@ class Iterator:
             xs.sort(key=self.sort_key)
 
         return xs
+
+
+class SingleBatchIterator(Iterator):
+    """ Creates one batch that contains all examples in a dataset"""
+
+    def __init__(self,
+                 dataset=None,
+                 batch_to_matrix=True):
+        super().__init__(dataset=dataset,
+                         batch_to_matrix=batch_to_matrix)
+
+    def __len__(self):
+        return 1
+
+    def __iter__(self):
+        examples = self._data()
+        input_batch, target_batch = self._create_batch(examples)
+        yield input_batch, target_batch
+
+        self.epoch += 1
 
 
 class BucketIterator(Iterator):

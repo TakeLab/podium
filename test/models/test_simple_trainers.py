@@ -47,6 +47,6 @@ def test_simple_trainer_batch_transform_call(tabular_dataset, mocker, model):
         trainer.train(
             model=model,
             iterator=iterator,
-            **{trainer.MAX_EPOCH_KEY: 10,
-               SimpleTrainer.BATCH_TRANSFORM_FUN_KEY: _transform_fun})
+            batch_transform=_transform_fun,
+            **{trainer.MAX_EPOCH_KEY: 10})
         assert _transform_fun.call_count == 10  # pylint: disable=E1101
