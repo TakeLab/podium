@@ -1,5 +1,5 @@
 from takepod.storage import ExampleFactory, Field, dataset
-from takepod.storage.yake import YAKE
+from takepod.preproc.yake import YAKE
 
 
 class DummyDataset(dataset.Dataset):
@@ -14,7 +14,7 @@ class DummyDataset(dataset.Dataset):
         Parameters
         ----------
         texts : list of str
-            list of single document text contents
+            list of document represented as strings
         """
         unpacked_fields = dataset.unpack_fields(fields=fields)
         example_factory = ExampleFactory(fields)

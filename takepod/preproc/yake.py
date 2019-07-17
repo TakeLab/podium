@@ -63,4 +63,4 @@ class YAKE():
             list of keywords sorted ascending by score (lower score is better)
         """
         keywords = self._kw_extractor.extract_keywords(string)
-        return [kw[0] for kw in keywords]
+        return [kw for kw, _ in keywords]
