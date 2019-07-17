@@ -1,5 +1,3 @@
-from collections import namedtuple
-
 import pytest
 import yake
 
@@ -13,7 +11,7 @@ TEXT = """Sources tell us that Google is acquiring Kaggle, a platform that hosts
         Kaggle co-founder CEO Anthony Goldbloom declined to deny that the
         acquisition is happening. Google itself declined
         'to comment on rumors'.
-    """
+        """
 
 
 @pytest.fixture()
@@ -24,13 +22,12 @@ def keyword_data():
 
 
 @pytest.mark.usefixtures("keyword_data")
-def test_yake_wrapper_output(keyword_data):
+def test_yake_en_wrapper_output(keyword_data):
     yake_original = yake.KeywordExtractor()
     yake_takepod = YAKE()
 
-    output_original = yake_original.extract_keywords(keyword_data["text"])
-    example = namedtuple("Example", ["text"])
-    example.text = (keyword_data["text"],)
-    output_takepod = yake_takepod.transform(example)
+    output_original = [out[0] for out in
+                       yake_original.extract_keywords(keyword_data["text"])]
+    output_takepod = yake_takepod(keyword_data["text"])
 
     assert output_takepod == output_original

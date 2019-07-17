@@ -2,74 +2,71 @@ from takepod.storage import ExampleFactory, Field, dataset
 from takepod.storage.yake import YAKE
 
 
-class KWDummyDataset(dataset.Dataset):
-    """Dummmy Keyword Extraction dataset. Consists of a single example (document)
-       with a single field (raw text).
-
-    Attributes
-    ----------
-    TEXT_FIELD_NAME : str
-        name of the field containing the document text
+class DummyDataset(dataset.Dataset):
+    """Dummmy dataset.
     """
-
     TEXT_FIELD_NAME = "text"
 
-    def __init__(self, text):
+    def __init__(self, texts, fields):
         """
         Dataset constructor.
 
         Parameters
         ----------
-        text : str
-            single document text contents
+        texts : list of str
+            list of single document text contents
         """
-        fields = KWDummyDataset.get_default_fields()
         unpacked_fields = dataset.unpack_fields(fields=fields)
         example_factory = ExampleFactory(fields)
-        examples = [example_factory.from_dict({"text": text})]
-        super(KWDummyDataset, self).__init__(
+        examples = [example_factory.from_dict({DummyDataset.TEXT_FIELD_NAME: text})
+                    for text in texts]
+        super(DummyDataset, self).__init__(
             **{"examples": examples, "fields": unpacked_fields})
 
-    @staticmethod
-    def get_default_fields():
-        """Method returns default keyword extraction fields: text.
 
-        Returns
-        -------
-        fields : dict(str, Field)
-            Dictionary mapping field name to field.
-        """
-        text = Field(KWDummyDataset.TEXT_FIELD_NAME,
-                     tokenizer='split',
-                     language='en',
-                     vocab=None,
-                     tokenize=False,
-                     store_as_raw=True,
-                     store_as_tokenized=False
-                     )
-        return {KWDummyDataset.TEXT_FIELD_NAME: text}
+def keyword_extraction_main():
+    """Function createas a dummmy keyword extraction dataset in Croatian language
+    and extracts the keywords. The created datasets maps the input text to two fields:
+    tokens (tokenized using str.split) and keywords (extracted using YAKE)."""
 
+    sample_texts = ["""Karijera u turizmu Pjevačica Renata Končić Minea već dva tjedna radi kao
+                       prodajni predstavnik u odjelu korporativnog poslovanja turističke
+                       agencije Adriatica.net, no zbog toga se neće, tvrdi 27-godišnja
+                       Zagrepčanka, odreći glazbe. Minea se prije deset godina, kad je
+                       počinjala pjevačku karijeru i imala veliki hit 'Vrapci i komarci',
+                       ispisala iz ekonomske škole, a poslije je maturirala na dopisnoj
+                       birotehničkoj školi. (Marijana Marinović/Matko Stanković)""",
+                    """MISS UNIVERSE TESTIRANA NA AIDS JOHANNESBURG - Aktualna Miss Universe
+                       podvrgnula se u utorak testu na AIDS u jednoj bolnici u
+                       Johannesburgu i izrazila nadu da će njezina popularnost uvjeriti
+                       druge ljude da učine isto. Brineta plavih očiju Natalie Gtebova,
+                       23-godišnja Kanađanka rođena u Rusiji, izjavila je da želi
+                       iskoristiti svoju titulu za podizanje svjesnosti i borbe protiv
+                       stigme koja okružuju tu bolest. »Mislim da će činjenica da sam se
+                       javno testirala govoriti vrlo mnogo. To će ohrabriti puno mladih
+                       žena da učine isto«, rekla je ona. Južnoafrička Republika bilježi
+                       najveći broj zaraženih HlV-om - više od pet milijuna ljudi. (H)""",
+                    ]
 
-def keyword_extraction_main(lang):
-    texts = {"en": """Sources tell us that Google is acquiring Kaggle, a platform that hosts
-                      data science and machine learning competitions. Details about the
-                      transaction remain somewhat vague, but given that Google is hosting
-                      its Cloud Next conference in San Francisco this week, the official
-                      announcement could come as early as tomorrow.  Reached by phone,
-                      Kaggle co-founder CEO Anthony Goldbloom declined to deny that the
-                      acquisition is happening. Google itself declined
-                      'to comment on rumors'.
-                   """,
-             "hr": """kljucna rijec"""}
-
-    dataset = KWDummyDataset(texts[lang])
-    kw_extractor = YAKE(lang)
-    keywords = kw_extractor.transform(dataset[0])
-    return keywords
+    tokens = Field("tokens",
+                   tokenizer="split",
+                   vocab=None,
+                   tokenize=True,
+                   store_as_raw=True,
+                   store_as_tokenized=False
+                   )
+    kws = Field("keywords",
+                tokenizer=YAKE('hr'),
+                vocab=None,
+                tokenize=True,
+                store_as_raw=True,
+                store_as_tokenized=False
+                )
+    fields = {DummyDataset.TEXT_FIELD_NAME: (tokens, kws)}
+    dataset = DummyDataset(texts=sample_texts, fields=fields)
+    keywords = [ex.keywords[1] for ex in dataset]
+    print(*keywords, sep='\n')
 
 
 if __name__ == "__main__":
-    keywords_en = keyword_extraction_main("en")
-    print(*keywords_en, sep='\n')
-    # keywords_hr = keyword_extraction_main("hr")
-    # print(*keywords_hr, sep='\n')
+    keyword_extraction_main()

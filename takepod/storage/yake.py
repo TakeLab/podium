@@ -1,8 +1,13 @@
 import logging
 
-import yake
-
 _LOGGER = logging.getLogger(__name__)
+
+try:
+    import yake
+except ImportError:
+    _LOGGER.debug("Problem occured while trying to import yake. "
+                  "If the library is not installed visit "
+                  "https://github.com/LIAAD/yake for more details.")
 
 
 class YAKE():
@@ -11,14 +16,15 @@ class YAKE():
        single documents. This class is a wrapper of the official implementation available
        at https://github.com/LIAAD/yake."""
 
-    def __init__(self, lang="en", ngram_size=3, dedup_lim=0.9, dedup_func='seqm',
+    def __init__(self, lang="en", ngram_size=3,
+                 dedup_lim=0.9, dedup_func='seqm',
                  windows_size=1, top=20):
         """Constructor that initializes YAKE.
 
         Parameters
         ----------
         lang : str
-            the language of the input text. If None, defaults to English.
+            the language of the input text
         ngram_size: int
             maximum ngram size
         dedup_lim: float
@@ -30,30 +36,31 @@ class YAKE():
         top: int
             max number of keyphrases to extract
         """
+
         self._kw_extractor = yake.KeywordExtractor(lan=lang,
                                                    n=ngram_size,
                                                    dedupLim=dedup_lim,
                                                    dedupFunc=dedup_func,
                                                    windowsSize=windows_size,
                                                    top=top,
-                                                   features=None)
+                                                   features=None)  # features dict
 
-    def transform(self, example):
-        """Extracts keywords from the example.
+    def __call__(self, string):
+        """Extracts keywords from the string. See transform function for details.
+        """
+        return self.transform(string)
+
+    def transform(self, string):
+        """Extracts keywords from the string.
 
         Parameters
         ----------
-        example : Example
-            dataset example containing a text field
+        string : str
+            source text for keyword extraction
         Returns
         -------
-        keywords : list of (str, float)
-            list of (keyword, score) sorted ascending by score
+        keywords : list of str
+            list of keywords sorted ascending by score (lower score is better)
         """
-        if example is None:
-            error_msg = "examples mustn't be None"
-            _LOGGER.error(error_msg)
-            raise ValueError(error_msg)
-        raw_text = example.text[0]
-        keywords = self._kw_extractor.extract_keywords(raw_text)
-        return keywords
+        keywords = self._kw_extractor.extract_keywords(string)
+        return [kw[0] for kw in keywords]
