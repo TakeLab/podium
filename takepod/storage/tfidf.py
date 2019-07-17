@@ -124,7 +124,7 @@ class CountVectorizer:
             if the vectorizer is not fitted before transforming
         """
         if not self._fitted:
-            error_msg = "Vectorizer must be fitted before transforming."
+            error_msg = "Vectorizer has not been fitted."
             _LOGGER.error(error_msg)
             raise RuntimeError(error_msg)
 
@@ -150,7 +150,7 @@ class CountVectorizer:
         """
         if self._vocab is None and (field is None or field.vocab is None):
             error_msg = "Vocab is not defined. User should define vocab in constructor "\
-                        "or by giving field."
+                        "or by providing field with a non-empty vocab property."
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
         self._vocab = field.vocab if self._vocab is None else self._vocab
@@ -180,17 +180,18 @@ class CountVectorizer:
             provided and given examples are not in token tensor format
         """
         self._check_fitted()
-        tokens_tensor = kwargs['tokens_tensor'] if 'tokens_tensor' in kwargs else True
+        is_tokens_tensor = kwargs['is_tokens_tensor'] if 'is_tokens_tensor' in kwargs\
+                                                      else True
         field = kwargs['field'] if 'field' in kwargs else None
 
         if examples is None:
             error_msg = "Examples mustn't be None."
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
-        if not tokens_tensor and field is not None:
+        if not is_tokens_tensor and field is not None:
             return self._build_count_matrix(
                 data=examples, unpack_data=partial(self._get_example_values, field=field))
-        elif tokens_tensor:
+        elif is_tokens_tensor:
             return self._build_count_matrix(data=examples,
                                             unpack_data=self._get_tensor_values)
         error_msg = "Invalid method arguments. Method expects tensors of numericalized "\
@@ -267,7 +268,7 @@ class TfIdfVectorizer(CountVectorizer):
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
         count_matrix = super(TfIdfVectorizer, self).transform(
-            **{'examples': dataset, 'tokens_tensor': False, 'field': field})
+            **{'examples': dataset, 'is_tokens_tensor': False, 'field': field})
         self._tfidf.fit(count_matrix)
         self._fitted = True
         return self
@@ -299,5 +300,5 @@ class TfIdfVectorizer(CountVectorizer):
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
         count_matrix = super(TfIdfVectorizer, self).transform(
-            **{'examples': examples, 'tokens_tensor': True, 'field': None})
+            **{'examples': examples, 'is_tokens_tensor': True, 'field': None})
         return self._tfidf.transform(count_matrix, copy=False)
