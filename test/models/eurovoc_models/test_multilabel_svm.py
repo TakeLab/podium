@@ -5,6 +5,8 @@ import numpy as np
 from mock import patch
 from collections import namedtuple
 
+from numpy.testing import assert_array_equal
+
 from takepod.models.eurovoc_models import multilabel_svm as ms
 from takepod.dataload.eurovoc import EuroVocLoader
 from takepod.datasets.eurovoc_dataset import EuroVocDataset
@@ -141,9 +143,10 @@ def test_prediction_with_missing_indexes():
     Y_pred = prediction_dict[ms.MultilabelSVM.PREDICTION_KEY]
 
     assert Y_pred.shape == Y_missing.shape
-    assert missing_indexes == set([2])
     assert len(missing_indexes) == 1
-    assert np.count_nonzero(Y_pred[:, 2]) == 0
+    assert missing_indexes == set([2])
+    assert(len(Y_pred[:, 2]) == 4)
+    assert_array_equal(Y_pred[:, 2], np.zeros(4))
 
 
 def test_prediction_on_unfitted_model():
@@ -187,7 +190,7 @@ def test_dill_dataset(tmpdir):
     with open(path, "rb") as input_file:
         dataset = dill.load(input_file)
 
-        assert len(dataset) == 3
-        assert len(dataset.get_eurovoc_label_hierarchy()) == 4
-        assert len(dataset.get_crovoc_label_hierarchy()) == 3
-        assert len(dataset.fields) == 4
+    assert len(dataset) == 3
+    assert len(dataset.get_eurovoc_label_hierarchy()) == 4
+    assert len(dataset.get_crovoc_label_hierarchy()) == 3
+    assert len(dataset.fields) == 4
