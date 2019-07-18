@@ -42,15 +42,71 @@ def test_fitting_multilable_svm():
     parameter_grid = {"C": [1]}
     n_splits = 2
     max_iter = 1
-    cut_off = 1
+    cutoff = 1
     scoring = 'f1'
     n_jobs = 1
 
     clf.fit(X=X, y=Y, parameter_grid=parameter_grid, n_splits=n_splits,
-            max_iter=max_iter, cut_off=cut_off, scoring=scoring, n_jobs=n_jobs)
+            max_iter=max_iter, cutoff=cutoff, scoring=scoring, n_jobs=n_jobs)
     prediction_dict = clf.predict(X)
     Y_pred = prediction_dict[ms.MultilabelSVM.PREDICTION_KEY]
     assert Y_pred.shape == Y.shape
+
+
+def test_invalid_cutoff():
+    clf = ms.MultilabelSVM()
+    parameter_grid = {"C": [1]}
+    n_splits = 2
+    max_iter = 1
+    cutoff = 0
+    scoring = 'f1'
+    n_jobs = 1
+
+    with pytest.raises(ValueError):
+        clf.fit(X=X, y=Y, parameter_grid=parameter_grid, n_splits=n_splits,
+                max_iter=max_iter, cutoff=cutoff, scoring=scoring, n_jobs=n_jobs)
+
+
+def test_invalid_n_jobs():
+    clf = ms.MultilabelSVM()
+    parameter_grid = {"C": [1]}
+    n_splits = 2
+    max_iter = 1
+    cutoff = 1
+    scoring = 'f1'
+    n_jobs = -2
+
+    with pytest.raises(ValueError):
+        clf.fit(X=X, y=Y, parameter_grid=parameter_grid, n_splits=n_splits,
+                max_iter=max_iter, cutoff=cutoff, scoring=scoring, n_jobs=n_jobs)
+
+
+def test_invalid_n_splits():
+    clf = ms.MultilabelSVM()
+    parameter_grid = {"C": [1]}
+    n_splits = 0
+    max_iter = 1
+    cutoff = 1
+    scoring = 'f1'
+    n_jobs = 1
+
+    with pytest.raises(ValueError):
+        clf.fit(X=X, y=Y, parameter_grid=parameter_grid, n_splits=n_splits,
+                max_iter=max_iter, cutoff=cutoff, scoring=scoring, n_jobs=n_jobs)
+
+
+def test_invalid_max_iter():
+    clf = ms.MultilabelSVM()
+    parameter_grid = {"C": [1]}
+    n_splits = 2
+    max_iter = 0
+    cutoff = 1
+    scoring = 'f1'
+    n_jobs = 1
+
+    with pytest.raises(ValueError):
+        clf.fit(X=X, y=Y, parameter_grid=parameter_grid, n_splits=n_splits,
+                max_iter=max_iter, cutoff=cutoff, scoring=scoring, n_jobs=n_jobs)
 
 
 def test_missing_indexes():
@@ -58,14 +114,15 @@ def test_missing_indexes():
     parameter_grid = {"C": [1]}
     n_splits = 2
     max_iter = 1
-    cut_off = 1
+    cutoff = 1
     scoring = 'f1'
     n_jobs = 1
 
     clf.fit(X=X, y=Y_missing, parameter_grid=parameter_grid, n_splits=n_splits,
-            max_iter=max_iter, cut_off=cut_off, scoring=scoring, n_jobs=n_jobs)
+            max_iter=max_iter, cutoff=cutoff, scoring=scoring, n_jobs=n_jobs)
     missing_indexes = clf.get_indexes_of_missing_models()
-    assert missing_indexes == [2]
+    assert len(missing_indexes) == 1
+    assert missing_indexes == set([2])
 
 
 def test_prediction_with_missing_indexes():
@@ -73,18 +130,19 @@ def test_prediction_with_missing_indexes():
     parameter_grid = {"C": [1]}
     n_splits = 2
     max_iter = 1
-    cut_off = 1
+    cutoff = 1
     scoring = 'f1'
     n_jobs = 1
 
     clf.fit(X=X, y=Y_missing, parameter_grid=parameter_grid, n_splits=n_splits,
-            max_iter=max_iter, cut_off=cut_off, scoring=scoring, n_jobs=n_jobs)
+            max_iter=max_iter, cutoff=cutoff, scoring=scoring, n_jobs=n_jobs)
     missing_indexes = clf.get_indexes_of_missing_models()
     prediction_dict = clf.predict(X)
     Y_pred = prediction_dict[ms.MultilabelSVM.PREDICTION_KEY]
 
     assert Y_pred.shape == Y_missing.shape
-    assert missing_indexes == [2]
+    assert missing_indexes == set([2])
+    assert len(missing_indexes) == 1
     assert np.count_nonzero(Y_pred[:, 2]) == 0
 
 

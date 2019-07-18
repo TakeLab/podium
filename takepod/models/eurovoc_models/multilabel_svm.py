@@ -1,5 +1,6 @@
-"""Multilabe SVM classifier for EuroVoc dataset."""
+"""Multilabel SVM classifier for EuroVoc dataset."""
 import dill
+import logging
 import numpy as np
 
 from sklearn import svm
@@ -14,13 +15,15 @@ from takepod.dataload.eurovoc import EuroVocLoader
 from takepod.storage.tfidf import TfIdfVectorizer
 from takepod.validation.validation import KFold
 
+_LOGGER = logging.getLogger(__name__)
+
 
 class MultilabelSVM(AbstractSupervisedModel):
     """Multilabel SVM with hyperparameter optimization via grid search using K-fold
     cross-validation.
 
-    Multilable SVM is implemented as a set of several binary SVM classifiers, one for
-    each class in dataset (one vs. rest).
+    Multilabel SVM is implemented as a set of binary SVM classifiers, one for each class
+    in dataset (one vs. rest).
     """
 
     def __init__(self):
@@ -28,14 +31,14 @@ class MultilabelSVM(AbstractSupervisedModel):
         """
         self._models = None
 
-    def fit(self, X, y, parameter_grid, n_splits=3, max_iter=10000, cut_off=1,
+    def fit(self, X, y, parameter_grid, n_splits=3, max_iter=10000, cutoff=1,
             scoring='f1', n_jobs=1):
         """Fits the model on given data.
 
         For each class present in y (for each column of the y matrix), a separate SVM
         model is trained. If there are no positive training instances for some label
         (the entire column is filled with zeros), no model is trained. Upon calling the
-        predict function, a zero vector is returned for that calss. The indexes of the
+        predict function, a zero vector is returned for that class. The indexes of the
         columns containing such labels are stored and can be retrieved using the
         get_indexes_of_missing_models method.
 
@@ -51,33 +54,58 @@ class MultilabelSVM(AbstractSupervisedModel):
             grids spanned by each dictionary in the list are explored. This enables
             searching over any sequence of parameter settings. For more information,
             refer to https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html
+            The parameter_grid may contain any of the parameters used to train an
+            instance of the LinearSVC model, most notably penalty parameter 'C' and
+            regularization penalty 'penalty' that can be set to 'l1' or 'l2'.
+            For more information, please refer to:
+            https://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html 
         n_splits : int
             Number of splits for K-fold cross-validation
         max_iter : int
             Maximum number of iterations for training a single SVM within the model.
-        cut-off : int >= 1
+        cutoff : int >= 1
             If the number of positive training examples for a class is less than the
             cut-off, no model is trained for such class and the index of the label is
             added in the missing model indexes.
         scoring : string, callable, list/tuple, dict or None
-            Idicates what scoring function to use in order to determine the best
+            Indicates what scoring function to use in order to determine the best
             hyperparameters via grid search. For more details, view
             https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html
         n_jobs : int
             Number of threads to be used.
         """
+        if cutoff < 1:
+            raise ValueError("cutoff must be a positive integer >= 1, but"
+                             "{} was given".format(cutoff))
+        if n_jobs < -1 or n_jobs == 0:
+            raise ValueError("n_jobs must be a postivive integer or -1, but"
+                             "{} was given".format(n_jobs))
+        if n_splits < 1:
+            raise ValueError("n_splits must be a positive integer >= 1, but"
+                             "{} was given".format(n_splits))
+        if max_iter < 1:
+            raise ValueError("max_iter must be a positive integer >= 1, but"
+                             "{} was given".format(max_iter))
+
         y = np.ndarray.transpose(y)  # Returns a transposed view of the y matrix
 
         # storing indexes of missing models (models are not trained when the number of
         # positive training examples is less that the cut off given)
-        self._missing_indexes = []
+        self._missing_indexes = set()
 
         self._models = []
         for i, y_i in enumerate(y):
-            if np.count_nonzero(y_i) < cut_off:
+            num_examples = np.count_nonzero(y_i)
+            if num_examples < cutoff:
                 # Skipping label due to cut-off.
                 self._models.append(None)
-                self._missing_indexes.append(i)
+                self._missing_indexes.add(i)
+
+                _LOGGER.debug("Label at index {} doesn't have enough instances in the "
+                              "train set, a model won't be trained for this label."
+                              "Number of instances: {}, cutoff {}".format(i,
+                                                                          num_examples,
+                                                                          cutoff))
                 continue
 
             # using KFold from sklearn as model_selection.KFold
@@ -112,10 +140,13 @@ class MultilabelSVM(AbstractSupervisedModel):
         if not self._models:
             raise RuntimeError("Trying to predict using an unfitted model instance.")
 
-        Y = np.empty(shape=(len(self._models), X.shape[0]))
+        Y = np.empty(shape=(len(self._models), X.shape[0]), dtype=np.int32)
         for i, model in enumerate(self._models):
             if model is None:
                 Y[i] = [0] * X.shape[0]
+
+                _LOGGER.debug("No model trained for label at index {}, returning a zero"
+                              "vector instead of model prediction.".format(i))
             else:
                 Y[i] = model.predict(X)
         return {AbstractSupervisedModel.PREDICTION_KEY: Y.transpose()}
@@ -172,13 +203,13 @@ def get_label_matrix(Y):
 
 def train_multilabel_svm(dataset_path,
                          param_grid,
-                         cut_off,
+                         cutoff,
                          n_outer_splits=5,
                          n_inner_splits=3,
                          n_jobs=1,
                          is_verbose=True,
-                         include_calsses_with_no_train_examples=False,
-                         include_calsses_with_no_test_examples=False):
+                         include_classes_with_no_train_examples=False,
+                         include_classes_with_no_test_examples=False):
     """Trains the multilabel SVM model on a given instance of dataset.
 
     Parameters
@@ -191,7 +222,7 @@ def train_multilabel_svm(dataset_path,
             grids spanned by each dictionary in the list are explored. This enables
             searching over any sequence of parameter settings. For more information,
             refer to https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html
-    cut_off : int
+    cutoff : int
         If the number of positive training examples for a class is less than the
         cut-off, no model is trained for such class and the index of the label is
         added in the missing model indexes.
@@ -204,12 +235,12 @@ def train_multilabel_svm(dataset_path,
     is_verbose : boolean
         If set to true, scores on test set are printed for each fold of the
         outer loop in the nested cross validation.
-    include_calsses_with_no_train_examples : boolean
+    include_classes_with_no_train_examples : boolean
         If True, scores of the classes witn an unsufficient number of training examples
         (less than the specified cut-off) are included when calculating general scores.
         Note that this makes sense if cut-off=1 because that means classes with no train
         examples will be taken into consideration.
-    include_calsses_with_no_test_examples : boolean
+    include_classes_with_no_test_examples : boolean
         If True, scores for classes with no positive instances in the test set are
         included in the general score.
     """
@@ -236,7 +267,7 @@ def train_multilabel_svm(dataset_path,
             X = vectorizer.transform(X.text)
             Y = get_label_matrix(Y)
 
-            clf.fit(X, Y, parameter_grid=param_grid, cut_off=cut_off, n_jobs=n_jobs)
+            clf.fit(X, Y, parameter_grid=param_grid, cutoff=cutoff, n_jobs=n_jobs)
 
         test_iter = Iterator(dataset=test, batch_size=len(test))
         for X, Y in test_iter:
@@ -245,13 +276,14 @@ def train_multilabel_svm(dataset_path,
             prediction_dict = clf.predict(X)
             Y_pred = prediction_dict[AbstractSupervisedModel.PREDICTION_KEY]
 
-            if not include_calsses_with_no_train_examples:
-                Y_pred = np.delete(Y_pred, clf.get_indexes_of_missing_models(), axis=1)
-                Y = np.delete(Y, clf.get_indexes_of_missing_models(), axis=1)
+            if not include_classes_with_no_train_examples:
+                Y_pred = np.delete(Y_pred, list(clf.get_indexes_of_missing_models()),
+                                   axis=1)
+                Y = np.delete(Y, list(clf.get_indexes_of_missing_models()), axis=1)
 
             # deletes all zero columns (all labels which don't have any positive exaples
             # in the current test set)
-            if not include_calsses_with_no_test_examples:
+            if not include_classes_with_no_test_examples:
                 cols = ~(Y == 0).all(axis=0)
                 Y = Y[:, cols]
                 Y_pred = Y_pred[:, cols]
