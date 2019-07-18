@@ -18,8 +18,8 @@ class ModelPipeline:
 
     def fit(self,
             dataset: Dataset,
-            model_kwargs: dict,
-            trainer_kwargs: dict
+            model_kwargs: dict = {},
+            trainer_kwargs: dict = {}
             ):
         self.model.reset(**model_kwargs)
         self.iterator.set_dataset(dataset)
@@ -29,8 +29,8 @@ class ModelPipeline:
                 dataset: Dataset,
                 **kwargs
                 ):
-        # TODO: examples is taken in dataset form as proof-of-concept.
-        # new method of providing examples must be defined.
+        # TODO: new method of providing examples must be defined.
+        # examples is taken in dataset form as proof-of-concept.
 
         x_batch, y_batch = next(SingleBatchIterator(dataset).__iter__())
         x_batch, y_batch = self.batch_to_tensor(x_batch, y_batch)
