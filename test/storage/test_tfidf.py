@@ -211,6 +211,26 @@ def test_count_vectorizer_transform_no_fit():
         count_vectorizer.transform(examples=[[1, 1, 1, 1, 1, 0, 0, 0, 0]])
 
 
+def test_count_vectorizer_transform_tokens_tensor():
+    vocab = Vocab(specials=())
+    for i in DATA:
+        vocab += i.split(" ")
+    vocab.finalize()
+    count_vectorizer = CountVectorizer(vocab=vocab)
+    count_vectorizer.fit(dataset=None, field=None)
+
+    numericalized_data = get_numericalized_data(data=DATA, vocab=vocab)
+    bow = count_vectorizer.transform(numericalized_data).todense()
+    expected = np.array([
+        [1, 1, 1, 1, 1, 0, 0, 0, 0],
+        [1, 1, 1, 2, 0, 1, 0, 0, 0],
+        [1, 1, 1, 0, 0, 0, 1, 1, 1],
+        [1, 1, 1, 1, 1, 0, 0, 0, 0]])
+    assert np.allclose(a=bow,
+                       b=expected,
+                       rtol=0, atol=1.e-6)
+
+
 @pytest.mark.usefixtures("tabular_dataset")
 def test_count_vectorizer_examples_none(tabular_dataset):
     tabular_dataset.finalize_fields()

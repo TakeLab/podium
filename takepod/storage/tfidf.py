@@ -181,7 +181,7 @@ class CountVectorizer:
         """
         self._check_fitted()
         is_tokens_tensor = kwargs['is_tokens_tensor'] if 'is_tokens_tensor' in kwargs\
-                                                      else True
+            else True
         field = kwargs['field'] if 'field' in kwargs else None
 
         if examples is None:
