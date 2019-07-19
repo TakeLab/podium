@@ -25,9 +25,10 @@ class DummyDataset(dataset.Dataset):
 
 
 def keyword_extraction_main():
-    """Function createas a dummmy keyword extraction dataset in Croatian language
-    and extracts the keywords. The created datasets maps the input text to two fields:
-    tokens (tokenized using str.split) and keywords (extracted using YAKE)."""
+    """Function creates a dummmy keyword extraction dataset in Croatian language
+    and extracts the keywords. The created dataset demonstrates how to map the input
+    text to two fields: tokens (tokenized using str.split) and keywords (extracted
+    using YAKE)."""
 
     sample_texts = ["""Karijera u turizmu Pjevačica Renata Končić Minea već dva tjedna radi kao
                        prodajni predstavnik u odjelu korporativnog poslovanja turističke
