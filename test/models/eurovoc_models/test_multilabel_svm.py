@@ -1,27 +1,22 @@
 import pytest
-import os
-import dill
 import numpy as np
-from mock import patch
 from collections import namedtuple
 
 from numpy.testing import assert_array_equal
 
 from takepod.models.eurovoc_models import multilabel_svm as ms
-from takepod.dataload.eurovoc import EuroVocLoader
-from takepod.datasets.eurovoc_dataset import EuroVocDataset
-from takepod.storage import Field, MultilabelField
-from takepod.storage import Vocab
-
-from test.datasets.test_eurovoc_dataset import (eurovoc_label_hierarchy,
-                                                crovoc_label_hierarchy,
-                                                mappings, documents)
 
 import warnings
 from sklearn.exceptions import FitFailedWarning, ConvergenceWarning
 from sklearn.exceptions import UndefinedMetricWarning
+# Happens when model predicts all zeros and the F1 score can't be calcualted.
 warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
+# Due to small sample dataset, it often happens that some folds of GridSearchCV end up
+# with no positive or no negative training examples for some label. In this case,
+# FitFailedWarinig occurs.
 warnings.filterwarnings("ignore", category=FitFailedWarning)
+# The maximum number of iterations in test is set to 1. The model fails to converge in
+# 1 iteration and issues a warning.
 warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
 
@@ -159,38 +154,3 @@ def test_getting_missing_indexes_on_unfitted_model():
     clf = ms.MultilabelSVM()
     with pytest.raises(RuntimeError):
         clf.get_indexes_of_missing_models()
-
-
-def mock_init(*args):
-    return None
-
-
-def mock_load_dataset(*args):
-    return eurovoc_label_hierarchy(), crovoc_label_hierarchy(), mappings(), documents()
-
-
-def mock_get_default_fields():
-    title = Field(name="title", vocab=Vocab(), tokenizer='split', language="hr",
-                  tokenize=True, store_as_raw=False)
-    text = Field(name="text", vocab=Vocab(keep_freqs=True),
-                 tokenizer='split', tokenize=True, store_as_raw=False)
-    labels = MultilabelField(name="eurovoc_labels", vocab=Vocab(specials=()))
-    crovoc_labels = MultilabelField(name="crovoc_labels", vocab=Vocab(specials=()))
-    fields = {"title": title, "text": text, "eurovoc_labels": labels,
-              "crovoc_labels": crovoc_labels}
-    return fields
-
-
-@patch.object(EuroVocLoader, '__init__', mock_init)
-@patch.object(EuroVocLoader, 'load_dataset', mock_load_dataset)
-@patch.object(EuroVocDataset, 'get_default_fields', mock_get_default_fields)
-def test_dill_dataset(tmpdir):
-    path = os.path.join(tmpdir, "dataset.dill")
-    ms.dill_dataset(path)
-    with open(path, "rb") as input_file:
-        dataset = dill.load(input_file)
-
-    assert len(dataset) == 3
-    assert len(dataset.get_eurovoc_label_hierarchy()) == 4
-    assert len(dataset.get_crovoc_label_hierarchy()) == 3
-    assert len(dataset.fields) == 4

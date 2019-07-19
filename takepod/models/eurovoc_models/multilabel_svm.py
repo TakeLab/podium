@@ -7,7 +7,7 @@ Example of usage:
                        to and/or loaded from
 
     LargeResource.BASE_RESOURCE_DIR = ... Directory where the EuroVoc downloaded raw
-                                          dataset is stored or where it should be 
+                                          dataset is stored or where it should be
                                           downloaded
 
     # this creates and dills the dataset and it should be done only once
@@ -32,8 +32,6 @@ from sklearn import model_selection
 
 from takepod.storage import Iterator
 from takepod.models import AbstractSupervisedModel
-from takepod.datasets.eurovoc_dataset import EuroVocDataset
-from takepod.dataload.eurovoc import EuroVocLoader
 from takepod.storage.tfidf import TfIdfVectorizer
 from takepod.validation.validation import KFold
 
@@ -80,7 +78,7 @@ class MultilabelSVM(AbstractSupervisedModel):
             instance of the LinearSVC model, most notably penalty parameter 'C' and
             regularization penalty 'penalty' that can be set to 'l1' or 'l2'.
             For more information, please refer to:
-            https://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html 
+            https://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html
         n_splits : int
             Number of splits for K-fold cross-validation
         max_iter : int
@@ -186,25 +184,6 @@ class MultilabelSVM(AbstractSupervisedModel):
             raise RuntimeError("Trying to get missing model indexes on an unfitted model"
                                "instance.")
         return self._missing_indexes
-
-
-def dill_dataset(output_path):
-    """Downloads the EuroVoc dataset (if not already present) and stores the dataset in a
-    dill file.
-
-    Parameters
-    ----------
-    output_path : str
-        Path to the file where the dataset instance will be stored.
-    """
-    loader = EuroVocLoader()
-    eurovoc_labels, crovoc_labels, mapping, documents = loader.load_dataset()
-    dataset = EuroVocDataset(documents=documents, mappings=mapping,
-                             eurovoc_labels=eurovoc_labels, crovoc_labels=crovoc_labels)
-    dataset.finalize_fields()
-
-    with open(output_path, "wb") as output_file:
-        dill.dump(dataset, output_file)
 
 
 def get_label_matrix(Y):

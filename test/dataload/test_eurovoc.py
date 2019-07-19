@@ -2,11 +2,19 @@ import os
 import tempfile
 import shutil
 import pytest
+import dill
 
 from mock import patch
 
-from takepod.dataload.eurovoc import EuroVocLoader, Label, LabelRank
+from takepod.dataload.eurovoc import EuroVocLoader, Label, LabelRank, dill_dataset
 from takepod.storage.large_resource import LargeResource, SCPLargeResource
+from takepod.storage import Field, MultilabelField
+from takepod.storage import Vocab
+from takepod.datasets.eurovoc_dataset import EuroVocDataset
+
+from test.datasets.test_eurovoc_dataset import (eurovoc_label_hierarchy,
+                                                crovoc_label_hierarchy,
+                                                mappings, documents)
 
 EUROVOC_LABELS = r"""
 <DATABASE_THS>
@@ -490,3 +498,38 @@ def test_download_dataset_using_scp():
             SCPLargeResource.SCP_PRIVATE_KEY: 'private_key',
             SCPLargeResource.SCP_PASS_KEY: 'pass'
         })
+
+
+def mock_init(*args):
+    return None
+
+
+def mock_load_dataset(*args):
+    return eurovoc_label_hierarchy(), crovoc_label_hierarchy(), mappings(), documents()
+
+
+def mock_get_default_fields():
+    title = Field(name="title", vocab=Vocab(), tokenizer='split', language="hr",
+                  tokenize=True, store_as_raw=False)
+    text = Field(name="text", vocab=Vocab(keep_freqs=True),
+                 tokenizer='split', tokenize=True, store_as_raw=False)
+    labels = MultilabelField(name="eurovoc_labels", vocab=Vocab(specials=()))
+    crovoc_labels = MultilabelField(name="crovoc_labels", vocab=Vocab(specials=()))
+    fields = {"title": title, "text": text, "eurovoc_labels": labels,
+              "crovoc_labels": crovoc_labels}
+    return fields
+
+
+@patch.object(EuroVocLoader, '__init__', mock_init)
+@patch.object(EuroVocLoader, 'load_dataset', mock_load_dataset)
+@patch.object(EuroVocDataset, 'get_default_fields', mock_get_default_fields)
+def test_dill_dataset(tmpdir):
+    path = os.path.join(tmpdir, "dataset.dill")
+    dill_dataset(path)
+    with open(path, "rb") as input_file:
+        dataset = dill.load(input_file)
+
+    assert len(dataset) == 3
+    assert len(dataset.get_eurovoc_label_hierarchy()) == 4
+    assert len(dataset.get_crovoc_label_hierarchy()) == 3
+    assert len(dataset.fields) == 4
