@@ -615,6 +615,17 @@ def test_dataset_deep_copy(data, field_list):
         assert copy.text == original.text
         assert copy.label == original.label
 
+    original_example = original_examples[2]
+    no_copy_example = original_dataset.get(2, deep_copy=False)
+    indexed_example = original_dataset[2]
+    deep_copied_example = original_dataset.get(2, deep_copy=True)
+
+    assert no_copy_example is original_example
+    assert indexed_example is original_example
+    assert deep_copied_example is not original_example
+    assert deep_copied_example.text == original_example.text
+    assert deep_copied_example.label == original_example.label
+
 
 def test_dataset_multiindexing_pickling(data, field_list):
     dataset = create_dataset(data, field_list)
