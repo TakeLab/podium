@@ -596,6 +596,26 @@ def test_dataset_multiindexing(data, field_list):
     assert all(a == b for a, b in zip(indexed_dataset_raw, true_data))
 
 
+def test_dataset_deep_copy(data, field_list):
+    original_dataset = create_dataset(data, field_list)
+    original_examples = original_dataset.examples
+
+    dataset_no_deep_copy = original_dataset.get(slice(0, 5), deep_copy=False)
+
+    assert original_dataset.fields is dataset_no_deep_copy.fields
+    for original, copy in zip(original_examples, dataset_no_deep_copy.examples):
+        assert copy is original
+
+    dataset_deep_copy = original_dataset.get(slice(0, 5), deep_copy=True)
+
+    assert original_dataset.fields is not dataset_deep_copy.fields
+
+    for original, copy in zip(original_examples, dataset_deep_copy.examples):
+        assert copy is not original
+        assert copy.text == original.text
+        assert copy.label == original.label
+
+
 def test_dataset_multiindexing_pickling(data, field_list):
     dataset = create_dataset(data, field_list)
 
@@ -611,7 +631,6 @@ def test_dataset_multiindexing_pickling(data, field_list):
     assert isinstance(loaded_dataset, Dataset)
     assert len(indexed_dataset) == len(loaded_dataset)
     assert all(example_equals(a, b) for a, b in zip(indexed_dataset, loaded_dataset))
-
 
 
 @pytest.fixture
