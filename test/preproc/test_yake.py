@@ -70,6 +70,7 @@ def test_yake_en_nondefault_wrapper_output(keyword_data):
 
 @pytest.mark.usefixtures("keyword_data")
 def test_yake_en_default_output(keyword_data):
+    pytest.importorskip('yake')
     yake = YAKE()
     output_kws = yake(keyword_data["text"])
 
