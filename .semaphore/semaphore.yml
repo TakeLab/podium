@@ -10,7 +10,7 @@ blocks:
   - name: Python
     task:
       jobs:
-        - name: Create env and run tests
+        - name: Create env and run tests and flake8 check
           commands:
             - python -c 'print("evol"[::-1])'
             - checkout
@@ -18,8 +18,5 @@ blocks:
             - source env/bin/activate
             - pip install -r requirements.txt
             - py.test --cov-report=term-missing --cov=takepod
-        - name: Flake8
-          commands:
-            - pip install flake8
             - flake8 takepod
             - flake8 test
