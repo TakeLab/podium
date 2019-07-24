@@ -2,7 +2,7 @@
 
 from .base_model import AbstractFrameworkModel, AbstractSupervisedModel
 from .svm_model import ScikitSVCModel, ScikitLinearSVCModel
-from .model_pipeline import ModelPipeline
+from .experiment import Experiment
 
-__all__ = ["AbstractFrameworkModel", "AbstractSupervisedModel", "ModelPipeline",
+__all__ = ["AbstractFrameworkModel", "AbstractSupervisedModel", "Experiment",
            "ScikitSVCModel", "ScikitLinearSVCModel"]
