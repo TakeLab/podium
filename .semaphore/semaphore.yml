@@ -7,12 +7,14 @@ agent:
     type: e1-standard-2
     os_image: ubuntu1804
 blocks:
-  - name: Python example
+  - name: Python
     task:
       jobs:
-        - name: Run some code
+        - name: Create env and run tests
           commands:
             - python -c 'print("evol"[::-1])'
-            # Uncomment the following line to pull your code,
-            # then proceed by adding your custom commands:
-            #- checkout
+            - checkout
+            - virtualenv env -p /usr/bin/python3
+            - source env/bin/activate
+            - pip install -r requirements.txt
+            - py.test
