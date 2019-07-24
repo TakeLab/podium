@@ -1,0 +1,18 @@
+# For more Python information and examples, see
+# https://docs.semaphoreci.com/article/83-language-python
+version: v1.0
+name: Hello Semaphore
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu1804
+blocks:
+  - name: Python example
+    task:
+      jobs:
+        - name: Run some code
+          commands:
+            - python -c 'print("evol"[::-1])'
+            # Uncomment the following line to pull your code,
+            # then proceed by adding your custom commands:
+            #- checkout
