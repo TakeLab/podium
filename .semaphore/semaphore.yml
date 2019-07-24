@@ -17,4 +17,9 @@ blocks:
             - virtualenv env -p /usr/bin/python3
             - source env/bin/activate
             - pip install -r requirements.txt
-            - py.test
+            - py.test --cov-report=term-missing --cov=takepod
+        - name: Flake8
+          commands:
+            - pip install flake8
+            - flake8 takepod
+            - flake8 test
