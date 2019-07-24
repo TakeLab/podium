@@ -347,6 +347,7 @@ class SingleBatchIterator(Iterator):
                  dataset=None,
                  batch_to_matrix=True):
         super().__init__(dataset=dataset,
+                         batch_size=len(dataset),
                          batch_to_matrix=batch_to_matrix)
 
     def __len__(self):

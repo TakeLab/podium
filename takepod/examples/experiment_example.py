@@ -48,26 +48,44 @@ def PauzaHR_experiment_example():
     train_dataset, test_dataset = PauzaHRDataset.get_train_test_dataset(fields)
 
     num_of_classes = len(train_dataset.field_dict["Rating"].vocab.itos)
-    model = ScikitMLPClassifier(np.arange(num_of_classes))
 
     trainer = SimpleTrainer()
 
     def train_iterator_provider(dataset):
         return Iterator(dataset, shuffle=True)
 
-    experiment = Experiment(model,
+    vectorizer = BasicVectorStorage(
+        path="downloaded_datasets/tweeterVectors.txt")
+    vectorizer.load_vocab(vocab=fields["Text"].vocab)
+    embedding_matrix = vectorizer.get_embedding_matrix(
+        fields["Text"].vocab)
+
+    batch_transform = partial(batch_transform_mean, embedding_matrix=embedding_matrix)
+
+    experiment = Experiment(ScikitMLPClassifier,
                             trainer,
-                            basic_batch_transform_fun,
+                            batch_transform,
                             train_iterator_provider)
 
     experiment.fit(train_dataset,
                    model_kwargs={
+                       "classes": np.arange(0, num_of_classes),
                        "hidden_layer_sizes": (50, 20),
                        "solver": "adam"
                    },
                    trainer_kwargs={
                        SimpleTrainer.MAX_EPOCH_KEY: 5
                    })
+
+    test_dataset_slice = test_dataset
+
+    _, true_values = next(iter(SingleBatchIterator(test_dataset_slice)))
+    true_values = true_values.Rating.ravel()
+
+    predicted_values = experiment.predict(test_dataset_slice)
+
+    print(f"Expected values: {true_values}")
+    print(f"Predicted values: {predicted_values}")
 
 
 if __name__ == '__main__':
