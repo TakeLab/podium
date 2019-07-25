@@ -36,9 +36,8 @@ def tfidf_svm_example_main():
     model = ScikitLinearSVCModel()
     trainer = SimpleTrainer(model=model)
 
-    trainer.train(iterator=train_iter, **{
-        trainer.MAX_EPOCH_KEY: 1,
-        trainer.BATCH_TRANSFORM_FUN_KEY: batch_transform})
+    trainer.train(iterator=train_iter, batch_transform=batch_transform,
+                  **{trainer.MAX_EPOCH_KEY: 1})
 
     x_train, y_train = batch_transform(*next(train_iter.__iter__()))
     prediction_train = model.predict(X=x_train)[AbstractSupervisedModel.PREDICTION_KEY]
