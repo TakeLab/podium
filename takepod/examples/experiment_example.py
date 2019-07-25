@@ -54,8 +54,7 @@ def PauzaHR_experiment_example():
     def train_iterator_provider(dataset):
         return Iterator(dataset, shuffle=True)
 
-    vectorizer = BasicVectorStorage(
-        path="downloaded_datasets/tweeterVectors.txt")
+    vectorizer = BasicVectorStorage(path="downloaded_datasets/tweeterVectors.txt")
     vectorizer.load_vocab(vocab=fields["Text"].vocab)
     embedding_matrix = vectorizer.get_embedding_matrix(
         fields["Text"].vocab)

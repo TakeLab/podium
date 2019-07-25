@@ -118,11 +118,12 @@ class Iterator:
 
         self.input_batch_class = namedtuple(
             "InputBatch",
-            [field.name for field in dataset.fields if not field.is_target],
+            [field.name for field in dataset.fields if not field.is_target]
         )
 
         self.target_batch_class = namedtuple(
-            "TargetBatch", [field.name for field in dataset.fields if field.is_target]
+            "TargetBatch",
+            [field.name for field in dataset.fields if field.is_target]
         )
 
         self.dataset = dataset
