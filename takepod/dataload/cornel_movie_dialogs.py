@@ -36,27 +36,25 @@ class CornellMovieDialogsLoader:
     DELIMITER = " +++$+++ "
     ENCODING = "iso-8859-1"
 
-    MOVIE_TITLE_FIELDS = ["movieID", "title", "year", "rating", "votes", "genres"]
-    MOVIE_TITLE_FILENAME = "movie_titles_metadata.txt"
+    TITLE_FIELDS = ["movieID", "title", "year", "rating", "votes", "genres"]
+    TITLE_FILENAME = "movie_titles_metadata.txt"
 
-    MOVIE_CHARACTERS_FIELDS = ["characterID", "character", "movieID", "title", "gender",
-                               "position"]
-    MOVIE_CHARACTERS_FILENAME = "movie_characters_metadata.txt"
+    CHARACTERS_FIELDS = ["characterID", "character", "movieID", "title", "gender",
+                         "position"]
+    CHARACTERS_FILENAME = "movie_characters_metadata.txt"
 
-    MOVIE_LINES_FIELDS = ["lineID", "characterID", "movieID", "character", "text"]
-    MOVIE_LINES_FILENAME = "movie_lines.txt"
+    LINES_FIELDS = ["lineID", "characterID", "movieID", "character", "text"]
+    LINES_FILENAME = "movie_lines.txt"
 
-    MOVIE_CONVERSATIONS_FIELDS = ["character1ID", "character2ID", "movieID",
-                                  "utteranceIDs"]
-    MOVIE_CONVERSATIONS_FILENAME = "movie_conversations.txt"
+    CONVERSATIONS_FIELDS = ["character1ID", "character2ID", "movieID",
+                            "utteranceIDs"]
+    CONVERSATIONS_FILENAME = "movie_conversations.txt"
 
-    MOVIE_URL_FIELDS = ["movieID", "title", "url"]
-    MOVIE_URL_FILENAME = "raw_script_urls.txt"
+    URL_FIELDS = ["movieID", "title", "url"]
+    URL_FILENAME = "raw_script_urls.txt"
 
     def __init__(self):
-        """Constructor of the EuroVocLoader class.
-
-        The constructor will check if the dataset is already been downloaded in the
+        """The constructor will check if the dataset is already been downloaded in the
         LargeResource.BASE_RESOURCE_DIR. If the dataset is not present, it will atempt to
         download it.
         """
@@ -71,7 +69,7 @@ class CornellMovieDialogsLoader:
         Returns
         -------
         data : CornellMovieDialogsNamedTuple
-            tuple that contains dictionaries for 5 types of cornel movie dialogs data:
+            tuple that contains dictionaries for 5 types of Cornell movie dialogs data:
             titles, conversations, lines, characters and script urls.
             Fields for every type are defined in class constants.
         """
@@ -107,29 +105,29 @@ class CornellMovieDialogsLoader:
 
     def load_titles(self):
         """Method loads file containing movie titles."""
-        return self._load_file(file_name=CornellMovieDialogsLoader.MOVIE_TITLE_FILENAME,
-                               fields=CornellMovieDialogsLoader.MOVIE_TITLE_FIELDS)
+        return self._load_file(file_name=CornellMovieDialogsLoader.TITLE_FILENAME,
+                               fields=CornellMovieDialogsLoader.TITLE_FIELDS)
 
     def load_conversations(self):
         """Method loads file containing movie conversations."""
         return self._load_file(
-            file_name=CornellMovieDialogsLoader.MOVIE_CONVERSATIONS_FILENAME,
-            fields=CornellMovieDialogsLoader.MOVIE_CONVERSATIONS_FIELDS)
+            file_name=CornellMovieDialogsLoader.CONVERSATIONS_FILENAME,
+            fields=CornellMovieDialogsLoader.CONVERSATIONS_FIELDS)
 
     def load_lines(self):
         """Method loads file containing movie lines."""
         return self._load_file(
-            file_name=CornellMovieDialogsLoader.MOVIE_LINES_FILENAME,
-            fields=CornellMovieDialogsLoader.MOVIE_LINES_FIELDS)
+            file_name=CornellMovieDialogsLoader.LINES_FILENAME,
+            fields=CornellMovieDialogsLoader.LINES_FIELDS)
 
     def load_characters(self):
         """Method loads file containing movie characters."""
         return self._load_file(
-            file_name=CornellMovieDialogsLoader.MOVIE_CHARACTERS_FILENAME,
-            fields=CornellMovieDialogsLoader.MOVIE_CHARACTERS_FIELDS)
+            file_name=CornellMovieDialogsLoader.CHARACTERS_FILENAME,
+            fields=CornellMovieDialogsLoader.CHARACTERS_FIELDS)
 
     def load_urls(self):
         """Method loads file containing movie script urls."""
         return self._load_file(
-            file_name=CornellMovieDialogsLoader.MOVIE_URL_FILENAME,
-            fields=CornellMovieDialogsLoader.MOVIE_URL_FIELDS)
+            file_name=CornellMovieDialogsLoader.URL_FILENAME,
+            fields=CornellMovieDialogsLoader.URL_FIELDS)
