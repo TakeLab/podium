@@ -69,9 +69,8 @@ def pauza_mlp_example(
         verbose=True, hidden_layer_sizes=(50, 20), solver="adam")
     trainer = SimpleTrainer()
 
-    trainer.train(model, iterator=train_iter, **{
-        trainer.MAX_EPOCH_KEY: 10,
-        trainer.BATCH_TRANSFORM_FUN_KEY: batch_transform_function})
+    trainer.train(model, iterator=train_iter, batch_transform=batch_transform_function,
+                  **{trainer.MAX_EPOCH_KEY: 10})
 
     x_test, y_test = batch_transform_function(*next(test_iter.__iter__()))
     prediction = model.predict(X=x_test)

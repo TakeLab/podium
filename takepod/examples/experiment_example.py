@@ -3,7 +3,8 @@
 from functools import partial
 import numpy as np
 
-from takepod.storage import Field, Vocab, Iterator, SingleBatchIterator, BasicVectorStorage
+from takepod.storage import (Field, LargeResource, Vocab, Iterator, SingleBatchIterator,
+                             BasicVectorStorage)
 from takepod.datasets.pauza_dataset import PauzaHRDataset
 from takepod.models.fc_model import ScikitMLPClassifier
 from takepod.models.simple_trainers import SimpleTrainer
@@ -95,4 +96,5 @@ def experiment_example():
 
 
 if __name__ == '__main__':
+    LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
     experiment_example()

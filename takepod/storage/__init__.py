@@ -5,7 +5,8 @@ from .dataset import Dataset, HierarchicalDataset, \
 from .downloader import (BaseDownloader, SCPDownloader, HttpDownloader,
                          SimpleHttpDownloader)
 from .field import Field, TokenizedField, MultilabelField, MultioutputField
-from .iterator import Iterator, SingleBatchIterator,BucketIterator, HierarchicalDatasetIterator
+from .iterator import (Iterator, SingleBatchIterator, BucketIterator,
+                       HierarchicalDatasetIterator)
 from .large_resource import LargeResource, SCPLargeResource
 from .vectorizer import VectorStorage, BasicVectorStorage
 from .vocab import SpecialVocabSymbols, Vocab
@@ -23,9 +24,7 @@ __all__ = ["Dataset", "HierarchicalDataset", "TabularDataset",
            "BaseDownloader", "SCPDownloader", "HttpDownloader", "SimpleHttpDownloader",
            "Field", "TokenizedField", "MultilabelField", "MultioutputField",
            "unpack_fields",
-           "Iterator", "SingleBatchIterator", "BucketIterator", "HierarchicalDatasetIterator",
-           "LargeResource", "SCPLargeResource",
-           "VectorStorage", "BasicVectorStorage",
-           "SpecialVocabSymbols", "Vocab",
-           "stratified_split", "rationed_split",
-           "ExampleFactory"]
+           "Iterator", "SingleBatchIterator", "BucketIterator",
+           "HierarchicalDatasetIterator", "LargeResource", "SCPLargeResource",
+           "VectorStorage", "BasicVectorStorage", "SpecialVocabSymbols", "Vocab",
+           "stratified_split", "rationed_split", "ExampleFactory"]

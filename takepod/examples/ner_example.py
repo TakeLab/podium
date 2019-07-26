@@ -120,9 +120,8 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
     trainer = SimpleTrainer(model=model)
 
     _LOGGER.info('Training started')
-    trainer.train(iterator=train_iter, **{
-        trainer.MAX_EPOCH_KEY: 25,
-        trainer.BATCH_TRANSFORM_FUN_KEY: batch_transform_function})
+    trainer.train(iterator=train_iter, batch_transform=batch_transform_function,
+                  **{trainer.MAX_EPOCH_KEY: 25})
     _LOGGER.info('Training finished')
 
     x_test, y_test = batch_transform_function(*next(test_iter.__iter__()))

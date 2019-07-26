@@ -1,6 +1,6 @@
-import numpy as np
-
 from typing import Tuple, Callable, NamedTuple, Dict, Type
+
+import numpy as np
 
 from takepod.storage import Iterator, SingleBatchIterator, Dataset
 from takepod.models import AbstractSupervisedModel
@@ -16,27 +16,27 @@ class Experiment:
                  batch_to_tensor:
                  Callable[[NamedTuple, NamedTuple], Tuple[np.ndarray, np.ndarray]],
                  training_iterator_callable: Callable[[Dataset], Iterator],
-                 prediction_iterator_callable: Callable[[Dataset], Iterator] = None,
+                 prediction_iterator_callable: Callable[[Dataset], Iterator]=None,
                  ):
-        """Creates a new Experiment. The Experiment class is used to simplify model 
+        """Creates a new Experiment. The Experiment class is used to simplify model
         fitting and prediction using Podium components.
-        
+
         Parameters
         ----------
         model_class : class
             Class of the Model to be fitted.
             Must be a subclass of Podium's `AbstractSupervisedModel`
-            
+
         trainer : AbstractTrainer
             Trainer used to fit the model.
-        
+
         batch_to_tensor : callable(x_batch, y_batch) -> x_tensor, y_tensor
             Callable used to transform Podium batches into a form the model uses.
-            
+
         training_iterator_callable : callable(Dataset) -> Iterator
             Callable used to instantiate new instances of the Iterator used in fitting the
             model.
-             
+
         prediction_iterator_callable : callable(Dataset) -> Iterator
             Callable used to instantiate new instances of the Iterator used in prediction.
             Tensors which are prediction results for seperate batches will be stacked into
@@ -87,8 +87,8 @@ class Experiment:
 
     def fit(self,
             dataset: Dataset,
-            model_kwargs: Dict = None,
-            trainer_kwargs: Dict = None
+            model_kwargs: Dict=None,
+            trainer_kwargs: Dict=None
             ):
         """Fits the model to the provided Dataset. During fitting, the provided Iterator
         and Trainer are used.
