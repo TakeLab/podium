@@ -1,8 +1,9 @@
-"""Example how to use model on simple PauzaHR dataset."""
+"""Example how to use model on simple PauzaHR dataset using the Experiment class."""
+
 from functools import partial
 import numpy as np
 
-from takepod.storage import Field, LargeResource, Vocab, Iterator, SingleBatchIterator, BasicVectorStorage
+from takepod.storage import Field, Vocab, Iterator, SingleBatchIterator, BasicVectorStorage
 from takepod.datasets.pauza_dataset import PauzaHRDataset
 from takepod.models.fc_model import ScikitMLPClassifier
 from takepod.models.simple_trainers import SimpleTrainer
@@ -29,6 +30,8 @@ def basic_pauza_hr_fields():
 
 
 def batch_transform_mean(x_batch, y_batch, embedding_matrix):
+    """Batch transform function that returns a mean of embedding vectors for every
+    token in an Example"""
     x_tensor = np.take(embedding_matrix, x_batch.Text.astype(int), axis=0)
     x = np.mean(x_tensor, axis=1)
     y = np.ravel(y_batch.Rating)
@@ -43,7 +46,9 @@ def basic_batch_transform_fun(x_batch, y_batch):
     return X, y
 
 
-def PauzaHR_experiment_example():
+def experiment_example():
+    """Example of setting up and using the Experiment class.
+    """
     fields = basic_pauza_hr_fields()
     train_dataset, test_dataset = PauzaHRDataset.get_train_test_dataset(fields)
 
@@ -82,10 +87,12 @@ def PauzaHR_experiment_example():
     true_values = true_values.Rating.ravel()
 
     predicted_values = experiment.predict(test_dataset_slice)
+    predicted_values = predicted_values.ravel()
 
-    print(f"Expected values: {true_values}")
-    print(f"Predicted values: {predicted_values}")
+    accuracy = np.count_nonzero(true_values == predicted_values) / len(predicted_values)
+
+    print(f"Accuracy on the test set: {accuracy}")
 
 
 if __name__ == '__main__':
-    PauzaHR_experiment_example()
+    experiment_example()

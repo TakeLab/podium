@@ -6,7 +6,7 @@ from random import Random
 from collections import namedtuple
 import numpy as np
 
-from takepod.storage.dataset import HierarchicalDataset
+from takepod.storage.dataset import Dataset, HierarchicalDataset
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -96,7 +96,7 @@ class Iterator:
             self.set_dataset(dataset)
 
         else:
-            self.dataset = None
+            self._dataset = None
 
         if self.shuffle:
             if seed is None and internal_random_state is None:
@@ -112,7 +112,15 @@ class Iterator:
         else:
             self.shuffler = None
 
-    def set_dataset(self, dataset):
+    def set_dataset(self, dataset: Dataset):
+        """Sets the dataset for this Iterator to iterate over.
+        Resets the epoch count.
+
+        Parameters
+        ----------
+        dataset: Dataset
+            Dataset to iterate over.
+        """
         self.epoch = 0
         self.iterations = 0
 
@@ -126,7 +134,7 @@ class Iterator:
             [field.name for field in dataset.fields if field.is_target]
         )
 
-        self.dataset = dataset
+        self._dataset = dataset
 
     def __len__(self):
         """ Returns the number of batches this iterator provides in one epoch.
@@ -137,7 +145,7 @@ class Iterator:
             Number of batche s provided in one epoch.
         """
 
-        return math.ceil(len(self.dataset) / self.batch_size)
+        return math.ceil(len(self._dataset) / self.batch_size)
 
     def __iter__(self):
         """ Returns an iterator object that knows how to iterate over the
@@ -241,7 +249,7 @@ class Iterator:
         # objects
         input_batch_dict, target_batch_dict = {}, {}
 
-        for field in self.dataset.fields:
+        for field in self._dataset.fields:
             # the length to which all the rows are padded (or truncated)
             pad_length = Iterator._get_pad_length(field, examples)
 
@@ -279,7 +287,7 @@ class Iterator:
         # dicts that will be used to create the InputBatch and TargetBatch
         # objects
         input_batch_dict, target_batch_dict = {}, {}
-        for field in self.dataset.fields:
+        for field in self._dataset.fields:
 
             vectors = [field.get_numericalization_for_example(ex)
                        for ex
@@ -325,14 +333,14 @@ class Iterator:
 
         if self.shuffle:
             # shuffle the indices
-            indices = list(range(len(self.dataset)))
+            indices = list(range(len(self._dataset)))
             self.shuffler.shuffle(indices)
 
             # creates a new list
-            xs = [self.dataset[i] for i in indices]
+            xs = [self._dataset[i] for i in indices]
         else:
             # copies the list
-            xs = self.dataset.examples[:]
+            xs = self._dataset.examples[:]
 
         # sorting the newly created list
         if self.sort_key is not None:
@@ -342,14 +350,32 @@ class Iterator:
 
 
 class SingleBatchIterator(Iterator):
-    """ Creates one batch that contains all examples in a dataset"""
+    """ Iterator that creates one batch per epoch
+    containing all examples in the dataset."""
 
-    def __init__(self,
-                 dataset=None,
-                 batch_to_matrix=True):
+    def __init__(
+            self,
+            dataset: Dataset = None,
+            batch_to_matrix: bool = True):
+        """Creates an Iterator that creates one batch per epoch
+        containing all examples in the dataset.
+
+        Parameters
+        ----------
+        dataset : Dataset
+            The dataset whose examples the iterator will iterate over.
+
+        batch_to_matrix : bool
+            A flag denoting whether the vectors for a field in a batch should be
+            returned as a list of numpy vectors or a matrix where each row is a padded
+            vector.
+        """
         super().__init__(dataset=dataset,
-                         batch_size=len(dataset),
                          batch_to_matrix=batch_to_matrix)
+
+    def set_dataset(self, dataset: Dataset):
+        super().set_dataset(dataset)
+        self.batch_size = len(dataset)
 
     def __len__(self):
         return 1
@@ -618,7 +644,7 @@ class HierarchicalDatasetIterator(Iterator):
 
         input_batch_dict, target_batch_dict = {}, {}
 
-        for field in self.dataset.fields:
+        for field in self._dataset.fields:
             # list of matrices containing numericalized contexts for the current field
             field_contextualized_example_matrices = []
 
@@ -667,11 +693,11 @@ class HierarchicalDatasetIterator(Iterator):
         list(Node)
             a list of Nodes
         """
-        dataset_nodes = list(self.dataset._node_iterator())
+        dataset_nodes = list(self._dataset._node_iterator())
 
         if self.shuffle:
             # shuffle the indices
-            indices = list(range(len(self.dataset)))
+            indices = list(range(len(self._dataset)))
             self.shuffler.shuffle(indices)
 
             # creates a new list of nodes

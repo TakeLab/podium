@@ -56,6 +56,14 @@ class AbstractSupervisedModel(ABC):
 
     @abstractmethod
     def reset(self, **kwargs):
+        """Resets the model to its initial state so it can be re-trained.
+
+        Parameters
+        ----------
+        kwargs
+            Additional key-value parameters for model
+
+        """
         pass
 
 

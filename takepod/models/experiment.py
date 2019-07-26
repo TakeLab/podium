@@ -87,8 +87,8 @@ class Experiment:
 
     def fit(self,
             dataset: Dataset,
-            model_kwargs: Dict = {},
-            trainer_kwargs: Dict = {}
+            model_kwargs: Dict = None,
+            trainer_kwargs: Dict = None
             ):
         """Fits the model to the provided Dataset. During fitting, the provided Iterator
         and Trainer are used.
@@ -108,6 +108,9 @@ class Experiment:
             default arguments defined with `set_default_trainer_args` updated/overridden
             by 'trainer_kwargs'.
         """
+        model_kwargs = {} if model_kwargs is None else model_kwargs
+        trainer_kwargs = {} if trainer_kwargs is None else trainer_kwargs
+
         model_args = self.default_model_args.copy()
         model_args.update(model_kwargs)
 
@@ -153,4 +156,7 @@ class Experiment:
             prediction_tensor = batch_prediction[AbstractSupervisedModel.PREDICTION_KEY]
             y.extend(prediction_tensor)
 
+        # TODO: always returns at least 2-D tensors example X labels
+        # if lables are just one number (simple classification) maybe make it return a
+        # 1D array? Will have to discuss a framework-wide convention.
         return np.vstack(y)
