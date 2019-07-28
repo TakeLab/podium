@@ -82,7 +82,7 @@ class CornellMovieDialogsLoader:
         return CornellMovieDialogsNamedTuple(titles=titles, conversations=conversations,
                                              lines=lines, characters=characters, url=url)
 
-    def _load_file(self, file_name, fields):
+    def _load_file(self, file_name, fields, columns_hooks=None):
         """Method loads file from Cornell movie dialogs dataset defined with file name and
         fields that are used in the file.
 
@@ -92,6 +92,9 @@ class CornellMovieDialogsLoader:
             string containing file path
         fields : list(str)
             list containing field names
+        columns_hooks : dict(str, callable)
+            functions that will be called on columns
+            variable represents dictionary that maps column name to a function
         """
         data_frame = pd.read_csv(
             filepath_or_buffer=os.path.join(
@@ -101,18 +104,28 @@ class CornellMovieDialogsLoader:
             encoding=CornellMovieDialogsLoader.ENCODING, header=None, names=fields,
             engine="python"
         )
+        if columns_hooks is not None:
+            for column_name in columns_hooks:
+                data_frame[column_name] = data_frame[column_name].apply(
+                    columns_hooks[column_name])
         return data_frame.to_dict(orient='list')
 
     def load_titles(self):
         """Method loads file containing movie titles."""
+        column_hooks = {}
+        column_hooks["genres"] = lambda s: s.strip("[]''").split("', '")
         return self._load_file(file_name=CornellMovieDialogsLoader.TITLE_FILENAME,
-                               fields=CornellMovieDialogsLoader.TITLE_FIELDS)
+                               fields=CornellMovieDialogsLoader.TITLE_FIELDS,
+                               columns_hooks=column_hooks)
 
     def load_conversations(self):
         """Method loads file containing movie conversations."""
+        column_hooks = {}
+        column_hooks["utteranceIDs"] = lambda s: s.strip("[]''").split("', '")
         return self._load_file(
             file_name=CornellMovieDialogsLoader.CONVERSATIONS_FILENAME,
-            fields=CornellMovieDialogsLoader.CONVERSATIONS_FIELDS)
+            fields=CornellMovieDialogsLoader.CONVERSATIONS_FIELDS,
+            columns_hooks=column_hooks)
 
     def load_lines(self):
         """Method loads file containing movie lines."""
