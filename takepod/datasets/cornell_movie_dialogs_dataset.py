@@ -51,8 +51,8 @@ class CornellMovieDialogsConversationalDataset(dataset.Dataset):
             if len(lines) < 2:
                 continue
             for i in range(len(lines) - 1):
-                statement = lines_dict[lines[i]]
-                reply = lines_dict[lines[i + 1]]
+                statement = lines_dict.get(lines[i])
+                reply = lines_dict.get(lines[i + 1])
                 if not statement or not reply:
                     continue
                 examples.append(example_factory.from_dict(
