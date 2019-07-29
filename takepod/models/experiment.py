@@ -3,7 +3,7 @@ from typing import Tuple, Callable, NamedTuple, Dict, Type
 import numpy as np
 
 from takepod.storage import Iterator, SingleBatchIterator, Dataset
-from takepod.models import AbstractSupervisedModel
+from takepod.models import AbstractSupervisedModel, default_batch_transform
 from takepod.models.simple_trainers import AbstractTrainer
 
 
@@ -13,10 +13,10 @@ class Experiment:
     def __init__(self,
                  model_class: Type[AbstractSupervisedModel],
                  trainer: AbstractTrainer,
-                 batch_to_tensor:
-                 Callable[[NamedTuple, NamedTuple], Tuple[np.ndarray, np.ndarray]],
                  training_iterator_callable: Callable[[Dataset], Iterator],
-                 prediction_iterator_callable: Callable[[Dataset], Iterator]=None,
+                 prediction_iterator_callable: Callable[[Dataset], Iterator] = None,
+                 batch_transform_fun:
+                 Callable[[NamedTuple, NamedTuple], Tuple[np.ndarray, np.ndarray]] = None
                  ):
         """Creates a new Experiment. The Experiment class is used to simplify model
         fitting and prediction using Podium components.
@@ -30,9 +30,6 @@ class Experiment:
         trainer : AbstractTrainer
             Trainer used to fit the model.
 
-        batch_to_tensor : callable(x_batch, y_batch) -> x_tensor, y_tensor
-            Callable used to transform Podium batches into a form the model uses.
-
         training_iterator_callable : callable(Dataset) -> Iterator
             Callable used to instantiate new instances of the Iterator used in fitting the
             model.
@@ -42,12 +39,15 @@ class Experiment:
             Tensors which are prediction results for seperate batches will be stacked into
             a single tensor before being returned. If passed None, a SingleBatchIterator
             will be used as a default.
+
+        batch_transform_fun : callable(x_batch, y_batch) -> x_tensor, y_tensor
+            Callable used to transform Podium batches into a form the model uses.
         """
         self.model_class = model_class
         self.model = None
         self.trainer = trainer
         self.training_iterator_callable = training_iterator_callable
-        self.batch_to_tensor = batch_to_tensor
+        self.batch_transform_fun = batch_transform_fun
 
         self.set_default_model_args()
         self.set_default_trainer_args()
@@ -60,6 +60,11 @@ class Experiment:
 
         else:
             self.prediction_iterator_callable = prediction_iterator_callable
+
+        if batch_transform_fun is None:
+            self.batch_transform_fun = default_batch_transform
+        else:
+            self.batch_transform_fun = batch_transform_fun
 
     def set_default_model_args(self, **kwargs):
         """Sets the default model arguments. Model arguments are keyword arguments passed
@@ -87,8 +92,8 @@ class Experiment:
 
     def fit(self,
             dataset: Dataset,
-            model_kwargs: Dict=None,
-            trainer_kwargs: Dict=None
+            model_kwargs: Dict = None,
+            trainer_kwargs: Dict = None
             ):
         """Fits the model to the provided Dataset. During fitting, the provided Iterator
         and Trainer are used.
@@ -123,7 +128,7 @@ class Experiment:
 
         self.trainer.train(self.model,
                            train_iterator,
-                           self.batch_to_tensor,
+                           self.batch_transform_fun,
                            **trainer_args)
 
     def predict(self,
@@ -151,7 +156,7 @@ class Experiment:
         y = []
 
         for x_batch, y_batch in self.prediction_iterator_callable(dataset):
-            x_batch_tensor, _ = self.batch_to_tensor(x_batch, y_batch)
+            x_batch_tensor, _ = self.batch_transform_fun(x_batch, y_batch)
             batch_prediction = self.model.predict(x_batch_tensor, **kwargs)
             prediction_tensor = batch_prediction[AbstractSupervisedModel.PREDICTION_KEY]
             y.extend(prediction_tensor)

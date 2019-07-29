@@ -86,8 +86,8 @@ def test_experiment_train():
 
     experiment = Experiment(MockModel,
                             trainer,
-                            mock_batch_transform,
-                            lambda _: MockIterator())
+                            lambda _: MockIterator(),
+                            batch_transform_fun=mock_batch_transform)
 
     experiment.set_default_model_args(**default_model_args)
     experiment.set_default_trainer_args(**default_trainer_args)
@@ -164,9 +164,9 @@ def test_experiment_predict():
     experiment = Experiment(
         MockModel,
         MockTrainer(),
-        mock_batch_transform,
-        lambda _: MockIterator(),
-        lambda _: MockIterator()
+        training_iterator_callable=lambda _: MockIterator(),
+        prediction_iterator_callable=lambda _: MockIterator()
+
     )
     experiment.fit(MockDataset())
     y = experiment.predict(MockDataset())
