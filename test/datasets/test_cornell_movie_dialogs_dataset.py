@@ -54,3 +54,8 @@ def test_creating_dataset(default_dataset):
     for ex in dataset:
         ex_data = {"statement": ex.statement[1], "reply": ex.reply[1]}
         assert ex_data in EXPECTED_EXAMPLES
+
+
+def test_data_none_error():
+    with pytest.raises(ValueError):
+        CornellMovieDialogsConversationalDataset(data=None)

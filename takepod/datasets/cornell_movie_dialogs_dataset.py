@@ -1,5 +1,10 @@
+"""Module contains Cornell Movie Dialogs datasets."""
+import logging
+
 from takepod.storage import dataset, ExampleFactory, Vocab, Field
 from takepod.dataload.cornel_movie_dialogs import CornellMovieDialogsNamedTuple
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class CornellMovieDialogsConversationalDataset(dataset.Dataset):
@@ -14,7 +19,17 @@ class CornellMovieDialogsConversationalDataset(dataset.Dataset):
             cornell movie dialogs data
         fields : dict(str : Field)
             dictionary that maps field name to the field
+
+        Raises
+        ------
+        ValueError
+            if given data is None
         """
+        if data is None:
+            error_msg = "Specified data is None, dataset expects "\
+                        "CornellMovieDialogsNamedTuple instance."
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
         if not fields:
             fields = CornellMovieDialogsConversationalDataset.get_default_fields()
         examples = CornellMovieDialogsConversationalDataset._create_examples(
