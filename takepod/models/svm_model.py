@@ -15,6 +15,9 @@ except ImportError as ex:
 class ScikitSVCModel(AbstractSupervisedModel):
     """Simple scikitlearn SVM model."""
     def __init__(self, **kwargs):
+        self.reset(**kwargs)
+
+    def reset(self, **kwargs):
         self._model = SVC(**kwargs)
 
     def fit(self, X, y, **kwargs):
@@ -27,5 +30,5 @@ class ScikitSVCModel(AbstractSupervisedModel):
 
 class ScikitLinearSVCModel(ScikitSVCModel):
     """Simple scikitlearn linear SVM model."""
-    def __init__(self, **kwargs):
+    def reset(self, **kwargs):
         self._model = LinearSVC(**kwargs)

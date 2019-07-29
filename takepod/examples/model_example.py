@@ -67,11 +67,10 @@ def pauza_mlp_example(
     model = ScikitMLPClassifier(
         classes=[i for i in range(0, len(fields["Rating"].vocab.itos))],
         verbose=True, hidden_layer_sizes=(50, 20), solver="adam")
-    trainer = SimpleTrainer(model=model)
+    trainer = SimpleTrainer()
 
-    trainer.train(iterator=train_iter, **{
-        trainer.MAX_EPOCH_KEY: 10,
-        trainer.BATCH_TRANSFORM_FUN_KEY: batch_transform_function})
+    trainer.train(model, iterator=train_iter, batch_transform=batch_transform_function,
+                  **{trainer.MAX_EPOCH_KEY: 10})
 
     x_test, y_test = batch_transform_function(*next(test_iter.__iter__()))
     prediction = model.predict(X=x_test)

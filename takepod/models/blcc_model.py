@@ -70,6 +70,9 @@ class BLCCModel(AbstractSupervisedModel):
     DROPOUT = 'dropout'
 
     def __init__(self, **kwargs):
+        self.reset(**kwargs)
+
+    def reset(self, **kwargs):
         default_hyperparameters = {
             self.EMBEDDING_SIZE: None,
             self.OUTPUT_SIZE: None,
