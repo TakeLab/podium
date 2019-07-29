@@ -644,6 +644,7 @@ def test_dataset_multiindexing_pickling(data, field_list):
 
 
 @pytest.fixture
+def field_list():
     return [MockField(field_name, eager, is_target=(field_name == "label"))
             for field_name, eager in FIELD_DATA]
 
