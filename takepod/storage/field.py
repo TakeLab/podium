@@ -661,16 +661,36 @@ class Field:
 
         return row
 
-    def get_numericalization_for_example(self, example):
+    def get_numericalization_for_example(self, example, cache=True):
+        """Returns the numericalized data of this field for the provided example.
+        The numericalized data is generated and cached in the example if 'cache' is true
+        and the cached data is not already present. If already cached, the cached data is
+        returned.
+
+        Parameters
+        ----------
+        example : Example
+            example to get numericalized data for.
+
+        cache : bool
+            whether to store the cache the calculated numericalization if not already
+            cached
+
+        Returns
+        -------
+        numericalized data : numpy array
+            The numericalized data.
+        """
         cache_field_name = f"{self.name}_"
-        cached_numericalization = getattr(example, cache_field_name)
+        numericalization = getattr(example, cache_field_name)
 
-        if cached_numericalization is None:
+        if numericalization is None:
             example_data = getattr(example, self.name)
-            cached_numericalization = self.numericalize(example_data)
-            setattr(example, cache_field_name, cached_numericalization)
+            numericalization = self.numericalize(example_data)
+            if cache:
+                setattr(example, cache_field_name, numericalization)
 
-        return cached_numericalization
+        return numericalization
 
     def __getstate__(self):
         """Method obtains field state. It is used for pickling dataset data

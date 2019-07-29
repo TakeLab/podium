@@ -24,6 +24,8 @@ Example of usage:
 import dill
 import logging
 import numpy as np
+import random
+import time
 
 from sklearn import svm
 from sklearn.metrics import precision_score, recall_score, f1_score

@@ -1,12 +1,13 @@
 import os
 import dill
 import pytest
+import tempfile
 import numpy as np
 
 from collections import Counter
 from json import JSONDecodeError
 from takepod.storage import Dataset, HierarchicalDataset, TabularDataset, Field, \
-    MultioutputField, unpack_fields
+    MultioutputField, unpack_fields, ExampleFactory, Vocab, Iterator
 
 FORMAT_USE_DICT_COMBINATIONS = (
     ("csv", True),
@@ -546,18 +547,23 @@ def test_dataset_slicing(data, field_list):
 
     dataset_0_4 = dataset[:4]
     assert list(map(get_raw, dataset_0_4)) == list(map(fst, data[0:4]))
+    assert isinstance(dataset_0_4, Dataset)
 
     dataset_2_end = dataset[2:]
     assert list(map(get_raw, dataset_2_end)) == list(map(fst, data[2:None]))
+    assert isinstance(dataset_2_end, Dataset)
 
     dataset_2_4 = dataset[2:4]
     assert list(map(get_raw, dataset_2_4)) == list(map(fst, data[2:4]))
+    assert isinstance(dataset_2_4, Dataset)
 
     dataset_2_5_neg1 = dataset[2:5:-1]
     assert list(map(get_raw, dataset_2_5_neg1)) == list(map(fst, data[2:5:-1]))
+    assert isinstance(dataset_2_5_neg1, Dataset)
 
     dataset_2_6_neg2 = dataset[2:6:-2]
     assert list(map(get_raw, dataset_2_6_neg2)) == list(map(fst, data[2:6:-2]))
+    assert isinstance(dataset_2_6_neg2, Dataset)
 
 
 def test_dataset_multiindexing(data, field_list):
@@ -569,18 +575,75 @@ def test_dataset_multiindexing(data, field_list):
     def test_indexing(indexes):
         true_data = [data[i][0] for i in indexes]
         indexed_dataset = dataset[indexes]
-        indexed_dataset_raw = map(get_raw, indexed_dataset)
         assert all(a == b for a, b in zip(indexed_dataset_raw, true_data))
-
     test_indexing(list(range(0, 10)))
     test_indexing(list(range(9, 0, -1)))
     test_indexing(list(range(8, 1, -2)))
     test_indexing([0, 1, 1, 1, 2, 3, 4, 5, 1, 10, 2])
     test_indexing(np.array([0, 2, 3, 5, 3]))
 
+    indexed_dataset = dataset[range(1, 10, 3)]
+    assert isinstance(indexed_dataset, Dataset)
+    indexed_dataset_raw = map(get_raw, indexed_dataset)
+    assert all(a == b for a, b in zip(indexed_dataset_raw, true_data))
+
+    # indexing by iterable
+    true_data = [data[i][0] for i in range(1, 10, 3)]
+    indexed_dataset = dataset[range(1, 10, 3)]
+    assert isinstance(indexed_dataset, Dataset)
+    indexed_dataset_raw = map(get_raw, indexed_dataset)
+    assert all(a == b for a, b in zip(indexed_dataset_raw, true_data))
+
+
+def test_dataset_deep_copy(data, field_list):
+    original_dataset = create_dataset(data, field_list)
+    original_examples = original_dataset.examples
+
+    dataset_no_deep_copy = original_dataset.get(slice(0, 5), deep_copy=False)
+
+    assert original_dataset.fields is dataset_no_deep_copy.fields
+    for original, copy in zip(original_examples, dataset_no_deep_copy.examples):
+        assert copy is original
+
+    dataset_deep_copy = original_dataset.get(slice(0, 5), deep_copy=True)
+
+    assert original_dataset.fields is not dataset_deep_copy.fields
+
+    for original, copy in zip(original_examples, dataset_deep_copy.examples):
+        assert copy is not original
+        assert copy.text == original.text
+        assert copy.label == original.label
+
+    original_example = original_examples[2]
+    no_copy_example = original_dataset.get(2, deep_copy=False)
+    indexed_example = original_dataset[2]
+    deep_copied_example = original_dataset.get(2, deep_copy=True)
+
+    assert no_copy_example is original_example
+    assert indexed_example is original_example
+    assert deep_copied_example is not original_example
+    assert deep_copied_example.text == original_example.text
+    assert deep_copied_example.label == original_example.label
+
+
+def test_dataset_multiindexing_pickling(data, field_list):
+    dataset = create_dataset(data, field_list)
+
+    def example_equals(a, b):
+        return a.text == b.text and a.label == b.label
+
+    indexed_dataset = dataset[0, 2, 3]
+    with tempfile.TemporaryFile() as file:
+        dill.dump(indexed_dataset, file)
+        file.seek(0)
+        loaded_dataset = dill.load(file)
+
+    assert isinstance(loaded_dataset, Dataset)
+    assert len(indexed_dataset) == len(loaded_dataset)
+    assert all(example_equals(a, b) for a, b in zip(indexed_dataset, loaded_dataset))
+
 
 @pytest.fixture
-def field_list():
     return [MockField(field_name, eager, is_target=(field_name == "label"))
             for field_name, eager in FIELD_DATA]
 
@@ -675,6 +738,47 @@ def test_unpack_fields():
 
     assert len(unpacked_fields) == 3
     assert all(f in unpacked_fields for f in (field1, field2, field3))
+
+
+def test_eager_tokenization():
+
+    def create_dataset():
+
+        fields = (
+            Field("text", vocab=Vocab()),
+            Field("source", vocab=Vocab(), tokenizer=list)
+        )
+        example_factory = ExampleFactory(fields)
+
+        examples = [example_factory.from_list(data)
+                    for data
+                    in zip(TABULAR_TEXT, TABULAR_SOURCES)]
+
+        dataset = Dataset(examples, fields)
+        return dataset
+
+    dataset_lazy = create_dataset()
+    dataset_eager = create_dataset()
+
+    for example_eager in dataset_eager:
+        assert example_eager.text_ is None
+        assert example_eager.source_ is None
+
+    dataset_eager.finalize_fields()
+    # Numericalize eagerly
+    dataset_eager.numericalize_examples()
+
+    dataset_lazy.finalize_fields()
+    # Numericalize Lazily
+    for _ in Iterator(dataset_lazy, 100):
+        pass
+
+    for example_eager, example_lazy in zip(dataset_eager, dataset_lazy):
+        assert example_eager.text_ is not None
+        assert all(example_eager.text_ == example_lazy.text_)
+
+        assert example_eager.source_ is not None
+        assert all(example_eager.source_ == example_lazy.source_)
 
 
 @pytest.fixture()
