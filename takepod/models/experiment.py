@@ -57,7 +57,6 @@ class Experiment:
                 return SingleBatchIterator(dataset)
 
             self.prediction_iterator_callable = default_prediction_iterator_callable
-
         else:
             self.prediction_iterator_callable = prediction_iterator_callable
 
