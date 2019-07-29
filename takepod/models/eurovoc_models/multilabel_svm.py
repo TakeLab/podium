@@ -186,6 +186,9 @@ class MultilabelSVM(AbstractSupervisedModel):
                                "instance.")
         return self._missing_indexes
 
+    def reset(self, **kwargs):
+        raise NotImplementedError("Reset not yet implemented for this model.")
+
 
 def get_label_matrix(Y):
     """Takes the target fields returned by the EuroVoc iterator and returns the EuroVoc
