@@ -575,18 +575,13 @@ def test_dataset_multiindexing(data, field_list):
     def test_indexing(indexes):
         true_data = [data[i][0] for i in indexes]
         indexed_dataset = dataset[indexes]
-        assert isinstance(indexed_dataset, Dataset)
-        indexed_dataset_raw = map(get_raw, indexed_dataset)
         assert all(a == b for a, b in zip(indexed_dataset_raw, true_data))
-
     test_indexing(list(range(0, 10)))
     test_indexing(list(range(9, 0, -1)))
     test_indexing(list(range(8, 1, -2)))
     test_indexing([0, 1, 1, 1, 2, 3, 4, 5, 1, 10, 2])
     test_indexing(np.array([0, 2, 3, 5, 3]))
 
-    # indexing by iterable
-    true_data = [data[i][0] for i in range(1, 10, 3)]
     indexed_dataset = dataset[range(1, 10, 3)]
     assert isinstance(indexed_dataset, Dataset)
     indexed_dataset_raw = map(get_raw, indexed_dataset)
@@ -649,7 +644,6 @@ def test_dataset_multiindexing_pickling(data, field_list):
 
 
 @pytest.fixture
-def field_list():
     return [MockField(field_name, eager, is_target=(field_name == "label"))
             for field_name, eager in FIELD_DATA]
 

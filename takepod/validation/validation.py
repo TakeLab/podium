@@ -26,4 +26,3 @@ class KFold(baseKFold):
         indices = np.arange(len(dataset))
         for train_indices, test_indices in super().split(indices):
             yield dataset[train_indices], dataset[test_indices]
-
