@@ -63,11 +63,13 @@ class CornellMovieDialogsConversationalDataset(dataset.Dataset):
         lines_dict = dict(zip(lines["lineID"], lines["text"]))
         conversations_lines = data.conversations["utteranceIDs"]
         for lines in conversations_lines:
+            # we skip monologues
             if len(lines) < 2:
                 continue
             for i in range(len(lines) - 1):
                 statement = lines_dict.get(lines[i])
                 reply = lines_dict.get(lines[i + 1])
+                # some lines in the dataset are empty
                 if not statement or not reply:
                     continue
                 examples.append(example_factory.from_dict(
