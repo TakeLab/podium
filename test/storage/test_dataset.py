@@ -584,6 +584,7 @@ def test_dataset_multiindexing(data, field_list):
     test_indexing(list(range(8, 1, -2)))
     test_indexing([0, 1, 1, 1, 2, 3, 4, 5, 1, 10, 2])
     test_indexing(np.array([0, 2, 3, 5, 3]))
+    test_indexing(list(range(1, 10, 3)))
 
 
 def test_dataset_deep_copy(data, field_list):
