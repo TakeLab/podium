@@ -1,12 +1,14 @@
 """Module for loading raw eurovoc dataset"""
 import os
 import glob
+import dill
 import xml.etree.ElementTree as ET
 import logging
 from enum import Enum
 from collections import namedtuple
 from takepod.storage.large_resource import (init_scp_large_resource_from_kwargs,
                                             LargeResource)
+from takepod.datasets.eurovoc_dataset import EuroVocDataset
 
 _LOGGER = logging.getLogger(__name__)
 try:
@@ -518,3 +520,22 @@ def _get_text(child, filed_name):
     str : Lowercase striped contents of the field.
     """
     return child.find(filed_name).text.lower().strip()
+
+
+def dill_dataset(output_path):
+    """Downloads the EuroVoc dataset (if not already present) and stores the dataset in a
+    dill file.
+
+    Parameters
+    ----------
+    output_path : str
+        Path to the file where the dataset instance will be stored.
+    """
+    loader = EuroVocLoader()
+    eurovoc_labels, crovoc_labels, mapping, documents = loader.load_dataset()
+    dataset = EuroVocDataset(documents=documents, mappings=mapping,
+                             eurovoc_labels=eurovoc_labels, crovoc_labels=crovoc_labels)
+    dataset.finalize_fields()
+
+    with open(output_path, "wb") as output_file:
+        dill.dump(dataset, output_file)
