@@ -1,4 +1,4 @@
-"Module contains EuroVoc dataset."
+"""Module contains EuroVoc dataset."""
 import os
 import re
 import functools
@@ -46,7 +46,7 @@ class EuroVocDataset(dataset.Dataset):
         self._crovoc_label_hierarchy = crovoc_labels
 
         if not fields:
-            fields = EuroVocDataset._get_default_fields()
+            fields = EuroVocDataset.get_default_fields()
 
         unpacked_fields = dataset.unpack_fields(fields=fields)
         examples = EuroVocDataset._create_examples(
@@ -225,7 +225,7 @@ class EuroVocDataset(dataset.Dataset):
         return None
 
     @staticmethod
-    def _get_default_fields():
+    def get_default_fields():
         """Method returns default EuroVoc fields: title, text, eurovoc and crovoc labels.
 
         Returns

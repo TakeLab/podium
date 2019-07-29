@@ -221,7 +221,7 @@ def mock_init_lemmatizer(self, **kwargs):
        side_effect=mock_lemmatizer_posttokenized_hook)
 @patch.object(CroatianLemmatizer, '__init__', mock_init_lemmatizer)
 def test_default_fields(patched_hook):
-    fields = EuroVocDataset._get_default_fields()
+    fields = EuroVocDataset.get_default_fields()
     assert len(fields) == 4
     field_names = ["text", "title", "eurovoc_labels", "crovoc_labels"]
     assert all([name in fields for name in field_names])
