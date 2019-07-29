@@ -73,7 +73,8 @@ class MultilabelSVM(AbstractSupervisedModel):
             settings to try as values, or a list of such dictionaries, in which case the
             grids spanned by each dictionary in the list are explored. This enables
             searching over any sequence of parameter settings. For more information,
-            refer to https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html
+            refer to
+            https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html
             The parameter_grid may contain any of the parameters used to train an
             instance of the LinearSVC model, most notably penalty parameter 'C' and
             regularization penalty 'penalty' that can be set to 'l1' or 'l2'.
@@ -222,7 +223,8 @@ def train_multilabel_svm(dataset_path,
             settings to try as values, or a list of such dictionaries, in which case the
             grids spanned by each dictionary in the list are explored. This enables
             searching over any sequence of parameter settings. For more information,
-            refer to https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html
+            refer to
+            https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html
     cutoff : int
         If the number of positive training examples for a class is less than the
         cut-off, no model is trained for such class and the index of the label is
