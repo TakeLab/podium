@@ -32,7 +32,7 @@ class Example:
         attributes = [att for att in dir(self) if not att.startswith("__")]
         att_values = [f"{att}: {getattr(self, att, None)}" for att in attributes]
         att_string = "; ".join(att_values)
-        return f"{self.__class__.__name__}[{att_string}] at {hex(id(self))}"
+        return f"{self.__class__.__name__}[{att_string}]"
 
 
 class ExampleFactory:
