@@ -28,7 +28,7 @@ class Example:
         for fieldname in fieldnames:
             setattr(self, fieldname, None)
 
-    def __repr__(self):
+    def __str__(self):
         attributes = [att for att in dir(self) if not att.startswith("__")]
         att_values = [f"{att}: {getattr(self, att, None)}" for att in attributes]
         att_string = "; ".join(att_values)
