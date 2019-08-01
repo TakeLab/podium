@@ -1,4 +1,4 @@
-"""Package contains concrete datasets"""
+"""Package contains datasets"""
 
 from .dataset import Dataset, stratified_split, rationed_split
 from .hierarhical_dataset import HierarchicalDataset
