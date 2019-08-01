@@ -1,3 +1,4 @@
+"""Module contains functions used to transform batch to tensors that models accept."""
 import logging
 from typing import NamedTuple, Tuple
 import numpy as np
