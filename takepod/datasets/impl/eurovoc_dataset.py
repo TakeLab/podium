@@ -48,7 +48,7 @@ class EuroVocDataset(Dataset):
         if not fields:
             fields = EuroVocDataset.get_default_fields()
 
-        unpacked_fields = dataset.unpack_fields(fields=fields)
+        unpacked_fields = unpack_fields(fields=fields)
         examples = EuroVocDataset._create_examples(
             fields=fields,
             documents=documents,

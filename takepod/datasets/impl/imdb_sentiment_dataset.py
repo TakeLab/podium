@@ -88,7 +88,7 @@ class BasicSupervisedImdbDataset(Dataset):
             LargeResource.RESOURCE_NAME: BasicSupervisedImdbDataset.NAME,
             LargeResource.ARCHIVE: BasicSupervisedImdbDataset.ARCHIVE_TYPE,
             LargeResource.URI: BasicSupervisedImdbDataset.URL})
-        unpacked_fields = dataset.unpack_fields(fields=fields)
+        unpacked_fields = unpack_fields(fields=fields)
         examples = self._create_examples(dir_path=dir_path, fields=fields)
         super(BasicSupervisedImdbDataset, self).__init__(
             **{"examples": examples, "fields": unpacked_fields})
