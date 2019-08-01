@@ -716,8 +716,8 @@ class Field:
         self.tokenizer = get_tokenizer(self._tokenizer_arg, self.language)
 
     def __str__(self):
-        return f"{self.__class__.__name__}[name: {self.name}, " \
-            f"sequential: {self.sequential}, is_target: {self.is_target}]"
+        return "{}[name: {}, sequential: {}, is_target: {}]".format(
+            self.__class__.__name__, self.name, self.sequential, self.is_target)
 
     def get_output_fields(self):
         """Returns an Iterable of the contained output fields.
@@ -837,9 +837,9 @@ class MultilabelField(TokenizedField):
             self.fixed_length = self.num_of_classes = len(self.vocab)
 
         if self.use_vocab and len(self.vocab) > self.num_of_classes:
-            error_msg = f"Number of classes in data is greater" \
-                f" than the declared number of classes." \
-                f" Declared: {self.num_of_classes}, Actual: {len(self.vocab)}"
+            error_msg = "Number of classes in data is greater than the declared number "\
+                "of classes. Declared: {}, Actual: {}".format(
+                    self.num_of_classes, len(self.vocab))
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 

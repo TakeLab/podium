@@ -358,5 +358,5 @@ class Vocab:
         return iter(self.itos)
 
     def __str__(self):
-        return f"{self.__class__.__name__}[finalized: {self.finalized}, "\
-               f"size: {len(self)}]"
+        return "{}[finalized: {}, size: {}]".format(
+            self.__class__.__name__, self.finalized, len(self))

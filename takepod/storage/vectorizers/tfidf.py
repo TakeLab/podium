@@ -259,12 +259,12 @@ class TfIdfVectorizer(CountVectorizer):
         """
         super(TfIdfVectorizer, self).fit(dataset=dataset, field=field)
         if dataset is None or field is None:
-            error_msg = f"dataset or field mustn't be None, given dataset: "\
-                        f"{str(dataset)}, field: {str(field)}"
+            error_msg = "dataset or field mustn't be None, given dataset: "\
+                        "{}, field: {}".format(str(dataset), str(field))
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
         if field.name not in dataset.field_dict:
-            error_msg = f"invalid field, given field: {str(field)}"
+            error_msg = "invalid field, given field: {}".format(str(field))
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
         count_matrix = super(TfIdfVectorizer, self).transform(

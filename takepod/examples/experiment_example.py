@@ -92,7 +92,7 @@ def experiment_example():
 
     accuracy = np.count_nonzero(true_values == predicted_values) / len(predicted_values)
 
-    print(f"Accuracy on the test set: {accuracy}")
+    print("Accuracy on the test set: ", accuracy)
 
 
 if __name__ == '__main__':
