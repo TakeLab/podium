@@ -7,7 +7,7 @@ import numpy as np
 from collections import Counter
 from json import JSONDecodeError
 from takepod.datasets.dataset import Dataset
-from takepod.datasets.hierarchical_dataset import HierarchicalDataset
+from takepod.datasets.hierarhical_dataset import HierarchicalDataset
 from takepod.datasets.tabular_dataset import TabularDataset
 from takepod.storage import (Field, MultioutputField, unpack_fields, ExampleFactory, 
                              Vocab, Iterator)
