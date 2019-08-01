@@ -5,7 +5,7 @@ from typing import Tuple, Callable, NamedTuple, Dict, Type
 import numpy as np
 
 from takepod.datasets.dataset import Dataset
-from takepod.storage import Iterator, SingleBatchIterator
+from takepod.datasets.iterator import Iterator, SingleBatchIterator
 from takepod.models import AbstractSupervisedModel, default_batch_transform
 from takepod.models.impl.simple_trainers import AbstractTrainer
 

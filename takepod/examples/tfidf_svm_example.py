@@ -7,7 +7,8 @@ from takepod.models import ScikitLinearSVCModel, AbstractSupervisedModel
 
 from takepod.datasets import BasicSupervisedImdbDataset
 from takepod.models.impl.simple_trainers import SimpleTrainer
-from takepod.storage import Iterator, LargeResource
+from takepod.storage import LargeResource
+from takepod.datasets.iterator import Iterator
 
 
 def batch_transform_tfidf(x_batch, y_batch, tfidf_vectorizer):

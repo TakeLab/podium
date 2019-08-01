@@ -131,7 +131,7 @@ def molexdir(tmpdir):
 @pytest.fixture
 def mock_lemmatizer(molex14_lemma2word, molex14_word2lemma):
     with mock.patch(
-            'takepod.storage.large_resource.SCPLargeResource.__init__'
+            'takepod.storage.resources.large_resource.SCPLargeResource.__init__'
     ) as mock_scp:
         mock_scp.return_value = None
         mock_scp.SCP_HOST_KEY = "scp_host"

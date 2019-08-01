@@ -2,7 +2,8 @@
 from functools import partial
 import numpy as np
 
-from takepod.storage import Field, LargeResource, Vocab, Iterator
+from takepod.storage import Field, LargeResource, Vocab
+from takepod.datasets.iterator import Iterator
 from takepod.storage.vectorizers.vectorizer import BasicVectorStorage
 from takepod.datasets.impl.pauza_dataset import PauzaHRDataset
 from takepod.models.impl.fc_model import ScikitMLPClassifier

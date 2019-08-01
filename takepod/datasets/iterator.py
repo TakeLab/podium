@@ -6,7 +6,8 @@ from random import Random
 from collections import namedtuple
 import numpy as np
 
-from takepod.datasets.dataset import Dataset, HierarchicalDataset
+from takepod.datasets.dataset import Dataset
+from takepod.datasets.hierarhical_dataset import HierarchicalDataset
 
 _LOGGER = logging.getLogger(__name__)
 

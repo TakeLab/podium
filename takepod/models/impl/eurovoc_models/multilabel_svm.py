@@ -30,7 +30,7 @@ from sklearn.metrics import precision_score, recall_score, f1_score
 from sklearn.model_selection import GridSearchCV
 from sklearn import model_selection
 
-from takepod.storage import Iterator
+from takepod.datasets.iterator import Iterator
 from takepod.models import AbstractSupervisedModel
 from takepod.storage.vectorizers.tfidf import TfIdfVectorizer
 from takepod.validation.validation import KFold

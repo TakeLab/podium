@@ -4,8 +4,6 @@ from .example_factory import ExampleFactory
 from .field import Field, TokenizedField, MultilabelField, MultioutputField, unpack_fields
 from .resources.downloader import (BaseDownloader, SCPDownloader, HttpDownloader,
                                    SimpleHttpDownloader)
-from .iterator import (Iterator, SingleBatchIterator, BucketIterator,
-                       HierarchicalDatasetIterator)
 from .resources.large_resource import LargeResource, SCPLargeResource
 from .vectorizers.vectorizer import VectorStorage, BasicVectorStorage
 from .vectorizers.tfidf import TfIdfVectorizer
@@ -22,8 +20,6 @@ from .vocab import SpecialVocabSymbols, Vocab
 
 __all__ = ["BaseDownloader", "SCPDownloader", "HttpDownloader", "SimpleHttpDownloader",
            "Field", "TokenizedField", "MultilabelField", "MultioutputField",
-           "unpack_fields",
-           "Iterator", "SingleBatchIterator", "BucketIterator",
-           "HierarchicalDatasetIterator", "LargeResource", "SCPLargeResource",
+           "unpack_fields", "LargeResource", "SCPLargeResource",
            "VectorStorage", "BasicVectorStorage", "SpecialVocabSymbols", "Vocab",
            "ExampleFactory", "TfIdfVectorizer"]

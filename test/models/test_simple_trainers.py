@@ -3,7 +3,7 @@ import pytest_mock  # noqa
 
 from takepod.models.impl.simple_trainers import SimpleTrainer
 from takepod.models.model import AbstractSupervisedModel
-from takepod.storage.iterator import Iterator
+from takepod.datasets.iterator import Iterator
 from test.storage.conftest import (tabular_dataset, json_file_path)  # noqa
 
 

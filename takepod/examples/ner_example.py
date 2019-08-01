@@ -12,7 +12,7 @@ from takepod.metrics import multiclass_f1_metric
 from takepod.models.impl.blcc_model import BLCCModel
 from takepod.models.impl.simple_trainers import SimpleTrainer
 from takepod.storage import TokenizedField, Vocab, SpecialVocabSymbols
-from takepod.storage.iterator import BucketIterator
+from takepod.datasets.iterator import BucketIterator
 from takepod.storage.resources.large_resource import LargeResource
 from takepod.storage.vectorizers.vectorizer import BasicVectorStorage
 
