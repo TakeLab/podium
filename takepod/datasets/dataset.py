@@ -182,7 +182,7 @@ class Dataset(ABC):
             return attr_generator()
 
         else:
-            error_msg = f"Dataset has no field '{attr}'."
+            error_msg = "Dataset has no field {}.".format(attr)
             _LOGGER.error(error_msg)
             raise AttributeError(error_msg)
 
@@ -325,7 +325,7 @@ class Dataset(ABC):
                 raise ValueError(error_msg)
 
             if strata_field_name not in self.field_dict:
-                error_msg = f"Invalid strata field name: {strata_field_name}"
+                error_msg = "Invalid strata field name: {}".format(strata_field_name)
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 

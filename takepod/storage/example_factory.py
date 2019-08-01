@@ -29,10 +29,10 @@ class Example:
             setattr(self, fieldname, None)
 
     def __str__(self):
-        attributes = [att for att in dir(self) if not att.startswith("__")]
-        att_values = [f"{att}: {getattr(self, att, None)}" for att in attributes]
+        attribute = [att for att in dir(self) if not att.startswith("__")]
+        att_values = ["{}: {}".format(att, getattr(self, att, None)) for att in attribute]
         att_string = "; ".join(att_values)
-        return f"{self.__class__.__name__}[{att_string}]"
+        return "{}[{}]".format(self.__class__.__name__, att_string)
 
 
 class ExampleFactory:
@@ -63,7 +63,7 @@ class ExampleFactory:
         self.fieldnames = [field.name for field in unpack_fields(fields)]
 
         # add cache data fields
-        self.fieldnames += [f"{fieldname}_" for fieldname in self.fieldnames]
+        self.fieldnames += ["{}_".format(fieldname) for fieldname in self.fieldnames]
 
     def create_empty_example(self):
         """Method creates empty example with field names stored in example factory.
@@ -151,8 +151,8 @@ class ExampleFactory:
                 if root.tag == name:
                     node = root
                 else:
-                    error_msg = f"Specified name {name} was not found in the " \
-                        "input data"
+                    error_msg = "Specified name {} was not found in the " \
+                        "input data".format(name)
                     _LOGGER.error(error_msg)
                     raise ValueError(error_msg)
 

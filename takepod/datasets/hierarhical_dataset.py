@@ -234,8 +234,8 @@ class HierarchicalDataset:
 
         """
         if index < 0 or index >= len(self):
-            error_msg = f"Index {index} out of bounds. Must be within " \
-                "[0, len(dataset) - 1]"
+            error_msg = "Index {} out of bounds. Must be within " \
+                "[0, len(dataset) - 1]".format(index)
             _LOGGER.error(error_msg)
             raise IndexError(error_msg)
 
@@ -297,8 +297,8 @@ class HierarchicalDataset:
         """
         levels = float('Inf') if levels is None else levels
         if levels < 0:
-            error_msg = f"Number of context levels must be greater or equal to 0." \
-                f" Passed value: {levels}"
+            error_msg = "Number of context levels must be greater or equal to 0." \
+                " Passed value: {}".format(levels)
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 

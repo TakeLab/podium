@@ -2,8 +2,9 @@
 import os
 from takepod.datasets.dataset import Dataset
 from takepod.storage.field import unpack_fields, Field
-from takepod.storage import (Vocab, LargeResource,
-                             ExampleFactory)
+from takepod.storage.vocab import Vocab
+from takepod.storage.resources.large_resource import LargeResource
+from takepod.storage.example_factory import ExampleFactory
 
 
 class PauzaHRDataset(Dataset):

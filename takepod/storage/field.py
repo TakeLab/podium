@@ -446,7 +446,7 @@ class Field:
 
         if data is None:
             if not self.allow_missing_data:
-                error_msg = f"Missing data not allowed in field {self.name}"
+                error_msg = "Missing data not allowed in field {}".format(self.name)
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
@@ -534,9 +534,7 @@ class Field:
         ----------
         tokens : iterable(hashable)
             Iterable of hashable objects to be numericalized.
-        error_msg = f"Missing data not allowed in field {self.name}"
-                _LOGGER.error(error_msg)
-                raise ValueError(error_msg)
+
         Returns
         -------
         numpy array
@@ -586,7 +584,7 @@ class Field:
 
         if raw is None and tokenized is None:
             if not self.allow_missing_data:
-                error_msg = f"Missing value found in field {self.name}."
+                error_msg = "Missing value found in field {}.".format(self.name)
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
@@ -681,7 +679,7 @@ class Field:
         numericalized data : numpy array
             The numericalized data.
         """
-        cache_field_name = f"{self.name}_"
+        cache_field_name = "{}_".format(self.name)
         numericalization = getattr(example, cache_field_name)
 
         if numericalization is None:
