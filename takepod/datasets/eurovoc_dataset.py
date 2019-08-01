@@ -1,4 +1,4 @@
-"Module contains EuroVoc dataset."
+"""Module contains EuroVoc dataset."""
 import os
 import re
 import functools
