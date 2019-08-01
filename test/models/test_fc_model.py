@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from takepod.models.fc_model import ScikitMLPClassifier
+from takepod.models.impl.fc_model import ScikitMLPClassifier
 
 X = np.array([[1, 0, 1], [1, 1, 1], [0, 0, 1]])
 Y = np.array([0, 1, 0])

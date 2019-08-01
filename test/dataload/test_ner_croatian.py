@@ -7,8 +7,8 @@ import pytest
 
 from mock import patch
 from takepod.dataload.ner_croatian import NERCroatianXMLLoader
-from takepod.storage.large_resource import LargeResource
-from takepod.storage.downloader import SCPDownloader
+from takepod.storage.resources.large_resource import LargeResource
+from takepod.storage.resources.downloader import SCPDownloader
 
 
 def create_ner_file(filepath, title_element, body_element):

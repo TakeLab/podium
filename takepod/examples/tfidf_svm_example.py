@@ -2,11 +2,11 @@
 from functools import partial
 from sklearn.metrics import accuracy_score
 
-from takepod.storage.tfidf import TfIdfVectorizer
+from takepod.storage.vectorizers.tfidf import TfIdfVectorizer
 from takepod.models import ScikitLinearSVCModel, AbstractSupervisedModel
 
 from takepod.datasets import BasicSupervisedImdbDataset
-from takepod.models.simple_trainers import SimpleTrainer
+from takepod.models.impl.simple_trainers import SimpleTrainer
 from takepod.storage import Iterator, LargeResource
 
 

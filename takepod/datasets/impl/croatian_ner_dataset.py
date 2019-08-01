@@ -1,8 +1,9 @@
 """Module contains Croatian NER dataset."""
-from takepod.storage import dataset, ExampleFactory
+from takepod.datasets import dataset
+from takepod.storage import ExampleFactory
 from takepod.storage.field import TokenizedField
 from takepod.storage.vocab import Vocab
-from takepod.storage.large_resource import LargeResource
+from takepod.storage.resources.large_resource import LargeResource
 from takepod.dataload.ner_croatian import NERCroatianXMLLoader
 
 

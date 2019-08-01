@@ -1,6 +1,6 @@
+import logging
 from typing import NamedTuple, Tuple
 import numpy as np
-import logging
 
 _LOGGER = logging.getLogger(__name__)
 

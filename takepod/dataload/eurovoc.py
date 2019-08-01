@@ -6,9 +6,9 @@ import xml.etree.ElementTree as ET
 import logging
 from enum import Enum
 from collections import namedtuple
-from takepod.storage.large_resource import (init_scp_large_resource_from_kwargs,
-                                            LargeResource)
-from takepod.datasets.eurovoc_dataset import EuroVocDataset
+from takepod.storage.resources.large_resource import (init_scp_large_resource_from_kwargs,
+                                                      LargeResource)
+from takepod.datasets.impl.eurovoc_dataset import EuroVocDataset
 
 _LOGGER = logging.getLogger(__name__)
 try:

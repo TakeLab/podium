@@ -1,7 +1,7 @@
 import os
 import tempfile
 
-from takepod.datasets.catacx_comments_dataset import CatacxCommentsDataset
+from takepod.datasets.impl.catacx_comments_dataset import CatacxCommentsDataset
 
 
 def test_dataset_loading():

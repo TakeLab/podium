@@ -1,7 +1,7 @@
 import os
 
-from takepod.storage import HierarchicalDataset, Field, \
-    MultilabelField, Vocab, ExampleFactory
+from takepod.datasets.hierarhical_dataset import HierarchicalDataset
+from takepod.storage import Field, MultilabelField, Vocab, ExampleFactory
 
 
 class CatacxDataset(HierarchicalDataset):

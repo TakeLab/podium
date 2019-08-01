@@ -76,6 +76,18 @@ class ExampleFactory:
         return Example(self.fieldnames)
 
     def from_dict(self, data):
+        """Method creates example from data in dictionary format.
+
+        Parameters
+        ----------
+        data : dict(str, object)
+            dictionary that maps field name to field value
+
+        Returns
+        -------
+        example : Example
+            example instance with given data saved to fields
+        """
         example = self.create_empty_example()
 
         for key, fields in self.fields.items():
@@ -85,6 +97,19 @@ class ExampleFactory:
         return example
 
     def from_list(self, data):
+        """Method creates example from data in list format.
+
+        Parameters
+        ----------
+        data : list
+            list containing values for fields in order that the fields were given to
+            example factory
+
+        Returns
+        -------
+        example : Example
+            example instance with given data saved to fields
+        """
         example = self.create_empty_example()
         for value, field in filter(lambda el: el[1] is not None, zip(data, self.fields)):
             set_example_attributes(example, field, value)

@@ -1,7 +1,8 @@
 """Module contains Cornell Movie Dialogs datasets."""
 import logging
 
-from takepod.storage import dataset, ExampleFactory, Vocab, Field
+from takepod.datasets import dataset
+from takepod.storage import ExampleFactory, Vocab, Field
 from takepod.dataload.cornel_movie_dialogs import CornellMovieDialogsNamedTuple
 
 _LOGGER = logging.getLogger(__name__)

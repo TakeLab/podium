@@ -1,9 +1,9 @@
 import os
 import tempfile
 import pytest
-from takepod.datasets.imdb_sentiment_dataset import BasicSupervisedImdbDataset
-from takepod.storage.dataset import Dataset
-from takepod.storage.large_resource import LargeResource
+from takepod.datasets.impl.imdb_sentiment_dataset import BasicSupervisedImdbDataset
+from takepod.datasets.dataset import Dataset
+from takepod.storage.resources.large_resource import LargeResource
 
 
 TRAIN_EXAMPLES = {

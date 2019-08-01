@@ -1,6 +1,6 @@
 """Module contains fully connected neural network models."""
 import logging
-from takepod.models.base_model import AbstractSupervisedModel
+from takepod.models.model import AbstractSupervisedModel
 
 _LOGGER = logging.getLogger(__name__)
 

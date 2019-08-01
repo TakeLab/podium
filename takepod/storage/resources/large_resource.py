@@ -4,8 +4,8 @@ import os
 import tempfile
 import getpass
 import logging
-from takepod.storage.downloader import SimpleHttpDownloader, SCPDownloader
-from takepod.storage import utility
+from takepod.storage.resources.downloader import SimpleHttpDownloader, SCPDownloader
+from takepod.storage.resources import utility
 
 
 _LOGGER = logging.getLogger(__name__)

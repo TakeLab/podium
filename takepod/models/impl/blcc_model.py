@@ -7,7 +7,7 @@ from keras.models import Model
 from keras.optimizers import Adadelta, Adagrad, Adam, Nadam, RMSprop, SGD
 
 from takepod.models import AbstractSupervisedModel
-from takepod.models.blcc.chain_crf import ChainCRF
+from takepod.models.impl.blcc.chain_crf import ChainCRF
 
 
 class BLCCModel(AbstractSupervisedModel):

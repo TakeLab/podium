@@ -2,9 +2,10 @@
 import json
 import os
 
-from takepod.storage import dataset, ExampleFactory
+from takepod.datasets import dataset
+from takepod.storage import ExampleFactory
 from takepod.storage.field import Field
-from takepod.storage.large_resource import LargeResource
+from takepod.storage.resources.large_resource import LargeResource
 
 
 class CatacxCommentsDataset(dataset.Dataset):

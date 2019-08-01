@@ -1,9 +1,9 @@
 import os
 import tempfile
 import pytest
-from takepod.datasets.pauza_dataset import PauzaHRDataset
-from takepod.storage.dataset import Dataset
-from takepod.storage.large_resource import LargeResource
+from takepod.datasets.impl.pauza_dataset import PauzaHRDataset
+from takepod.datasets.dataset import Dataset
+from takepod.storage.resources.large_resource import LargeResource
 
 TRAIN_EXAMPLES = [{"Text": r"Izvrstan, ogroman Zagrebački,"
                            r" dostava na vrijeme, ljubazno osoblje ...",

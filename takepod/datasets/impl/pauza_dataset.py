@@ -1,6 +1,7 @@
 """Module contains PauzaHR datasets."""
 import os
-from takepod.storage import (dataset, Field, Vocab, LargeResource,
+from takepod.datasets import dataset
+from takepod.storage import (Field, Vocab, LargeResource,
                              ExampleFactory)
 
 

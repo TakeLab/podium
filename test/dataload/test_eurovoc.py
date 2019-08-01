@@ -7,10 +7,10 @@ import dill
 from mock import patch
 
 from takepod.dataload.eurovoc import EuroVocLoader, Label, LabelRank, dill_dataset
-from takepod.storage.large_resource import LargeResource, SCPLargeResource
+from takepod.storage.resources.large_resource import LargeResource, SCPLargeResource
 from takepod.storage import Field, MultilabelField
 from takepod.storage import Vocab
-from takepod.datasets.eurovoc_dataset import EuroVocDataset
+from takepod.datasets.impl.eurovoc_dataset import EuroVocDataset
 
 from test.datasets.test_eurovoc_dataset import (eurovoc_label_hierarchy,
                                                 crovoc_label_hierarchy,

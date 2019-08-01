@@ -1,10 +1,13 @@
+"""Modules defines an experiment - class used to combine iteration over data,
+model training and prediction."""
 from typing import Tuple, Callable, NamedTuple, Dict, Type
 
 import numpy as np
 
-from takepod.storage import Iterator, SingleBatchIterator, Dataset
+from takepod.datasets.dataset import Dataset
+from takepod.storage import Iterator, SingleBatchIterator
 from takepod.models import AbstractSupervisedModel, default_batch_transform
-from takepod.models.simple_trainers import AbstractTrainer
+from takepod.models.impl.simple_trainers import AbstractTrainer
 
 
 class Experiment:
@@ -14,9 +17,9 @@ class Experiment:
                  model_class: Type[AbstractSupervisedModel],
                  trainer: AbstractTrainer,
                  training_iterator_callable: Callable[[Dataset], Iterator],
-                 prediction_iterator_callable: Callable[[Dataset], Iterator] = None,
+                 prediction_iterator_callable: Callable[[Dataset], Iterator]=None,
                  batch_transform_fun:
-                 Callable[[NamedTuple, NamedTuple], Tuple[np.ndarray, np.ndarray]] = None
+                 Callable[[NamedTuple, NamedTuple], Tuple[np.ndarray, np.ndarray]]=None
                  ):
         """Creates a new Experiment. The Experiment class is used to simplify model
         fitting and prediction using Podium components.

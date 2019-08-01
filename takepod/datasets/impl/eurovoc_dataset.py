@@ -3,7 +3,7 @@ import os
 import re
 import functools
 import logging
-from takepod.storage import dataset
+from takepod.datasets import dataset
 from takepod.storage.example_factory import ExampleFactory, set_example_attributes
 from takepod.storage import Field, MultilabelField
 from takepod.storage import Vocab
