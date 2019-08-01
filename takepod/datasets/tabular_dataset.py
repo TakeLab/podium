@@ -77,7 +77,7 @@ class TabularDataset(Dataset):
             elif format == "json":
                 reader = f
             else:
-                error_msg = f'Invalid format: {format}'
+                error_msg = "Invalid format: {}".format(format)
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
@@ -127,14 +127,13 @@ def create_examples(reader, format, fields, skip_header):
 
     if skip_header:
         if format == "json":
-            error_msg = f'When using a {format} file, skip_header must be' \
-                f' False.'
+            error_msg = "When using a {} file, skip_header must be False.".format(format)
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
         elif format in {"csv", "tsv"} and isinstance(fields, dict):
-            error_msg = f'When using a dict to specify fields with a {format}' \
-                ' file, skip_header must be False and the file must ' \
-                'have a header.'
+            error_msg = "When using a dict to specify fields with a {}" \
+                " file, skip_header must be False and the file must " \
+                "have a header.".format(format)
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 

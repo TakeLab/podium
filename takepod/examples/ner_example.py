@@ -145,7 +145,8 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
         prediction_filtered,
         average='weighted'
     )
-    _LOGGER.info(f'F1: {f1}')
+    info_msg = "F1: {}".format("f1")
+    _LOGGER.info(info_msg)
 
 
 def filter_out_padding(pad_symbol, prediction, y_test):

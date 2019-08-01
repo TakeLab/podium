@@ -55,9 +55,9 @@ def get_tokenizer(tokenizer, language='en'):
 
             return spacy_tokenize
         except (ImportError, OSError) as ex:
-            error_msg = f'Please install SpaCy and the SpaCy {language} '\
-                        f'tokenizer. See the docs at https://spacy.io for '\
-                        f'more information.'
+            error_msg = "Please install SpaCy and the SpaCy {} "\
+                        "tokenizer. See the docs at https://spacy.io for "\
+                        "more information.".format(language)
             _LOGGER.error(error_msg)
             raise ex
 

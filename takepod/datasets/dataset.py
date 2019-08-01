@@ -460,7 +460,7 @@ def check_split_ratio(split_ratio):
     if isinstance(split_ratio, float):
         # Only the train set relative ratio is provided
         if not (0. < split_ratio < 1.):
-            error_msg = f'Split ratio {split_ratio} not between 0 and 1'
+            error_msg = "Split ratio {} not between 0 and 1".format(split_ratio)
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
@@ -473,15 +473,15 @@ def check_split_ratio(split_ratio):
         length = len(split_ratio)
 
         if length not in {2, 3}:
-            error_msg = f'Split ratio list/tuple should be of length 2 or 3, ' \
-                f'got {length}.'
+            error_msg = "Split ratio list/tuple should be of length 2 or 3, " \
+                "got {}.".format(length)
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
         for i, ratio in enumerate(split_ratio):
             if float(ratio) <= 0.0:
-                error_msg = f'Elements of ratio tuple/list must be > 0.0 ' \
-                    f'(got value {ratio} at index {i}).'
+                error_msg = "Elements of ratio tuple/list must be > 0.0 " \
+                    "(got value {} at index {}).".format(ratio, i)
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
@@ -499,8 +499,8 @@ def check_split_ratio(split_ratio):
             val_ratio = split_ratio[1]
             test_ratio = split_ratio[2]
     else:
-        error_msg = f'Split ratio must be a float, a list or a tuple, ' \
-            f'got {type(split_ratio)}'
+        error_msg = "Split ratio must be a float, a list or a tuple, " \
+            "got {}".format(type(split_ratio))
         _LOGGER.error(error_msg)
         raise ValueError(error_msg)
 
