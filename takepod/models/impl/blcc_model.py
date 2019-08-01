@@ -1,13 +1,21 @@
 """Module contains deep learning based sequence labelling model.."""
+import logging
 import numpy as np
-from keras import backend as K
-from keras.layers import Bidirectional, concatenate, Dense, Dropout, Embedding
-from keras.layers import Input, LSTM, TimeDistributed
-from keras.models import Model
-from keras.optimizers import Adadelta, Adagrad, Adam, Nadam, RMSprop, SGD
 
 from takepod.models import AbstractSupervisedModel
 from takepod.models.impl.blcc.chain_crf import ChainCRF
+
+_LOGGER = logging.getLogger(__name__)
+try:
+    from keras import backend as K
+    from keras.layers import Bidirectional, concatenate, Dense, Dropout, Embedding
+    from keras.layers import Input, LSTM, TimeDistributed
+    from keras.models import Model
+    from keras.optimizers import Adadelta, Adagrad, Adam, Nadam, RMSprop, SGD
+except ImportError as ex:
+    _LOGGER.debug("Problem occured while trying to import keras. If the "
+                  "library is not installed visit https://keras.io/"
+                  " for more details.")
 
 
 class BLCCModel(AbstractSupervisedModel):

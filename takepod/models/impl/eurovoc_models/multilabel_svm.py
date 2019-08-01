@@ -165,9 +165,9 @@ class MultilabelSVM(AbstractSupervisedModel):
         for i, model in enumerate(self._models):
             if model is None:
                 Y[i] = [0] * X.shape[0]
-
-                _LOGGER.debug("No model trained for label at index {}, returning a zero"
-                              "vector instead of model prediction.".format(i))
+                debug_msg = "No model trained for label at index {}, returning a zero"\
+                            "vector instead of model prediction.".format(i)
+                _LOGGER.debug(debug_msg)
             else:
                 Y[i] = model.predict(X)
         return {AbstractSupervisedModel.PREDICTION_KEY: Y.transpose()}

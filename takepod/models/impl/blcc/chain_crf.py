@@ -2,14 +2,21 @@
 Author: Philipp Gross
 https://github.com/phipleg/keras/blob/crf/keras/layers/crf.py
 """
-
 from __future__ import absolute_import
+import logging
 
-from keras import backend as K
-from keras import regularizers
-from keras import constraints
-from keras import initializers
-from keras.engine import Layer, InputSpec
+
+_LOGGER = logging.getLogger(__name__)
+try:
+    from keras import backend as K
+    from keras import regularizers
+    from keras import constraints
+    from keras import initializers
+    from keras.engine import Layer, InputSpec
+except ImportError as ex:
+    _LOGGER.debug("Problem occured while trying to import keras. If the "
+                  "library is not installed visit https://keras.io/"
+                  " for more details.")
 
 
 def path_energy(y, x, U, b_start=None, b_end=None, mask=None):

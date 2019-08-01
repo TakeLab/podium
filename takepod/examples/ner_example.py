@@ -145,7 +145,7 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
         prediction_filtered,
         average='weighted'
     )
-    info_msg = "F1: {}".format("f1")
+    info_msg = "F1: {}".format(f1)
     _LOGGER.info(info_msg)
 
 
