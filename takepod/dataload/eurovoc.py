@@ -1,11 +1,11 @@
 """Module for loading raw eurovoc dataset"""
 import os
 import glob
-import dill
 import xml.etree.ElementTree as ET
 import logging
 from enum import Enum
 from collections import namedtuple
+import dill
 from takepod.storage.resources.large_resource import (init_scp_large_resource_from_kwargs,
                                                       LargeResource)
 from takepod.datasets.impl.eurovoc_dataset import EuroVocDataset

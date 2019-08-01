@@ -19,11 +19,14 @@ When using this dataset, please cite:
 """
 
 import os
-from takepod.datasets import dataset
-from takepod.storage import (ExampleFactory, Field, Vocab, LargeResource)
+from takepod.datasets.dataset import Dataset
+from takepod.storage.field import Field, unpack_fields
+from takepod.storage.example_factory import ExampleFactory
+from takepod.storage.vocab import Vocab
+from takepod.storage.resources.large_resource import LargeResource
 
 
-class BasicSupervisedImdbDataset(dataset.Dataset):
+class BasicSupervisedImdbDataset(Dataset):
     """Simple Imdb dataset with only supervised data which uses non processed data.
 
     Attributes

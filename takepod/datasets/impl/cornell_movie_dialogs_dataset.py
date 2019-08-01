@@ -1,14 +1,16 @@
 """Module contains Cornell Movie Dialogs datasets."""
 import logging
 
-from takepod.datasets import dataset
-from takepod.storage import ExampleFactory, Vocab, Field
+from takepod.datasets.dataset import Dataset
+from takepod.storage.example_factory import ExampleFactory
+from takepod.storage.vocab import Vocab
+from takepod.storage.field import Field, unpack_fields
 from takepod.dataload.cornel_movie_dialogs import CornellMovieDialogsNamedTuple
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class CornellMovieDialogsConversationalDataset(dataset.Dataset):
+class CornellMovieDialogsConversationalDataset(Dataset):
     """Cornell Movie Dialogs Conversational dataset which contains sentences and replies
     from movies."""
     def __init__(self, data, fields=None):
@@ -36,7 +38,7 @@ class CornellMovieDialogsConversationalDataset(dataset.Dataset):
         examples = CornellMovieDialogsConversationalDataset._create_examples(
             data=data, fields=fields
         )
-        unpacked_fields = dataset.unpack_fields(fields=fields)
+        unpacked_fields = unpack_fields(fields=fields)
         super(CornellMovieDialogsConversationalDataset, self).__init__(
             **{"examples": examples, "fields": unpacked_fields})
 

@@ -3,9 +3,9 @@ import os
 import re
 import functools
 import logging
-from takepod.datasets import dataset
+from takepod.datasets.dataset import Dataset
 from takepod.storage.example_factory import ExampleFactory, set_example_attributes
-from takepod.storage import Field, MultilabelField
+from takepod.storage import Field, MultilabelField, unpack_fields
 from takepod.storage import Vocab
 from takepod.preproc.stop_words import CROATIAN_EXTENDED
 from takepod.preproc.lemmatizer.croatian_lemmatizer import get_croatian_lemmatizer_hook
@@ -13,7 +13,7 @@ from takepod.preproc.lemmatizer.croatian_lemmatizer import get_croatian_lemmatiz
 _LOGGER = logging.getLogger(__name__)
 
 
-class EuroVocDataset(dataset.Dataset):
+class EuroVocDataset(Dataset):
     """EuroVoc dataset class that contains labeled documents and the label hierarchy.
     """
 
