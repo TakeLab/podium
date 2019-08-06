@@ -33,7 +33,7 @@ from sklearn import model_selection
 from takepod.datasets.iterator import Iterator
 from takepod.models import AbstractSupervisedModel
 from takepod.storage.vectorizers.tfidf import TfIdfVectorizer
-from takepod.validation.validation import KFold
+from takepod.validation import KFold
 
 _LOGGER = logging.getLogger(__name__)
 

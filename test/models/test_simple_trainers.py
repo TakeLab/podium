@@ -13,13 +13,15 @@ def model(mocker):
     model = mocker.MagicMock(spec=AbstractSupervisedModel)
     return model
 
-
 @pytest.mark.usefixtures("tabular_dataset", "model")  # noqa
 def test_simple_trainer_no_num_epoch(tabular_dataset, model):
     iterator = Iterator(tabular_dataset, 1)
     with pytest.raises(ValueError):
         trainer = SimpleTrainer()
-        trainer.train(model, iterator=iterator)
+        trainer.train(model,
+                      iterator=iterator,
+                      feature_transform_fun=lambda x: x,
+                      label_transform_fun=lambda y: y)
 
 
 @pytest.mark.usefixtures("tabular_dataset", "model")  # noqa
@@ -27,13 +29,20 @@ def test_simple_trainer_num_epoch(tabular_dataset, model):
     tabular_dataset.finalize_fields()
     iterator = Iterator(tabular_dataset, batch_size=len(tabular_dataset))
     trainer = SimpleTrainer()
-    trainer.train(model=model, iterator=iterator, **{trainer.MAX_EPOCH_KEY: 10})
+    trainer.train(model=model,
+                  iterator=iterator,
+                  feature_transform_fun=lambda x: x,
+                  label_transform_fun=lambda y: y,
+                  **{trainer.MAX_EPOCH_KEY: 10})
     assert model.fit.call_count == 10
 
 
-def _transform_fun(x, y):
-    return x, y
+def mock_feature_transform_fun(x):
+    return x
 
+
+def mock_label_transform_fun(y):
+    y
 
 @pytest.mark.usefixtures("tabular_dataset", "mocker", "model")  # noqa
 def test_simple_trainer_batch_transform_call(tabular_dataset, mocker, model):
@@ -41,12 +50,17 @@ def test_simple_trainer_batch_transform_call(tabular_dataset, mocker, model):
     iterator = Iterator(tabular_dataset, batch_size=len(tabular_dataset))
 
     with mocker.patch(
-            "test.models.test_simple_trainers._transform_fun",
-            return_value=next(iterator.__iter__())):
-        trainer = SimpleTrainer()
-        trainer.train(
-            model=model,
-            iterator=iterator,
-            batch_transform=_transform_fun,
-            **{trainer.MAX_EPOCH_KEY: 10})
-        assert _transform_fun.call_count == 10  # pylint: disable=E1101
+            "test.models.test_simple_trainers.mock_feature_transform_fun",
+            return_value=next(iterator.__iter__())[0]):
+        with mocker.patch(
+                "test.models.test_simple_trainers.mock_label_transform_fun",
+                return_value=next(iterator.__iter__())[1]):
+            trainer = SimpleTrainer()
+            trainer.train(
+                model=model,
+                iterator=iterator,
+                feature_transform_fun=mock_feature_transform_fun,
+                label_transform_fun=mock_label_transform_fun,
+                **{trainer.MAX_EPOCH_KEY: 10})
+            assert mock_feature_transform_fun.call_count == 10  # pylint: disable=E1101
+            assert mock_label_transform_fun.call_count == 10  # pylint: disable=E1101

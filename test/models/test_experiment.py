@@ -4,12 +4,16 @@ import numpy as np
 from takepod.models import AbstractSupervisedModel, Experiment
 
 
+def mock_feature_transform_fun(x_batch):
+    return x_batch.input
+
+
+def mock_label_transform_fun(y_batch):
+    return y_batch.output
+
+
 class MockDataset:
     pass
-
-
-def mock_batch_transform(x_batch, y_batch):
-    return x_batch.input, y_batch.output
 
 
 def test_experiment_train():
@@ -69,25 +73,28 @@ def test_experiment_train():
     class MockTrainer:
 
         def __init__(self):
-            self.train_called = False
+            self.train_called = 0
 
         def train(self,
                   model,
                   iterator,
-                  batch_transform=None,
+                  feature_transform_fun,
+                  label_transform_fun,
                   **kwargs):
             assert isinstance(model, MockModel)
             assert isinstance(iterator, MockIterator)
-            assert batch_transform is mock_batch_transform
+            assert feature_transform_fun is mock_feature_transform_fun
+            assert label_transform_fun is mock_label_transform_fun
             assert kwargs == expected_trainer_args
-            self.train_called = True
+            self.train_called += 1
 
     trainer = MockTrainer()
 
     experiment = Experiment(MockModel,
                             trainer,
                             lambda _: MockIterator(),
-                            batch_transform_fun=mock_batch_transform)
+                            feature_transform_fun=mock_feature_transform_fun,
+                            label_transform_fun=mock_label_transform_fun)
 
     experiment.set_default_model_args(**default_model_args)
     experiment.set_default_trainer_args(**default_trainer_args)
@@ -96,11 +103,10 @@ def test_experiment_train():
                    model_args,
                    trainer_args)
 
-    assert trainer.train_called
+    assert trainer.train_called == 1
 
 
 def test_experiment_predict():
-
     class MockIterator:
         input_batch_class = namedtuple("input_batch_class", ["input"])
         output_batch_class = namedtuple("output_batch_class", ["output"])
@@ -143,8 +149,8 @@ def test_experiment_predict():
             ]
 
             self.predictions = [
-                np.array([5, 6]),
-                np.array([11, 12])
+                np.array([[5], [6]]),
+                np.array([[11], [12]])
             ]
 
             self.current_batch = 0
@@ -158,7 +164,8 @@ def test_experiment_predict():
             return {AbstractSupervisedModel.PREDICTION_KEY: y}
 
     class MockTrainer:
-        def train(self, model, iterator, batch_transform=None, **kwargs):
+        def train(self, model, iterator, feature_transform_fun=None,
+                  label_transform_fun=None, **kwargs):
             pass
 
     experiment = Experiment(
