@@ -19,10 +19,14 @@ When using this dataset, please cite:
 """
 
 import os
-from takepod.storage import (dataset, ExampleFactory, Field, Vocab, LargeResource)
+from takepod.datasets.dataset import Dataset
+from takepod.storage.field import Field, unpack_fields
+from takepod.storage.example_factory import ExampleFactory
+from takepod.storage.vocab import Vocab
+from takepod.storage.resources.large_resource import LargeResource
 
 
-class BasicSupervisedImdbDataset(dataset.Dataset):
+class BasicSupervisedImdbDataset(Dataset):
     """Simple Imdb dataset with only supervised data which uses non processed data.
 
     Attributes
@@ -84,7 +88,7 @@ class BasicSupervisedImdbDataset(dataset.Dataset):
             LargeResource.RESOURCE_NAME: BasicSupervisedImdbDataset.NAME,
             LargeResource.ARCHIVE: BasicSupervisedImdbDataset.ARCHIVE_TYPE,
             LargeResource.URI: BasicSupervisedImdbDataset.URL})
-        unpacked_fields = dataset.unpack_fields(fields=fields)
+        unpacked_fields = unpack_fields(fields=fields)
         examples = self._create_examples(dir_path=dir_path, fields=fields)
         super(BasicSupervisedImdbDataset, self).__init__(
             **{"examples": examples, "fields": unpacked_fields})

@@ -5,9 +5,9 @@ import numpy as np
 
 from takepod.storage import (Field, LargeResource, Vocab, Iterator, SingleBatchIterator,
                              BasicVectorStorage)
-from takepod.datasets.pauza_dataset import PauzaHRDataset
-from takepod.models.fc_model import ScikitMLPClassifier
-from takepod.models.simple_trainers import SimpleTrainer
+from takepod.datasets.impl.pauza_dataset import PauzaHRDataset
+from takepod.models.impl.fc_model import ScikitMLPClassifier
+from takepod.models.impl.simple_trainers import SimpleTrainer
 from takepod.models import Experiment
 
 
@@ -92,7 +92,7 @@ def experiment_example():
 
     accuracy = np.count_nonzero(true_values == predicted_values) / len(predicted_values)
 
-    print(f"Accuracy on the test set: {accuracy}")
+    print("Accuracy on the test set: ", accuracy)
 
 
 if __name__ == '__main__':

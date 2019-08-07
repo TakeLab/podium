@@ -4,7 +4,7 @@ import tempfile
 import numpy as np
 import pytest
 
-from takepod.storage import vectorizer
+from takepod.storage.vectorizers import vectorizer
 
 BASIC_VECT_HEADING = b"251518 300"
 BASIC_VECT_DATA = [b". 0.001134 -0.000058 -0.000668\n",

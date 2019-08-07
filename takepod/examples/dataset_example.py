@@ -2,8 +2,8 @@
 import logging
 import dill
 
-from takepod.storage.large_resource import LargeResource
-from takepod.datasets.pauza_dataset import PauzaHRDataset
+from takepod.storage.resources.large_resource import LargeResource
+from takepod.datasets.impl.pauza_dataset import PauzaHRDataset
 
 if __name__ == "__main__":
     # for large resource settings see

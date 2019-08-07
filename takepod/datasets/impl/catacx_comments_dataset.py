@@ -2,12 +2,13 @@
 import json
 import os
 
-from takepod.storage import dataset, ExampleFactory
-from takepod.storage.field import Field
-from takepod.storage.large_resource import LargeResource
+from takepod.datasets.dataset import Dataset
+from takepod.storage.field import Field, unpack_fields
+from takepod.storage import ExampleFactory
+from takepod.storage.resources.large_resource import LargeResource
 
 
-class CatacxCommentsDataset(dataset.Dataset):
+class CatacxCommentsDataset(Dataset):
     """Simple Catacx dataset. Contains only the comments."""
 
     NAME = "CatacxCommentsDataset"
@@ -30,7 +31,7 @@ class CatacxCommentsDataset(dataset.Dataset):
         """
         fields = fields if fields else CatacxCommentsDataset.get_default_fields()
         examples = CatacxCommentsDataset._create_examples(dir_path, fields)
-        unpacked_fields = dataset.unpack_fields(fields)
+        unpacked_fields = unpack_fields(fields)
         super(CatacxCommentsDataset, self).__init__(examples, unpacked_fields)
 
     @staticmethod

@@ -2,12 +2,13 @@
 from functools import partial
 from sklearn.metrics import accuracy_score
 
-from takepod.storage.tfidf import TfIdfVectorizer
+from takepod.storage.vectorizers.tfidf import TfIdfVectorizer
 from takepod.models import ScikitLinearSVCModel, AbstractSupervisedModel
 
 from takepod.datasets import BasicSupervisedImdbDataset
-from takepod.models.simple_trainers import SimpleTrainer
-from takepod.storage import Iterator, LargeResource
+from takepod.models.impl.simple_trainers import SimpleTrainer
+from takepod.storage import LargeResource
+from takepod.datasets.iterator import Iterator
 
 
 def batch_transform_tfidf(x_batch, y_batch, tfidf_vectorizer):

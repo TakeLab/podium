@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 from sklearn.feature_extraction import text
 from takepod.storage.vocab import Vocab, SpecialVocabSymbols
-from takepod.storage.tfidf import TfIdfVectorizer, CountVectorizer
+from takepod.storage.vectorizers.tfidf import TfIdfVectorizer, CountVectorizer
 from takepod.storage.field import Field
 
 

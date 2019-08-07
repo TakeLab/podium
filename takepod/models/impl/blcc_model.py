@@ -1,13 +1,21 @@
 """Module contains deep learning based sequence labelling model.."""
+import logging
 import numpy as np
-from keras import backend as K
-from keras.layers import Bidirectional, concatenate, Dense, Dropout, Embedding
-from keras.layers import Input, LSTM, TimeDistributed
-from keras.models import Model
-from keras.optimizers import Adadelta, Adagrad, Adam, Nadam, RMSprop, SGD
 
 from takepod.models import AbstractSupervisedModel
-from takepod.models.blcc.chain_crf import ChainCRF
+from takepod.models.impl.blcc.chain_crf import ChainCRF
+
+_LOGGER = logging.getLogger(__name__)
+try:
+    from keras import backend as K
+    from keras.layers import Bidirectional, concatenate, Dense, Dropout, Embedding
+    from keras.layers import Input, LSTM, TimeDistributed
+    from keras.models import Model
+    from keras.optimizers import Adadelta, Adagrad, Adam, Nadam, RMSprop, SGD
+except ImportError as ex:
+    _LOGGER.debug("Problem occured while trying to import keras. If the "
+                  "library is not installed visit https://keras.io/"
+                  " for more details.")
 
 
 class BLCCModel(AbstractSupervisedModel):
@@ -117,12 +125,12 @@ class BLCCModel(AbstractSupervisedModel):
         )
         for name, input_size, output_size in custom_feature_properties:
             feature_input = Input(shape=(None,), dtype='int32',
-                                  name=f'{name}_input')
+                                  name="{}_input".format(name))
 
             feature_embedding = Embedding(
                 input_dim=input_size,
                 output_dim=output_size,
-                name=f'{name}_embeddings')(feature_input)
+                name="{}_embeddings".format(name))(feature_input)
 
             input_nodes.append(feature_input)
             input_layers_to_concatenate.append(feature_embedding)
@@ -143,17 +151,17 @@ class BLCCModel(AbstractSupervisedModel):
                         dropout=self.params[self.DROPOUT][0],
                         recurrent_dropout=self.params[self.DROPOUT][1]
                     ),
-                    name=f'shared_varLSTM_{cnt}')(shared_layer)
+                    name="shared_varLSTM_{}".format(cnt))(shared_layer)
             else:
                 # Naive dropout
                 shared_layer = Bidirectional(
                     LSTM(size, return_sequences=True),
-                    name=f'shared_LSTM_{cnt}')(shared_layer)
+                    name="shared_LSTM_{}".format(cnt))(shared_layer)
 
                 if self.params[self.DROPOUT] > 0.0:
                     shared_layer = TimeDistributed(
                         Dropout(self.params[self.DROPOUT]),
-                        name=f'shared_dropout_{self.params[self.DROPOUT]}'
+                        name="shared_dropout_{}".format(self.params[self.DROPOUT])
                     )(shared_layer)
             cnt += 1
 
@@ -174,7 +182,7 @@ class BLCCModel(AbstractSupervisedModel):
             output = crf(output)
             loss_fct = crf.sparse_loss
         else:
-            raise ValueError(f'Unsupported classifier: {classifier}')
+            raise ValueError("Unsupported classifier: {}".format(classifier))
 
         optimizerParams = {}
         if self.params.get(self.CLIPNORM, 0) > 0:
@@ -196,7 +204,7 @@ class BLCCModel(AbstractSupervisedModel):
         elif optimizer == 'sgd':
             opt = SGD(lr=0.1, **optimizerParams)
         else:
-            raise ValueError(f'Unsupported optimizer: {optimizer}')
+            raise ValueError("Unsupported optimizer: {}".format(optimizer))
 
         model = Model(inputs=input_nodes, outputs=[output])
         model.compile(loss=loss_fct, optimizer=opt)

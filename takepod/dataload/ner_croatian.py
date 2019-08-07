@@ -5,7 +5,7 @@ import logging
 import xml.etree.ElementTree as ET
 
 from takepod.preproc.tokenizers import get_tokenizer
-from takepod.storage.large_resource import init_scp_large_resource_from_kwargs
+from takepod.storage.resources.large_resource import init_scp_large_resource_from_kwargs
 
 _LOGGER = logging.getLogger(__name__)
 

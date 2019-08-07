@@ -82,7 +82,8 @@ class CornellMovieDialogsLoader:
         return CornellMovieDialogsNamedTuple(titles=titles, conversations=conversations,
                                              lines=lines, characters=characters, url=url)
 
-    def _load_file(self, file_name, fields, columns_hooks=None):
+    @staticmethod
+    def _load_file(file_name, fields, columns_hooks=None):
         """Method loads file from Cornell movie dialogs dataset defined with file name and
         fields that are used in the file.
 

@@ -7,14 +7,14 @@ from functools import partial
 
 import numpy as np
 
-from takepod.datasets.croatian_ner_dataset import CroatianNERDataset
+from takepod.datasets.impl.croatian_ner_dataset import CroatianNERDataset
 from takepod.metrics import multiclass_f1_metric
-from takepod.models.blcc_model import BLCCModel
-from takepod.models.simple_trainers import SimpleTrainer
+from takepod.models.impl.blcc_model import BLCCModel
+from takepod.models.impl.simple_trainers import SimpleTrainer
 from takepod.storage import TokenizedField, Vocab, SpecialVocabSymbols
-from takepod.storage.iterator import BucketIterator
-from takepod.storage.large_resource import LargeResource
-from takepod.storage.vectorizer import BasicVectorStorage
+from takepod.datasets.iterator import BucketIterator
+from takepod.storage.resources.large_resource import LargeResource
+from takepod.storage.vectorizers.vectorizer import BasicVectorStorage
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -145,7 +145,8 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
         prediction_filtered,
         average='weighted'
     )
-    _LOGGER.info(f'F1: {f1}')
+    info_msg = "F1: {}".format(f1)
+    _LOGGER.info(info_msg)
 
 
 def filter_out_padding(pad_symbol, prediction, y_test):

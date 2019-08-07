@@ -4,7 +4,7 @@ from unittest.mock import Mock
 from urllib3 import response
 import requests
 import pytest
-from takepod.storage import downloader
+from takepod.storage.resources import downloader
 
 
 def test_base_class_abstract():

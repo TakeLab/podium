@@ -1,9 +1,9 @@
 import os
 import tempfile
 import pytest
-from takepod.datasets.imdb_sentiment_dataset import BasicSupervisedImdbDataset
-from takepod.storage.dataset import Dataset
-from takepod.storage.large_resource import LargeResource
+from takepod.datasets.impl.imdb_sentiment_dataset import BasicSupervisedImdbDataset
+from takepod.datasets.dataset import Dataset
+from takepod.storage.resources.large_resource import LargeResource
 
 
 TRAIN_EXAMPLES = {
@@ -77,7 +77,7 @@ def create_examples_set(base_dir, examples):
 
 def create_examples(base_dir, examples):
     for i in range(len(examples)):
-        file_name = f"{i}_1.txt"
+        file_name = "{}_1.txt".format(i)
         with open(file=os.path.join(base_dir, file_name),
                   mode='w', encoding="utf8") as fpr:
             fpr.write(examples[i])

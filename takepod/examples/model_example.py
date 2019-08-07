@@ -2,11 +2,12 @@
 from functools import partial
 import numpy as np
 
-from takepod.storage import Field, LargeResource, Vocab, Iterator
-from takepod.storage.vectorizer import BasicVectorStorage
-from takepod.datasets.pauza_dataset import PauzaHRDataset
-from takepod.models.fc_model import ScikitMLPClassifier
-from takepod.models.simple_trainers import SimpleTrainer
+from takepod.storage import Field, LargeResource, Vocab
+from takepod.datasets.iterator import Iterator
+from takepod.storage.vectorizers.vectorizer import BasicVectorStorage
+from takepod.datasets.impl.pauza_dataset import PauzaHRDataset
+from takepod.models.impl.fc_model import ScikitMLPClassifier
+from takepod.models.impl.simple_trainers import SimpleTrainer
 
 
 def numericalize_pauza_rating(rating):

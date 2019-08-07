@@ -1,12 +1,13 @@
 """Module contains Croatian NER dataset."""
-from takepod.storage import dataset, ExampleFactory
-from takepod.storage.field import TokenizedField
+from takepod.datasets.dataset import Dataset
+from takepod.storage.field import TokenizedField, unpack_fields
+from takepod.storage import ExampleFactory
 from takepod.storage.vocab import Vocab
-from takepod.storage.large_resource import LargeResource
+from takepod.storage.resources.large_resource import LargeResource
 from takepod.dataload.ner_croatian import NERCroatianXMLLoader
 
 
-class CroatianNERDataset(dataset.Dataset):
+class CroatianNERDataset(Dataset):
     """Croatian NER dataset.
 
     A single example in the dataset represents a single sentence in
@@ -47,7 +48,7 @@ class CroatianNERDataset(dataset.Dataset):
                     tokens.append(token)
                     labels.append(label)
 
-        super().__init__(examples, dataset.unpack_fields(fields))
+        super().__init__(examples, unpack_fields(fields))
 
     @classmethod
     def get_dataset(cls, tokenizer='split', tag_schema='IOB', fields=None, **kwargs):

@@ -9,7 +9,7 @@ from abc import ABC, abstractclassmethod
 import os
 import requests
 import paramiko
-from takepod.storage.utility import copyfileobj_with_tqdm
+from takepod.storage.resources.utility import copyfileobj_with_tqdm
 
 
 class BaseDownloader(ABC):

@@ -1,6 +1,6 @@
 import pytest
 from mock import patch
-from takepod.datasets.eurovoc_dataset import EuroVocDataset
+from takepod.datasets.impl.eurovoc_dataset import EuroVocDataset
 from takepod.dataload.eurovoc import Label, LabelRank, Document
 from takepod.preproc.lemmatizer.croatian_lemmatizer import CroatianLemmatizer
 

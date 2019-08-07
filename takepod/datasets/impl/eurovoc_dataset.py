@@ -3,9 +3,9 @@ import os
 import re
 import functools
 import logging
-from takepod.storage import dataset
+from takepod.datasets.dataset import Dataset
 from takepod.storage.example_factory import ExampleFactory, set_example_attributes
-from takepod.storage import Field, MultilabelField
+from takepod.storage import Field, MultilabelField, unpack_fields
 from takepod.storage import Vocab
 from takepod.preproc.stop_words import CROATIAN_EXTENDED
 from takepod.preproc.lemmatizer.croatian_lemmatizer import get_croatian_lemmatizer_hook
@@ -13,7 +13,7 @@ from takepod.preproc.lemmatizer.croatian_lemmatizer import get_croatian_lemmatiz
 _LOGGER = logging.getLogger(__name__)
 
 
-class EuroVocDataset(dataset.Dataset):
+class EuroVocDataset(Dataset):
     """EuroVoc dataset class that contains labeled documents and the label hierarchy.
     """
 
@@ -48,7 +48,7 @@ class EuroVocDataset(dataset.Dataset):
         if not fields:
             fields = EuroVocDataset.get_default_fields()
 
-        unpacked_fields = dataset.unpack_fields(fields=fields)
+        unpacked_fields = unpack_fields(fields=fields)
         examples = EuroVocDataset._create_examples(
             fields=fields,
             documents=documents,
@@ -118,7 +118,8 @@ class EuroVocDataset(dataset.Dataset):
             # document filename format is NNXXXXX.xml, where XXXXX is document_id
             document_id = int(os.path.splitext(document.filename)[0].replace("NN", ""))
             if document_id not in mappings:
-                _LOGGER.debug("Document {} not found in mappings".format(document_id))
+                debug_msg = "Document {} not found in mappings".format(document_id)
+                _LOGGER.debug(debug_msg)
                 continue
 
             labels = mappings[document_id]
@@ -130,8 +131,9 @@ class EuroVocDataset(dataset.Dataset):
                 elif label in crovoc_label_hierarchy:
                     crovoc_labels.append(label)
                 else:
-                    _LOGGER.debug("Document {} has label {} which is not present in the"
-                                  "given label hierarchies.".format(document_id, label))
+                    debug_msg = "Document {} has label {} which is not present in the"\
+                                "given label hierarchies.".format(document_id, label)
+                    _LOGGER.debug(debug_msg)
 
             example = example_factory.create_empty_example()
             set_example_attributes(example, fields["title"], document.title)

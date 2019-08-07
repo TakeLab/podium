@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import pytest
 
-from takepod.storage.dataset import TabularDataset
+from takepod.datasets.tabular_dataset import TabularDataset
 from takepod.storage.field import Field
 from takepod.storage.vocab import Vocab
 

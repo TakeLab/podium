@@ -446,7 +446,7 @@ class Field:
 
         if data is None:
             if not self.allow_missing_data:
-                error_msg = f"Missing data not allowed in field {self.name}"
+                error_msg = "Missing data not allowed in field {}".format(self.name)
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
@@ -534,9 +534,7 @@ class Field:
         ----------
         tokens : iterable(hashable)
             Iterable of hashable objects to be numericalized.
-        error_msg = f"Missing data not allowed in field {self.name}"
-                _LOGGER.error(error_msg)
-                raise ValueError(error_msg)
+
         Returns
         -------
         numpy array
@@ -586,7 +584,7 @@ class Field:
 
         if raw is None and tokenized is None:
             if not self.allow_missing_data:
-                error_msg = f"Missing value found in field {self.name}."
+                error_msg = "Missing value found in field {}.".format(self.name)
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
@@ -681,7 +679,7 @@ class Field:
         numericalized data : numpy array
             The numericalized data.
         """
-        cache_field_name = f"{self.name}_"
+        cache_field_name = "{}_".format(self.name)
         numericalization = getattr(example, cache_field_name)
 
         if numericalization is None:
@@ -718,8 +716,8 @@ class Field:
         self.tokenizer = get_tokenizer(self._tokenizer_arg, self.language)
 
     def __str__(self):
-        return f"{self.__class__.__name__}[name: {self.name}, " \
-            f"sequential: {self.sequential}, is_target: {self.is_target}]"
+        return "{}[name: {}, sequential: {}, is_target: {}]".format(
+            self.__class__.__name__, self.name, self.sequential, self.is_target)
 
     def get_output_fields(self):
         """Returns an Iterable of the contained output fields.
@@ -839,9 +837,9 @@ class MultilabelField(TokenizedField):
             self.fixed_length = self.num_of_classes = len(self.vocab)
 
         if self.use_vocab and len(self.vocab) > self.num_of_classes:
-            error_msg = f"Number of classes in data is greater" \
-                f" than the declared number of classes." \
-                f" Declared: {self.num_of_classes}, Actual: {len(self.vocab)}"
+            error_msg = "Number of classes in data is greater than the declared number "\
+                "of classes. Declared: {}, Actual: {}".format(
+                    self.num_of_classes, len(self.vocab))
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 

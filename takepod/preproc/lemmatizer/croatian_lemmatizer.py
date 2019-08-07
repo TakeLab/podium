@@ -8,8 +8,8 @@ import functools
 
 from takepod.preproc.util import (capitalize_target_like_source,
                                   uppercase_target_like_source)
-from takepod.storage.large_resource import (init_scp_large_resource_from_kwargs,
-                                            SCPLargeResource)
+from takepod.storage.resources.large_resource import (init_scp_large_resource_from_kwargs,
+                                                      SCPLargeResource)
 
 _LOGGER = logging.getLogger(__name__)
 

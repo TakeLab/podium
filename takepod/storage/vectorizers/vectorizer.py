@@ -31,8 +31,8 @@ def zeros_default_vector(token, dim):
         zeros vector with given dimension
     """
     if dim is None:
-        error_msg = f"Can't create zeros default vector with dimension "\
-                    f"equal to None. Given token= {token}, dim={dim}"
+        error_msg = "Can't create zeros default vector with dimension "\
+                    "equal to None. Given token= {}, dim={}".format(token, dim)
         _LOGGER.error(error_msg)
         raise ValueError(error_msg)
     return np.zeros(dim)
@@ -181,7 +181,7 @@ class VectorStorage(ABC):
         return np.vstack([self.token_to_vector(token) for token in vocab])
 
     def __str__(self):
-        return f"{self.__class__.__name__}[size: {len(self)}]"
+        return "{}[size: {}]".format(self.__class__.__name__, len(self))
 
 
 class BasicVectorStorage(VectorStorage):
@@ -337,11 +337,10 @@ class BasicVectorStorage(VectorStorage):
                 # second reference:
                 # https://radimrehurek.com/gensim/scripts/glove2word2vec.html
                 elif self._dim != len(vector_entry):
-                    error_msg = f"Vector for token {word} has "\
-                                f"{len(vector_entry)} dimensions, but "\
-                                f"previously read vectors have {self._dim} "\
-                                f"dimensions. All vectors must have the same "\
-                                f"number of dimensions."
+                    error_msg = "Vector for token {} has {} dimensions, but "\
+                                "previously read vectors have {} dimensions. All "\
+                                "vectors must have the same number of dimensions.".format(
+                                    word, len(vector_entry), self._dim)
                     _LOGGER.error(error_msg)
                     raise RuntimeError(error_msg)
 
@@ -476,14 +475,14 @@ class GloVe(BasicVectorStorage):
             NAME_DIM_MAPPING dictionary.
         """
         if name not in GloVe.NAME_URL_MAPPING.keys():
-            error_msg = f"Given name not supported, supported names are "\
-                        f"{GloVe.NAME_URL_MAPPING.keys()}"
+            error_msg = "Given name not supported, supported names are {}".format(
+                GloVe.NAME_URL_MAPPING.keys())
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
         if dim not in GloVe.NAME_DIM_MAPPING[name]:
-            error_msg = f"Unsupported dimension for given glove instance, {name} "\
-                        f"GloVe instance has following supported dimensions "\
-                        f"{GloVe.NAME_DIM_MAPPING[name]}"
+            error_msg = "Unsupported dimension for given glove instance, {} GloVe "\
+                "instance has following supported dimensions {}".format(
+                    name, GloVe.NAME_DIM_MAPPING[name])
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
@@ -493,7 +492,7 @@ class GloVe(BasicVectorStorage):
             LargeResource.ARCHIVE: GloVe._ARCHIVE_TYPE,
             LargeResource.URI: url})
 
-        file_name = f"{GloVe._NAME_FILE_MAPPING[name]}.{dim}d.txt"
+        file_name = "{}.{}d.txt".format(GloVe._NAME_FILE_MAPPING[name], dim)
         path = os.path.join(LargeResource.BASE_RESOURCE_DIR, name, file_name)
 
         vectors_kwargs = {"default_vector_function": zeros_default_vector,

@@ -1,3 +1,4 @@
+"""This module contains wrapper for Yet Another Keyword Extractor library."""
 import logging
 
 _LOGGER = logging.getLogger(__name__)

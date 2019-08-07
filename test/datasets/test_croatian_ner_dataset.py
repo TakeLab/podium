@@ -4,9 +4,9 @@ import tempfile
 import xml.etree.ElementTree as ET
 import pytest
 
-from takepod.datasets.croatian_ner_dataset import CroatianNERDataset
-from takepod.storage.dataset import Dataset
-from takepod.storage.large_resource import LargeResource
+from takepod.datasets.impl.croatian_ner_dataset import CroatianNERDataset
+from takepod.datasets.dataset import Dataset
+from takepod.storage.resources.large_resource import LargeResource
 
 title_1 = ET.fromstring("""
 <title>

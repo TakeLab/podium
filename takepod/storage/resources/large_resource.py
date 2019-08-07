@@ -4,8 +4,8 @@ import os
 import tempfile
 import getpass
 import logging
-from takepod.storage.downloader import SimpleHttpDownloader, SCPDownloader
-from takepod.storage import utility
+from takepod.storage.resources.downloader import SimpleHttpDownloader, SCPDownloader
+from takepod.storage.resources import utility
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -136,14 +136,14 @@ class LargeResource:
         essential_arguments = [LargeResource.RESOURCE_NAME, LargeResource.URI]
         for arg in essential_arguments:
             if arg not in arguments or not arguments[arg]:
-                error_msg = f"Large resource argument {arg} is missing."
+                error_msg = "Large resource argument {} is missing.".format(arg)
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
     def __str__(self):
-        return f"{self.__class__.__name__}"\
-               f"[name: {self.config[LargeResource.RESOURCE_NAME]}, "\
-               f"uri: {self.config[LargeResource.URI]}]"
+        return "{}[name: {}, uri: {}]".format(
+            self.__class__.__name__, self.config[LargeResource.RESOURCE_NAME],
+            self.config[LargeResource.URI])
 
 
 class SCPLargeResource(LargeResource):

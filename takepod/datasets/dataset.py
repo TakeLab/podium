@@ -1,16 +1,10 @@
 """Module contains base classes for datasets."""
-import csv
-import io
 import itertools
-import json
-import os
 import logging
 import random
 import copy
 
 from abc import ABC
-from takepod.storage.example_factory import ExampleFactory
-from takepod.storage.field import unpack_fields
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -188,7 +182,7 @@ class Dataset(ABC):
             return attr_generator()
 
         else:
-            error_msg = f"Dataset has no field '{attr}'."
+            error_msg = "Dataset has no field {}.".format(attr)
             _LOGGER.error(error_msg)
             raise AttributeError(error_msg)
 
@@ -331,7 +325,7 @@ class Dataset(ABC):
                 raise ValueError(error_msg)
 
             if strata_field_name not in self.field_dict:
-                error_msg = f"Invalid strata field name: {strata_field_name}"
+                error_msg = "Invalid strata field name: {}".format(strata_field_name)
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
@@ -434,163 +428,6 @@ class Dataset(ABC):
         random.shuffle(self.examples)
 
 
-class TabularDataset(Dataset):
-    """
-    A dataset type for data stored in a single CSV, TSV or JSON file, where
-    each row of the file is a single example.
-    """
-
-    def __init__(self, path, format, fields, skip_header=False,
-                 csv_reader_params={}, **kwargs):
-        """Creates a TabularDataset from a file containing the data rows and an
-        object containing all the fields that we are interested in.
-
-        Parameters
-        ----------
-            path : str
-                Path to the data file.
-            format : str
-                The format of the data file. Has to be either "CSV", "TSV", or
-                "JSON" (case-insensitive).
-            fields : (list | dict)
-                A mapping from data columns to example fields.
-                This allows the user to rename columns from the data file,
-                to create multiple fields from the same column and also to
-                select only a subset of columns to load.
-
-                A value stored in the list/dict can be either a Field
-                (1-to-1 mapping), a tuple of Fields (1-to-n mapping) or
-                None (ignore column).
-
-                If type is list, then it should map from the column index to
-                the corresponding field/s (i.e. the fields in the list should
-                be in the  same order as the columns in the file). Also, the
-                format must be CSV or TSV.
-
-                If type is dict, then it should be a map from the column name
-                to the corresponding field/s. Column names not present in
-                the dict's keys are ignored. If the format is CSV/TSV,
-                then the data file must have a header
-                (column names need to be known).
-            skip_header : bool
-                Whether to skip the first line of the input file.
-                If format is CSV/TSV and 'fields' is a dict, then skip_header
-                must be False and the data file must have a header.
-                Default is False.
-            csv_reader_params : dict
-                Parameters to pass to the csv reader. Only relevant when
-                format is csv or tsv.
-                See https://docs.python.org/3/library/csv.html#csv.reader
-                for more details.
-
-        Raises
-        ------
-        ValueError
-            If the format given is not one of "CSV", "TSV" or "JSON".
-            If fields given as a dict and skip_header is True.
-            If format is "JSON" and skip_header is True.
-        """
-
-        format = format.lower()
-
-        with io.open(os.path.expanduser(path), encoding="utf8") as f:
-            if format in {'csv', 'tsv'}:
-                delimiter = ',' if format == "csv" else '\t'
-                reader = csv.reader(f, delimiter=delimiter,
-                                    **csv_reader_params)
-            elif format == "json":
-                reader = f
-            else:
-                error_msg = f'Invalid format: {format}'
-                _LOGGER.error(error_msg)
-                raise ValueError(error_msg)
-
-            # create a list of examples
-            examples = create_examples(reader, format, fields, skip_header)
-
-        # we no longer need the column -> field mappings with nested tuples
-        # and None values, we just need a flat list of fields
-        unpacked_fields = unpack_fields(fields)
-
-        # create a Dataset with lists of examples and fields
-        super(TabularDataset, self).__init__(examples, unpacked_fields,
-                                             **kwargs)
-
-
-def create_examples(reader, format, fields, skip_header):
-    """Creates a list of examples from the given line reader and fields
-    (see TabularDataset.__init__ docs for more info on the fields).
-
-    Parameters
-    ----------
-    reader
-        A reader object that reads one line at a time. Yields either strings
-        (when format is JSON) or lists of values (when format is CSV/TSV).
-    format : str
-        Format of the data file that is being read. Can be either CSV,
-        TSV or JSON.
-    fields : (list | dict)
-        A list or dict of fields (see TabularDataset.__init__ docs for more
-        info).
-    skip_header : bool
-        Whether to skip the first line of the input file. (see
-        TabularDataset.__init__ docs for more info).
-
-    Returns
-    -------
-    list
-        A list of created examples.
-
-    Raises
-    ------
-    ValueError
-        If format is JSON and skip_header is True.
-        If format is CSV/TSV, the fields are given as a dict and
-        skip_header is True.
-    """
-
-    if skip_header:
-        if format == "json":
-            error_msg = f'When using a {format} file, skip_header must be' \
-                f' False.'
-            _LOGGER.error(error_msg)
-            raise ValueError(error_msg)
-        elif format in {"csv", "tsv"} and isinstance(fields, dict):
-            error_msg = f'When using a dict to specify fields with a {format}' \
-                ' file, skip_header must be False and the file must ' \
-                'have a header.'
-            _LOGGER.error(error_msg)
-            raise ValueError(error_msg)
-
-        # skipping the header
-        next(reader)
-
-    # if format is CSV/TSV and fields is a dict, transform it to a list
-    if format in {"csv", "tsv"} and isinstance(fields, dict):
-        # we need a header to know the column names
-        header = next(reader)
-
-        # columns not present in the fields dict are ignored (None)
-        fields = [fields.get(column, None) for column in header]
-
-    # fields argument is the same for all examples
-    # fromlist is used for CSV/TSV because csv_reader yields data rows as
-    # lists, not strings
-    example_factory = ExampleFactory(fields)
-    make_example_function = {
-        "json": example_factory.from_json,
-        "csv": example_factory.from_list,
-        "tsv": example_factory.from_list
-    }
-
-    make_example = make_example_function[format]
-
-    # map each line from the reader to an example
-    examples = map(make_example, reader)
-
-    return list(examples)
-
-
 def check_split_ratio(split_ratio):
     """Checks that the split ratio argument is not malformed and if not
     transforms it to a tuple of (train_size, valid_size, test_size) and
@@ -623,7 +460,7 @@ def check_split_ratio(split_ratio):
     if isinstance(split_ratio, float):
         # Only the train set relative ratio is provided
         if not (0. < split_ratio < 1.):
-            error_msg = f'Split ratio {split_ratio} not between 0 and 1'
+            error_msg = "Split ratio {} not between 0 and 1".format(split_ratio)
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
@@ -636,15 +473,15 @@ def check_split_ratio(split_ratio):
         length = len(split_ratio)
 
         if length not in {2, 3}:
-            error_msg = f'Split ratio list/tuple should be of length 2 or 3, ' \
-                f'got {length}.'
+            error_msg = "Split ratio list/tuple should be of length 2 or 3, " \
+                "got {}.".format(length)
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
         for i, ratio in enumerate(split_ratio):
             if float(ratio) <= 0.0:
-                error_msg = f'Elements of ratio tuple/list must be > 0.0 ' \
-                    f'(got value {ratio} at index {i}).'
+                error_msg = "Elements of ratio tuple/list must be > 0.0 " \
+                    "(got value {} at index {}).".format(ratio, i)
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
@@ -662,8 +499,8 @@ def check_split_ratio(split_ratio):
             val_ratio = split_ratio[1]
             test_ratio = split_ratio[2]
     else:
-        error_msg = f'Split ratio must be a float, a list or a tuple, ' \
-            f'got {type(split_ratio)}'
+        error_msg = "Split ratio must be a float, a list or a tuple, " \
+            "got {}".format(type(split_ratio))
         _LOGGER.error(error_msg)
         raise ValueError(error_msg)
 
@@ -806,380 +643,3 @@ def stratified_split(examples, train_ratio, val_ratio, test_ratio,
     # now, for each concrete label value (stratum) - as well as for the whole
     # list of examples - the ratios are preserved
     return train_split, val_split, test_split
-
-
-class HierarchicalDataset:
-    """Container for datasets with a hierarchical structure of examples which have the
-    same structure on every level of the hierarchy.
-    """
-
-    class Node(object):
-        __slots__ = 'example', 'index', 'parent', 'children'
-
-        def __init__(self, example, index, parent):
-            self.example = example
-            self.index = index
-            self.parent = parent
-
-    def __init__(self, parser, fields):
-        """
-        Constructs the Hierarchical dataset.
-
-        Parameters
-        ----------
-        parser : callable
-            Callable taking (raw_example, fields, depth) and returning a tuple containing
-            (example, raw_children).
-            Arguments:
-                Raw_example: a dict representation of the
-                    example.
-
-                Fields: a dict mapping keys in the raw_example  to corresponding
-                    fields in the dataset.
-
-                Depth: an int marking the depth of the current
-                    example in the hierarchy.
-
-            Return values are:
-                Example: Example instance containing the data in raw_example.
-
-                Raw_children: iterable of dicts representing the children of raw_example
-
-
-        fields : dict(str, Field)
-            Dict mapping keys in the raw_example dict to their corresponding fields.
-        """
-        self._field_dict = fields
-        self._example_factory = ExampleFactory(fields)
-        self._parser = parser
-        self._size = 0
-        self._max_depth = 0
-
-    @staticmethod
-    def from_json(dataset, fields, parser):
-        """
-        Makes an HierarchicalDataset from a JSON formatted string.
-
-        Parameters
-        ----------
-        dataset : str
-            Dataset in JSON format. The root element of the JSON string must be
-            a list of root examples.
-
-        fields : dict(str, Field)
-            a dict mapping keys in the raw_example to corresponding
-            fields in the dataset.
-
-        parser : callable(raw_example, fields, depth) returning (example, raw_children)
-            Callable taking (raw_example, fields, depth) and returning a tuple containing
-            (example, raw_children).
-
-        Returns
-        -------
-            HierarchicalDataset
-                dataset containing the data
-
-        """
-        ds = HierarchicalDataset(parser, fields)
-
-        root_examples = json.loads(dataset)
-        if not isinstance(root_examples, list):
-            error_msg = "The base element in the JSON string must be a list " \
-                        "of root elements."
-            _LOGGER.error(error_msg)
-            raise ValueError(error_msg)
-
-        ds._load(root_examples)
-
-        return ds
-
-    @staticmethod
-    def get_default_dict_parser(child_attribute_name):
-        """Returns a callable instance that can be used for parsing datasets in which
-        examples on all levels in the hierarchy have children under the same key.
-
-        Parameters
-        ----------
-        child_attribute_name : str
-            key used for accessing children in the examples
-
-        Returns
-        -------
-            Callable(raw_example, fields, depth) returning (example, raw_children).
-
-        """
-
-        def default_dict_parser(raw_example, example_factory, depth):
-            example = example_factory.from_dict(raw_example)
-            children = raw_example.get(child_attribute_name, ())
-            return example, children
-
-        return default_dict_parser
-
-    def _load(self, root_examples):
-        """Starts the parsing of the dataset.
-
-        Parameters
-        ----------
-        root_examples : iterable(dict(str, object))
-            iterable containing the root examples in raw dict form.
-
-        """
-        self._root_nodes = tuple(self._parse(root, None, 0) for root in root_examples)
-
-    def finalize_fields(self):
-        """Finalizes all fields in this dataset."""
-
-        for field in unpack_fields(self.fields):
-            field.finalize()
-
-    def _parse(self, raw_object, parent, depth):
-        """Parses an raw example.
-
-        Parameters
-        ----------
-        raw_object : dict(str, object)
-            Example in raw dict form.
-
-        parent
-            Parent node of the example to be parsed. None for root nodes.
-
-        depth
-            Depth of the example to be parsed in the hierarchy. Depth of root nodes is 0.
-
-        Returns
-        -------
-        Node
-            Node parsed from the raw example.
-        """
-        example, raw_children = self._parser(raw_object, self._example_factory, depth)
-
-        index = self._size
-        self._size += 1
-
-        current_node = HierarchicalDataset.Node(example, index, parent)
-        children = tuple(self._parse(c, current_node, depth + 1) for c in raw_children)
-        current_node.children = children
-
-        self._max_depth = max(self._max_depth, depth)
-
-        return current_node
-
-    def _node_iterator(self):
-
-        def flat_node_iterator(node):
-            yield node
-            for subnode in node.children:
-                for ex in flat_node_iterator(subnode):
-                    yield ex
-
-        for root_node in self._root_nodes:
-            for ex in flat_node_iterator(root_node):
-                yield ex
-
-    def flatten(self):
-        """
-        Returns an iterable iterating trough examples in the dataset as if it was a
-        standard Dataset. The iteration is done in pre-order.
-
-        Returns
-        -------
-        iterable
-             iterable iterating through examples in the dataset.
-        """
-        for node in self._node_iterator():
-            yield node.example
-
-    def as_flat_dataset(self):
-        """Returns a standard Dataset containing the examples
-        in order as defined in 'flatten'.
-
-        Returns
-        -------
-        Dataset
-            a standard Dataset
-        """
-        return Dataset(list(self.flatten()), self._field_dict)
-
-    @property
-    def depth(self):
-        """
-        Returns
-        -------
-        int
-            the maximum depth of a node in the hierarchy.
-        """
-        return self._max_depth
-
-    @property
-    def fields(self):
-        return list(self._field_dict.values())
-
-    def _get_node_by_index(self, index):
-        """Returns the node with the provided index.
-
-        Parameters
-        ----------
-        index : int
-            Index of the node to be fetched.
-
-        Returns
-        -------
-        Node
-            the node with the provided index.
-
-        Raises
-        ------
-        IndexError
-            if the index is out of bounds.
-
-        """
-        if index < 0 or index >= len(self):
-            error_msg = f"Index {index} out of bounds. Must be within " \
-                "[0, len(dataset) - 1]"
-            _LOGGER.error(error_msg)
-            raise IndexError(error_msg)
-
-        def get_item(nodes, index):
-            """Right bisect binary search.
-
-            Parameters
-            ----------
-            nodes : list(Node)
-                Nodes to be searched.
-
-            index : int
-                index of the node to fetch.
-
-            Returns
-            -------
-            Node
-                the node with the provided index.
-
-            """
-            start = 0
-            end = len(nodes)
-
-            while start < end:
-                middle = (start + end) // 2
-                middle_index = nodes[middle].index
-
-                if index < middle_index:
-                    end = middle
-
-                else:
-                    start = middle + 1
-
-            if nodes[start - 1].index == index:
-                return nodes[start - 1]
-
-            else:
-                return get_item(nodes[start - 1].children, index)
-
-        return get_item(self._root_nodes, index)
-
-    @staticmethod
-    def _get_node_context(node, levels=None):
-        """Returns an Iterator iterating through the context of the passed node.
-
-        Parameters
-        ----------
-        node : Node
-            Node for which the context should be retrieved.
-        levels : the maximum number of levels of the hierarchy the context should contain.
-            If None, the context will contain all levels up to the root nodes of the
-            dataset.
-
-        Returns
-        -------
-        Iterator(Node)
-            an Iterator iterating through the context of the passed node
-
-        """
-        levels = float('Inf') if levels is None else levels
-        if levels < 0:
-            error_msg = f"Number of context levels must be greater or equal to 0." \
-                f" Passed value: {levels}"
-            _LOGGER.error(error_msg)
-            raise ValueError(error_msg)
-
-        parent = node
-        while parent.parent is not None and levels >= 0:
-            parent = parent.parent
-            levels -= 1
-
-        def context_iterator(start_node, finish_node):
-            if start_node is finish_node:
-                return
-
-            yield start_node.example
-
-            children = start_node.children
-            i = 0
-            while True:
-                if i == len(children) - 1 or children[i + 1].index > finish_node.index:
-                    for sub_child in context_iterator(children[i], finish_node):
-                        yield sub_child
-
-                    return
-
-                else:
-                    yield children[i].example
-                    i += 1
-
-        return context_iterator(parent, node)
-
-    def get_context(self, index, levels=None):
-        """Returns an Iterator iterating through the context of the Example with the
-        passed index.
-
-        Parameters
-        ----------
-        index : int
-            Index of the Example the context should be retrieved for.
-        levels : int
-            the maximum number of levels of the hierarchy the context should contain.
-            If None, the context will contain all levels up to the root node of the
-            dataset.
-
-        Returns
-        -------
-        Iterator(Node)
-            an Iterator iterating through the context of the Example with the passed
-            index.
-
-        """
-        node = self._get_node_by_index(index)
-        return HierarchicalDataset._get_node_context(node, levels)
-
-    def __len__(self):
-        return self._size
-
-    def __getitem__(self, index):
-        return self._get_node_by_index(index).example
-
-    def __getstate__(self):
-        """Method obtains dataset state. It is used for pickling dataset data
-        to file.
-
-        Returns
-        -------
-        state : dict
-            dataset state dictionary
-        """
-        d = dict(self.__dict__)
-
-        del d["_parser"]
-
-        return d
-
-    def __setstate__(self, state):
-        """Method sets dataset state. It is used for unpickling dataset data
-        from file.
-
-        Parameters
-        ----------
-        state : dict
-            dataset state dictionary
-        """
-        self.__dict__ = state

@@ -6,8 +6,13 @@ import numpy as np
 
 from collections import Counter
 from json import JSONDecodeError
-from takepod.storage import Dataset, HierarchicalDataset, TabularDataset, Field, \
-    MultioutputField, unpack_fields, ExampleFactory, Vocab, Iterator
+from takepod.datasets.dataset import Dataset
+from takepod.datasets.hierarhical_dataset import HierarchicalDataset
+from takepod.datasets.tabular_dataset import TabularDataset
+from takepod.storage.field import Field, MultioutputField, unpack_fields
+from takepod.storage.example_factory import ExampleFactory
+from takepod.storage.vocab import Vocab
+from takepod.datasets.iterator import Iterator
 
 FORMAT_USE_DICT_COMBINATIONS = (
     ("csv", True),

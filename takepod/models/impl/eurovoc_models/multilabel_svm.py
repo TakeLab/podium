@@ -30,9 +30,9 @@ from sklearn.metrics import precision_score, recall_score, f1_score
 from sklearn.model_selection import GridSearchCV
 from sklearn import model_selection
 
-from takepod.storage import Iterator
+from takepod.datasets.iterator import Iterator
 from takepod.models import AbstractSupervisedModel
-from takepod.storage.tfidf import TfIdfVectorizer
+from takepod.storage.vectorizers.tfidf import TfIdfVectorizer
 from takepod.validation.validation import KFold
 
 _LOGGER = logging.getLogger(__name__)
@@ -165,9 +165,9 @@ class MultilabelSVM(AbstractSupervisedModel):
         for i, model in enumerate(self._models):
             if model is None:
                 Y[i] = [0] * X.shape[0]
-
-                _LOGGER.debug("No model trained for label at index {}, returning a zero"
-                              "vector instead of model prediction.".format(i))
+                debug_msg = "No model trained for label at index {}, returning a zero"\
+                            "vector instead of model prediction.".format(i)
+                _LOGGER.debug(debug_msg)
             else:
                 Y[i] = model.predict(X)
         return {AbstractSupervisedModel.PREDICTION_KEY: Y.transpose()}
