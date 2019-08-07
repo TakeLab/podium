@@ -5,7 +5,7 @@ from takepod.datasets.dataset import Dataset
 from takepod.storage.example_factory import ExampleFactory
 from takepod.storage.vocab import Vocab
 from takepod.storage.field import Field, unpack_fields
-from takepod.dataload.cornel_movie_dialogs import CornellMovieDialogsNamedTuple
+from takepod.dataload.cornell_movie_dialogs import CornellMovieDialogsNamedTuple
 
 _LOGGER = logging.getLogger(__name__)
 
