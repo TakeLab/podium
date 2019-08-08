@@ -75,7 +75,7 @@ def k_fold_multiclass_metrics(
     accuracy_scorer = accuracy_score
     precision_scorer = partial(precision_score, average=average)
     recall_scorer = partial(recall_score, average=average)
-    f1_scorer = partial(recall_score, average=average)
+    f1_scorer = partial(f1_score, average=average)
 
     def scorer(y_true, y_pred):
         return np.array([
