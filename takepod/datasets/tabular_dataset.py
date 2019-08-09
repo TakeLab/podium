@@ -4,7 +4,6 @@ import csv
 import logging
 
 from takepod.datasets.dataset import Dataset
-from takepod.storage.field import unpack_fields
 from takepod.storage.example_factory import ExampleFactory
 
 _LOGGER = logging.getLogger(__name__)
@@ -84,13 +83,8 @@ class TabularDataset(Dataset):
             # create a list of examples
             examples = create_examples(reader, format, fields, skip_header)
 
-        # we no longer need the column -> field mappings with nested tuples
-        # and None values, we just need a flat list of fields
-        unpacked_fields = unpack_fields(fields)
-
         # create a Dataset with lists of examples and fields
-        super(TabularDataset, self).__init__(examples, unpacked_fields,
-                                             **kwargs)
+        super(TabularDataset, self).__init__(examples, fields, **kwargs)
 
 
 def create_examples(reader, format, fields, skip_header):

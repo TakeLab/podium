@@ -3,8 +3,9 @@ import itertools
 import logging
 import random
 import copy
-
 from abc import ABC
+
+from takepod.storage.field import unpack_fields
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,8 +39,12 @@ class Dataset(ABC):
         """
 
         self.examples = examples
-        self.fields = fields
-        self.field_dict = {field.name: field for field in fields}
+
+        # we don't need the column -> field mappings with nested tuples
+        # and None values, we just need a flat list of fields
+        self.fields = unpack_fields(fields)
+
+        self.field_dict = {field.name: field for field in self.fields}
         self.sort_key = sort_key
 
     def __getitem__(self, i):

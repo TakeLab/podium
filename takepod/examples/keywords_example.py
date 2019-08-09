@@ -17,12 +17,11 @@ class DummyDataset(dataset.Dataset):
         texts : list of str
             list of document represented as strings
         """
-        unpacked_fields = dataset.unpack_fields(fields=fields)
         example_factory = ExampleFactory(fields)
         examples = [example_factory.from_dict({DummyDataset.TEXT_FIELD_NAME: text})
                     for text in texts]
         super(DummyDataset, self).__init__(
-            **{"examples": examples, "fields": unpacked_fields})
+            **{"examples": examples, "fields": fields})
 
 
 def keyword_extraction_main():
