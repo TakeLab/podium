@@ -13,6 +13,19 @@ class HierarchicalDataset:
     """
 
     class Node(object):
+        """Class defines a node in hierarhical dataset.
+
+        Attributes
+        ----------
+        example : Example
+            example instance containing node data
+        index : int
+            index in current hierarchy level
+        parent : Node
+            parent node
+        children : tuple(Node)
+            children nodes
+        """
         __slots__ = 'example', 'index', 'parent', 'children'
 
         def __init__(self, example, index, parent):
@@ -48,7 +61,8 @@ class HierarchicalDataset:
         fields : dict(str, Field)
             Dict mapping keys in the raw_example dict to their corresponding fields.
         """
-        self._field_dict = fields
+        self.fields = unpack_fields(fields)
+        self.field_dict = {field.name: field for field in self.fields}
         self._example_factory = ExampleFactory(fields)
         self._parser = parser
         self._size = 0
@@ -129,7 +143,7 @@ class HierarchicalDataset:
     def finalize_fields(self):
         """Finalizes all fields in this dataset."""
 
-        for field in unpack_fields(self.fields):
+        for field in self.fields:
             field.finalize()
 
     def _parse(self, raw_object, parent, depth):
@@ -198,7 +212,7 @@ class HierarchicalDataset:
         Dataset
             a standard Dataset
         """
-        return Dataset(list(self.flatten()), self._field_dict)
+        return Dataset(list(self.flatten()), self.field_dict)
 
     @property
     def depth(self):
@@ -209,10 +223,6 @@ class HierarchicalDataset:
             the maximum depth of a node in the hierarchy.
         """
         return self._max_depth
-
-    @property
-    def fields(self):
-        return list(self._field_dict.values())
 
     def _get_node_by_index(self, index):
         """Returns the node with the provided index.
