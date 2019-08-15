@@ -5,7 +5,7 @@ import functools
 import logging
 from takepod.datasets.dataset import Dataset
 from takepod.storage.example_factory import ExampleFactory, set_example_attributes
-from takepod.storage import Field, MultilabelField, unpack_fields
+from takepod.storage import Field, MultilabelField
 from takepod.storage import Vocab
 from takepod.preproc.stop_words import CROATIAN_EXTENDED
 from takepod.preproc.lemmatizer.croatian_lemmatizer import get_croatian_lemmatizer_hook
@@ -48,7 +48,6 @@ class EuroVocDataset(Dataset):
         if not fields:
             fields = EuroVocDataset.get_default_fields()
 
-        unpacked_fields = unpack_fields(fields=fields)
         examples = EuroVocDataset._create_examples(
             fields=fields,
             documents=documents,
@@ -56,7 +55,7 @@ class EuroVocDataset(Dataset):
             eurovoc_label_hierarchy=eurovoc_labels,
             crovoc_label_hierarchy=crovoc_labels)
         super(EuroVocDataset, self).__init__(
-            **{"examples": examples, "fields": unpacked_fields})
+            **{"examples": examples, "fields": fields})
 
     def get_eurovoc_label_hierarchy(self):
         """Returns the EuroVoc label hierarchy.

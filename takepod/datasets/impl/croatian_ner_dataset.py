@@ -1,6 +1,6 @@
 """Module contains Croatian NER dataset."""
 from takepod.datasets.dataset import Dataset
-from takepod.storage.field import TokenizedField, unpack_fields
+from takepod.storage.field import TokenizedField
 from takepod.storage import ExampleFactory
 from takepod.storage.vocab import Vocab
 from takepod.storage.resources.large_resource import LargeResource
@@ -48,7 +48,7 @@ class CroatianNERDataset(Dataset):
                     tokens.append(token)
                     labels.append(label)
 
-        super().__init__(examples, unpack_fields(fields))
+        super().__init__(examples, fields)
 
     @classmethod
     def get_dataset(cls, tokenizer='split', tag_schema='IOB', fields=None, **kwargs):

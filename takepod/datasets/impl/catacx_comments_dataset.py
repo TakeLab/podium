@@ -3,7 +3,7 @@ import json
 import os
 
 from takepod.datasets.dataset import Dataset
-from takepod.storage.field import Field, unpack_fields
+from takepod.storage.field import Field
 from takepod.storage import ExampleFactory
 from takepod.storage.resources.large_resource import LargeResource
 
@@ -31,8 +31,7 @@ class CatacxCommentsDataset(Dataset):
         """
         fields = fields if fields else CatacxCommentsDataset.get_default_fields()
         examples = CatacxCommentsDataset._create_examples(dir_path, fields)
-        unpacked_fields = unpack_fields(fields)
-        super(CatacxCommentsDataset, self).__init__(examples, unpacked_fields)
+        super(CatacxCommentsDataset, self).__init__(examples, fields)
 
     @staticmethod
     def get_dataset(fields=None):

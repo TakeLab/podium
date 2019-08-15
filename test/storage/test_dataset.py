@@ -597,14 +597,16 @@ def test_dataset_deep_copy(data, field_list):
     original_examples = original_dataset.examples
 
     dataset_no_deep_copy = original_dataset.get(slice(0, 5), deep_copy=False)
-
-    assert original_dataset.fields is dataset_no_deep_copy.fields
+    for original, copy in zip(original_dataset.fields, dataset_no_deep_copy.fields):
+        assert copy is original
     for original, copy in zip(original_examples, dataset_no_deep_copy.examples):
         assert copy is original
 
     dataset_deep_copy = original_dataset.get(slice(0, 5), deep_copy=True)
 
     assert original_dataset.fields is not dataset_deep_copy.fields
+    for original, copy in zip(original_dataset.fields, dataset_deep_copy.fields):
+        assert copy is not original
 
     for original, copy in zip(original_examples, dataset_deep_copy.examples):
         assert copy is not original
@@ -798,9 +800,9 @@ def hierarchical_dataset_parser():
 
 @pytest.fixture()
 def hierarchical_dataset(hierarchical_dataset_fields, hierarchical_dataset_parser):
-    return HierarchicalDataset.from_json(HIERARCHIAL_DATASET_JSON_EXAMPLE,
-                                         hierarchical_dataset_fields,
-                                         hierarchical_dataset_parser)
+    return HierarchicalDataset.from_json(dataset=HIERARCHIAL_DATASET_JSON_EXAMPLE,
+                                         fields=hierarchical_dataset_fields,
+                                         parser=hierarchical_dataset_parser)
 
 
 def test_create_hierarchical_dataset_from_json(hierarchical_dataset):
@@ -848,6 +850,24 @@ def test_hierarchical_dataset_example_indexing(hierarchical_dataset):
     assert hierarchical_dataset[7].name[0] == "c23"
     assert hierarchical_dataset[8].name[0] == "c231"
     assert hierarchical_dataset[9].name[0] == "c24"
+
+
+def test_hierarchical_dataset_finalize_fields(hierarchical_dataset_parser):
+    name_vocab = Vocab()
+    number_vocab = Vocab()
+    name_field = Field("name", store_as_raw=True, tokenize=False, vocab=name_vocab)
+    number_field = Field("number", store_as_raw=True, tokenize=False, vocab=number_vocab)
+
+    fields = {
+        "name": name_field,
+        "number": number_field
+    }
+    dataset = HierarchicalDataset.from_json(dataset=HIERARCHIAL_DATASET_JSON_EXAMPLE,
+                                            fields=fields,
+                                            parser=hierarchical_dataset_parser)
+    dataset.finalize_fields()
+    assert name_vocab.finalized
+    assert number_vocab.finalized
 
 
 def test_hierarchical_dataset_invalid_json_fail(hierarchical_dataset_fields):
