@@ -3,23 +3,23 @@ from functools import partial
 import numpy as np
 
 from takepod.datasets import Dataset, SingleBatchIterator
-from takepod.models.experiment import Experiment
 from takepod.validation import KFold
+from takepod.models.experiment import Experiment
 
 import logging
-from sklearn.metrics import accuracy_score, precision_score,\
+from sklearn.metrics import accuracy_score, precision_score, \
     recall_score, f1_score
 
 _LOGGER = logging.getLogger(__name__)
 
 
 def kfold_scores(
-        experiment: Experiment,
-        dataset: Dataset,
-        n_splits: int,
-        score_fun: Callable[[np.ndarray, np.ndarray], Union[np.ndarray, int, float]],
-        shuffle: Optional[bool] = False,
-        random_state: int = None) -> List[Union[np.ndarray, int, float]]:
+    experiment: Experiment,
+    dataset: Dataset,
+    n_splits: int,
+    score_fun: Callable[[np.ndarray, np.ndarray], Union[np.ndarray, int, float]],
+    shuffle: Optional[bool] = False,
+    random_state: int = None) -> List[Union[np.ndarray, int, float]]:
     kfold = KFold(n_splits=n_splits,
                   shuffle=shuffle,
                   random_state=random_state)
@@ -57,18 +57,17 @@ def k_fold_validation(experiment: Experiment,
     return sum(results) / len(results)
 
 
-def k_fold_multiclass_metrics(
-        experiment: Experiment,
-        dataset: Dataset,
-        n_splits: int,
-        shuffle: Optional[bool] = False,
-        random_state: int = None,
-        average: str = 'micro') -> Tuple[float, float, float, float]:
-
-    # TODO expand with `binary` and `weighted` from scikit
-    if average not in ('micro', 'macro'):
-        error_msg = "'average' parameter must be either 'micro' or 'macro'. Provided " \
-                    "value: '{}'".format(average)
+def k_fold_multiclass_metrics(experiment: Experiment,
+                              dataset: Dataset,
+                              n_splits: int,
+                              shuffle: Optional[bool] = False,
+                              random_state: int = None,
+                              average: str = 'micro') \
+                              -> Tuple[float, float, float, float]:
+    # TODO expand with `binary` from scikit
+    if average not in ('micro', 'macro', 'weighted'):
+        error_msg = "'average' parameter must be either 'micro', 'macro' or 'weighted'." \
+                    " Provided value: '{}'".format(average)
         _LOGGER.error(error_msg)
         raise ValueError(error_msg)
 
