@@ -5,7 +5,7 @@ import numpy as np
 
 from takepod.storage import (Field, LargeResource, Vocab,
                              BasicVectorStorage)
-from takepod.datasets import Iterator, SingleBatchIterator
+from takepod.datasets import Iterator
 from takepod.datasets.impl.pauza_dataset import PauzaHRDataset
 from takepod.models.impl.fc_model import ScikitMLPClassifier
 from takepod.models.impl.simple_trainers import SimpleTrainer
@@ -21,7 +21,7 @@ def numericalize_pauza_rating(rating):
 
 def basic_pauza_hr_fields():
     """Function returns pauza-hr fields used for classification."""
-    rating = Field(name="Rating", vocab=Vocab(specials=()), store_as_raw=True,
+    rating = Field(name="Rating", vocab=Vocab(specials=()),
                    is_target=True, tokenize=False,
                    custom_numericalize=numericalize_pauza_rating)
 
@@ -45,8 +45,10 @@ def basic_feature_transform_fun(x_batch):
        numpy matrix that model accepts."""
     return x_batch.Text
 
+
 def label_transform_fun(y_batch):
     return y_batch.Rating.ravel()
+
 
 def experiment_example():
     """Example of setting up and using the Experiment class.
@@ -66,7 +68,8 @@ def experiment_example():
     embedding_matrix = vectorizer.get_embedding_matrix(
         fields["Text"].vocab)
 
-    feature_transform = partial(feature_transform_mean_fun, embedding_matrix=embedding_matrix)
+    feature_transform = partial(feature_transform_mean_fun,
+                                embedding_matrix=embedding_matrix)
 
     experiment = Experiment(ScikitMLPClassifier,
                             trainer,
@@ -75,34 +78,23 @@ def experiment_example():
                             feature_transform,
                             label_transform_fun)
 
-    print(k_fold_multiclass_metrics(experiment,
-                                    test_dataset,
-                                    5))
+    experiment.set_default_model_args(
+        classes=[i for i in range(num_of_classes)]
+    )
 
-    #
-    # experiment.fit(train_dataset,
-    #                model_kwargs={
-    #                    "classes": np.arange(0, num_of_classes),
-    #                    "hidden_layer_sizes": (50, 20),
-    #                    "solver": "adam"
-    #                },
-    #                trainer_kwargs={
-    #                    SimpleTrainer.MAX_EPOCH_KEY: 5
-    #                })
-    #
-    # test_dataset_slice = test_dataset
-    #
-    # _, true_values = next(iter(SingleBatchIterator(test_dataset_slice)))
-    # true_values = true_values.Rating.ravel()
-    #
-    # predicted_values = experiment.predict(test_dataset_slice)
-    # predicted_values = predicted_values.ravel()
-    #
-    # accuracy = np.count_nonzero(true_values == predicted_values) / len(predicted_values)
-    #
-    # print("Accuracy on the test set: ", accuracy)
+    experiment.set_default_trainer_args(
+        **{SimpleTrainer.MAX_EPOCH_KEY: 3}
+    )
 
+    accuracy, precision, recall, f1 = k_fold_multiclass_metrics(experiment,
+                                                                test_dataset,
+                                                                5,
+                                                                average='macro')
 
+    print("Accuracy = {}\n"
+          "Precision = {}\n"
+          "Recall = {}\n"
+          "F1 score = {}".format(accuracy, precision, recall, f1))
 
 
 if __name__ == '__main__':

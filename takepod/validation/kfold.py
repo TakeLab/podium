@@ -2,6 +2,7 @@ import numpy as np
 
 from sklearn.model_selection import KFold as baseKFold
 
+
 class KFold(baseKFold):
     """Adapter class for the scikit-learn KFold class.
     Works with podium datasets directly.

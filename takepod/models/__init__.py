@@ -5,11 +5,7 @@ from .batch_transform_functions import default_batch_transform,\
     default_feature_transform, default_label_transform
 from .experiment import Experiment
 from .trainer import AbstractTrainer
-from .impl.svm_model import ScikitSVCModel, ScikitLinearSVCModel
-from .impl.fc_model import ScikitMLPClassifier
-from .impl.eurovoc_models.multilabel_svm import MultilabelSVM
 
 __all__ = ["AbstractFrameworkModel", "AbstractSupervisedModel",
            "default_batch_transform", "default_feature_transform",
-           "default_label_transform", "Experiment", "AbstractTrainer", "ScikitSVCModel",
-           "ScikitLinearSVCModel", "ScikitMLPClassifier", "MultilabelSVM"]
+           "default_label_transform", "Experiment", "AbstractTrainer"]

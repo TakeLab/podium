@@ -8,7 +8,7 @@ from takepod.datasets.dataset import Dataset
 from takepod.datasets.iterator import Iterator, SingleBatchIterator
 from takepod.models import AbstractSupervisedModel,\
     default_feature_transform, default_label_transform
-from takepod.models.impl.simple_trainers import AbstractTrainer
+from takepod.models.trainer import AbstractTrainer
 
 
 class Experiment:
@@ -176,8 +176,4 @@ class Experiment:
             prediction_tensor = batch_prediction[AbstractSupervisedModel.PREDICTION_KEY]
             y.append(prediction_tensor)
 
-        # TODO: always returns at least 2-D tensors example X labels
-        # if lables are just one number (simple classification) maybe make it return a
-        # 1D array? Will have to discuss a framework-wide convention.
-        return np.vstack(y)
-
+        return np.concatenate(y)

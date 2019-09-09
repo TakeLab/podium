@@ -1,5 +1,4 @@
 from typing import Callable, Optional, Union, List, Tuple
-from functools import partial
 import numpy as np
 
 from takepod.datasets import Dataset, SingleBatchIterator
@@ -7,19 +6,18 @@ from takepod.validation import KFold
 from takepod.models.experiment import Experiment
 
 import logging
-from sklearn.metrics import accuracy_score, precision_score, \
-    recall_score, f1_score
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 _LOGGER = logging.getLogger(__name__)
 
 
 def kfold_scores(
-    experiment: Experiment,
-    dataset: Dataset,
-    n_splits: int,
-    score_fun: Callable[[np.ndarray, np.ndarray], Union[np.ndarray, int, float]],
-    shuffle: Optional[bool] = False,
-    random_state: int = None) -> List[Union[np.ndarray, int, float]]:
+        experiment: Experiment,
+        dataset: Dataset,
+        n_splits: int,
+        score_fun: Callable[[np.ndarray, np.ndarray], Union[np.ndarray, int, float]],
+        shuffle: Optional[bool] = False,
+        random_state: int = None) -> List[Union[np.ndarray, int, float]]:
     kfold = KFold(n_splits=n_splits,
                   shuffle=shuffle,
                   random_state=random_state)
@@ -63,7 +61,7 @@ def k_fold_multiclass_metrics(experiment: Experiment,
                               shuffle: Optional[bool] = False,
                               random_state: int = None,
                               average: str = 'micro') \
-                              -> Tuple[float, float, float, float]:
+        -> Tuple[float, float, float, float]:
     # TODO expand with `binary` from scikit
     if average not in ('micro', 'macro', 'weighted'):
         error_msg = "'average' parameter must be either 'micro', 'macro' or 'weighted'." \
@@ -71,17 +69,16 @@ def k_fold_multiclass_metrics(experiment: Experiment,
         _LOGGER.error(error_msg)
         raise ValueError(error_msg)
 
-    accuracy_scorer = accuracy_score
-    precision_scorer = partial(precision_score, average=average)
-    recall_scorer = partial(recall_score, average=average)
-    f1_scorer = partial(f1_score, average=average)
-
     def scorer(y_true, y_pred):
+        accuracy = accuracy_score(y_true, y_pred)
+        precision, recall, f1, _ = precision_recall_fscore_support(y_true,
+                                                                   y_pred,
+                                                                   average=average)
         return np.array([
-            accuracy_scorer(y_true, y_pred),
-            precision_scorer(y_true, y_pred),
-            recall_scorer(y_true, y_pred),
-            f1_scorer(y_true, y_pred)
+            accuracy,
+            precision,
+            recall,
+            f1
         ])
 
     results = kfold_scores(
