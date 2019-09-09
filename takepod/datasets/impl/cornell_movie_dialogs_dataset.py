@@ -4,8 +4,8 @@ import logging
 from takepod.datasets.dataset import Dataset
 from takepod.storage.example_factory import ExampleFactory
 from takepod.storage.vocab import Vocab
-from takepod.storage.field import Field, unpack_fields
-from takepod.dataload.cornel_movie_dialogs import CornellMovieDialogsNamedTuple
+from takepod.storage.field import Field
+from takepod.dataload.cornell_movie_dialogs import CornellMovieDialogsNamedTuple
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,9 +38,8 @@ class CornellMovieDialogsConversationalDataset(Dataset):
         examples = CornellMovieDialogsConversationalDataset._create_examples(
             data=data, fields=fields
         )
-        unpacked_fields = unpack_fields(fields=fields)
         super(CornellMovieDialogsConversationalDataset, self).__init__(
-            **{"examples": examples, "fields": unpacked_fields})
+            **{"examples": examples, "fields": fields})
 
     @staticmethod
     def _create_examples(data: CornellMovieDialogsNamedTuple, fields):

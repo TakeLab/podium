@@ -2,7 +2,7 @@ import os
 from mock import patch
 import pytest
 from takepod.storage import LargeResource
-from takepod.dataload.cornel_movie_dialogs import CornellMovieDialogsLoader
+from takepod.dataload.cornell_movie_dialogs import CornellMovieDialogsLoader
 
 CHARACTERS_DATA = "u0 +++$+++ BIANCA +++$+++ m0 +++$+++ 10 things i hate about you "\
     "+++$+++ f +++$+++ 4\n"\

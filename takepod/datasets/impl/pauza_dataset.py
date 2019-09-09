@@ -1,7 +1,7 @@
 """Module contains PauzaHR datasets."""
 import os
 from takepod.datasets.dataset import Dataset
-from takepod.storage.field import unpack_fields, Field
+from takepod.storage.field import Field
 from takepod.storage.vocab import Vocab
 from takepod.storage.resources.large_resource import LargeResource
 from takepod.storage.example_factory import ExampleFactory
@@ -49,10 +49,9 @@ class PauzaHRDataset(Dataset):
             LargeResource.RESOURCE_NAME: PauzaHRDataset.NAME,
             LargeResource.ARCHIVE: PauzaHRDataset.ARCHIVE_TYPE,
             LargeResource.URI: PauzaHRDataset.URL})
-        unpacked_fields = unpack_fields(fields=fields)
         examples = self._create_examples(dir_path=dir_path, fields=fields)
         super(PauzaHRDataset, self).__init__(
-            **{"examples": examples, "fields": unpacked_fields})
+            **{"examples": examples, "fields": fields})
 
     @staticmethod
     def _create_examples(dir_path, fields):
