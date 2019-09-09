@@ -18,10 +18,43 @@ def kfold_scores(
         score_fun: Callable[[np.ndarray, np.ndarray], Union[np.ndarray, int, float]],
         shuffle: Optional[bool] = False,
         random_state: int = None) -> List[Union[np.ndarray, int, float]]:
+    """ Calculates a score for each train/test fold. The score for a fold is calculated by
+        first fitting the experiment to the train split and then using the test split to
+        calculate predictions and evaluate the score. This is repeated for every fold.
+
+        Parameters
+        ----------
+        experiment : Experiment
+            Experiment defining the training and prediction procedure to be evaluated.
+
+        dataset : Dataset
+            Dataset to be used for experiment evaluation.
+
+        n_splits : int
+            Number of folds.
+
+        score_fun : Callable (y_true, y_predicted) -> score
+            Callable used to evaluate the score for a fold. This callable should take
+            two numpy array arguments: y_true and y_predicted. y_true is the ground
+            truth while y_predicted are the model's predictions. This callable should
+            return a score that can be either a numpy array, a int or a float.
+
+        shuffle : boolean, optional
+            Whether to shuffle the data before splitting into batches.
+
+        random_state : int, RandomState instance or None
+            If int, random_state is the seed used by the random number generator;
+            If RandomState instance, random_state is the random number generator;
+            If None, the random number generator is the RandomState instance used
+            by `np.random`. Used when ``shuffle`` == True.
+
+        Returns
+        -------
+            a List of scores provided by score_fun for every fold.
+     """
     kfold = KFold(n_splits=n_splits,
                   shuffle=shuffle,
                   random_state=random_state)
-
     it = SingleBatchIterator()
     results = list()
     for train_split, test_split in kfold.split(dataset):
@@ -43,8 +76,41 @@ def k_fold_validation(experiment: Experiment,
                       n_splits: int,
                       score_fun: Callable[[np.ndarray, np.ndarray], float],
                       shuffle: Optional[bool] = False,
-                      random_state: int = None) -> float:
+                      random_state: int = None) -> Union[np.ndarray, int, float]:
     # TODO add option to calculate statistical values (variance, p-value...)?
+    """ Convenience function for kfold_scores. Calculates scores for every fold and
+    returns the mean of all scores.
+
+    Parameters
+    ----------
+    experiment : Experiment
+        Experiment defining the training and prediction procedure to be evaluated.
+
+    dataset : Dataset
+        Dataset to be used for experiment evaluation.
+
+    n_splits : int
+        Number of folds.
+
+    score_fun : Callable (y_true, y_predicted) -> score
+        Callable used to evaluate the score for a fold. This callable should take
+        two numpy array arguments: y_true and y_predicted. y_true is the ground
+        truth while y_predicted are the model's predictions. This callable should
+        return a score that can be either a numpy array, a int or a float.
+
+    shuffle : boolean, optional
+        Whether to shuffle the data before splitting into batches.
+
+    random_state : int, RandomState instance or None
+        If int, random_state is the seed used by the random number generator;
+        If RandomState instance, random_state is the random number generator;
+        If None, the random number generator is the RandomState instance used
+        by `np.random`. Used when ``shuffle`` == True.
+
+    Returns
+    -------
+        The mean of all scores for every fold.
+    """
     results = kfold_scores(experiment,
                            dataset,
                            n_splits,
@@ -62,6 +128,56 @@ def k_fold_multiclass_metrics(experiment: Experiment,
                               random_state: int = None,
                               average: str = 'micro') \
         -> Tuple[float, float, float, float]:
+    """ Calculates the most often used classification metrics : accuracy, precision,
+    recall and the F1 score. All scores are calculated for every fold and the mean
+    of every score over all folds is returned.
+
+    Parameters
+    ----------
+    experiment : Experiment
+        Experiment defining the training and prediction procedure to be evaluated.
+
+    dataset : Dataset
+        Dataset to be used for experiment evaluation.
+
+    n_splits : int
+        Number of folds.
+
+    shuffle : boolean, optional
+        Whether to shuffle the data before splitting into batches.
+
+    random_state : int, RandomState instance or None
+        If int, random_state is the seed used by the random number generator;
+        If RandomState instance, random_state is the random number generator;
+        If None, the random number generator is the RandomState instance used
+        by `np.random`. Used when ``shuffle`` == True.
+
+    average : str
+        Determines the type of averaging performed.
+
+        The supported averaging methods are:
+
+        'micro':
+            Calculate metrics globally by counting the total true positives,
+            false negatives and false positives.
+
+        'macro':
+            Calculate metrics for each label, and find their unweighted mean.
+            This does not take label imbalance into account.
+
+        'weighted':
+            Calculate metrics for each label, and find their average weighted by support
+            (the number of true instances for each label). This alters ‘macro’ to account
+            for label imbalance; it can result in an F-score that is not between precision
+            and recall.
+
+    Returns
+    -------
+    tuple(float, float, float, float)
+        A tuple containing four classification metrics: accuracy, precision, recall, f1
+        Each score returned is a mean of that score over all folds.
+
+    """
     # TODO expand with `binary` from scikit
     if average not in ('micro', 'macro', 'weighted'):
         error_msg = "'average' parameter must be either 'micro', 'macro' or 'weighted'." \
