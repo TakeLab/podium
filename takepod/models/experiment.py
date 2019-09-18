@@ -1,13 +1,14 @@
 """Modules defines an experiment - class used to combine iteration over data,
 model training and prediction."""
-from typing import Tuple, Callable, NamedTuple, Dict, Type
+from typing import Callable, NamedTuple, Dict, Type
 
 import numpy as np
 
 from takepod.datasets.dataset import Dataset
 from takepod.datasets.iterator import Iterator, SingleBatchIterator
-from takepod.models import AbstractSupervisedModel, default_batch_transform
-from takepod.models.impl.simple_trainers import AbstractTrainer
+from takepod.models import AbstractSupervisedModel,\
+    default_feature_transform, default_label_transform
+from takepod.models.trainer import AbstractTrainer
 
 
 class Experiment:
@@ -17,9 +18,11 @@ class Experiment:
                  model_class: Type[AbstractSupervisedModel],
                  trainer: AbstractTrainer,
                  training_iterator_callable: Callable[[Dataset], Iterator],
-                 prediction_iterator_callable: Callable[[Dataset], Iterator]=None,
-                 batch_transform_fun:
-                 Callable[[NamedTuple, NamedTuple], Tuple[np.ndarray, np.ndarray]]=None
+                 prediction_iterator_callable: Callable[[Dataset], Iterator] = None,
+                 feature_transform_fun:
+                 Callable[[NamedTuple], np.ndarray] = None,
+                 label_transform_fun:
+                 Callable[[NamedTuple], np.ndarray] = None
                  ):
         """Creates a new Experiment. The Experiment class is used to simplify model
         fitting and prediction using Podium components.
@@ -33,24 +36,30 @@ class Experiment:
         trainer : AbstractTrainer
             Trainer used to fit the model.
 
-        training_iterator_callable : callable(Dataset) -> Iterator
+        training_iterator_callable : Callable[[Dataset], Iterator]
             Callable used to instantiate new instances of the Iterator used in fitting the
             model.
 
-        prediction_iterator_callable : callable(Dataset) -> Iterator
+        prediction_iterator_callable : Callable[[Dataset], Iterator]
             Callable used to instantiate new instances of the Iterator used in prediction.
             Tensors which are prediction results for seperate batches will be stacked into
             a single tensor before being returned. If passed None, a SingleBatchIterator
             will be used as a default.
 
-        batch_transform_fun : callable(x_batch, y_batch) -> x_tensor, y_tensor
-            Callable used to transform Podium batches into a form the model uses.
+        feature_transform_fun : Callable[[NamedTuple], np.ndarray]
+            Callable that transforms the input part of the batch returned by the iterator
+            into features that can be fed into the model.
+
+        label_transform_fun : Callable[[NamedTuple], np.ndarray]
+            Callable that transforms the target part of the batch returned by the iterator
+            into the same format the model prediction is. For a hypothetical perfect model
+            the prediction result of the model for some examples must be identical to the
+            result of this callable for those same examples.
         """
         self.model_class = model_class
         self.model = None
         self.trainer = trainer
         self.training_iterator_callable = training_iterator_callable
-        self.batch_transform_fun = batch_transform_fun
 
         self.set_default_model_args()
         self.set_default_trainer_args()
@@ -63,10 +72,13 @@ class Experiment:
         else:
             self.prediction_iterator_callable = prediction_iterator_callable
 
-        if batch_transform_fun is None:
-            self.batch_transform_fun = default_batch_transform
-        else:
-            self.batch_transform_fun = batch_transform_fun
+        self.feature_transform_fun = feature_transform_fun \
+            if feature_transform_fun is not None \
+            else default_feature_transform
+
+        self.label_transform_fun = label_transform_fun \
+            if label_transform_fun is not None \
+            else default_label_transform
 
     def set_default_model_args(self, **kwargs):
         """Sets the default model arguments. Model arguments are keyword arguments passed
@@ -130,7 +142,8 @@ class Experiment:
 
         self.trainer.train(self.model,
                            train_iterator,
-                           self.batch_transform_fun,
+                           self.feature_transform_fun,
+                           self.label_transform_fun,
                            **trainer_args)
 
     def predict(self,
@@ -157,13 +170,10 @@ class Experiment:
 
         y = []
 
-        for x_batch, y_batch in self.prediction_iterator_callable(dataset):
-            x_batch_tensor, _ = self.batch_transform_fun(x_batch, y_batch)
+        for x_batch, _ in self.prediction_iterator_callable(dataset):
+            x_batch_tensor = self.feature_transform_fun(x_batch)
             batch_prediction = self.model.predict(x_batch_tensor, **kwargs)
             prediction_tensor = batch_prediction[AbstractSupervisedModel.PREDICTION_KEY]
-            y.extend(prediction_tensor)
+            y.append(prediction_tensor)
 
-        # TODO: always returns at least 2-D tensors example X labels
-        # if lables are just one number (simple classification) maybe make it return a
-        # 1D array? Will have to discuss a framework-wide convention.
-        return np.vstack(y)
+        return np.concatenate(y)

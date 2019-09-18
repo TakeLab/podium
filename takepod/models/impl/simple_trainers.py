@@ -13,13 +13,18 @@ class SimpleTrainer(AbstractTrainer):
 
     MAX_EPOCH_KEY = "max_epoch"
 
-    def train(self, model, iterator, batch_transform=None, **kwargs):
+    def train(self,
+              model,
+              iterator,
+              feature_transform_fun,
+              label_transform_fun,
+              **kwargs):
         self._check_kwargs(**kwargs)
         for _ in range(kwargs[SimpleTrainer.MAX_EPOCH_KEY]):
             for x_batch, y_batch in iterator:
-                if batch_transform is not None:
-                    x_batch, y_batch = batch_transform(x_batch, y_batch)
-                model.fit(X=x_batch, y=y_batch)
+                x = feature_transform_fun(x_batch)
+                y = label_transform_fun(y_batch)
+                model.fit(X=x, y=y)
 
     def _check_kwargs(self, **kwargs):
         """Method checks if kwargs contains necessary training parameters.
