@@ -10,7 +10,7 @@ from takepod.datasets.impl.pauza_dataset import PauzaHRDataset
 from takepod.models.impl.fc_model import ScikitMLPClassifier
 from takepod.models.impl.simple_trainers import SimpleTrainer
 from takepod.models import Experiment
-from takepod.validation import k_fold_multiclass_metrics
+from takepod.validation import k_fold_classification_metrics
 from takepod.model_selection import grid_search
 from sklearn.metrics import accuracy_score
 
@@ -85,17 +85,17 @@ def experiment_example():
                     test_dataset,
                     accuracy_score,
                     model_param_grid={'classes': ([i for i in range(num_of_classes)],),
-                                      'hidden_layer_sizes': [(10,), (20,), (10, 10), (100,)]},
+                                      'hidden_layer_sizes': [(10,), (10, 10), (100,)]},
                     trainer_param_grid={SimpleTrainer.MAX_EPOCH_KEY: [2, 3, 4, 5]}
                     )
 
     experiment.set_default_model_args(**model_params)
     experiment.set_default_trainer_args(**train_params)
 
-    accuracy, precision, recall, f1 = k_fold_multiclass_metrics(experiment,
-                                                                test_dataset,
-                                                                5,
-                                                                average='macro')
+    accuracy, precision, recall, f1 = k_fold_classification_metrics(experiment,
+                                                                    test_dataset,
+                                                                    5,
+                                                                    average='macro')
 
     print("Accuracy = {}\n"
           "Precision = {}\n"

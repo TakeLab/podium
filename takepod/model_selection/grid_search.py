@@ -1,7 +1,7 @@
 from typing import Callable, Iterable, Tuple, Dict, Any, Union
 
 import numpy as np
-from sklearn.model_selection import ParameterGrid, GridSearchCV
+from sklearn.model_selection import ParameterGrid
 import logging
 from tqdm import tqdm
 
@@ -24,9 +24,10 @@ def grid_search(
     """Method used to find the best combination of training and model hyperparameters
     out of the given hyperparameters. This method uses simple grid search to evaluate
     all possible combinations of the given hyperparameters. Based on sklearn's
-    :class:`GridSearchCV`. Each hyperparameter combination is scored by first training
-    the model and then evaluating that model using k-fold cross validation. The final
-    score for a set of hyperparameters is the mean of scores across all folds.
+    :class:`sklearn.model_selection.GridSearchCV`. Each hyperparameter combination is
+    scored by first training the model and then evaluating that model using k-fold cross
+    validation. The final score for a set of hyperparameters is the mean of scores across
+    all folds.
 
 
     Parameters
