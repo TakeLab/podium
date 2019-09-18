@@ -3,12 +3,14 @@
 from functools import partial
 import numpy as np
 
-from takepod.storage import (Field, LargeResource, Vocab, Iterator, SingleBatchIterator,
+from takepod.storage import (Field, LargeResource, Vocab,
                              BasicVectorStorage)
+from takepod.datasets import Iterator
 from takepod.datasets.impl.pauza_dataset import PauzaHRDataset
 from takepod.models.impl.fc_model import ScikitMLPClassifier
 from takepod.models.impl.simple_trainers import SimpleTrainer
 from takepod.models import Experiment
+from takepod.validation import k_fold_classification_metrics
 
 
 def numericalize_pauza_rating(rating):
@@ -19,7 +21,7 @@ def numericalize_pauza_rating(rating):
 
 def basic_pauza_hr_fields():
     """Function returns pauza-hr fields used for classification."""
-    rating = Field(name="Rating", vocab=Vocab(specials=()), store_as_raw=True,
+    rating = Field(name="Rating", vocab=Vocab(specials=()),
                    is_target=True, tokenize=False,
                    custom_numericalize=numericalize_pauza_rating)
 
@@ -30,21 +32,22 @@ def basic_pauza_hr_fields():
     return {"Text": text, "Rating": rating}
 
 
-def batch_transform_mean(x_batch, y_batch, embedding_matrix):
+def feature_transform_mean_fun(x_batch, embedding_matrix):
     """Batch transform function that returns a mean of embedding vectors for every
     token in an Example"""
     x_tensor = np.take(embedding_matrix, x_batch.Text.astype(int), axis=0)
     x = np.mean(x_tensor, axis=1)
-    y = np.ravel(y_batch.Rating)
-    return x, y
+    return x
 
 
-def basic_batch_transform_fun(x_batch, y_batch):
+def basic_feature_transform_fun(x_batch):
     """Method transforms iterator batch to a
        numpy matrix that model accepts."""
-    X = x_batch.Text
-    y = y_batch.Rating.ravel()
-    return X, y
+    return x_batch.Text
+
+
+def label_transform_fun(y_batch):
+    return y_batch.Rating.ravel()
 
 
 def experiment_example():
@@ -65,34 +68,33 @@ def experiment_example():
     embedding_matrix = vectorizer.get_embedding_matrix(
         fields["Text"].vocab)
 
-    batch_transform = partial(batch_transform_mean, embedding_matrix=embedding_matrix)
+    feature_transform = partial(feature_transform_mean_fun,
+                                embedding_matrix=embedding_matrix)
 
     experiment = Experiment(ScikitMLPClassifier,
                             trainer,
-                            batch_transform,
-                            train_iterator_provider)
+                            train_iterator_provider,
+                            None,
+                            feature_transform,
+                            label_transform_fun)
 
-    experiment.fit(train_dataset,
-                   model_kwargs={
-                       "classes": np.arange(0, num_of_classes),
-                       "hidden_layer_sizes": (50, 20),
-                       "solver": "adam"
-                   },
-                   trainer_kwargs={
-                       SimpleTrainer.MAX_EPOCH_KEY: 5
-                   })
+    experiment.set_default_model_args(
+        classes=[i for i in range(num_of_classes)]
+    )
 
-    test_dataset_slice = test_dataset
+    experiment.set_default_trainer_args(
+        **{SimpleTrainer.MAX_EPOCH_KEY: 3}
+    )
 
-    _, true_values = next(iter(SingleBatchIterator(test_dataset_slice)))
-    true_values = true_values.Rating.ravel()
+    accuracy, precision, recall, f1 = k_fold_classification_metrics(experiment,
+                                                                    test_dataset,
+                                                                    5,
+                                                                    average='macro')
 
-    predicted_values = experiment.predict(test_dataset_slice)
-    predicted_values = predicted_values.ravel()
-
-    accuracy = np.count_nonzero(true_values == predicted_values) / len(predicted_values)
-
-    print("Accuracy on the test set: ", accuracy)
+    print("Accuracy = {}\n"
+          "Precision = {}\n"
+          "Recall = {}\n"
+          "F1 score = {}".format(accuracy, precision, recall, f1))
 
 
 if __name__ == '__main__':

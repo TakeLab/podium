@@ -258,7 +258,7 @@ class Iterator:
             n_rows = min(self.batch_size, len(examples))
 
             # empty matrix to be filled with numericalized fields
-            matrix = None
+            matrix = None  # np.empty(shape=(n_rows, pad_length))
 
             # non-sequential fields all have length = 1, no padding necessary
             should_pad = True if field.sequential else False
@@ -269,7 +269,7 @@ class Iterator:
                 row = field.get_numericalization_for_example(example)
 
                 if matrix is None:
-                    # Creates empty batch matrix of the same dtype as the numericalization
+                    # Create matrix of the correct dtype
                     matrix = np.empty(shape=(n_rows, pad_length), dtype=row.dtype)
 
                 if should_pad:
