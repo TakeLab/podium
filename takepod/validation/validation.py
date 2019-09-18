@@ -121,12 +121,15 @@ def k_fold_validation(experiment: Experiment,
     return sum(results) / len(results)
 
 
-def k_fold_multiclass_metrics(experiment: Experiment,
-                              dataset: Dataset,
-                              n_splits: int,
-                              shuffle: Optional[bool] = False,
-                              random_state: int = None,
-                              average: str = 'micro') \
+def k_fold_classification_metrics(experiment: Experiment,
+                                  dataset: Dataset,
+                                  n_splits: int,
+                                  average: str = 'micro',
+                                  beta: float = 1.0,
+                                  labels: List[int] = None,
+                                  pos_label: int = 1,
+                                  shuffle: Optional[bool] = False,
+                                  random_state: int = None) \
         -> Tuple[float, float, float, float]:
     """ Calculates the most often used classification metrics : accuracy, precision,
     recall and the F1 score. All scores are calculated for every fold and the mean
@@ -143,16 +146,7 @@ def k_fold_multiclass_metrics(experiment: Experiment,
     n_splits : int
         Number of folds.
 
-    shuffle : boolean, optional
-        Whether to shuffle the data before splitting into batches.
-
-    random_state : int, RandomState instance or None
-        If int, random_state is the seed used by the random number generator;
-        If RandomState instance, random_state is the random number generator;
-        If None, the random number generator is the RandomState instance used
-        by `np.random`. Used when ``shuffle`` == True.
-
-    average : str
+    average : str, Optional
         Determines the type of averaging performed.
 
         The supported averaging methods are:
@@ -171,6 +165,37 @@ def k_fold_multiclass_metrics(experiment: Experiment,
             for label imbalance; it can result in an F-score that is not between precision
             and recall.
 
+        `binary`:
+            Only report results for the class specified by pos_label.
+            This is applicable only if targets (i.e. results of predict) are binary.
+
+        None:
+            The scores for each class are returned.
+
+    beta: float
+        The strength of recall versus precision in the F-score.
+
+    labels : List, optional
+        The set of labels to include when average != 'binary', and their order if average
+        is None. Labels present in the data can be excluded, for example to calculate a
+        multiclass average ignoring a majority negative class, while labels not present in
+        the data will result in 0 components in a macro average. For multilabel targets,
+        labels are column indices.
+
+    pos_label: int
+        The class to report if average='binary' and the data is binary. If the data are
+        multiclass or multilabel, this will be ignored; setting labels=[pos_label] and
+        average != 'binary' will report scores for that label only.
+
+    shuffle : boolean, optional
+        Whether to shuffle the data before splitting into batches.
+
+    random_state : int, RandomState instance or None
+        If int, random_state is the seed used by the random number generator;
+        If RandomState instance, random_state is the random number generator;
+        If None, the random number generator is the RandomState instance used
+        by `np.random`. Used when ``shuffle`` == True.
+
     Returns
     -------
     tuple(float, float, float, float)
@@ -178,10 +203,9 @@ def k_fold_multiclass_metrics(experiment: Experiment,
         Each score returned is a mean of that score over all folds.
 
     """
-    # TODO expand with `binary` from scikit
-    if average not in ('micro', 'macro', 'weighted'):
-        error_msg = "'average' parameter must be either 'micro', 'macro' or 'weighted'." \
-                    " Provided value: '{}'".format(average)
+    if average not in ('micro', 'macro', 'weighted', 'binary'):
+        error_msg = "'average' parameter must be either 'micro', 'macro', 'weighted'" \
+                    " or 'binary'. Provided value: '{}'".format(average)
         _LOGGER.error(error_msg)
         raise ValueError(error_msg)
 
@@ -189,7 +213,10 @@ def k_fold_multiclass_metrics(experiment: Experiment,
         accuracy = accuracy_score(y_true, y_pred)
         precision, recall, f1, _ = precision_recall_fscore_support(y_true,
                                                                    y_pred,
-                                                                   average=average)
+                                                                   labels=labels,
+                                                                   pos_label=pos_label,
+                                                                   average=average,
+                                                                   beta=beta)
         return np.array([
             accuracy,
             precision,

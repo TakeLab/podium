@@ -10,7 +10,7 @@ from takepod.datasets.impl.pauza_dataset import PauzaHRDataset
 from takepod.models.impl.fc_model import ScikitMLPClassifier
 from takepod.models.impl.simple_trainers import SimpleTrainer
 from takepod.models import Experiment
-from takepod.validation import k_fold_multiclass_metrics
+from takepod.validation import k_fold_classification_metrics
 
 
 def numericalize_pauza_rating(rating):
@@ -86,10 +86,10 @@ def experiment_example():
         **{SimpleTrainer.MAX_EPOCH_KEY: 3}
     )
 
-    accuracy, precision, recall, f1 = k_fold_multiclass_metrics(experiment,
-                                                                test_dataset,
-                                                                5,
-                                                                average='macro')
+    accuracy, precision, recall, f1 = k_fold_classification_metrics(experiment,
+                                                                    test_dataset,
+                                                                    5,
+                                                                    average='macro')
 
     print("Accuracy = {}\n"
           "Precision = {}\n"
