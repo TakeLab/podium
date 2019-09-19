@@ -13,7 +13,7 @@ blocks:
             - 'python -c ''print("evol"[::-1])'''
             - sudo apt-get update
             - >-
-              sudo apt-get install python3-pip python3-dev ipython3
+              sudo apt-get install -y python3-pip python3-dev ipython3
               build-essential python-dev
             - checkout
             - virtualenv env -p /usr/bin/python3
