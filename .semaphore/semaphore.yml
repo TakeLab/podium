@@ -1,5 +1,3 @@
-# For more Python information and examples, see
-# https://docs.semaphoreci.com/article/83-language-python
 version: v1.0
 name: Unit tests for takepod
 agent:
@@ -12,7 +10,10 @@ blocks:
       jobs:
         - name: Create env and run tests and flake8 check
           commands:
-            - python -c 'print("evol"[::-1])'
+            - 'python -c ''print("evol"[::-1])'''
+            - >-
+              apt-get install python3-pip python3-dev ipython3 build-essential
+              python-dev
             - checkout
             - virtualenv env -p /usr/bin/python3
             - source env/bin/activate
