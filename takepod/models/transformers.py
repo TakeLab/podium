@@ -19,22 +19,46 @@ class TensorTransformer(ABC):
         pass
 
 
+class DummyTensorTransformer(TensorTransformer):
+
+    def fit(self,
+            x: np.ndarray,
+            y: np.ndarray):
+        pass
+
+    def transform(self,
+                  x: np.array
+                  ) -> np.ndarray:
+        return x
+
+
+# TODO add mechanism for Feature transformer to know if its tensor_transformer needs
+#  fitting so batching can be avoided by callers.
 class FeatureTransformer:
 
     def __init__(self,
                  feature_extraction_fn: Callable[[NamedTuple], np.ndarray],
-                 tensor_transformer: TensorTransformer):
+                 tensor_transformer: TensorTransformer = None):
         self.feature_extraction_fn = feature_extraction_fn
-        self.tensor_transform = tensor_transformer
+        self.tensor_transformer = tensor_transformer
 
     def fit(self,
             x: NamedTuple,
             y: np.ndarray):
+        if not self.requires_fitting():
+            return
+
         x_tensor = self.feature_extraction_fn(x)
-        self.tensor_transform.fit(x_tensor, y)
+        self.tensor_transformer.fit(x_tensor, y)
 
     def transform(self,
                   x: NamedTuple) -> np.ndarray:
         x_tensor = self.feature_extraction_fn(x)
-        self.tensor_transform.transform(x_tensor)
+        if self.tensor_transformer is None:
+            return x_tensor
 
+        else:
+            self.tensor_transformer.transform(x_tensor)
+
+    def requires_fitting(self):
+        return self.tensor_transformer is not None

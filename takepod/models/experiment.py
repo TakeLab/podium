@@ -6,8 +6,8 @@ import numpy as np
 
 from takepod.datasets.dataset import Dataset
 from takepod.datasets.iterator import Iterator, SingleBatchIterator
-from takepod.models import AbstractSupervisedModel,\
-    default_feature_transform, default_label_transform
+from takepod.models import AbstractSupervisedModel, \
+    default_feature_transform, default_label_transform, FeatureTransformer
 from takepod.models.trainer import AbstractTrainer
 
 
@@ -19,8 +19,7 @@ class Experiment:
                  trainer: AbstractTrainer,
                  training_iterator_callable: Callable[[Dataset], Iterator],
                  prediction_iterator_callable: Callable[[Dataset], Iterator] = None,
-                 feature_transform_fun:
-                 Callable[[NamedTuple], np.ndarray] = None,
+                 feature_transformer: FeatureTransformer = None,
                  label_transform_fun:
                  Callable[[NamedTuple], np.ndarray] = None
                  ):
@@ -56,6 +55,7 @@ class Experiment:
             the prediction result of the model for some examples must be identical to the
             result of this callable for those same examples.
         """
+        # TODO update docs to account for FeatureTransformer
         self.model_class = model_class
         self.model = None
         self.trainer = trainer
@@ -72,9 +72,9 @@ class Experiment:
         else:
             self.prediction_iterator_callable = prediction_iterator_callable
 
-        self.feature_transform_fun = feature_transform_fun \
-            if feature_transform_fun is not None \
-            else default_feature_transform
+        self.feature_transformer = feature_transformer \
+            if feature_transformer is not None \
+            else FeatureTransformer(default_feature_transform)
 
         self.label_transform_fun = label_transform_fun \
             if label_transform_fun is not None \
@@ -136,13 +136,20 @@ class Experiment:
         trainer_args = self.default_trainer_args.copy()
         trainer_args.update(trainer_kwargs)
 
+        # Fit the feature transformer if it needs2 fitting
+        if self.feature_transformer.requires_fitting():
+            x_batch, y_batch = next(SingleBatchIterator(dataset).__iter__())
+            y = self.label_transform_fun(y_batch)
+            self.feature_transformer.fit(x_batch, y)
+
         # Create new model instance
         self.model = self.model_class(**model_args)
         train_iterator = self.training_iterator_callable(dataset)
 
+        # Train the model
         self.trainer.train(self.model,
                            train_iterator,
-                           self.feature_transform_fun,
+                           self.feature_transformer,
                            self.label_transform_fun,
                            **trainer_args)
 
@@ -171,7 +178,7 @@ class Experiment:
         y = []
 
         for x_batch, _ in self.prediction_iterator_callable(dataset):
-            x_batch_tensor = self.feature_transform_fun(x_batch)
+            x_batch_tensor = self.feature_transformer.transform(x_batch)
             batch_prediction = self.model.predict(x_batch_tensor, **kwargs)
             prediction_tensor = batch_prediction[AbstractSupervisedModel.PREDICTION_KEY]
             y.append(prediction_tensor)
