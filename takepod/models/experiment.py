@@ -1,6 +1,8 @@
 """Modules defines an experiment - class used to combine iteration over data,
 model training and prediction."""
-from typing import Callable, NamedTuple, Dict, Type
+from typing import Callable, NamedTuple, Dict, Type, Union
+from inspect import isclass
+import logging
 
 import numpy as np
 
@@ -10,12 +12,14 @@ from takepod.models import AbstractSupervisedModel, \
     default_feature_transform, default_label_transform, FeatureTransformer
 from takepod.models.trainer import AbstractTrainer
 
+_LOGGER = logging.getLogger(__name__)
+
 
 class Experiment:
     """Class used to streamline model fitting and prediction."""
 
     def __init__(self,
-                 model_class: Type[AbstractSupervisedModel],
+                 model: Union[Type[AbstractSupervisedModel], AbstractSupervisedModel],
                  trainer: AbstractTrainer,
                  training_iterator_callable: Callable[[Dataset], Iterator],
                  prediction_iterator_callable: Callable[[Dataset], Iterator] = None,
@@ -28,8 +32,11 @@ class Experiment:
 
         Parameters
         ----------
-        model_class : class
-            Class of the Model to be fitted.
+        model : class or model instance
+            Class of the Model to be fitted or a pre-trained model.
+            If pre-trained model is passed and `fit` is called a new model instance will
+            be created. For fine-tuning of the passed model instance call 
+            `partial_fit`.
             Must be a subclass of Podium's `AbstractSupervisedModel`
 
         trainer : AbstractTrainer
@@ -56,8 +63,13 @@ class Experiment:
             result of this callable for those same examples.
         """
         # TODO update docs to account for FeatureTransformer
-        self.model_class = model_class
-        self.model = None
+        if isclass(model):
+            self.model_class = model
+            self.model = None
+        else:
+            self.model_class = model.__class__
+            self.model = model
+
         self.trainer = trainer
         self.training_iterator_callable = training_iterator_callable
 
@@ -127,6 +139,7 @@ class Experiment:
             default arguments defined with `set_default_trainer_args` updated/overridden
             by 'trainer_kwargs'.
         """
+
         model_kwargs = {} if model_kwargs is None else model_kwargs
         trainer_kwargs = {} if trainer_kwargs is None else trainer_kwargs
 
@@ -136,7 +149,7 @@ class Experiment:
         trainer_args = self.default_trainer_args.copy()
         trainer_args.update(trainer_kwargs)
 
-        # Fit the feature transformer if it needs2 fitting
+        # Fit the feature transformer if it needs fitting
         if self.feature_transformer.requires_fitting():
             x_batch, y_batch = next(SingleBatchIterator(dataset).__iter__())
             y = self.label_transform_fun(y_batch)
@@ -152,6 +165,31 @@ class Experiment:
                            self.feature_transformer,
                            self.label_transform_fun,
                            **trainer_args)
+
+    def partial_fit(self,
+                    dataset: Dataset,
+                    trainer_kwargs: Dict = None,
+                    trainer: AbstractTrainer = None,
+                    training_iterator_callable: Callable[[Dataset], Iterator] = None):
+        self.check_if_model_exists()
+
+        trainer = trainer if trainer is not None else self.trainer
+
+        trainer_kwargs = {} if trainer_kwargs is None else trainer_kwargs
+        trainer_args = self.default_trainer_args.copy()
+        trainer_args.update(trainer_kwargs)
+
+        training_iterator_callable = training_iterator_callable \
+            if training_iterator_callable is not None \
+            else self.training_iterator_callable
+
+        iterator = training_iterator_callable(dataset)
+
+        trainer.train(self.model,
+                      iterator,
+                      self.feature_transformer,
+                      self.label_transform_fun,
+                      **trainer_args)
 
     def predict(self,
                 dataset: Dataset,
@@ -174,6 +212,7 @@ class Experiment:
         """
         # TODO: new method of providing examples must be defined.
         # examples is taken in dataset form as proof-of-concept.
+        self.check_if_model_exists()
 
         y = []
 
@@ -184,3 +223,10 @@ class Experiment:
             y.append(prediction_tensor)
 
         return np.concatenate(y)
+
+    def check_if_model_exists(self):
+        if self.model is None:
+            errmsg = "Model instance not available. Please provide a model instance in " \
+                     "the constructor or call `fit` before calling `partial_fit.`"
+            _LOGGER.error(errmsg)
+            raise RuntimeError(errmsg)

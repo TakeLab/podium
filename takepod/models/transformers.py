@@ -38,9 +38,11 @@ class FeatureTransformer:
 
     def __init__(self,
                  feature_extraction_fn: Callable[[NamedTuple], np.ndarray],
-                 tensor_transformer: TensorTransformer = None):
+                 tensor_transformer: TensorTransformer = None,
+                 requires_fitting=True):
         self.feature_extraction_fn = feature_extraction_fn
         self.tensor_transformer = tensor_transformer
+        self.requires_fitting_flag = requires_fitting
 
     def fit(self,
             x: NamedTuple,
@@ -61,4 +63,4 @@ class FeatureTransformer:
             self.tensor_transformer.transform(x_tensor)
 
     def requires_fitting(self):
-        return self.tensor_transformer is not None
+        return self.tensor_transformer is not None and self.requires_fitting_flag
