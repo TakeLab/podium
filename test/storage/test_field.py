@@ -58,17 +58,13 @@ class MockVocab:
         self.numericalized = True
 
 
-@pytest.fixture()
-def vocab():
-    return MockVocab()
-
-
 def test_field_store_raw_sequential_exception():
     with pytest.raises(ValueError):
         Field(name="F", store_as_raw=False, tokenize=False)
 
 
-def test_field_preprocess_eager(vocab):
+def test_field_preprocess_eager():
+    vocab = MockVocab()
     f = Field(name="F", vocab=vocab, eager=True)
     f.preprocess("some text")
 
@@ -134,7 +130,7 @@ def test_field_pickle_tokenized(value, store_raw, sequential,
 @pytest.mark.parametrize(
     "vocab, expected_value",
     [
-        (vocab(), True),
+        (MockVocab(), True),
         (None, False)
     ]
 )
@@ -153,8 +149,8 @@ def test_field_use_vocab(vocab, expected_value):
         (True, True, ["some", "text"]),
     ]
 )
-def test_field_update_vocab(use_vocab, sequential, expected_vocab_values,
-                            vocab):
+def test_field_update_vocab(use_vocab, sequential, expected_vocab_values):
+    vocab = MockVocab()
     f = Field(name="F", vocab=vocab if use_vocab else None,
               tokenize=sequential)
 
@@ -166,7 +162,8 @@ def test_field_update_vocab(use_vocab, sequential, expected_vocab_values,
     assert vocab.values == expected_vocab_values
 
 
-def test_field_finalize(vocab):
+def test_field_finalize():
+    vocab = MockVocab()
     f = Field(name="F", vocab=vocab)
 
     assert not vocab.finalized
@@ -183,8 +180,9 @@ def test_field_finalize(vocab):
         (True, True, None),
     ]
 )
-def test_field_numericalize_vocab(use_vocab, expected_numericalized, vocab,
+def test_field_numericalize_vocab(use_vocab, expected_numericalized,
                                   custom_numericalize):
+    vocab = MockVocab()
     f = Field(name="F", vocab=vocab if use_vocab else None, tokenize=False,
               custom_numericalize=custom_numericalize)
     f.numericalize(("4.32", None))
@@ -192,7 +190,8 @@ def test_field_numericalize_vocab(use_vocab, expected_numericalized, vocab,
     assert vocab.numericalized == expected_numericalized
 
 
-def test_field_custom_numericalize_with_vocab(vocab):
+def test_field_custom_numericalize_with_vocab():
+    vocab = MockVocab()
     f = Field(name="F", vocab=vocab, tokenize=False,
               custom_numericalize=float)
     numericalized = f.numericalize(("4.32", None))
@@ -216,8 +215,9 @@ def test_field_custom_numericalize_with_vocab(vocab):
         (ONE_TO_FIVE, 0, [], False, True)
     ]
 )
-def test_field_pad_to_length(row, length, expected_row, vocab, pad_left,
+def test_field_pad_to_length(row, length, expected_row, pad_left,
                              truncate_left):
+    vocab = MockVocab()
     f = Field(name="F", vocab=vocab)
 
     received_row = f.pad_to_length(np.array(row), length, pad_left=pad_left,
@@ -258,6 +258,7 @@ def test_field_pad_to_length_exception():
 
 
 def test_field_get_tokenizer_callable(vocab):
+    vocab = MockVocab()
     def my_tokenizer(string):
         return [string[0], string[1:]]
 
@@ -268,7 +269,8 @@ def test_field_get_tokenizer_callable(vocab):
     assert data == (None, ["a", "sd dsa"])
 
 
-def test_field_get_tokenizer_spacy_exception(vocab):
+def test_field_get_tokenizer_spacy_exception():
+    vocab = MockVocab()
     class MockSpacy:
         def load(self, x, **kwargs):
             raise OSError
@@ -279,30 +281,30 @@ def test_field_get_tokenizer_spacy_exception(vocab):
         Field(name="F", vocab=vocab, tokenizer="spacy", tokenize=True)
 
 
-def test_field_get_tokenizer_default(vocab):
-    f = Field(name="F", vocab=vocab, tokenize=True, store_as_raw=False)
+def test_field_get_tokenizer_default():
+    f = Field(name="F", vocab=MockVocab(), tokenize=True, store_as_raw=False)
 
     _, data = f.preprocess("asd dsa")[0]
     assert data == (None, ["asd", "dsa"])
 
 
-def test_field_get_tokenizer_exception(vocab):
+def test_field_get_tokenizer_exception():
     with pytest.raises(ValueError):
-        Field(name="F", vocab=vocab, tokenizer="NOT_tokenizer",
+        Field(name="F", vocab=MockVocab(), tokenizer="NOT_tokenizer",
               tokenize=True, store_as_raw=False)
 
 
-def test_field_get_tokenizer_spacy_ok(vocab):
+def test_field_get_tokenizer_spacy_ok():
     patch.dict("sys.modules", spacy=MockSpacy()).start()
-    f = Field(name="F", vocab=vocab, tokenizer="spacy", tokenize=True,
+    f = Field(name="F", vocab=MockVocab(), tokenizer="spacy", tokenize=True,
               store_as_raw=False)
     _, data = f.preprocess("bla blu")[0]
     assert data == (None, ["bla", "blu"])
 
 
-def test_field_pickle_spacy_tokenizer(vocab, tmpdir):
+def test_field_pickle_spacy_tokenizer(tmpdir):
     patch.dict("sys.modules", spacy=MockSpacy()).start()
-    fld = Field(name="F", vocab=vocab, tokenizer="spacy", tokenize=True,
+    fld = Field(name="F", vocab=MockVocab(), tokenizer="spacy", tokenize=True,
                 store_as_raw=False)
     _, data = fld.preprocess("bla blu")[0]
     assert data == (None, ["bla", "blu"])
