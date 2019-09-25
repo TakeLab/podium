@@ -127,8 +127,8 @@ def test_experiment_train(dataset, fit_transformer):
     trainer = MockTrainer()
 
     experiment = Experiment(MockModel,
-                            trainer,
-                            lambda _: my_iterator,
+                            trainer=trainer,
+                            training_iterator_callable=lambda _: my_iterator,
                             feature_transformer=mock_transformer,
                             label_transform_fun=mock_label_transform_fun)
 
@@ -210,7 +210,7 @@ def test_experiment_predict():
 
     experiment = Experiment(
         MockModel,
-        MockTrainer(),
+        trainer=MockTrainer(),
         training_iterator_callable=lambda _: MockIterator(),
         prediction_iterator_callable=lambda _: MockIterator()
 

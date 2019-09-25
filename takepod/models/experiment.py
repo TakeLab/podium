@@ -20,10 +20,10 @@ class Experiment:
 
     def __init__(self,
                  model: Union[Type[AbstractSupervisedModel], AbstractSupervisedModel],
-                 trainer: AbstractTrainer,
-                 training_iterator_callable: Callable[[Dataset], Iterator],
-                 prediction_iterator_callable: Callable[[Dataset], Iterator] = None,
                  feature_transformer: FeatureTransformer = None,
+                 trainer: AbstractTrainer = None,
+                 training_iterator_callable: Callable[[Dataset], Iterator] = None,
+                 prediction_iterator_callable: Callable[[Dataset], Iterator] = None,
                  label_transform_fun:
                  Callable[[NamedTuple], np.ndarray] = None
                  ):
@@ -52,9 +52,10 @@ class Experiment:
             a single tensor before being returned. If passed None, a SingleBatchIterator
             will be used as a default.
 
-        feature_transform_fun : Callable[[NamedTuple], np.ndarray]
-            Callable that transforms the input part of the batch returned by the iterator
-            into features that can be fed into the model.
+        feature_transformer : FeatureTransformer
+            FeatureTransformer that transforms the input part of the batch returned by the
+            iterator into features that can be fed into the model. Will also be fitted
+            during Experiment fitting.
 
         label_transform_fun : Callable[[NamedTuple], np.ndarray]
             Callable that transforms the target part of the batch returned by the iterator
@@ -62,7 +63,6 @@ class Experiment:
             the prediction result of the model for some examples must be identical to the
             result of this callable for those same examples.
         """
-        # TODO update docs to account for FeatureTransformer
         if isclass(model):
             self.model_class = model
             self.model = None
@@ -119,7 +119,10 @@ class Experiment:
     def fit(self,
             dataset: Dataset,
             model_kwargs: Dict = None,
-            trainer_kwargs: Dict = None
+            trainer_kwargs: Dict = None,
+            feature_transformer: FeatureTransformer = None,
+            trainer: AbstractTrainer = None,
+            training_iterator_callable: Callable[[Dataset], Iterator] = None,
             ):
         """Fits the model to the provided Dataset. During fitting, the provided Iterator
         and Trainer are used.
@@ -138,6 +141,22 @@ class Experiment:
             Dict containing trainer arguments. Arguments passed to the trainer are the
             default arguments defined with `set_default_trainer_args` updated/overridden
             by 'trainer_kwargs'.
+
+        feature_transformer : FeatureTransformer, Optional
+            FeatureTransformer that transforms the input part of the batch returned by the
+            iterator into features that can be fed into the model. Will also be fitted
+            during Experiment fitting.
+            If None, the default FeatureTransformer provided in the constructor will be
+            used. Otherwise, this will overwrite the default feature transformer.
+
+        trainer : AbstractTrainer, Optional
+            Trainer used to fit the model. If None, the trainer provided in the
+            constructor will be used.
+
+        training_iterator_callable: Callable[[Dataset], Iterator]
+            Callable used to instantiate new instances of the Iterator used in fitting the
+            model. If None, the training_iterator_callable provided in the
+            constructor will be used.
         """
 
         model_kwargs = {} if model_kwargs is None else model_kwargs
@@ -149,6 +168,16 @@ class Experiment:
         trainer_args = self.default_trainer_args.copy()
         trainer_args.update(trainer_kwargs)
 
+        trainer = trainer if trainer is not None else self.trainer
+        if trainer is None:
+            errmsg = "No trainer provided. Trainer must be provided either in the " \
+                     "constructor or as an argument to the fit method."
+            _LOGGER.error(errmsg)
+            raise RuntimeError(errmsg)
+
+        if feature_transformer is not None:
+            self.feature_transformer = feature_transformer
+
         # Fit the feature transformer if it needs fitting
         if self.feature_transformer.requires_fitting():
             x_batch, y_batch = next(SingleBatchIterator(dataset).__iter__())
@@ -157,23 +186,32 @@ class Experiment:
 
         # Create new model instance
         self.model = self.model_class(**model_args)
-        train_iterator = self.training_iterator_callable(dataset)
 
+        training_iterator_callable = training_iterator_callable \
+            if training_iterator_callable is not None \
+            else self.training_iterator_callable
+
+        train_iterator = training_iterator_callable(dataset)
         # Train the model
-        self.trainer.train(self.model,
-                           train_iterator,
-                           self.feature_transformer,
-                           self.label_transform_fun,
-                           **trainer_args)
+        trainer.train(self.model,
+                      train_iterator,
+                      self.feature_transformer,
+                      self.label_transform_fun,
+                      **trainer_args)
 
     def partial_fit(self,
                     dataset: Dataset,
                     trainer_kwargs: Dict = None,
                     trainer: AbstractTrainer = None,
                     training_iterator_callable: Callable[[Dataset], Iterator] = None):
-        self.check_if_model_exists()
+        self._check_if_model_exists()
 
         trainer = trainer if trainer is not None else self.trainer
+        if trainer is None:
+            errmsg = "No trainer provided. Trainer must be provided either in the " \
+                     "constructor or as an argument to the partial_fit method."
+            _LOGGER.error(errmsg)
+            raise RuntimeError(errmsg)
 
         trainer_kwargs = {} if trainer_kwargs is None else trainer_kwargs
         trainer_args = self.default_trainer_args.copy()
@@ -183,10 +221,10 @@ class Experiment:
             if training_iterator_callable is not None \
             else self.training_iterator_callable
 
-        iterator = training_iterator_callable(dataset)
+        train_iterator = training_iterator_callable(dataset)
 
         trainer.train(self.model,
-                      iterator,
+                      train_iterator,
                       self.feature_transformer,
                       self.label_transform_fun,
                       **trainer_args)
@@ -212,7 +250,7 @@ class Experiment:
         """
         # TODO: new method of providing examples must be defined.
         # examples is taken in dataset form as proof-of-concept.
-        self.check_if_model_exists()
+        self._check_if_model_exists()
 
         y = []
 
@@ -224,7 +262,7 @@ class Experiment:
 
         return np.concatenate(y)
 
-    def check_if_model_exists(self):
+    def _check_if_model_exists(self):
         if self.model is None:
             errmsg = "Model instance not available. Please provide a model instance in " \
                      "the constructor or call `fit` before calling `partial_fit.`"
