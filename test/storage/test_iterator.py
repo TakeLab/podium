@@ -396,10 +396,7 @@ def hierarchical_dataset_parser():
 
 
 @pytest.fixture()
-def hierarchical_dataset():
-    hierarchical_dataset_parser = HierarchicalDataset.get_default_dict_parser(
-        "children"
-    )
+def hierarchical_dataset(hierarchical_dataset_fields, hierarchical_dataset_parser):
     dataset = HierarchicalDataset.from_json(HIERARCHIAL_DATASET_JSON_EXAMPLE,
                                             hierarchical_dataset_fields,
                                             hierarchical_dataset_parser)
