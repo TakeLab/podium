@@ -9,7 +9,7 @@ setup(name='takepod',
       packages=find_packages(),
       url="https://git.takelab.fer.hr/TakeLab/takepod",
       setup_requires=["pytest-runner"],
-      tests_require=["pytest", "pandas", "mock", "pytest_mock"],
+      tests_require=["pytest==3.7.4", "pandas", "mock", "pytest_mock"],
       install_requires=[
         "paramiko", "tqdm", "numpy", 
         "requests", "scipy", "sklearn", "dill"
