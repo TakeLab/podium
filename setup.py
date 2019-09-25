@@ -13,6 +13,6 @@ setup(name='takepod',
       install_requires=[
         "paramiko", "tqdm", "numpy", 
         "requests", "scipy", "sklearn", "dill"
-      ]
+      ],
       package_data={'takepod': ['preproc/stemmer/data/*.txt']},
       zip_safe=False)
