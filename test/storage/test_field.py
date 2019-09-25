@@ -259,6 +259,7 @@ def test_field_pad_to_length_exception():
 
 def test_field_get_tokenizer_callable(vocab):
     vocab = MockVocab()
+
     def my_tokenizer(string):
         return [string[0], string[1:]]
 
@@ -271,6 +272,7 @@ def test_field_get_tokenizer_callable(vocab):
 
 def test_field_get_tokenizer_spacy_exception():
     vocab = MockVocab()
+
     class MockSpacy:
         def load(self, x, **kwargs):
             raise OSError
