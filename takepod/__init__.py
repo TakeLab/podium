@@ -14,7 +14,6 @@ from . import preproc
 from . import storage
 
 __name__ = "takepod"
-__version__ = "0.1.0"
 
 __all__ = ["dataload",
            "datasets",
