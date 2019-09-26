@@ -4,7 +4,7 @@ classes used for storage in Dataset classes"""
 import logging
 import json
 import csv
-from enum import Enum, auto
+from enum import Enum
 
 import xml.etree.ElementTree as ET
 from takepod.storage.field import unpack_fields
@@ -13,12 +13,12 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class ExampleFormat(Enum):
-    LIST = lambda data, factory: factory.from_list(data)
-    DICT = lambda data, factory: factory.from_dict(data)
-    CSV = lambda data, factory: factory.from_csv(data)
-    NLTK = lambda data, factory: factory.from_fields_tree(data)
-    XML = lambda data, factory: factory.from_xml_str(data)
-    JSON = lambda data, factory: factory.from_json(data)
+    LIST = lambda data, factory: factory.from_list(data)  # noqa: E731
+    DICT = lambda data, factory: factory.from_dict(data)  # noqa: E731
+    CSV = lambda data, factory: factory.from_csv(data)  # noqa: E731
+    NLTK = lambda data, factory: factory.from_fields_tree(data)  # noqa: E731
+    XML = lambda data, factory: factory.from_xml_str(data)  # noqa: E731
+    JSON = lambda data, factory: factory.from_json(data)  # noqa: E731
 
 
 class Example:

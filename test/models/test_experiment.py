@@ -36,8 +36,10 @@ def dataset():
     ds.finalize_fields()
     return ds
 
+
 def MockDataset():
     pass
+
 
 def mock_feature_transform_fun(x_batch):
     return x_batch.Score

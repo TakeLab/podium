@@ -15,6 +15,7 @@ from takepod.model_selection import grid_search
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import StandardScaler
 
+
 def numericalize_pauza_rating(rating):
     """Function numericalizes pauza_hr dataset rating field"""
     label = round(float(rating) * 2) - 1
@@ -71,9 +72,7 @@ def experiment_example():
         fields["Text"].vocab)
 
     feature_transform_fn = partial(feature_transform_mean_fun,
-                                embedding_matrix=embedding_matrix)
-
-
+                                   embedding_matrix=embedding_matrix)
 
     feature_transformer = FeatureTransformer(feature_transform_fn, StandardScaler())
 

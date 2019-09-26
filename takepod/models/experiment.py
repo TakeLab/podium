@@ -35,7 +35,7 @@ class Experiment:
         model : class or model instance
             Class of the Model to be fitted or a pre-trained model.
             If pre-trained model is passed and `fit` is called a new model instance will
-            be created. For fine-tuning of the passed model instance call 
+            be created. For fine-tuning of the passed model instance call
             `partial_fit`.
             Must be a subclass of Podium's `AbstractSupervisedModel`
 
