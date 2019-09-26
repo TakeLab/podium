@@ -1,9 +1,8 @@
 from setuptools import setup, find_packages
-from pip._internal.req import parse_requirements
 
 
-# assumes no comments in requirements.txt
-# could use internal pip `from pip._internal.req import parse_requirements`
+# assumes no comments in requirements.txt could use internal pip `from
+# pip._internal.req import parse_requirements`
 
 with open('requirements.txt') as fp:
     install_requires = fp.read()
