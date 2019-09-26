@@ -13,7 +13,7 @@ from takepod.models import Experiment, FeatureTransformer
 from takepod.validation import k_fold_classification_metrics
 from takepod.model_selection import grid_search
 from sklearn.metrics import accuracy_score
-
+from sklearn.preprocessing import StandardScaler
 
 def numericalize_pauza_rating(rating):
     """Function numericalizes pauza_hr dataset rating field"""
@@ -72,7 +72,10 @@ def experiment_example():
 
     feature_transform_fn = partial(feature_transform_mean_fun,
                                 embedding_matrix=embedding_matrix)
-    feature_transformer = FeatureTransformer(feature_transform_fn)
+
+
+
+    feature_transformer = FeatureTransformer(feature_transform_fn, StandardScaler())
 
     experiment = Experiment(ScikitMLPClassifier,
                             trainer=trainer,

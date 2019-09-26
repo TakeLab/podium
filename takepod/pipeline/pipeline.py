@@ -1,26 +1,77 @@
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Callable, NamedTuple, Any
 import logging
 
 from takepod.storage import ExampleFactory, ExampleFormat
-from takepod.datasets import Dataset, SingleBatchIterator
-from takepod.models import AbstractSupervisedModel, FeatureTransformer, Experiment
+from takepod.datasets import Dataset, Iterator
+from takepod.models import AbstractSupervisedModel, FeatureTransformer, Experiment, \
+    AbstractTrainer
+import numpy as np
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class Pipeline:
+class Pipeline(Experiment):
+    """Class used to streamline the use of Podium. It contains all components needed to
+    train or fine-tune a pre-configured model and make predictions on new data."""
 
     def __init__(self,
                  fields: Union[Dict, List],
                  example_format: ExampleFormat,
                  feature_transformer: FeatureTransformer,
                  model: AbstractSupervisedModel,
-                 trainer=None,
-                 trainer_args=None,
-                 trainer_iterator_callable=None,
-                 model_args=None,
-                 label_transform_fn=None
+                 trainer: AbstractTrainer = None,
+                 trainer_args: Dict = None,
+                 trainer_iterator_callable: Callable[[Dataset], Iterator] = None,
+                 model_args: Dict = None,
+                 label_transform_fn: Callable[[NamedTuple], np.ndarray] = None
                  ):
+        """Creates a new pipeline instance.
+
+        Parameters
+        ----------
+        fields : dict or list of fields
+            Fields used to process raw data.  Can be either a dict mapping column names
+            to Fields (or tuples of Fields), or a list of Fields (or tuples of Fields).
+            A Field value of None means the corresponding column will
+            be ignored.
+
+        example_format: ExampleFormat
+            Format of expected raw examples.
+
+        feature_transformer: FeatureTransformer
+            FeatureTransformer used to transform data features from the podium "batch"
+            format into numpy arrays. Will be fitted along with the model to the provided
+            data.
+
+        model: AbstractSupervisedModel
+            Model used to make predictions.
+
+        trainer: AbstractTrainer, Optional
+            Trainer used to fit the model. If provided, this trainer instance will be
+            stored in the pipeline and used as the default trainer if no trainer is
+            provided in the `fit` and `partial_fit` methods.
+
+        trainer_args: Dict
+            Arguments passed as keyword arguments to the trainer during model training.
+            Arguments provided here are used as default arguments and can be updated by
+            passing extra arguments to the `fit` and `partial_fit` methods.
+
+        trainer_iterator_callable: Callable[[Dataset], Iterator]
+            Callable used to instantiate new instances of the Iterator used in fitting the
+            model.
+
+        model_args: Dict
+            Arguments passed as keyword arguments to the model during model instantiation.
+            Arguments provided here are used as default arguments and can be updated by
+            passing extra arguments to the `fit` method.
+
+        label_transform_fn: Callable[[NamedTuple], np.ndarray]
+            Callable that transforms the target part of the batch returned by the iterator
+            into the same format the model prediction is. For a hypothetical perfect model
+            the prediction result of the model for some examples must be identical to the
+            result of this callable for those same examples.
+
+        """
         if example_format in (ExampleFormat.LIST, ExampleFormat.CSV, ExampleFormat.NLTK):
             if not isinstance(fields, (list, tuple)):
                 error_msg = "If example format is LIST, CSV or NLTK, `fields`" \
@@ -39,45 +90,35 @@ class Pipeline:
         self.example_format = example_format
         self.example_factory = ExampleFactory(fields)
 
-        self.experiment = Experiment(model,
-                                     feature_transformer=feature_transformer,
-                                     trainer=trainer,
-                                     training_iterator_callable=trainer_iterator_callable,
-                                     label_transform_fun=label_transform_fn)
-        self.experiment.set_default_model_args(**model_args)
-        self.experiment.set_default_trainer_args(**trainer_args)
+        super().__init__(model,
+                         feature_transformer=feature_transformer,
+                         trainer=trainer,
+                         training_iterator_callable=trainer_iterator_callable,
+                         label_transform_fun=label_transform_fn)
+        self.set_default_model_args(**model_args)
+        self.set_default_trainer_args(**trainer_args)
 
-    def predict_raw(self, raw_example):
+    def predict_raw(self,
+                    raw_example: Any,
+                    **kwargs) -> np.ndarray:
+        """Computes the prediction of the model for the one example.
+        The example must be of the format provided in the constructor as the
+        `example_format` parameter.
+
+        Parameters
+        ----------
+        raw_example: Any
+            Example to compute the prediction for.
+
+        kwargs
+            Keyword arguments passed to the model's `predict` method
+
+        Returns
+        -------
+        ndarray
+            Tensor containing the prediction for the example."""
         processed_example = self.example_factory.from_format(raw_example,
                                                              self.example_format)
         ds = Dataset([processed_example], self.fields)
 
-        return self.experiment.predict(ds)
-
-    def predict(self, dataset):
-        self.experiment.predict(dataset)
-
-    def fit(self,
-            dataset: Dataset,
-            feature_transformer=None,
-            trainer=None,
-            trainer_iterator_callable=None,
-            trainer_kwargs=None,
-            model_kwargs=None):
-        self.experiment.fit(dataset,
-                            model_kwargs=model_kwargs,
-                            trainer_kwargs=trainer_kwargs,
-                            feature_transformer=feature_transformer,
-                            trainer=trainer,
-                            training_iterator_callable=trainer_iterator_callable
-                            )
-
-    def partial_fit(self,
-                    dataset: Dataset,
-                    trainer=None,
-                    trainer_iterator_callable=None,
-                    trainer_kwargs=None):
-        self.experiment.partial_fit(dataset,
-                                    trainer_kwargs=trainer_kwargs,
-                                    trainer=trainer,
-                                    trainer_iterator_callable=trainer_iterator_callable)
+        return self.predict(ds, **kwargs)

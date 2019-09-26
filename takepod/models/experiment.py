@@ -204,6 +204,31 @@ class Experiment:
                     trainer_kwargs: Dict = None,
                     trainer: AbstractTrainer = None,
                     training_iterator_callable: Callable[[Dataset], Iterator] = None):
+        """Fits the model to the data without resetting the model.
+
+        Parameters
+        ----------
+         dataset : Dataset
+            Dataset to fit the model to.
+
+        trainer_kwargs : dict
+            Dict containing trainer arguments. Arguments passed to the trainer are the
+            default arguments defined with `set_default_trainer_args` updated/overridden
+            by 'trainer_kwargs'.
+
+        trainer : AbstractTrainer, Optional
+            Trainer used to fit the model. If None, the trainer provided in the
+            constructor will be used.
+
+        training_iterator_callable: Callable[[Dataset], Iterator]
+            Callable used to instantiate new instances of the Iterator used in fitting the
+            model. If None, the training_iterator_callable provided in the
+            constructor will be used.
+
+        Returns
+        -------
+
+        """
         self._check_if_model_exists()
 
         trainer = trainer if trainer is not None else self.trainer
