@@ -24,8 +24,8 @@ Commands to setup virtual environment and run tests.
 ```
 virtualenv -p python3.6 env
 source env/bin/activate
-pip install -r requirements.txt
-py.test --cov=takepod test
+python setup.py install
+py.test --cov-report=term-missing --cov=takepod
 ```
 
 If you intend to develop part of podium you should use following command to install podium.
