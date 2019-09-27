@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 
 from takepod.pipeline import Pipeline
-from takepod.storage import Field, Vocab, ExampleFormat
+from takepod.storage import Field, ExampleFormat
 from takepod.models import AbstractSupervisedModel
 
 
