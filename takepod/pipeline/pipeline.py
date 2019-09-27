@@ -1,4 +1,4 @@
-from typing import Union, Dict, List, Callable, NamedTuple, Any
+from typing import Union, Dict, List, Callable, NamedTuple, Any, Type
 import logging
 
 from takepod.storage import ExampleFactory, ExampleFormat
@@ -18,7 +18,7 @@ class Pipeline(Experiment):
                  fields: Union[Dict, List],
                  example_format: ExampleFormat,
                  feature_transformer: FeatureTransformer,
-                 model: AbstractSupervisedModel,
+                 model: Union[AbstractSupervisedModel, Type[AbstractSupervisedModel]],
                  trainer: AbstractTrainer = None,
                  trainer_args: Dict = None,
                  trainer_iterator_callable: Callable[[Dataset], Iterator] = None,
@@ -43,8 +43,12 @@ class Pipeline(Experiment):
             format into numpy arrays. Will be fitted along with the model to the provided
             data.
 
-        model: AbstractSupervisedModel
-            Model used to make predictions.
+        model : class or model instance
+            Class of the Model to be fitted or a pre-trained model.
+            If pre-trained model is passed and `fit` is called a new model instance will
+            be created. For fine-tuning of the passed model instance call
+            `partial_fit`.
+            Must be a subclass of Podium's `AbstractSupervisedModel`
 
         trainer: AbstractTrainer, Optional
             Trainer used to fit the model. If provided, this trainer instance will be
@@ -95,6 +99,10 @@ class Pipeline(Experiment):
                          trainer=trainer,
                          training_iterator_callable=trainer_iterator_callable,
                          label_transform_fun=label_transform_fn)
+
+        model_args = {} if model_args is None else model_args
+        trainer_args = {} if trainer_args is None else trainer_args
+
         self.set_default_model_args(**model_args)
         self.set_default_trainer_args(**trainer_args)
 
