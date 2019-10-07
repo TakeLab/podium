@@ -263,8 +263,8 @@ class ExampleFactory:
 
     def from_format(self,
                     data,
-                    format: ExampleFormat):
-        return format(data, self)
+                    format_tag: ExampleFormat):
+        return format_tag(data, self)
 
 
 def tree_to_list(tree):

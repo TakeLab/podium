@@ -1,4 +1,3 @@
-import pytest
 import numpy as np
 
 from takepod.pipeline import Pipeline
@@ -6,8 +5,7 @@ from takepod.storage import Field, ExampleFormat
 from takepod.models import AbstractSupervisedModel
 
 
-@pytest.fixture
-def fields():
+def get_fields():
     name_dict = {
         "Marko": 1,
         "Darko": 2,
@@ -51,7 +49,8 @@ class MockFeatureTransformer:
         return np.hstack((x_batch.Name, x_batch.Score))
 
 
-def test_pipeline_from_raw(fields):
+def test_pipeline_from_raw():
+    fields = get_fields()
 
     # Test for list format
     fields_list = [fields['Name'], fields['Score']]

@@ -29,10 +29,17 @@ def test_feature_transformer():
             assert np.all(x == np.array([[4, 5], [6, 7]]))
             return np.array([3, 4])
 
+        def requires_fitting(self) -> bool:
+            return True
+
+    class MockTensorTransformerNoFitting(MockTensorTransformer):
+
+        def requires_fitting(self):
+            return False
+
     mock_tensor_transformer = MockTensorTransformer()
     feature_transformer = FeatureTransformer(mock_feature_extraction_fn,
-                                             mock_tensor_transformer,
-                                             requires_fitting=True)
+                                             mock_tensor_transformer)
 
     mock_feature_batch = mock_batch_class(mock_feature=np.array([[1, 2], [3, 4]]))
     y = np.array([1, 2])
@@ -43,9 +50,9 @@ def test_feature_transformer():
     mock_feature_batch_2 = mock_batch_class(mock_feature=np.array([[4, 5], [6, 7]]))
     assert np.all(feature_transformer.transform(mock_feature_batch_2) == np.array([3, 4]))
 
-    mock_tensor_transformer = MockTensorTransformer()
+    mock_tensor_transformer_no_fit = MockTensorTransformerNoFitting()
     feature_transformer = FeatureTransformer(mock_feature_extraction_fn,
-                                             mock_tensor_transformer,
-                                             requires_fitting=False)
+                                             mock_tensor_transformer_no_fit)
     feature_transformer.fit(mock_feature_batch, y)
-    assert not mock_tensor_transformer.fit_called
+    assert not mock_tensor_transformer_no_fit.fit_called
+    assert np.all(feature_transformer.transform(mock_feature_batch_2) == np.array([3, 4]))

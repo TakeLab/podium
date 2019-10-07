@@ -7,8 +7,7 @@ from takepod.datasets import Dataset, Iterator
 from takepod.storage import Field, ExampleFactory, Vocab
 
 
-@pytest.fixture
-def dataset():
+def get_dataset():
     data = [{"Name": "Mark Dark",
              "Score": 5},
             {"Name": "Stephen Smith",
@@ -37,7 +36,7 @@ def dataset():
     return ds
 
 
-def MockDataset():
+class MockDataset:
     pass
 
 
@@ -67,7 +66,9 @@ class MockTransformer:
 
 
 @pytest.mark.parametrize("fit_transformer", (False, True))
-def test_experiment_train(dataset, fit_transformer):
+def test_experiment_train(fit_transformer):
+    dataset = get_dataset()
+
     default_model_args = {
         'm_arg1': 1,
         'm_arg2': 2

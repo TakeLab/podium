@@ -42,15 +42,36 @@ class TensorTransformer(ABC):
             Transformed features."""
         pass
 
+    @abstractmethod
     def requires_fitting(self) -> bool:
-        return True
+        """Returns True if this TensorTransformer requires fitting.
+
+        Returns
+        -------
+        True if this TensorTransformer requires fitting, else returns False.
+        """
+        pass
 
 
 class SklearnTensorTransformerWrapper(TensorTransformer):
+    """Wrapper class for Sklearn feature transformers."""
 
     def __init__(self,
-                 feature_transformer):
+                 feature_transformer,
+                 requires_fitting=True):
+        """Creates a new SklearnTensorTransformerWrapper.
+
+        Parameters
+        ----------
+        feature_transformer
+            The sklearn feature transformer to be wrapped. Example of this would be
+            a sklean pipeline containing a sequence of transformations.
+
+        requires_fitting: bool
+            Whether this tensor transformer should be fitted.
+        """
         self.feature_transformer = feature_transformer
+        self.requires_fitting_flag = requires_fitting
 
     def fit(self,
             x: np.ndarray,
@@ -61,6 +82,9 @@ class SklearnTensorTransformerWrapper(TensorTransformer):
                   x: np.array
                   ) -> np.ndarray:
         return self.feature_transformer.transform(x)
+
+    def requires_fitting(self) -> bool:
+        return self.requires_fitting_flag
 
 
 # TODO add mechanism for Feature transformer to know if its tensor_transformer needs
@@ -78,7 +102,8 @@ class FeatureTransformer:
         ----------
         feature_extraction_fn: Callable[[NamedTuple], np.ndarray]
             Callable that takes a podium feature batch as an argument and returns a
-            numpy tensor representing the data.
+            numpy array representing the data.
+
         tensor_transformer: TensorTransformer
             TensorTransformer used to transform the transform the tensors provided by the
             `feature_extraction_fn` callable.
@@ -127,5 +152,15 @@ class FeatureTransformer:
             return self.tensor_transformer.transform(x_tensor)
 
     def requires_fitting(self):
+        """Returns True if the contained TensorTransformer exists and requires fitting,
+        else returns None.
+
+        Returns
+        -------
+        True if the contained TensorTransformer exists and requires fitting,
+        else returns False.
+        -------
+
+        """
         return self.tensor_transformer is not None \
-               and self.tensor_transformer.requires_fitting()
+            and self.tensor_transformer.requires_fitting()
