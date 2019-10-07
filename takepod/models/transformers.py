@@ -8,6 +8,7 @@ class TensorTransformer(ABC):
     """Abstract class used to transform tensors. Used in feature pre-processing during
     training and prediction.
     """
+
     @abstractmethod
     def fit(self,
             x: np.ndarray,
@@ -41,18 +42,25 @@ class TensorTransformer(ABC):
             Transformed features."""
         pass
 
+    def requires_fitting(self) -> bool:
+        return True
 
-class DummyTensorTransformer(TensorTransformer):
+
+class SklearnTensorTransformerWrapper(TensorTransformer):
+
+    def __init__(self,
+                 feature_transformer):
+        self.feature_transformer = feature_transformer
 
     def fit(self,
             x: np.ndarray,
             y: np.ndarray):
-        pass
+        self.feature_transformer.fit(x, y)
 
     def transform(self,
                   x: np.array
                   ) -> np.ndarray:
-        return x
+        return self.feature_transformer.transform(x)
 
 
 # TODO add mechanism for Feature transformer to know if its tensor_transformer needs
@@ -60,10 +68,10 @@ class DummyTensorTransformer(TensorTransformer):
 class FeatureTransformer:
     """Class used to transform podium batches into features used in model prediction and
     training."""
+
     def __init__(self,
                  feature_extraction_fn: Callable[[NamedTuple], np.ndarray],
-                 tensor_transformer: TensorTransformer = None,
-                 requires_fitting=True):
+                 tensor_transformer: TensorTransformer = None):
         """Creates a new FeatureTransformer.
 
         Parameters
@@ -74,12 +82,9 @@ class FeatureTransformer:
         tensor_transformer: TensorTransformer
             TensorTransformer used to transform the transform the tensors provided by the
             `feature_extraction_fn` callable.
-        requires_fitting: bool
-            Whether the provided TensorTransformer requires fitting.
         """
         self.feature_extraction_fn = feature_extraction_fn
         self.tensor_transformer = tensor_transformer
-        self.requires_fitting_flag = requires_fitting
 
     def fit(self,
             x: NamedTuple,
@@ -122,4 +127,5 @@ class FeatureTransformer:
             return self.tensor_transformer.transform(x_tensor)
 
     def requires_fitting(self):
-        return self.tensor_transformer is not None and self.requires_fitting_flag
+        return self.tensor_transformer is not None \
+               and self.tensor_transformer.requires_fitting()

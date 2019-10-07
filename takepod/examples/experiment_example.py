@@ -9,7 +9,7 @@ from takepod.datasets import Iterator
 from takepod.datasets.impl.pauza_dataset import PauzaHRDataset
 from takepod.models.impl.fc_model import ScikitMLPClassifier
 from takepod.models.impl.simple_trainers import SimpleTrainer
-from takepod.models import Experiment, FeatureTransformer
+from takepod.models import Experiment, FeatureTransformer, SklearnTensorTransformerWrapper
 from takepod.validation import k_fold_classification_metrics
 from takepod.model_selection import grid_search
 from sklearn.metrics import accuracy_score
@@ -74,7 +74,8 @@ def experiment_example():
     feature_transform_fn = partial(feature_transform_mean_fun,
                                    embedding_matrix=embedding_matrix)
 
-    feature_transformer = FeatureTransformer(feature_transform_fn, StandardScaler())
+    tensor_transformer = SklearnTensorTransformerWrapper(StandardScaler())
+    feature_transformer = FeatureTransformer(feature_transform_fn, tensor_transformer)
 
     experiment = Experiment(ScikitMLPClassifier,
                             trainer=trainer,
