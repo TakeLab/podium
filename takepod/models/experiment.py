@@ -160,13 +160,9 @@ class Experiment:
         """
 
         model_kwargs = {} if model_kwargs is None else model_kwargs
-        trainer_kwargs = {} if trainer_kwargs is None else trainer_kwargs
 
         model_args = self.default_model_args.copy()
         model_args.update(model_kwargs)
-
-        trainer_args = self.default_trainer_args.copy()
-        trainer_args.update(trainer_kwargs)
 
         trainer = trainer if trainer is not None else self.trainer
         if trainer is None:
@@ -187,17 +183,11 @@ class Experiment:
         # Create new model instance
         self.model = self.model_class(**model_args)
 
-        training_iterator_callable = training_iterator_callable \
-            if training_iterator_callable is not None \
-            else self.training_iterator_callable
-
-        train_iterator = training_iterator_callable(dataset)
         # Train the model
-        trainer.train(self.model,
-                      train_iterator,
-                      self.feature_transformer,
-                      self.label_transform_fun,
-                      **trainer_args)
+        self.partial_fit(dataset,
+                         trainer_kwargs,
+                         trainer,
+                         training_iterator_callable)
 
     def partial_fit(self,
                     dataset: Dataset,
