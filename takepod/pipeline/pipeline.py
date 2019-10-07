@@ -20,9 +20,7 @@ class Pipeline(Experiment):
                  feature_transformer: FeatureTransformer,
                  model: Union[AbstractSupervisedModel, Type[AbstractSupervisedModel]],
                  trainer: AbstractTrainer = None,
-                 trainer_args: Dict = None,
                  trainer_iterator_callable: Callable[[Dataset], Iterator] = None,
-                 model_args: Dict = None,
                  label_transform_fn: Callable[[NamedTuple], np.ndarray] = None
                  ):
         """Creates a new pipeline instance.
@@ -55,19 +53,9 @@ class Pipeline(Experiment):
             stored in the pipeline and used as the default trainer if no trainer is
             provided in the `fit` and `partial_fit` methods.
 
-        trainer_args: Dict
-            Arguments passed as keyword arguments to the trainer during model training.
-            Arguments provided here are used as default arguments and can be updated by
-            passing extra arguments to the `fit` and `partial_fit` methods.
-
         trainer_iterator_callable: Callable[[Dataset], Iterator]
             Callable used to instantiate new instances of the Iterator used in fitting the
             model.
-
-        model_args: Dict
-            Arguments passed as keyword arguments to the model during model instantiation.
-            Arguments provided here are used as default arguments and can be updated by
-            passing extra arguments to the `fit` method.
 
         label_transform_fn: Callable[[NamedTuple], np.ndarray]
             Callable that transforms the target part of the batch returned by the iterator
@@ -99,12 +87,6 @@ class Pipeline(Experiment):
                          trainer=trainer,
                          training_iterator_callable=trainer_iterator_callable,
                          label_transform_fun=label_transform_fn)
-
-        model_args = {} if model_args is None else model_args
-        trainer_args = {} if trainer_args is None else trainer_args
-
-        self.set_default_model_args(**model_args)
-        self.set_default_trainer_args(**trainer_args)
 
     def predict_raw(self,
                     raw_example: Any,
