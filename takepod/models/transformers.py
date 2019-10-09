@@ -76,7 +76,8 @@ class SklearnTensorTransformerWrapper(TensorTransformer):
     def fit(self,
             x: np.ndarray,
             y: np.ndarray):
-        self.feature_transformer.fit(x, y)
+        if self.requires_fitting():
+            self.feature_transformer.fit(x, y)
 
     def transform(self,
                   x: np.array
@@ -87,8 +88,6 @@ class SklearnTensorTransformerWrapper(TensorTransformer):
         return self.requires_fitting_flag
 
 
-# TODO add mechanism for Feature transformer to know if its tensor_transformer needs
-#  fitting so batching can be avoided by callers.
 class FeatureTransformer:
     """Class used to transform podium batches into features used in model prediction and
     training."""
