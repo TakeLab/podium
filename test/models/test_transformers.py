@@ -1,9 +1,9 @@
 from collections import namedtuple
 
 import numpy as np
-from sklearn.preprocessing import StandardScaler
 
-from takepod.models import FeatureTransformer, TensorTransformer, SklearnTensorTransformerWrapper
+from takepod.models import FeatureTransformer, TensorTransformer, \
+    SklearnTensorTransformerWrapper
 
 
 def test_feature_transformer():
