@@ -1,6 +1,6 @@
 import pytest
 
-from takepod.storage import ExampleFactory, Field
+from takepod.storage import ExampleFactory, Field, ExampleFormat
 
 name_field = Field("Name",
                    store_as_raw=True,
@@ -397,3 +397,25 @@ def test_cache_data_field_from_dict(expected_values):
 
         assert hasattr(example, field_name)
         assert hasattr(example, "{}_".format(field_name))
+
+
+def test_from_format():
+    list_example_factory = ExampleFactory(field_list)
+
+    list_data = ["Mark Dark", 5, "Hawaiian pizza"]
+    example = list_example_factory.from_format(list_data, ExampleFormat.LIST)
+
+    assert example.Name[0] == list_data[0]
+    assert example.Score[0] == list_data[1]
+    assert example.Favorite_food[0] == list_data[2]
+
+    dict_example_factory = ExampleFactory(field_dict)
+    dict_data = {"Name": "Mark Dark",
+                 "Score": 5,
+                 "Favorite_food": "Hawaiian pizza"}
+
+    example = dict_example_factory.from_format(dict_data, ExampleFormat.DICT)
+    assert example.Name[0] == dict_data["Name"]
+    assert example.Score[0] == dict_data["Score"]
+    assert example.Favorite_food[0] == dict_data["Favorite_food"]
+    # TODO extend testing to other formats?

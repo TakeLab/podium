@@ -4,11 +4,21 @@ classes used for storage in Dataset classes"""
 import logging
 import json
 import csv
+from enum import Enum
 
 import xml.etree.ElementTree as ET
 from takepod.storage.field import unpack_fields
 
 _LOGGER = logging.getLogger(__name__)
+
+
+class ExampleFormat(Enum):
+    LIST = lambda data, factory: factory.from_list(data)  # noqa: E731
+    DICT = lambda data, factory: factory.from_dict(data)  # noqa: E731
+    CSV = lambda data, factory: factory.from_csv(data)  # noqa: E731
+    NLTK = lambda data, factory: factory.from_fields_tree(data)  # noqa: E731
+    XML = lambda data, factory: factory.from_xml_str(data)  # noqa: E731
+    JSON = lambda data, factory: factory.from_json(data)  # noqa: E731
 
 
 class Example:
@@ -152,7 +162,7 @@ class ExampleFactory:
                     node = root
                 else:
                     error_msg = "Specified name {} was not found in the " \
-                        "input data".format(name)
+                                "input data".format(name)
                     _LOGGER.error(error_msg)
                     raise ValueError(error_msg)
 
@@ -250,6 +260,11 @@ class ExampleFactory:
                     subtree_lists]
         else:
             return self.from_list(tree_to_list(tree))
+
+    def from_format(self,
+                    data,
+                    format_tag: ExampleFormat):
+        return format_tag(data, self)
 
 
 def tree_to_list(tree):

@@ -9,10 +9,11 @@ from takepod.datasets import Iterator
 from takepod.datasets.impl.pauza_dataset import PauzaHRDataset
 from takepod.models.impl.fc_model import ScikitMLPClassifier
 from takepod.models.impl.simple_trainers import SimpleTrainer
-from takepod.models import Experiment
+from takepod.models import Experiment, FeatureTransformer, SklearnTensorTransformerWrapper
 from takepod.validation import k_fold_classification_metrics
 from takepod.model_selection import grid_search
 from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import StandardScaler
 
 
 def numericalize_pauza_rating(rating):
@@ -70,15 +71,17 @@ def experiment_example():
     embedding_matrix = vectorizer.get_embedding_matrix(
         fields["Text"].vocab)
 
-    feature_transform = partial(feature_transform_mean_fun,
-                                embedding_matrix=embedding_matrix)
+    feature_transform_fn = partial(feature_transform_mean_fun,
+                                   embedding_matrix=embedding_matrix)
+
+    tensor_transformer = SklearnTensorTransformerWrapper(StandardScaler())
+    feature_transformer = FeatureTransformer(feature_transform_fn, tensor_transformer)
 
     experiment = Experiment(ScikitMLPClassifier,
-                            trainer,
-                            train_iterator_provider,
-                            None,
-                            feature_transform,
-                            label_transform_fun)
+                            trainer=trainer,
+                            training_iterator_callable=train_iterator_provider,
+                            feature_transformer=feature_transformer,
+                            label_transform_fun=label_transform_fun)
 
     _, model_params, train_params = \
         grid_search(experiment,

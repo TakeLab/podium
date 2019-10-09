@@ -518,7 +518,7 @@ class Field:
 
         data, tokens = self._run_posttokenization_hooks(data, tokens)
 
-        if self.eager and self.use_vocab:
+        if self.eager and self.use_vocab and not self.vocab.finalized:
             self.update_vocab(data, tokens)
 
         data = data if self.store_as_raw else None

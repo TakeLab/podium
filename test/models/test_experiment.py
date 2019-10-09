@@ -1,22 +1,78 @@
 from collections import namedtuple
 
+import pytest
 import numpy as np
 from takepod.models import AbstractSupervisedModel, Experiment
+from takepod.datasets import Dataset
+from takepod.storage import Field, ExampleFactory, Vocab
 
 
-def mock_feature_transform_fun(x_batch):
-    return x_batch.input
+def get_dataset():
+    data = [{"Name": "Mark Dark",
+             "Score": 5},
+            {"Name": "Stephen Smith",
+             "Score": 10},
+            {"Name": "Ann Mann",
+             "Score": 15}]
 
+    name_field = Field("Name",
+                       vocab=Vocab(),
+                       store_as_raw=True,
+                       tokenizer="split")
 
-def mock_label_transform_fun(y_batch):
-    return y_batch.output
+    score_field = Field("Score",
+                        custom_numericalize=int,
+                        tokenize=False,
+                        is_target=True)
+
+    fields = {"Name": name_field,
+              "Score": score_field}
+
+    example_factory = ExampleFactory(fields)
+    examples = [example_factory.from_dict(data_) for data_ in data]
+
+    ds = Dataset(examples, fields)
+    ds.finalize_fields()
+    return ds
 
 
 class MockDataset:
     pass
 
 
-def test_experiment_train():
+def mock_feature_transform_fun(x_batch):
+    return x_batch.Score
+
+
+def mock_label_transform_fun(y_batch):
+    return y_batch.Score
+
+
+class MockTransformer:
+
+    def __init__(self, to_fit):
+        self.to_fit = to_fit
+        self.fit_called = 0
+
+    def fit(self, x, y):
+        self.fit_called += 1
+        pass
+
+    def transform(self, x_batch):
+        return mock_feature_transform_fun(x_batch)
+
+    def requires_fitting(self):
+        return self.to_fit
+
+
+class MockIterator:
+    pass
+
+
+@pytest.mark.parametrize("fit_transformer", (False, True))
+def test_experiment_train(fit_transformer):
+    dataset = get_dataset()
+
     default_model_args = {
         'm_arg1': 1,
         'm_arg2': 2
@@ -49,22 +105,9 @@ def test_experiment_train():
         't_arg3': 4
     }
 
-    class MockIterator:
-        input_batch_class = namedtuple("input_batch_class", ["input"])
-        output_batch_class = namedtuple("output_batch_class", ["output"])
+    mock_transformer = MockTransformer(fit_transformer)
 
-        def __iter__(self):
-            x = np.array(
-                [
-                    [1, 2],
-                    [3, 4]
-                ])
-
-            y = np.array([5, 6])
-
-            input_batch = self.input_batch_class(input=x)
-            target_batch = self.output_batch_class(output=y)
-            yield input_batch, target_batch
+    my_iterator = MockIterator()
 
     class MockModel:
         def __init__(self, **kwargs):
@@ -78,12 +121,12 @@ def test_experiment_train():
         def train(self,
                   model,
                   iterator,
-                  feature_transform_fun,
+                  feature_transformer,
                   label_transform_fun,
                   **kwargs):
             assert isinstance(model, MockModel)
-            assert isinstance(iterator, MockIterator)
-            assert feature_transform_fun is mock_feature_transform_fun
+            assert iterator is my_iterator
+            assert feature_transformer is mock_transformer
             assert label_transform_fun is mock_label_transform_fun
             assert kwargs == expected_trainer_args
             self.train_called += 1
@@ -91,19 +134,23 @@ def test_experiment_train():
     trainer = MockTrainer()
 
     experiment = Experiment(MockModel,
-                            trainer,
-                            lambda _: MockIterator(),
-                            feature_transform_fun=mock_feature_transform_fun,
+                            trainer=trainer,
+                            training_iterator_callable=lambda _: my_iterator,
+                            feature_transformer=mock_transformer,
                             label_transform_fun=mock_label_transform_fun)
 
     experiment.set_default_model_args(**default_model_args)
     experiment.set_default_trainer_args(**default_trainer_args)
 
-    experiment.fit(MockDataset(),
+    experiment.fit(dataset,
                    model_args,
                    trainer_args)
 
     assert trainer.train_called == 1
+    if fit_transformer:
+        assert mock_transformer.fit_called == 1
+    else:
+        assert mock_transformer.fit_called == 0
 
 
 def test_experiment_predict():
@@ -170,7 +217,7 @@ def test_experiment_predict():
 
     experiment = Experiment(
         MockModel,
-        MockTrainer(),
+        trainer=MockTrainer(),
         training_iterator_callable=lambda _: MockIterator(),
         prediction_iterator_callable=lambda _: MockIterator()
 
