@@ -3,7 +3,7 @@ from collections import namedtuple
 import pytest
 import numpy as np
 from takepod.models import AbstractSupervisedModel, Experiment
-from takepod.datasets import Dataset, Iterator
+from takepod.datasets import Dataset
 from takepod.storage import Field, ExampleFactory, Vocab
 
 
@@ -65,6 +65,10 @@ class MockTransformer:
         return self.to_fit
 
 
+class MockIterator:
+    pass
+
+
 @pytest.mark.parametrize("fit_transformer", (False, True))
 def test_experiment_train(fit_transformer):
     dataset = get_dataset()
@@ -103,7 +107,7 @@ def test_experiment_train(fit_transformer):
 
     mock_transformer = MockTransformer(fit_transformer)
 
-    my_iterator = Iterator(dataset)
+    my_iterator = MockIterator()
 
     class MockModel:
         def __init__(self, **kwargs):

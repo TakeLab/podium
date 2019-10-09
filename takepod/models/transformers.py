@@ -6,7 +6,8 @@ import numpy as np
 
 class TensorTransformer(ABC):
     """Abstract class used to transform tensors. Used in feature pre-processing during
-    training and prediction.
+    training and prediction. Usually used in FeatureTransformer to transform tensors
+    returned by the feature extraction callable.
     """
 
     @abstractmethod
@@ -27,7 +28,7 @@ class TensorTransformer(ABC):
 
     @abstractmethod
     def transform(self,
-                  x: np.array
+                  x: np.ndarray
                   ) -> np.ndarray:
         """Transforms the passed features.
 
@@ -89,7 +90,7 @@ class SklearnTensorTransformerWrapper(TensorTransformer):
 
 
 class FeatureTransformer:
-    """Class used to transform podium batches into features used in model prediction and
+    """Class used to transform Dataset batches into features used in model prediction and
     training."""
 
     def __init__(self,
