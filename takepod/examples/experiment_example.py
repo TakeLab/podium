@@ -2,7 +2,8 @@
 
 import numpy as np
 
-from takepod.storage import Field, LargeResource, Vocab
+from takepod.storage import Field, LargeResource, Vocab, \
+    ExampleFormat
 from takepod.datasets import Iterator
 from takepod.datasets.impl.pauza_dataset import PauzaHRDataset
 from takepod.models.impl.fc_model import ScikitMLPClassifier
@@ -13,6 +14,7 @@ from takepod.model_selection import grid_search
 from takepod.storage.vectorizers.impl import NlplVectorizer
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import StandardScaler
+from takepod.pipeline import Pipeline
 
 
 def numericalize_pauza_rating(rating):
@@ -93,6 +95,27 @@ def experiment_example():
           "Precision = {}\n"
           "Recall = {}\n"
           "F1 score = {}".format(accuracy, precision, recall, f1))
+
+    experiment.fit(train_dataset)
+
+    dataset_fields = {
+        "Text": train_dataset.field_dict["Text"]
+    }
+
+    pipeline = Pipeline(dataset_fields,
+                        ExampleFormat.XML,
+                        feature_transformer,
+                        experiment.model)
+
+    example_good = "<Example><Text>Izvrstan, ogroman Zagrebački, " \
+                   "dostava na vrijeme, ljubazno osoblje ...</Text></Example>"
+    prediction = pipeline.predict_raw(example_good)
+    print("Good example score: {}".format(prediction))
+
+    example_bad = "<Example><Text>Hrana kasnila, dostavljac neljubazan, " \
+                  "uzas...</Text></Example>"
+    prediction = pipeline.predict_raw(example_bad)
+    print("Bad example score: {}".format(prediction))
 
 
 if __name__ == '__main__':
