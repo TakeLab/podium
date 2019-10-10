@@ -203,11 +203,12 @@ class BasicVectorStorage(VectorStorage):
     """
 
     def __init__(self, path, default_vector_function=zeros_default_vector,
-                 cache_path=None, max_vectors=None, binary=True):
+                 cache_path=None, max_vectors=None, encoding='utf-8', binary=True):
         self._vectors = dict()
         self._dim = None
         self._initialized = False
         self._binary = binary
+        self._encoding = encoding
         super().__init__(
             path=path,
             default_vector_function=default_vector_function,
@@ -307,7 +308,7 @@ class BasicVectorStorage(VectorStorage):
 
         open_mode, split_delimiter = ('rb', b' ') if self._binary else ('r', ' ')
 
-        with open(curr_path, open_mode) as vector_file:
+        with open(curr_path, open_mode, encoding=self._encoding) as vector_file:
 
             vectors_loaded = 0
             header_lines = 0

@@ -1,5 +1,7 @@
 import os
 
+from pycparser.c_ast import Label
+
 from takepod.storage.vectorizers.vectorizer import BasicVectorStorage \
     , zeros_default_vector
 from takepod.storage import LargeResource
@@ -28,4 +30,11 @@ class NlplVectorizer(BasicVectorStorage):
                          default_vector_function=default_vector_function,
                          cache_path=cache_path,
                          max_vectors=max_vectors,
-                         binary=False)
+                         binary=False,
+                         encoding='utf-8')
+
+
+if __name__ == '__main__':
+    LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
+    vectorizer = NlplVectorizer()
+    vectorizer.load_all()
