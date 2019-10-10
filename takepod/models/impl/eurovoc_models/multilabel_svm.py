@@ -1,13 +1,13 @@
 """Multilabel SVM classifier for EuroVoc dataset.
 
-Example of usage:
+Example
+-------
 
     model_path = ... Path where the trained model will be stored
-    dataset_path = ... Path where the dilled instance of EuroVoc dataset will be stored
-                       to and/or loaded from
+    dataset_path = ... Path where the dilled instance of EuroVoc dataset will be stored to and/or loaded from
 
-    LargeResource.BASE_RESOURCE_DIR = ... Directory where the EuroVoc downloaded raw
-                                          dataset is stored or where it should be
+    LargeResource.BASE_RESOURCE_DIR = ... Directory where the EuroVoc downloaded raw \
+                                          dataset is stored or where it should be \
                                           downloaded
 
     # this creates and dills the dataset and it should be done only once
@@ -15,7 +15,7 @@ Example of usage:
     dill_dataset(dataset_path)
 
     p_grid = {"C": [1, 10, 100]}
-    train_multilabel_svm(dataset_path=dataset_path, n_jobs=20, param_grid=p_grid,
+    train_multilabel_svm(dataset_path=dataset_path, n_jobs=20, param_grid=p_grid, \
                          cut_off=2)
 
     with open(model_path, "wb") as output_file:

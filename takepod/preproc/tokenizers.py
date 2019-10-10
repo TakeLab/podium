@@ -14,14 +14,16 @@ def get_tokenizer(tokenizer, language='en'):
         If a callable object is given, it will just be returned.
         Otherwise, a string can be given to create one of the premade
         tokenizers.
+
         The available premade tokenizers are:
             - 'split' - default str.split()
+
             - 'spacy' - the spacy tokenizer, using the 'en' language
-            model by default (unless the user provides a different
-            'language' parameter). If spacy model is used for the first time
-            user should download it by using command similar to the following
-            `python -m spacy download en`. More details can be found in spacy
-            documentation https://spacy.io/usage/models
+              model by default (unless the user provides a different
+              'language' parameter). If spacy model is used for the first time
+              user should download it by using command similar to the following
+              `python -m spacy download en`. More details can be found in spacy
+              documentation https://spacy.io/usage/models
 
     language : str
         The language argument for the tokenizer (if necessary, e. g. for

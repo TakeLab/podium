@@ -14,7 +14,7 @@ class Dataset(ABC):
     """General purpose container for datasets defining some common methods.
 
      A dataset is a list of `Example` classes, along with the corresponding
-    `Field` classes, which process the columns of each example.
+        `Field` classes, which process the columns of each example.
 
     Attributes
     ----------
@@ -80,52 +80,53 @@ class Dataset(ABC):
             only the indexed examples will be returned.
 
         """
+
         return self.get(i, deep_copy=False)
 
     def get(self, i, deep_copy=False):
         """Returns an example or a new dataset containing the indexed examples.
-                If indexed with an int, only the example at that position
-                will be returned.
-                If Indexed with a slice or iterable, all examples indexed by the object
-                will be collected and a new dataset containing only those examples will be
-                returned. The new dataset will contain copies of the old dataset's fields
-                and will be identical to the original dataset, with the exception of the
-                example number and ordering. See wiki for detailed examples.
 
-                Usage example:
+        If indexed with an int, only the example at that position
+        will be returned.
+        If Indexed with a slice or iterable, all examples indexed by the object
+        will be collected and a new dataset containing only those examples will be
+        returned. The new dataset will contain copies of the old dataset's fields
+        and will be identical to the original dataset, with the exception of the
+        example number and ordering. See wiki for detailed examples.
 
-                    example = dataset.get(1) # Indexing by single integer
-                                             # returns a single example
+        Example
+        -------
+            # Indexing by a single integers returns a single example
+            example = dataset.get(1)
 
-                    example_copy = dataset.get(1, deep_copy=True) # Same as the first
-                                                                  # example, but returns a
-                                                                  # deep_copy of the
-                                                                  # example
+            # Same as the first example, but returns a deep_copy of the example
+            example_copy = dataset.get(1, deep_copy=True)
 
-                    s = slice(1, 10)
-                    new_dataset = dataset.get(s) # Multiindexing returns a new dataset
-                                                 # containing the indexed examples.
+            # Multiindexing returns a new dataset containing the indexed examples
+            s = slice(1, 10)
+            new_dataset = dataset.get(s)
 
-                    new_dataset_copy = dataset.get(s, deep_copy=True)
+            new_dataset_copy = dataset.get(s, deep_copy=True)
 
-                Parameters
-                ----------
-                i : int or slice or iterable
-                    Index used to index examples.
+        Parameters
+        ----------
+        i : int or slice or iterable
+            Index used to index examples.
 
-                deep_copy: bool
-                    If true, the returned dataset will contain deep-copies of this
-                    dataset's examples and fields.
-                    If false, existing examples and fields will be reused.
+        deep_copy: bool
+            If true, the returned dataset will contain deep-copies of this
+            dataset's examples and fields.
+            If false, existing examples and fields will be reused.
 
-                Returns
-                -------
-                single example or Dataset
-                    If i is an int, a single example will be returned.
-                    If i is a slice or iterable, a copy of this dataset containing
-                    only the indexed examples will be returned.
+        Returns
+        -------
+        single example or Dataset
+            If i is an int, a single example will be returned.
+            If i is a slice or iterable, a copy of this dataset containing
+            only the indexed examples will be returned.
 
-                """
+        """
+
         if isinstance(i, slice):
             return self._dataset_copy_with_examples(self.examples[i], deep_copy=deep_copy)
 
@@ -216,12 +217,12 @@ class Dataset(ABC):
     def finalize_fields(self, *args):
         """
         Builds vocabularies of all the non-eager fields in the dataset,
-        from the Dataset objects given as *args and then finalizes all the
+        from the Dataset objects given as \*args and then finalizes all the
         fields.
 
         Parameters
         ----------
-        args
+        \*args
             A variable number of Dataset objects from which to build the
             vocabularies for non-eager fields. If none provided, the
             vocabularies are built from this Dataset (self).

@@ -15,12 +15,12 @@ class AbstractTrainer(ABC):
     def train(self,
               model: AbstractSupervisedModel,
               iterator: Iterator,
-              feature_transform_fun:
-                  Callable[[NamedTuple], np.ndarray],
-              label_transform_fun:
-                  Callable[[NamedTuple], np.ndarray],
+              feature_transform_fun: Callable[[NamedTuple], np.ndarray],
+              label_transform_fun: Callable[[NamedTuple], np.ndarray],
               **kwargs):
+
         """Method trains a model with data from given Iterator.
+        
         Parameters
         ----------
         model : AbstractSupervisedModel
@@ -38,4 +38,5 @@ class AbstractTrainer(ABC):
         kwargs : dict
             Trainer specific parameters.
         """
+
         pass
