@@ -31,10 +31,4 @@ class NlplVectorizer(BasicVectorStorage):
                          cache_path=cache_path,
                          max_vectors=max_vectors,
                          binary=False,
-                         encoding='utf-8')
-
-
-if __name__ == '__main__':
-    LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
-    vectorizer = NlplVectorizer()
-    vectorizer.load_all()
+                         encoding='ISO-8859-1')
