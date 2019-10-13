@@ -208,7 +208,7 @@ class BasicVectorStorage(VectorStorage):
         self._dim = None
         self._initialized = False
         self._binary = binary
-        self._encoding = encoding
+        self._encoding = encoding if not binary else None
         super().__init__(
             path=path,
             default_vector_function=default_vector_function,
@@ -307,7 +307,6 @@ class BasicVectorStorage(VectorStorage):
             vocab = set(vocab)
 
         open_mode, split_delimiter = ('rb', b' ') if self._binary else ('r', ' ')
-
         with open(curr_path, open_mode, encoding=self._encoding) as vector_file:
 
             vectors_loaded = 0
