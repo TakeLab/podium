@@ -1,22 +1,13 @@
 """Example how to use tfidf with svm on simple Imdb dataset."""
-from functools import partial
 from sklearn.metrics import accuracy_score
 
 from takepod.storage.vectorizers.tfidf import TfIdfVectorizer
-from takepod.models import ScikitLinearSVCModel, AbstractSupervisedModel
-
+from takepod.models.impl import ScikitLinearSVCModel
+from takepod.models import AbstractSupervisedModel, FeatureTransformer
 from takepod.datasets import BasicSupervisedImdbDataset
 from takepod.models.impl.simple_trainers import SimpleTrainer
 from takepod.storage import LargeResource
 from takepod.datasets.iterator import Iterator
-
-
-def batch_transform_tfidf(x_batch, y_batch, tfidf_vectorizer):
-    """Method transforms iterator batch to a
-       numpy matrix that model accepts."""
-    X = tfidf_vectorizer.transform(x_batch.text)
-    y = y_batch.label.ravel()
-    return X, y
 
 
 def tfidf_svm_example_main():
@@ -30,22 +21,33 @@ def tfidf_svm_example_main():
     tfidf_vectorizer = TfIdfVectorizer()
     tfidf_vectorizer.fit(dataset=train_set, field=train_set.field_dict["text"])
 
-    batch_transform = partial(
-        batch_transform_tfidf,
-        tfidf_vectorizer=tfidf_vectorizer)
+    def feature_extraction_fn(x_batch):
+        return tfidf_vectorizer.transform(x_batch.text)
+
+    def label_extraction_fn(y_batch):
+        return y_batch.label.ravel()
+
+    feature_transformer = FeatureTransformer(feature_extraction_fn)
 
     model = ScikitLinearSVCModel()
-    trainer = SimpleTrainer(model=model)
+    trainer = SimpleTrainer()
 
-    trainer.train(iterator=train_iter, batch_transform=batch_transform,
+    trainer.train(model=model,
+                  iterator=train_iter,
+                  feature_transformer=feature_transformer,
+                  label_transform_fun=label_extraction_fn,
                   **{trainer.MAX_EPOCH_KEY: 1})
 
-    x_train, y_train = batch_transform(*next(train_iter.__iter__()))
+    x_batch, y_batch = next(train_iter.__iter__())
+    x_train = feature_transformer.transform(x_batch)
+    y_train = label_extraction_fn(y_batch)
     prediction_train = model.predict(X=x_train)[AbstractSupervisedModel.PREDICTION_KEY]
     print(x_train.shape, y_train.shape, prediction_train.shape)
     print(accuracy_score(y_true=y_train, y_pred=prediction_train))
 
-    x_test, y_test = batch_transform(*next(test_iter.__iter__()))
+    x_batch, y_batch = next(test_iter.__iter__())
+    x_test = feature_transformer.transform(x_batch)
+    y_test = label_extraction_fn(y_batch)
     prediction_test = model.predict(X=x_test)[AbstractSupervisedModel.PREDICTION_KEY]
     print(x_test.shape, y_test.shape, prediction_test.shape)
     print(accuracy_score(y_true=y_test, y_pred=prediction_test))

@@ -1,9 +1,7 @@
 import os
 
-from pycparser.c_ast import Label
-
-from takepod.storage.vectorizers.vectorizer import BasicVectorStorage \
-    , zeros_default_vector
+from takepod.storage.vectorizers.vectorizer import BasicVectorStorage, \
+    zeros_default_vector
 from takepod.storage import LargeResource
 
 

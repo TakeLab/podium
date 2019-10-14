@@ -1,9 +1,8 @@
 """Example how to use model on simple PauzaHR dataset using the Experiment class."""
-
+import os
 import numpy as np
 
-from takepod.storage import Field, LargeResource, Vocab, \
-    ExampleFormat
+from takepod.storage import Field, LargeResource, Vocab, ExampleFormat
 from takepod.datasets import Iterator
 from takepod.datasets.impl.pauza_dataset import PauzaHRDataset
 from takepod.models.impl.fc_model import ScikitMLPClassifier
@@ -43,6 +42,9 @@ def label_transform_fun(y_batch):
 def experiment_example():
     """Example of setting up and using the Experiment class.
     """
+
+    LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
+
     fields = basic_pauza_hr_fields()
     train_dataset, test_dataset = PauzaHRDataset.get_train_test_dataset(fields)
 
@@ -53,7 +55,10 @@ def experiment_example():
     def train_iterator_provider(dataset):
         return Iterator(dataset, shuffle=True)
 
-    vectorizer = NlplVectorizer()
+    vector_cache_path = os.path.join(LargeResource.BASE_RESOURCE_DIR,
+                                     "experimet_example_nlpl_cache.txt")
+
+    vectorizer = NlplVectorizer(cache_path=vector_cache_path)
     vectorizer.load_vocab(vocab=fields["Text"].vocab)
     embedding_matrix = vectorizer.get_embedding_matrix(
         fields["Text"].vocab)
@@ -119,5 +124,4 @@ def experiment_example():
 
 
 if __name__ == '__main__':
-    LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
     experiment_example()

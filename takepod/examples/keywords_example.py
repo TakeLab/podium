@@ -1,9 +1,10 @@
 """Example shows how to add keyword extraction features to a dataset."""
-from takepod.storage import ExampleFactory, Field, dataset
+from takepod.storage import ExampleFactory, Field
+from takepod.datasets import Dataset
 from takepod.preproc.yake import YAKE
 
 
-class DummyDataset(dataset.Dataset):
+class DummyDataset(Dataset):
     """Dummmy dataset.
     """
     TEXT_FIELD_NAME = "text"
