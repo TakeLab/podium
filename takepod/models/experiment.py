@@ -270,6 +270,7 @@ class Experiment:
         y = []
 
         for x_batch, _ in self.prediction_iterator_callable(dataset):
+            # import pdb; pdb.set_trace()
             x_batch_tensor = self.feature_transformer.transform(x_batch)
             batch_prediction = self.model.predict(x_batch_tensor, **kwargs)
             prediction_tensor = batch_prediction[AbstractSupervisedModel.PREDICTION_KEY]
