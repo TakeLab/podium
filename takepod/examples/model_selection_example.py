@@ -141,7 +141,7 @@ MODEL_PARAM_GRID = {
         },
         {
             'model_type': ModelType.LOGISTIC_REGRESSION,
-            'model_specific': {'penalty': 'none'},
+            'model_specific': {'penalty': 'l1'},
         },
         {
             'model_type': ModelType.LOGISTIC_REGRESSION,
