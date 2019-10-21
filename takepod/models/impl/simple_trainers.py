@@ -1,5 +1,6 @@
 """Module contains simple trainer classes."""
 from takepod.models.trainer import AbstractTrainer
+import pdb
 
 
 class SimpleTrainer(AbstractTrainer):

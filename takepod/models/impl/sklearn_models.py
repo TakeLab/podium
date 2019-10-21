@@ -23,17 +23,11 @@ class ModelType(Enum):
 
 class SklearnModels(AbstractSupervisedModel):
     """Simple scikitlearn multiperceptron model."""
-    def __init__(self, classes, **kwargs):
-        """Constructor that initializes Sckit MLPClassfier with given list of
-        classes.
+    def __init__(self, **kwargs):
+        """Constructor that initializes Scikit models
+        that work with entire datasets.
 
-        Parameters
-        ----------
-        classes : array, shape (n_classes)
-            Classes across all calls to fit.
         """
-        self.classes = classes
-
         model_type = kwargs['model']['model_type']
         model_args = kwargs['model']['model_specific']
 
