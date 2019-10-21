@@ -194,7 +194,7 @@ if __name__ == '__main__':
             accuracy_score,
             model_param_grid=MODEL_PARAM_GRID,
             trainer_param_grid={SimpleTrainer.MAX_EPOCH_KEY: [1]},
-            n_splits=2
+            n_splits=5
         )
 
         print(
