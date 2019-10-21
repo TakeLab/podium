@@ -9,7 +9,7 @@ from takepod.models.impl.simple_trainers import SimpleTrainer
 from takepod.model_selection import grid_search
 from takepod.preproc.stop_words import get_croatian_stop_words_removal_hook
 
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 from nltk.tokenize import WordPunctTokenizer
 from functools import partial
 import numpy as np
@@ -200,4 +200,15 @@ if __name__ == '__main__':
         print(
             'combination {} has best score of {} with params {}'
             .format(combination, best_score, best_model_params)
+        )
+        experiment.set_default_model_args(**best_model_params)
+        experiment.set_default_trainer_args(**best_train_params)
+
+        y_pred = experiment.predict(test_set)
+        y_true = [i.label[0] for i in test_set]
+        precision, recall, f1, _ = precision_recall_fscore_support(y_true, y_pred, average='macro')
+        print(
+            'test set performance: precision: {}, recall: {}, macro F1: {}'.format(
+            precision, recall, f1
+            )
         )
