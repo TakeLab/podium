@@ -5,9 +5,9 @@ from sklearn.model_selection import ParameterGrid
 import logging
 from tqdm import tqdm
 
-from takepod.models import Experiment
 from takepod.datasets import Dataset
 from takepod.validation import k_fold_validation
+from takepod.models import Experiment
 
 _LOGGER = logging.getLogger(__name__)
 

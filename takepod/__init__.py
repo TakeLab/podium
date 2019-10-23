@@ -12,6 +12,8 @@ from . import metrics
 from . import models
 from . import preproc
 from . import storage
+from . import validation
+from . import model_selection
 
 __name__ = "takepod"
 
@@ -22,7 +24,8 @@ __all__ = ["dataload",
            "models",
            "preproc",
            "storage",
-           "validation"]
+           "validation",
+           "model_selection"]
 
 
 # Reference for initialization of logging scikit-learn

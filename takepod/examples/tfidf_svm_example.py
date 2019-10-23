@@ -3,7 +3,8 @@ from functools import partial
 from sklearn.metrics import accuracy_score
 
 from takepod.storage.vectorizers.tfidf import TfIdfVectorizer
-from takepod.models import ScikitLinearSVCModel, AbstractSupervisedModel
+from takepod.models import AbstractSupervisedModel
+from takepod.models.impl.svm_model import ScikitLinearSVCModel
 
 from takepod.datasets import BasicSupervisedImdbDataset
 from takepod.models.impl.simple_trainers import SimpleTrainer

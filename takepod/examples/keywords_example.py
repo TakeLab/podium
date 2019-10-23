@@ -1,5 +1,6 @@
 """Example shows how to add keyword extraction features to a dataset."""
-from takepod.storage import ExampleFactory, Field, dataset
+from takepod.storage import ExampleFactory, Field
+from takepod.datasets import dataset
 from takepod.preproc.yake import YAKE
 
 

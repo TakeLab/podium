@@ -320,8 +320,8 @@ class Vocab:
         """Two vocabs are same if they have same finalization status, their
         stoi and itos mappings are same and their frequency counters are same.
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         other : object
             object for which we want to knwo equality propertiy
 
