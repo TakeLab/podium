@@ -1,6 +1,6 @@
 from takepod.storage import Field, Vocab
 from takepod.datasets.impl import BasicSupervisedImdbDataset
-from takepod.storage.vectorizers.vectorizer import GloVe
+from takepod.storage.vectorizers.impl import GloVe
 from takepod.datasets import SingleBatchIterator
 from takepod.models.impl.fc_model import ScikitMLPClassifier
 from takepod.models.impl.sklearn_models import SklearnModels, ModelType
