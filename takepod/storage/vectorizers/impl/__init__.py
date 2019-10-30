@@ -1,3 +1,4 @@
-from .nlpl_vectorizer import NlplVectorizer
+from .nlpl import NlplVectorizer
+from .glove import GloVe
 
-__all__ = ["NlplVectorizer"]
+__all__ = ["NlplVectorizer", "GloVe"]

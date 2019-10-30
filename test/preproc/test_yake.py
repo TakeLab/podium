@@ -59,7 +59,7 @@ def test_yake_en_wrapper_default_output(keyword_data):
 def test_yake_en_nondefault_wrapper_output(keyword_data):
     yake = pytest.importorskip('yake')
     yake_original = yake.KeywordExtractor(n=2)
-    yake_takepod = YAKE(ngram_size=2)
+    yake_takepod = YAKE(n=2)
 
     output_original = [kw for kw, _ in
                        yake_original.extract_keywords(keyword_data["text"])]

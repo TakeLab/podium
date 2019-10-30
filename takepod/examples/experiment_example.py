@@ -1,8 +1,8 @@
 """Example how to use model on simple PauzaHR dataset using the Experiment class."""
-
+import os
 import numpy as np
 
-from takepod.storage import Field, LargeResource, Vocab
+from takepod.storage import Field, LargeResource, Vocab, ExampleFormat
 from takepod.datasets import Iterator
 from takepod.datasets.impl.pauza_dataset import PauzaHRDataset
 from takepod.models.impl.fc_model import ScikitMLPClassifier
@@ -13,6 +13,7 @@ from takepod.model_selection import grid_search
 from takepod.storage.vectorizers.impl import NlplVectorizer
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import StandardScaler
+from takepod.pipeline import Pipeline
 
 
 def numericalize_pauza_rating(rating):
@@ -41,6 +42,9 @@ def label_transform_fun(y_batch):
 def experiment_example():
     """Example of setting up and using the Experiment class.
     """
+
+    LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
+
     fields = basic_pauza_hr_fields()
     train_dataset, test_dataset = PauzaHRDataset.get_train_test_dataset(fields)
 
@@ -51,7 +55,10 @@ def experiment_example():
     def train_iterator_provider(dataset):
         return Iterator(dataset, shuffle=True)
 
-    vectorizer = NlplVectorizer()
+    vector_cache_path = os.path.join(LargeResource.BASE_RESOURCE_DIR,
+                                     "experimet_example_nlpl_cache.txt")
+
+    vectorizer = NlplVectorizer(cache_path=vector_cache_path)
     vectorizer.load_vocab(vocab=fields["Text"].vocab)
     embedding_matrix = vectorizer.get_embedding_matrix(
         fields["Text"].vocab)
@@ -94,7 +101,27 @@ def experiment_example():
           "Recall = {}\n"
           "F1 score = {}".format(accuracy, precision, recall, f1))
 
+    experiment.fit(train_dataset)
+
+    dataset_fields = {
+        "Text": train_dataset.field_dict["Text"]
+    }
+
+    pipeline = Pipeline(dataset_fields,
+                        ExampleFormat.XML,
+                        feature_transformer,
+                        experiment.model)
+
+    example_good = "<Example><Text>Izvrstan, ogroman Zagrebački, " \
+                   "dostava na vrijeme, ljubazno osoblje ...</Text></Example>"
+    prediction = pipeline.predict_raw(example_good)
+    print("Good example score: {}".format(prediction))
+
+    example_bad = "<Example><Text>Hrana kasnila, dostavljac neljubazan, " \
+                  "uzas...</Text></Example>"
+    prediction = pipeline.predict_raw(example_bad)
+    print("Bad example score: {}".format(prediction))
+
 
 if __name__ == '__main__':
-    LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
     experiment_example()
