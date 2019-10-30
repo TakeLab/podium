@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 
 from takepod.storage.vectorizers import vectorizer
+from takepod.storage.vectorizers.impl import GloVe
 
 BASIC_VECT_HEADING = b"251518 300"
 BASIC_VECT_DATA = [b". 0.001134 -0.000058 -0.000668\n",
@@ -354,7 +355,7 @@ def test_load_plain_text():
 )
 def test_glove_wrong_params(name, dim):
     with pytest.raises(ValueError):
-        vectorizer.GloVe(name=name, dim=dim)
+        GloVe(name=name, dim=dim)
 
 
 def create_temp_vect_file(vect_file_name, file_data,

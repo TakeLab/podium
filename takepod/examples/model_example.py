@@ -1,13 +1,11 @@
 """Example how to use model on simple PauzaHR dataset."""
-from functools import partial
-import numpy as np
 
 from takepod.storage import Field, LargeResource, Vocab
 from takepod.datasets.iterator import Iterator
-from takepod.storage.vectorizers.vectorizer import BasicVectorStorage
 from takepod.datasets.impl.pauza_dataset import PauzaHRDataset
 from takepod.models.impl.fc_model import ScikitMLPClassifier
 from takepod.models.impl.simple_trainers import SimpleTrainer
+from takepod.models import FeatureTransformer
 
 
 def numericalize_pauza_rating(rating):
@@ -16,22 +14,16 @@ def numericalize_pauza_rating(rating):
     return label
 
 
-def basic_batch_transform_fun(x_batch, y_batch):
-    """Method transforms iterator batch to a
-       numpy matrix that model accepts."""
-    X = x_batch.Text
-    y = y_batch.Rating.ravel()
-    return X, y
+def label_extraction_fun(y_batch):
+    """Label transform function that returns a 1-d array of rating labels."""
+    return y_batch.Rating.ravel()
 
 
-def batch_transform_fun_vectorize_avg(x_batch, y_batch, embedding_matrix):
-    """Method transforms iterator batch to a
-       numpy matrix that model accepts."""
-    x_numericalized = x_batch.Text.astype(int)
-    embeddings = np.take(embedding_matrix, x_numericalized, axis=0)
-    X = np.mean(embeddings, axis=1)
-    y = y_batch.Rating.ravel()
-    return X, y
+def feature_extraction_fn(x_batch):
+    """Feature transform function that returns an matrix containing word indexes.
+    Serves only as a simple demonstration."""
+    x_tensor = x_batch.Text
+    return x_tensor
 
 
 def basic_pauza_hr_fields():
@@ -45,71 +37,42 @@ def basic_pauza_hr_fields():
     return {"Text": text, "Rating": rating}
 
 
-def pauza_mlp_example(
-        fields, dataset,
-        batch_transform_function=basic_batch_transform_fun):
+def pauza_mlp_example():
     """Adjustable example that demonstrates how to use pauzahr dataset
-    with scikit MLP classifier using podium
+    with scikit MLP classifier using podium"""
 
-    Parameters
-    ----------
-    fields : dict
-        fields dictionary
-    dataset : tuple(Dataset, Dataset)
-        train, test dataset tuple
-    batch_transform_function: callable
-        function that know how to transform input batch to model input
-    """
-    train_set, test_set = dataset
+    # Set the base repository directory
+    # This directory will be used by podium to cache all LargeResources
+    # like datasets and vectorizers loaded trough the LargeResource API
+    LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
+
+    fields = basic_pauza_hr_fields()
+    train_set, test_set = PauzaHRDataset.get_train_test_dataset(fields=fields)
 
     train_iter = Iterator(dataset=train_set, batch_size=100)
     test_iter = Iterator(dataset=test_set, batch_size=10)
 
     model = ScikitMLPClassifier(
-        classes=[i for i in range(0, len(fields["Rating"].vocab.itos))],
+        classes=[i for i in range(1, len(fields["Rating"].vocab.itos) + 1)],
         verbose=True, hidden_layer_sizes=(50, 20), solver="adam")
-    trainer = SimpleTrainer()
 
-    trainer.train(model, iterator=train_iter, batch_transform=batch_transform_function,
+    # Define a FeatureTranformer used to extract and transform feature matrices
+    # from feature batches
+    feature_transformer = FeatureTransformer(feature_extraction_fn)
+
+    trainer = SimpleTrainer()
+    trainer.train(model, iterator=train_iter,
+                  feature_transformer=feature_transformer,
+                  label_transform_fun=label_extraction_fun,
                   **{trainer.MAX_EPOCH_KEY: 10})
 
-    x_test, y_test = batch_transform_function(*next(test_iter.__iter__()))
+    test_batch_x, test_batch_y = next(test_iter.__iter__())
+    x_test = feature_transformer.transform(test_batch_x)
+    y_test = label_extraction_fun(test_batch_y)
     prediction = model.predict(X=x_test)
-    print("Expected:", y_test,
-          "given:", prediction[model.PREDICTION_KEY])
-
-
-def basic_pauza_example():
-    """Basic pauza_hr example that tries to classify comments to ratings
-    based on word numericalization."""
-    fields = basic_pauza_hr_fields()
-    dataset = PauzaHRDataset.get_train_test_dataset(fields=fields)
-    pauza_mlp_example(
-        fields=fields, dataset=dataset,
-        batch_transform_function=basic_batch_transform_fun)
-
-
-def vectorized_pauza_example():
-    """Pauza_hr example that tries to classify comments to ratings based on
-    averaged word vectors inside comments."""
-    fields = basic_pauza_hr_fields()
-    dataset = PauzaHRDataset.get_train_test_dataset(fields=fields)
-
-    vectorizer = BasicVectorStorage(
-        path="downloaded_datasets/tweeterVectors.txt")
-    vectorizer.load_vocab(vocab=fields["Text"].vocab)
-    embedding_matrix = vectorizer.get_embedding_matrix(
-        fields["Text"].vocab)
-
-    batch_transform = partial(
-        batch_transform_fun_vectorize_avg,
-        embedding_matrix=embedding_matrix)
-
-    pauza_mlp_example(
-        fields=fields, dataset=dataset,
-        batch_transform_function=batch_transform)
+    print("Expected:\t", y_test, "\n",
+          "Given:\t\t", prediction[model.PREDICTION_KEY])
 
 
 if __name__ == "__main__":
-    LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
-    vectorized_pauza_example()
+    pauza_mlp_example()

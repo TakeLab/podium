@@ -17,32 +17,36 @@ class YAKE():
        single documents. This class is a wrapper of the official implementation available
        at https://github.com/LIAAD/yake."""
 
-    def __init__(self, lang="en", ngram_size=3,
-                 dedup_lim=0.9, dedup_func='seqm',
-                 windows_size=1, top=20):
+    def __init__(self,
+                 lan="en",
+                 n=3,
+                 dedupLim=0.9,
+                 dedupFunc='seqm',
+                 windowsSize=1,
+                 top=20):
         """Constructor that initializes YAKE.
 
         Parameters
         ----------
-        lang : str
+        lan : str
             the language of the input text
-        ngram_size: int
+        n: int
             maximum ngram size
-        dedup_lim: float
+        dedupLim: float
             deduplication limit, see yake documentation for details
-        dedup_func: str
+        dedupFunc: str
             deduplication function, see yake documentation for details
-        windows_size: int
+        windowsSize: int
             context window size
         top: int
             max number of keyphrases to extract
         """
 
-        self._kw_extractor = yake.KeywordExtractor(lan=lang,
-                                                   n=ngram_size,
-                                                   dedupLim=dedup_lim,
-                                                   dedupFunc=dedup_func,
-                                                   windowsSize=windows_size,
+        self._kw_extractor = yake.KeywordExtractor(lan=lan,
+                                                   n=n,
+                                                   dedupLim=dedupLim,
+                                                   dedupFunc=dedupFunc,
+                                                   windowsSize=windowsSize,
                                                    top=top,
                                                    features=None)  # features dict
 
