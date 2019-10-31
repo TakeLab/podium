@@ -215,7 +215,7 @@ class Vocab:
             # instead of whole string
 
         if isinstance(values, Vocab):
-            self.specials = list(unique(chain(self.specials + values.specials)))
+            self.specials = list(unique(chain(self.specials, values.specials)))
             self._has_specials = len(self.specials) > 0
             self._itos = list(self.specials)
 
