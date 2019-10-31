@@ -72,6 +72,7 @@ napoleon_use_rtype = True
 # Quick fix for cross-reference warnings:
 from sphinx.domains.python import PythonDomain
 
+
 class PatchedPythonDomain(PythonDomain):
     def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):
         if 'refspecific' in node:
@@ -79,5 +80,6 @@ class PatchedPythonDomain(PythonDomain):
         return super(PatchedPythonDomain, self).resolve_xref(
             env, fromdocname, builder, typ, target, node, contnode)
 
+
 def setup(sphinx):
-    sphinx.override_domain(PatchedPythonDomain)
+    sphinx.add_domain(PatchedPythonDomain, override=True)
