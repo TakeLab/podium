@@ -1,5 +1,6 @@
 """Module contains classes related to the vocabulary."""
 import logging
+from typing import Union, Iterable
 from itertools import chain
 from collections import Counter
 import numpy as np
@@ -181,24 +182,30 @@ class Vocab:
             raise ValueError(error_msg)
         return self.stoi[SpecialVocabSymbols.PAD]
 
-    def __iadd__(self, values):
-        """Method allows a vocabulary to be added to current vocabulary or
-        that a set of values is added to the vocabulary.
+    def __iadd__(self,
+                 values: Union['Vocab', Iterable]):
+        """Adds additional values or another Vocab to this Vocab.
 
         Parameters
         ----------
-        values : iter or Vocab
-            values to be added to the vocabulary
+        values : Iterable or Vocab
+            Values to be added to this Vocab.
+            If Vocab, all of the tokens and specials from that Vocab will be added to
+            this Vocab.
+            If Iterable, all of the tokens from the Iterable will be added to this Vocab.
 
         Returns
         -------
         vocab : Vocab
-            returns current Vocab instance to enable chaining
+            Returns current Vocab instance to enable chaining
 
         Raises
         ------
         RuntimeError
-            if the current vocab is finalized
+            If the current vocab is finalized or if 'values' is a string
+
+        TypeError
+            If the values cannot be iterated over.
         """
         if self.finalized:
             error_msg = "Once finalized, vocabulary cannot be changed."
@@ -228,32 +235,34 @@ class Vocab:
                 self._freqs.update(value for value in values
                                    if value not in self.specials)
             except TypeError:
-                error_msg = "TypeError exception occurred while adding values " \
-                            "to counter object. Vocab supports only adding " \
-                            "vocab or iterable to vocab"
+                error_msg = "Vocab supports only adding another Vocab or iterable."
                 _LOGGER.exception(error_msg)
                 raise TypeError(error_msg)
         return self
 
     def __add__(self,
-                values):
+                values: Union['Vocab', Iterable]):
         """Method allows a vocabulary to be added to current vocabulary or
         that a set of values is added to the vocabulary.
 
         Parameters
         ----------
-        values : iter or Vocab
-            values to be added to the vocabulary
+        values : iterable or Vocab
+            If Vocab, a new Vocab will be created containing all of the special symbols
+            and tokens from both Vocabs.
+            If Iterable, a new Vocab will be returned containing a copy of this Vocab
+            with the iterables' tokens added.
 
         Returns
         -------
-        vocab : Vocab
-            returns current Vocab instance to enable chaining
+        Vocab
+            Returns a new Vocab
 
         Raises
         ------
         RuntimeError
-            if the current vocab is finalized
+            If this vocab is Finalized and values are tried to be added, or
+            if both Vocabs are not either both finalized or not finalized.
         """
         if isinstance(values, Vocab):
             specials = tuple(unique(chain(self.specials, values.specials)))
@@ -304,7 +313,7 @@ class Vocab:
         Raises
         ------
         RuntimeError
-            if the vocab is already finalized
+            If the vocab is already finalized
         """
         if self.finalized:
             _LOGGER.warning("Vocabulary is finalized already. "
