@@ -12,18 +12,17 @@ Run
 ```
 make html
 ```
-from the documentation root directory. The generated HTML source will be placed in `doc/build/html`, and it can be opened by running `make show` or opening the `index.html` directly in your browser.
+from the documentation root directory. The generated HTML source will be placed in `./build/html`. It contains the `index.html` file which you can then open in your favourite browser.
 
 ### Building the PDF docs
 If you would like to build the PDF version of the documentation instead, make sure you have a working LaTeX install first. After that, build the latex sources using:
 ```
 make latex
 ```
-After that, change the directory to `doc/build/latex` and generate the resulting PDF from the LaTeX sources:
+After that, change the directory to `./build/latex` and generate the resulting PDF from the LaTeX sources:
 ```
 make all-pdf
 ```
-
 This creates the resulting `podium.pdf` file.
 
 ## Notes
