@@ -188,7 +188,7 @@ def test_add_vocab_to_vocab():
 
     voc3 = vocab.Vocab(specials=vocab.SpecialVocabSymbols.UNK)
     voc3 += data1
-    voc3 == data3
+    voc3 += data3
     voc3.finalize()
 
     voc4 = vocab.Vocab(specials=vocab.SpecialVocabSymbols.PAD)
