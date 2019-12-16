@@ -245,6 +245,10 @@ class Vocab:
         """Method allows a vocabulary to be added to current vocabulary or
         that a set of values is added to the vocabulary.
 
+        If max_size if None for any of the two Vocabs, the max_size of the resulting Vocab
+        will also be None. If they are both defined, the max_size of the resulting Vocab
+        will be the sum of max_sizes.
+
         Parameters
         ----------
         values : iterable or Vocab
