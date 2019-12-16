@@ -100,25 +100,25 @@ class BLCCModel(AbstractSupervisedModel):
 
     def reset(self, **kwargs):
         default_hyperparameters = {
-            EMBEDDING_SIZE: None,
-            OUTPUT_SIZE: None,
+            self.EMBEDDING_SIZE: None,
+            self.OUTPUT_SIZE: None,
 
-            FEATURE_NAMES: (),
-            FEATURE_INPUT_SIZES: (),
-            FEATURE_OUTPUT_SIZES: (),
-            DROPOUT: (0.5, 0.5),
-            CLASSIFIER: 'CRF',
-            LSTM_SIZE: (100,),
-            OPTIMIZER: 'adam',
-            CLIPVALUE: 0.0,
-            CLIPNORM: 1.0,
-            LEARNING_RATE: 0.01
+            self.FEATURE_NAMES: (),
+            self.FEATURE_INPUT_SIZES: (),
+            self.FEATURE_OUTPUT_SIZES: (),
+            self.DROPOUT: (0.5, 0.5),
+            self.CLASSIFIER: 'CRF',
+            self.LSTM_SIZE: (100,),
+            self.OPTIMIZER: 'adam',
+            self.CLIPVALUE: 0.0,
+            self.CLIPNORM: 1.0,
+            self.LEARNING_RATE: 0.01
         }
 
         if kwargs:
             default_hyperparameters.update(kwargs)
 
-        self.params = self.DEFAULT_HYPERPARAMETERS
+        self.params = default_hyperparameters
         self.model = self._build_model()
 
     def _build_model(self):
