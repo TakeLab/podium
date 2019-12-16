@@ -244,6 +244,26 @@ def test_add_list_word_to_vocab():
     assert voc._freqs["word"] == 2
 
 
+def test_add_non_iterable_object_to_vocab():
+    class NonIterableClass:
+        pass
+
+    voc = vocab.Vocab()
+
+    with pytest.raises(TypeError):
+        voc + NonIterableClass()
+
+
+def test_iadd_non_iterable_object_to_vocab():
+    class NonIterableClass:
+        pass
+
+    voc = vocab.Vocab()
+
+    with pytest.raises(TypeError):
+        voc += NonIterableClass()
+
+
 @pytest.mark.parametrize(
     "object_to_add",
     [
