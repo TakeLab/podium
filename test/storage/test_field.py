@@ -765,3 +765,28 @@ def test_multioutput_field_remove_pretokenization():
 
     assert tokenized_1 == ["THIS", "IS", "A", "TEST", "SENTENCE"]
     assert tokenized_2 == ["tHIS", "iS", "a", "tEST", "sENTENCE"]
+
+
+def test_posttokenize_hooks_in_tokenized_field_single_execution(mocker):
+    f = TokenizedField(name="F")
+
+    def hk(data, tokenized):
+        def caseness(token):
+            if token.islower():
+                return 'lowercase'
+            else:
+                return 'uppercase'
+
+        return data, list(map(caseness, tokenized))
+
+    patched_hook = mocker.spy(hk, '__call__')
+
+    f.add_posttokenize_hook(patched_hook)
+
+    raw_str = ["Upper", "lower"]
+
+    _, received = f.preprocess(raw_str)[0]
+    expected = (None, ['uppercase', 'lowercase'])
+
+    assert received == expected
+    patched_hook.assert_called_once()
