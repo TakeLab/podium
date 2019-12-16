@@ -13,12 +13,23 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class ExampleFormat(Enum):
-    LIST = lambda data, factory: factory.from_list(data)  # noqa: E731
-    DICT = lambda data, factory: factory.from_dict(data)  # noqa: E731
-    CSV = lambda data, factory: factory.from_csv(data)  # noqa: E731
-    NLTK = lambda data, factory: factory.from_fields_tree(data)  # noqa: E731
-    XML = lambda data, factory: factory.from_xml_str(data)  # noqa: E731
-    JSON = lambda data, factory: factory.from_json(data)  # noqa: E731
+    def LIST(data, factory):
+        return factory.from_list(data)
+
+    def DICT(data, factory):
+        return factory.from_dict(data)
+
+    def CSV(data, factory):
+        return factory.from_csv(data)
+
+    def NLTK(data, factory):
+        return factory.from_fields_tree(data)
+
+    def XML(data, factory):
+        return factory.from_xml_str(data)
+
+    def JSON(data, factory):
+        return factory.from_json(data)
 
 
 class Example:

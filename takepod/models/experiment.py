@@ -1,6 +1,7 @@
 """Modules defines an experiment - class used to combine iteration over data,
 model training and prediction."""
 from typing import Callable, NamedTuple, Dict, Type, Union
+from functools import partial
 from inspect import isclass
 import logging
 
@@ -77,10 +78,7 @@ class Experiment:
         self.set_default_trainer_args()
 
         if prediction_iterator_callable is None:
-            def default_prediction_iterator_callable(dataset):
-                return SingleBatchIterator(dataset)
-
-            self.prediction_iterator_callable = default_prediction_iterator_callable
+            self.prediction_iterator_callable = partial(SingleBatchIterator)
         else:
             self.prediction_iterator_callable = prediction_iterator_callable
 

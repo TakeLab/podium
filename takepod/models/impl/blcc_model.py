@@ -1,9 +1,13 @@
 """Module contains deep learning based sequence labelling model.."""
 import logging
 import numpy as np
+import tempfile
 
 from takepod.models import AbstractSupervisedModel
-from takepod.models.impl.blcc.chain_crf import ChainCRF
+from takepod.models.impl.blcc.chain_crf import (
+    ChainCRF, create_custom_objects
+)
+from keras.models import load_model
 
 _LOGGER = logging.getLogger(__name__)
 try:
@@ -77,30 +81,44 @@ class BLCCModel(AbstractSupervisedModel):
     LSTM_SIZE = 'LSTM-Size'
     DROPOUT = 'dropout'
 
+    DEFAULT_HYPERPARAMETERS = {
+        EMBEDDING_SIZE: None,
+        OUTPUT_SIZE: None,
+
+        FEATURE_NAMES: (),
+        FEATURE_INPUT_SIZES: (),
+        FEATURE_OUTPUT_SIZES: (),
+        DROPOUT: (0.5, 0.5),
+        CLASSIFIER: 'CRF',
+        LSTM_SIZE: (100,),
+        OPTIMIZER: 'adam',
+        CLIPVALUE: 0.0,
+        CLIPNORM: 1.0,
+        LEARNING_RATE: 0.01
+    }
+
     def __init__(self, **kwargs):
         self.reset(**kwargs)
 
+    def __getstate__(self):
+        model_str = ""
+        with tempfile.NamedTemporaryFile(suffix='.hdf5', delete=True) as fd:
+            self.model.save(fd.name, overwrite=True)
+            model_str = fd.read()
+        return {'model_str': model_str}
+
+    def __setstate__(self, state):
+        with tempfile.NamedTemporaryFile(suffix='.hdf5', delete=True) as fd:
+            fd.write(state['model_str'])
+            fd.flush()
+            model = load_model(fd.name, custom_objects=create_custom_objects())
+        self.model = model
+
     def reset(self, **kwargs):
-        default_hyperparameters = {
-            self.EMBEDDING_SIZE: None,
-            self.OUTPUT_SIZE: None,
-
-            self.FEATURE_NAMES: (),
-            self.FEATURE_INPUT_SIZES: (),
-            self.FEATURE_OUTPUT_SIZES: (),
-            self.DROPOUT: (0.5, 0.5),
-            self.CLASSIFIER: 'CRF',
-            self.LSTM_SIZE: (100,),
-            self.OPTIMIZER: 'adam',
-            self.CLIPVALUE: 0.0,
-            self.CLIPNORM: 1.0,
-            self.LEARNING_RATE: 0.01
-        }
-
         if kwargs:
-            default_hyperparameters.update(kwargs)
+            self.DEFAULT_HYPERPARAMETERS.update(kwargs)
 
-        self.params = default_hyperparameters
+        self.params = self.DEFAULT_HYPERPARAMETERS
         self.model = self._build_model()
 
     def _build_model(self):
@@ -143,6 +161,7 @@ class BLCCModel(AbstractSupervisedModel):
         cnt = 1
 
         for size in self.params[self.LSTM_SIZE]:
+            # import ipdb; ipdb.set_trace()
             if isinstance(self.params[self.DROPOUT], (list, tuple)):
                 shared_layer = Bidirectional(
                     LSTM(
