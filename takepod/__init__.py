@@ -14,8 +14,7 @@ from . import preproc
 from . import storage
 from . import validation
 from . import model_selection
-from . import validation
-from . import model_selection
+from . import pipeline
 
 __name__ = "takepod"
 

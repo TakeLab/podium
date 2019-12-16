@@ -21,7 +21,7 @@ class AbstractTrainer(ABC):
               **kwargs):
 
         """Method trains a model with data from given Iterator.
-        
+
         Parameters
         ----------
         model : AbstractSupervisedModel

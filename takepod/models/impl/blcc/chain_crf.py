@@ -252,7 +252,8 @@ class ChainCRF(Layer):
         # Compile model with chain crf loss (and one-hot encoded labels) and accuracy
         model.compile(loss=crf.loss, optimizer='sgd', metrics=['accuracy'])
         # Alternatively, compile model with sparsely encoded labels and sparse accuracy:
-        model.compile(loss=crf.sparse_loss, optimizer='sgd', metrics=['sparse_categorical_accuracy'])
+        model.compile(loss=crf.sparse_loss, optimizer='sgd',
+            metrics=['sparse_categorical_accuracy'])
 
 
     Notes

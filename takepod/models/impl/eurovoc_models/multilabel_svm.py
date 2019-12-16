@@ -4,7 +4,9 @@ Example
 -------
 
     model_path = ... Path where the trained model will be stored
-    dataset_path = ... Path where the dilled instance of EuroVoc dataset will be stored to and/or loaded from
+
+    dataset_path = ... Path where the dilled instance of EuroVoc dataset \
+        will be stored to and/or loaded from
 
     LargeResource.BASE_RESOURCE_DIR = ... Directory where the EuroVoc downloaded raw \
                                           dataset is stored or where it should be \
