@@ -81,22 +81,6 @@ class BLCCModel(AbstractSupervisedModel):
     LSTM_SIZE = 'LSTM-Size'
     DROPOUT = 'dropout'
 
-    DEFAULT_HYPERPARAMETERS = {
-        EMBEDDING_SIZE: None,
-        OUTPUT_SIZE: None,
-
-        FEATURE_NAMES: (),
-        FEATURE_INPUT_SIZES: (),
-        FEATURE_OUTPUT_SIZES: (),
-        DROPOUT: (0.5, 0.5),
-        CLASSIFIER: 'CRF',
-        LSTM_SIZE: (100,),
-        OPTIMIZER: 'adam',
-        CLIPVALUE: 0.0,
-        CLIPNORM: 1.0,
-        LEARNING_RATE: 0.01
-    }
-
     def __init__(self, **kwargs):
         self.reset(**kwargs)
 
@@ -115,8 +99,24 @@ class BLCCModel(AbstractSupervisedModel):
         self.model = model
 
     def reset(self, **kwargs):
+        default_hyperparameters = {
+            EMBEDDING_SIZE: None,
+            OUTPUT_SIZE: None,
+
+            FEATURE_NAMES: (),
+            FEATURE_INPUT_SIZES: (),
+            FEATURE_OUTPUT_SIZES: (),
+            DROPOUT: (0.5, 0.5),
+            CLASSIFIER: 'CRF',
+            LSTM_SIZE: (100,),
+            OPTIMIZER: 'adam',
+            CLIPVALUE: 0.0,
+            CLIPNORM: 1.0,
+            LEARNING_RATE: 0.01
+        }
+
         if kwargs:
-            self.DEFAULT_HYPERPARAMETERS.update(kwargs)
+            default_hyperparameters.update(kwargs)
 
         self.params = self.DEFAULT_HYPERPARAMETERS
         self.model = self._build_model()
@@ -161,7 +161,6 @@ class BLCCModel(AbstractSupervisedModel):
         cnt = 1
 
         for size in self.params[self.LSTM_SIZE]:
-            # import ipdb; ipdb.set_trace()
             if isinstance(self.params[self.DROPOUT], (list, tuple)):
                 shared_layer = Bidirectional(
                     LSTM(
