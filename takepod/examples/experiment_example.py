@@ -1,18 +1,19 @@
 """Example how to use model on simple PauzaHR dataset using the Experiment class."""
-
-from functools import partial
+import os
 import numpy as np
 
-from takepod.storage import (Field, LargeResource, Vocab,
-                             BasicVectorStorage)
+from takepod.storage import Field, LargeResource, Vocab, ExampleFormat
 from takepod.datasets import Iterator
 from takepod.datasets.impl.pauza_dataset import PauzaHRDataset
 from takepod.models.impl.fc_model import ScikitMLPClassifier
 from takepod.models.impl.simple_trainers import SimpleTrainer
-from takepod.models import Experiment
+from takepod.models import Experiment, FeatureTransformer, SklearnTensorTransformerWrapper
 from takepod.validation import k_fold_classification_metrics
 from takepod.model_selection import grid_search
+from takepod.storage.vectorizers.impl import NlplVectorizer
 from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import StandardScaler
+from takepod.pipeline import Pipeline
 
 
 def numericalize_pauza_rating(rating):
@@ -34,20 +35,6 @@ def basic_pauza_hr_fields():
     return {"Text": text, "Rating": rating}
 
 
-def feature_transform_mean_fun(x_batch, embedding_matrix):
-    """Batch transform function that returns a mean of embedding vectors for every
-    token in an Example"""
-    x_tensor = np.take(embedding_matrix, x_batch.Text.astype(int), axis=0)
-    x = np.mean(x_tensor, axis=1)
-    return x
-
-
-def basic_feature_transform_fun(x_batch):
-    """Method transforms iterator batch to a
-       numpy matrix that model accepts."""
-    return x_batch.Text
-
-
 def label_transform_fun(y_batch):
     return y_batch.Rating.ravel()
 
@@ -55,6 +42,9 @@ def label_transform_fun(y_batch):
 def experiment_example():
     """Example of setting up and using the Experiment class.
     """
+
+    LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
+
     fields = basic_pauza_hr_fields()
     train_dataset, test_dataset = PauzaHRDataset.get_train_test_dataset(fields)
 
@@ -65,20 +55,29 @@ def experiment_example():
     def train_iterator_provider(dataset):
         return Iterator(dataset, shuffle=True)
 
-    vectorizer = BasicVectorStorage(path="downloaded_datasets/tweeterVectors.txt")
+    vector_cache_path = os.path.join(LargeResource.BASE_RESOURCE_DIR,
+                                     "experimet_example_nlpl_cache.txt")
+
+    vectorizer = NlplVectorizer(cache_path=vector_cache_path)
     vectorizer.load_vocab(vocab=fields["Text"].vocab)
     embedding_matrix = vectorizer.get_embedding_matrix(
         fields["Text"].vocab)
 
-    feature_transform = partial(feature_transform_mean_fun,
-                                embedding_matrix=embedding_matrix)
+    def feature_transform_fn(x_batch):
+        """Batch transform function that returns a mean of embedding vectors for every
+            token in an Example"""
+        x_tensor = np.take(embedding_matrix, x_batch.Text.astype(int), axis=0)
+        x = np.mean(x_tensor, axis=1)
+        return x
+
+    tensor_transformer = SklearnTensorTransformerWrapper(StandardScaler())
+    feature_transformer = FeatureTransformer(feature_transform_fn, tensor_transformer)
 
     experiment = Experiment(ScikitMLPClassifier,
-                            trainer,
-                            train_iterator_provider,
-                            None,
-                            feature_transform,
-                            label_transform_fun)
+                            trainer=trainer,
+                            training_iterator_callable=train_iterator_provider,
+                            feature_transformer=feature_transformer,
+                            label_transform_fun=label_transform_fun)
 
     _, model_params, train_params = \
         grid_search(experiment,
@@ -102,7 +101,27 @@ def experiment_example():
           "Recall = {}\n"
           "F1 score = {}".format(accuracy, precision, recall, f1))
 
+    experiment.fit(train_dataset)
+
+    dataset_fields = {
+        "Text": train_dataset.field_dict["Text"]
+    }
+
+    pipeline = Pipeline(dataset_fields,
+                        ExampleFormat.XML,
+                        feature_transformer,
+                        experiment.model)
+
+    example_good = "<Example><Text>Izvrstan, ogroman Zagrebački, " \
+                   "dostava na vrijeme, ljubazno osoblje ...</Text></Example>"
+    prediction = pipeline.predict_raw(example_good)
+    print("Good example score: {}".format(prediction))
+
+    example_bad = "<Example><Text>Hrana kasnila, dostavljac neljubazan, " \
+                  "uzas...</Text></Example>"
+    prediction = pipeline.predict_raw(example_bad)
+    print("Bad example score: {}".format(prediction))
+
 
 if __name__ == '__main__':
-    LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
     experiment_example()

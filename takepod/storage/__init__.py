@@ -1,6 +1,6 @@
 """Package contains modules for storing and loading datasets and vectors."""
 
-from .example_factory import ExampleFactory
+from .example_factory import ExampleFactory, ExampleFormat
 from .field import Field, TokenizedField, MultilabelField, MultioutputField, unpack_fields
 from .resources.downloader import (BaseDownloader, SCPDownloader, HttpDownloader,
                                    SimpleHttpDownloader)
@@ -22,4 +22,4 @@ __all__ = ["BaseDownloader", "SCPDownloader", "HttpDownloader", "SimpleHttpDownl
            "Field", "TokenizedField", "MultilabelField", "MultioutputField",
            "unpack_fields", "LargeResource", "SCPLargeResource",
            "VectorStorage", "BasicVectorStorage", "SpecialVocabSymbols", "Vocab",
-           "ExampleFactory", "TfIdfVectorizer"]
+           "ExampleFactory", "ExampleFormat", "TfIdfVectorizer"]

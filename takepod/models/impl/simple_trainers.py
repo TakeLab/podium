@@ -16,13 +16,13 @@ class SimpleTrainer(AbstractTrainer):
     def train(self,
               model,
               iterator,
-              feature_transform_fun,
+              feature_transformer,
               label_transform_fun,
               **kwargs):
         self._check_kwargs(**kwargs)
         for _ in range(kwargs[SimpleTrainer.MAX_EPOCH_KEY]):
             for x_batch, y_batch in iterator:
-                x = feature_transform_fun(x_batch)
+                x = feature_transformer.transform(x_batch)
                 y = label_transform_fun(y_batch)
                 model.fit(X=x, y=y)
 

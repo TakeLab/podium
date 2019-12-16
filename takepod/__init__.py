@@ -14,6 +14,8 @@ from . import preproc
 from . import storage
 from . import validation
 from . import model_selection
+from . import validation
+from . import model_selection
 
 __name__ = "takepod"
 
@@ -25,7 +27,8 @@ __all__ = ["dataload",
            "preproc",
            "storage",
            "validation",
-           "model_selection"]
+           "model_selection",
+           "pipeline"]
 
 
 # Reference for initialization of logging scikit-learn
