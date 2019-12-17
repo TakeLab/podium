@@ -17,7 +17,15 @@ from takepod.datasets.iterator import BucketIterator
 from takepod.storage.resources.large_resource import LargeResource
 from takepod.storage.vectorizers.vectorizer import BasicVectorStorage
 
-_LOGGER = logging.getLogger(__name__)
+root = logging.getLogger()
+root.setLevel(logging.DEBUG)
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+root.addHandler(handler)
+_LOGGER = root
 
 # using the same label set as original CroNER
 label_mapping = {
@@ -112,7 +120,7 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
         BLCCModel.OUTPUT_SIZE: output_size,
         BLCCModel.CLASSIFIER: 'CRF',
         BLCCModel.EMBEDDING_SIZE: 300,
-        BLCCModel.LSTM_SIZE: (100, 100),
+        BLCCModel.LSTM_SIZE: (200, 200),
         BLCCModel.DROPOUT: (0.25, 0.25),
         BLCCModel.FEATURE_NAMES: ('casing',),
         BLCCModel.FEATURE_INPUT_SIZES: (casing_feature_size,),
@@ -128,7 +136,7 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
         iterator=train_iter,
         feature_transformer=feature_transformer,
         label_transform_fun=label_transform_fun,
-        **{trainer.MAX_EPOCH_KEY: 2}
+        **{trainer.MAX_EPOCH_KEY: 20}
     )
     _LOGGER.info('Training finished')
 

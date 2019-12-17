@@ -3,6 +3,7 @@ import glob
 import os
 import logging
 import xml.etree.ElementTree as ET
+from collections import defaultdict
 
 from takepod.preproc.tokenizers import get_tokenizer
 from takepod.storage.resources.large_resource import init_scp_large_resource_from_kwargs
@@ -199,3 +200,37 @@ class NERCroatianXMLLoader:
         elif index == 0:
             return 'B-' + label
         return 'I-' + label
+
+
+def convert_sequence_to_entities(sequence, tag_schema='IOB', delimiter='-'):
+    entities = defaultdict(list)
+    state = "start"
+    current_tag = "N/A"
+
+    for index, tag in enumerate(sequence):
+        # must be either B, I, O
+        if delimiter in tag:
+            tag_type, tag_description = tag.split(delimiter)
+        else:
+            tag_type = tag[0]
+            tag_description = ''
+
+        if tag_type == 'B' and (state == "start" or state == "named_entity"):
+            state = "named_entity"
+            current_tag = tag_description
+            # create new entity
+            entities[tag_description].append([])
+            # add index to newly created entity
+            entities[tag_description][-1].append(index)
+
+        if tag_type == 'I' and state == "named_entity":
+            # I tag has to be after a B tag of the same type
+            # B-Org I-Org is good, B-Org I-Time is not
+            # I-Time part of the entity is skipped 
+            if tag_description == current_tag:
+                entities[tag_description][-1].append(index)
+
+        if tag_type == 'O':
+            state = "start"
+
+    return entities

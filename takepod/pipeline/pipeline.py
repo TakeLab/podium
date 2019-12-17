@@ -21,7 +21,8 @@ class Pipeline(Experiment):
                  model: Union[AbstractSupervisedModel, Type[AbstractSupervisedModel]],
                  trainer: AbstractTrainer = None,
                  trainer_iterator_callable: Callable[[Dataset], Iterator] = None,
-                 label_transform_fn: Callable[[NamedTuple], np.ndarray] = None
+                 label_transform_fn: Callable[[NamedTuple], np.ndarray] = None,
+                 label_itos: [List] = None,
                  ):
         """Creates a new pipeline instance.
 
@@ -81,6 +82,8 @@ class Pipeline(Experiment):
         self.fields = fields
         self.example_format = example_format
         self.example_factory = ExampleFactory(fields)
+        if label_itos:
+            self.label_itos = label_itos
 
         super().__init__(model,
                          feature_transformer=feature_transformer,

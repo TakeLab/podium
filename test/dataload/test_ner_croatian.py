@@ -6,7 +6,10 @@ import shutil
 import pytest
 
 from mock import patch
-from takepod.dataload.ner_croatian import NERCroatianXMLLoader
+from takepod.dataload.ner_croatian import (
+    NERCroatianXMLLoader,
+    convert_sequence_to_entities
+)
 from takepod.storage.resources.large_resource import LargeResource
 from takepod.storage.resources.downloader import SCPDownloader
 
@@ -195,6 +198,79 @@ def test_download_dataset_using_scp():
 
     shutil.rmtree(base)
     assert not os.path.exists(base)
+
+
+@pytest.mark.parametrize(
+    "sequence, expected_entities",
+    [
+        ([
+            'B-Organization', 'I-Organization',
+            'O', 'O',
+            'B-Money', 'O', 'B-Organization'
+        ], {
+            'Organization': [[0, 1], [6]],
+            'Money': [[4]]
+        }),
+
+        ([
+            'O', 'B-Time', 'O', 'O',
+            'B-Time', 'O', 'O', 'B-Test',
+            'I-Test', 'I-Test', 'O'
+        ], {
+            'Time': [[1], [4]],
+            'Test': [[7, 8, 9]]
+        }),
+
+        ([
+            'B-Test', 'O', 'B-Test'
+        ], {
+            'Test': [[0], [2]]
+        })
+    ]
+)
+def test_convert_valid_sequence_to_entities(sequence, expected_entities):
+    received_entities = convert_sequence_to_entities(sequence)
+    assert received_entities == expected_entities
+
+
+@pytest.mark.parametrize(
+    "invalid_sequence, expected_entities",
+    [
+        # this example starts with "I" instead of "B"
+        # resulting in ignoring this entity
+        ([
+            'I-Organization', 'O', 'O',
+        ], {}
+        ),
+        # if tag description is different Organization!=Time
+        # those tags are skipped
+        ([
+        'B-Organization', 'I-Time', 'O'
+        ],
+        {
+            'Organization': [[0]]
+        }
+        ),
+
+    ]
+)
+def test_convert_invalid_sequence_to_entities(invalid_sequence, expected_entities):
+    received_entities = convert_sequence_to_entities(invalid_sequence)
+    assert received_entities == expected_entities
+
+
+def test_no_delimiter():
+    sequence = ['B', 'I', 'O', 'O', 'B']
+    received_entities = convert_sequence_to_entities(sequence)
+    assert received_entities == {
+        '': [[0, 1], [4]]
+    }
+
+
+def test_invalid_delimiter():
+    sequence = ['B', 'I', 'O', 'O', 'B']
+    with pytest.raises(TypeError):
+        received_entities = convert_sequence_to_entities(sequence, delimiter=None)
 
 
 def create_mock_zip_archive_with_xml_file(dir_path):
