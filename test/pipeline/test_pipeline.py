@@ -4,14 +4,20 @@ from takepod.pipeline import Pipeline
 from takepod.storage import Field, ExampleFormat
 from takepod.models import AbstractSupervisedModel
 
+name_dict = {
+    "Marko": 1,
+    "Darko": 2,
+    "Ivana": 3
+}
+
+mock_data = [
+    ["Marko", 50],
+    ["Darko", 60],
+    ["Ivana", 45]
+]
+
 
 def get_fields():
-    name_dict = {
-        "Marko": 1,
-        "Darko": 2,
-        "Ivana": 3
-    }
-
     name_field = Field("Name", custom_numericalize=name_dict.get)
     score_field = Field("Score", tokenize=False, custom_numericalize=int)
 
@@ -20,13 +26,6 @@ def get_fields():
 
     return {"Name": name_field,
             "Score": score_field}
-
-
-mock_data = [
-    ["Marko", 50],
-    ["Darko", 60],
-    ["Ivana", 45]
-]
 
 
 class MockModel:
@@ -87,3 +86,18 @@ def test_pipeline_from_raw():
     expected_prediction = np.array([[1, 30]])
     prediction = csv_pipeline.predict_raw(raw_csv)
     assert np.all(expected_prediction == prediction)
+
+
+def test_output_transform_fn():
+    transform_dict = {val: key.upper() for key, val in name_dict.items()}
+
+    fields = get_fields()
+    fields_list = [fields['Name'], fields['Score']]
+    list_pipeline = Pipeline(fields_list,
+                             ExampleFormat.LIST,
+                             feature_transformer=MockFeatureTransformer(),
+                             model=MockModel(),
+                             output_transform_fn=lambda x: transform_dict[x[0, 0]])
+
+    for example in mock_data:
+        assert list_pipeline.predict_raw(example) == example[0].upper()

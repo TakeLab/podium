@@ -21,7 +21,8 @@ class Pipeline(Experiment):
                  model: Union[AbstractSupervisedModel, Type[AbstractSupervisedModel]],
                  trainer: AbstractTrainer = None,
                  trainer_iterator_callable: Callable[[Dataset], Iterator] = None,
-                 label_transform_fn: Callable[[NamedTuple], np.ndarray] = None
+                 label_transform_fn: Callable[[NamedTuple], np.ndarray] = None,
+                 output_transform_fn: Callable[[np.ndarray], Any] = None
                  ):
         """Creates a new pipeline instance.
 
@@ -82,6 +83,8 @@ class Pipeline(Experiment):
         self.example_format = example_format
         self.example_factory = ExampleFactory(fields)
 
+        self.output_transform_fn = output_transform_fn
+
         super().__init__(model,
                          feature_transformer=feature_transformer,
                          trainer=trainer,
@@ -110,5 +113,10 @@ class Pipeline(Experiment):
         processed_example = self.example_factory.from_format(raw_example,
                                                              self.example_format)
         ds = Dataset([processed_example], self.fields)
+        prediction = self.predict(ds, **kwargs)
 
-        return self.predict(ds, **kwargs)
+        if self.output_transform_fn is not None:
+            return self.output_transform_fn(prediction)
+
+        else:
+            return prediction
