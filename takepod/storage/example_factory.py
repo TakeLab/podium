@@ -284,7 +284,8 @@ class ExampleFactory:
 
         else:
             err_msg = "format_tag must be either an ExampleFormat or a string. " \
-                      "Passed value is of type : '{}'".format(format_tag.__class__.__name__)
+                      "Passed value is of type : '{}'"\
+                .format(format_tag.__class__.__name__)
             _LOGGER.error(err_msg)
             raise TypeError(err_msg)
 
