@@ -280,7 +280,7 @@ class ExampleFactory:
             format_str = format_tag.value
 
         elif isinstance(format_tag, str):
-            format_str = format_tag
+            format_str = format_tag.lower()
 
         else:
             err_msg = "format_tag must be either an ExampleFormat or a string. " \

@@ -16,7 +16,7 @@ class Pipeline(Experiment):
 
     def __init__(self,
                  fields: Union[Dict, List],
-                 example_format: ExampleFormat,
+                 example_format: Union[ExampleFormat, str],
                  feature_transformer: FeatureTransformer,
                  model: Union[AbstractSupervisedModel, Type[AbstractSupervisedModel]],
                  trainer: AbstractTrainer = None,
@@ -65,7 +65,11 @@ class Pipeline(Experiment):
             result of this callable for those same examples.
 
         """
-        if example_format in (ExampleFormat.LIST, ExampleFormat.CSV, ExampleFormat.NLTK):
+        if isinstance(example_format, ExampleFormat):
+            example_format = example_format.value
+
+        if example_format in (ExampleFormat.LIST.value, ExampleFormat.CSV.value,
+                              ExampleFormat.NLTK.value):
             if not isinstance(fields, (list, tuple)):
                 error_msg = "If example format is LIST, CSV or NLTK, `fields`" \
                             "must be either a list or tuple. " \
@@ -114,6 +118,7 @@ class Pipeline(Experiment):
                                                              self.example_format)
         ds = Dataset([processed_example], self.fields)
         prediction = self.predict(ds, **kwargs)
+        prediction = prediction[0]
 
         if self.output_transform_fn is not None:
             return self.output_transform_fn(prediction)
