@@ -97,7 +97,7 @@ def test_output_transform_fn():
                              ExampleFormat.LIST,
                              feature_transformer=MockFeatureTransformer(),
                              model=MockModel(),
-                             output_transform_fn=lambda x: transform_dict[x[0, 0]])
+                             output_transform_fn=lambda x: transform_dict[x[0]])
 
     for example in mock_data:
         assert list_pipeline.predict_raw(example) == example[0].upper()
