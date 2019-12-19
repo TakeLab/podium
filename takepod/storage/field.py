@@ -455,7 +455,7 @@ class Field:
 
         if self.store_as_tokenized:
             # Store data as tokens
-            _, tokens = self._run_posttokenization_hooks(None, data)
+            data, tokens = None, data
 
         else:
             # Preprocess the raw input
