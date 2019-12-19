@@ -54,12 +54,12 @@ def test_pipeline_from_raw():
     # Test for list format
     fields_list = [fields['Name'], fields['Score']]
     list_pipeline = Pipeline(fields_list,
-                             ExampleFormat.LIST,
+                             example_format="list",
                              feature_transformer=MockFeatureTransformer(),
                              model=MockModel())
 
     raw_list = ["Marko", 30]
-    expected_prediction = np.array([[1, 30]])
+    expected_prediction = np.array([1, 30])
     prediction = list_pipeline.predict_raw(raw_list)
 
     assert np.all(expected_prediction == prediction)
@@ -72,7 +72,7 @@ def test_pipeline_from_raw():
 
     # Test for Dict format
     raw_dict = {'Name': "Marko", 'Score': 30}
-    expected_prediction = np.array([[1, 30]])
+    expected_prediction = np.array([1, 30])
     prediction = dict_pipeline.predict_raw(raw_dict)
 
     assert np.all(expected_prediction == prediction)
@@ -83,7 +83,7 @@ def test_pipeline_from_raw():
                             ExampleFormat.CSV,
                             feature_transformer=MockFeatureTransformer(),
                             model=MockModel())
-    expected_prediction = np.array([[1, 30]])
+    expected_prediction = np.array([1, 30])
     prediction = csv_pipeline.predict_raw(raw_csv)
     assert np.all(expected_prediction == prediction)
 
@@ -97,7 +97,7 @@ def test_output_transform_fn():
                              ExampleFormat.LIST,
                              feature_transformer=MockFeatureTransformer(),
                              model=MockModel(),
-                             output_transform_fn=lambda x: transform_dict[x[0, 0]])
+                             output_transform_fn=lambda x: transform_dict[x[0]])
 
     for example in mock_data:
         assert list_pipeline.predict_raw(example) == example[0].upper()
