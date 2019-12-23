@@ -4,6 +4,7 @@ import sys
 import logging
 from collections import namedtuple
 from functools import partial
+import pickle
 
 import numpy as np
 
@@ -137,6 +138,8 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
     y_test = label_transform_fun(y_test_batch)
 
     prediction = model.predict(X=X_test)[BLCCModel.PREDICTION_KEY]
+    # pickle for later use
+    pickle.dump(model, open('ner_model.pkl', 'wb'))
 
     pad_symbol = fields['labels'].vocab.pad_symbol()
     prediction_filtered, y_test_filtered = filter_out_padding(
