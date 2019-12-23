@@ -64,8 +64,6 @@ class BLCCModel(AbstractSupervisedModel):
         a LSTM layer.
     """
 
-    # TODO : model expects keras=2.2.4 to be installed
-
     EMBEDDING_SIZE = 'embedding_size'
     OUTPUT_SIZE = 'output_size'
 
@@ -89,14 +87,17 @@ class BLCCModel(AbstractSupervisedModel):
         with tempfile.NamedTemporaryFile(suffix='.hdf5', delete=True) as fd:
             self.model.save(fd.name, overwrite=True)
             model_str = fd.read()
-        return {'model_str': model_str}
+            odict = self.__dict__.copy()
+            del odict['model']
+        return {'model_str': model_str, 'rest': odict}
 
     def __setstate__(self, state):
         with tempfile.NamedTemporaryFile(suffix='.hdf5', delete=True) as fd:
             fd.write(state['model_str'])
             fd.flush()
             model = load_model(fd.name, custom_objects=create_custom_objects())
-        self.model = model
+            self.__dict__ = state['rest']
+            self.model = model
 
     def reset(self, **kwargs):
         default_hyperparameters = {

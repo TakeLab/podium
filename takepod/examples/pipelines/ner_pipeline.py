@@ -72,7 +72,7 @@ class CroatianNER:
             BLCCModel.OUTPUT_SIZE: output_size,
             BLCCModel.CLASSIFIER: 'CRF',
             BLCCModel.EMBEDDING_SIZE: 300,
-            BLCCModel.LSTM_SIZE: (200, 200),
+            BLCCModel.LSTM_SIZE: (20, 20),
             BLCCModel.DROPOUT: (0.25, 0.25),
             BLCCModel.FEATURE_NAMES: ('casing',),
             BLCCModel.FEATURE_INPUT_SIZES: (casing_feature_size,),
@@ -87,7 +87,7 @@ class CroatianNER:
             label_transform_fun=label_transform_fun
         )
         experiment.set_default_model_args(**model_params)
-        train_params = {SimpleTrainer.MAX_EPOCH_KEY: 20}
+        train_params = {SimpleTrainer.MAX_EPOCH_KEY: 1}
         experiment.set_default_trainer_args(**train_params)
         experiment.fit(train_set)
 
@@ -117,18 +117,18 @@ class CroatianNER:
         example_to_predict = {'tokens': tokenized_text}
         tags_numericalized = self.pipeline.predict_raw(example_to_predict).ravel()
         tags = [
-            self.pipeline.label_itos[tag] 
+            self.pipeline.label_itos[tag]
             for tag in tags_numericalized
         ]
         return convert_sequence_to_entities(tags)
 
 path = 'ner_pipeline_entire_model.pkl'
 ner = CroatianNER()
-ner.fit(vector_path="tweeterVectors.txt")
+ner.fit(vector_path="cc.hr.300.vec")
 ner.predict(
-    "U Hrvatskoj državi žive mala bića. Velika bića žive u Graškogradu"
+    "U Hrvatskoj državi žive mala bića . Velika bića žive u Graškogradu ."
 )
-#ner.save_pipeline(path)
+ner.save_pipeline(path)
 
-#ner = CroatianNER()
-#ner.load_pipeline(path)
+ner = CroatianNER()
+ner.load_pipeline(path)
