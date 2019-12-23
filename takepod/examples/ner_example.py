@@ -17,15 +17,7 @@ from takepod.datasets.iterator import BucketIterator
 from takepod.storage.resources.large_resource import LargeResource
 from takepod.storage.vectorizers.vectorizer import BasicVectorStorage
 
-root = logging.getLogger()
-root.setLevel(logging.DEBUG)
-
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-root.addHandler(handler)
-_LOGGER = root
+_LOGGER = logging.getLogger(__name__)
 
 # using the same label set as original CroNER
 label_mapping = {

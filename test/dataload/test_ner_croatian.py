@@ -201,76 +201,155 @@ def test_download_dataset_using_scp():
 
 
 @pytest.mark.parametrize(
-    "sequence, expected_entities",
+    "sequence, text, expected_entities",
     [
-        ([
-            'B-Organization', 'I-Organization',
-            'O', 'O',
-            'B-Money', 'O', 'B-Organization'
-        ], {
-            'Organization': [[0, 1], [6]],
-            'Money': [[4]]
-        }),
-
-        ([
-            'O', 'B-Time', 'O', 'O',
-            'B-Time', 'O', 'O', 'B-Test',
-            'I-Test', 'I-Test', 'O'
-        ], {
-            'Time': [[1], [4]],
-            'Test': [[7, 8, 9]]
-        }),
-
-        ([
-            'B-Test', 'O', 'B-Test'
-        ], {
-            'Test': [[0], [2]]
-        })
+        (
+            [
+                'B-Organization', 'I-Organization',
+                'O', 'O',
+                'B-Money', 'O', 'B-Organization'
+            ],
+            [
+                'Kompanija', 'Microsoft',
+                'je', 'kupila',
+                '$8000', 'dionica', 'APIS-a'
+            ],
+            [
+                {
+                    'name': ['Kompanija', 'Microsoft'],
+                    'type': 'Organization',
+                    'start': 0,
+                    'end': 2
+                },
+                {
+                    'name': ['$8000'],
+                    'type': 'Money',
+                    'start': 4,
+                    'end': 5
+                },
+                {
+                    'name': ['APIS-a'],
+                    'type': 'Organization',
+                    'start': 6,
+                    'end': 7
+                }
+            ]
+        ),
+        (
+            [
+                'O', 'B-Time', 'O', 'O',
+                'B-Time', 'O', 'O', 'B-Test',
+                'I-Test', 'I-Test', 'O'
+            ],
+            [
+                'Jucer', 'popodne', 'je', 'bio',
+                'dvotjedni', 'prosvjed', 'protiv',
+                'testiranja', 'algoritamskih', 'zadataka',
+                'natjecanja'
+            ],
+            [
+                {
+                    'name': ['popodne'],
+                    'type': 'Time',
+                    'start': 1,
+                    'end': 2
+                },
+                {
+                    'name': ['dvotjedni'],
+                    'type': 'Time',
+                    'start': 4,
+                    'end': 5
+                },
+                {
+                    'name': ['testiranja', 'algoritamskih', 'zadataka'],
+                    'type': 'Test',
+                    'start': 7,
+                    'end': 10
+                }
+            ]
+        ),
+        (
+            [
+                'B-Organization', 'B-Organization',
+                'O', 'O',
+            ],
+            [
+                'Amazon', 'Microsoftu',
+                'nije', 'suradnik'
+            ],
+            [
+                {
+                    'name': ['Amazon'],
+                    'type': 'Organization',
+                    'start': 0,
+                    'end': 1
+                },
+                {
+                    'name': ['Microsoftu'],
+                    'type': 'Organization',
+                    'start': 1,
+                    'end': 2
+                },
+            ]
+        ),
     ]
 )
-def test_convert_valid_sequence_to_entities(sequence, expected_entities):
-    received_entities = convert_sequence_to_entities(sequence)
+def test_convert_valid_sequence_to_entities(sequence, text, expected_entities):
+    received_entities = convert_sequence_to_entities(sequence, text)
     assert received_entities == expected_entities
 
 
 @pytest.mark.parametrize(
-    "invalid_sequence, expected_entities",
+    "invalid_sequence, text, expected_entities",
     [
         # this example starts with "I" instead of "B"
         # resulting in ignoring this entity
-        ([
-            'I-Organization', 'O', 'O',
-        ], {}
+        (
+            [
+                'I-Organization', 'O', 'O',
+            ],
+            [
+                'Struji', 'struja', 'u'
+            ],
+            []
         ),
         # if tag description is different Organization!=Time
         # those tags are skipped
-        ([
-        'B-Organization', 'I-Time', 'O'
-        ],
-        {
-            'Organization': [[0]]
-        }
+        (
+            [
+                'B-Organization', 'I-Time', 'O'
+            ],
+            [
+                'FER', 'petak', 'je!'
+            ],
+            [
+                {
+                    'name': ['FER'],
+                    'type': 'Organization',
+                    'start': 0,
+                    'end': 1
+                }
+            ]
         ),
-
     ]
 )
-def test_convert_invalid_sequence_to_entities(invalid_sequence, expected_entities):
-    received_entities = convert_sequence_to_entities(invalid_sequence)
+def test_convert_invalid_sequence_to_entities(invalid_sequence, text, expected_entities):
+    received_entities = convert_sequence_to_entities(invalid_sequence, text)
     assert received_entities == expected_entities
-
-
-def test_no_delimiter():
-    sequence = ['B', 'I', 'O', 'O', 'B']
-    received_entities = convert_sequence_to_entities(sequence)
-    assert received_entities == {
-        '': [[0, 1], [4]]
-    }
 
 
 def test_invalid_delimiter():
     sequence = ['B', 'I', 'O', 'O', 'B']
+    text = ['a', 'b', 'c', 'd', 'e']
     with pytest.raises(TypeError):
-        received_entities = convert_sequence_to_entities(sequence, delimiter=None)
+        convert_sequence_to_entities(sequence, text, delimiter=None)
+
+
+def test_invalid_sequence_len():
+    sequence = ['B', 'I']
+    text = ['a']
+    with pytest.raises(ValueError):
+        convert_sequence_to_entities(sequence, text)
 
 
 def create_mock_zip_archive_with_xml_file(dir_path):

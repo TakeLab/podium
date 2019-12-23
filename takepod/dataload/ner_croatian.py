@@ -3,7 +3,6 @@ import glob
 import os
 import logging
 import xml.etree.ElementTree as ET
-from collections import defaultdict
 
 from takepod.preproc.tokenizers import get_tokenizer
 from takepod.storage.resources.large_resource import init_scp_large_resource_from_kwargs
@@ -202,12 +201,43 @@ class NERCroatianXMLLoader:
         return 'I-' + label
 
 
-def convert_sequence_to_entities(sequence, tag_schema='IOB', delimiter='-'):
-    entities = defaultdict(list)
+def convert_sequence_to_entities(sequence, text, delimiter='-'):
+    """
+    Converts sequences of the BIO tagging schema to entities
+
+    Parameters
+    ----------
+    sequence: list(string)
+        Sequence of tags consisting that start with either B, I, or O.
+    label: list(string)
+        Tokenized text that correponds to the tag sequence
+
+    Returns
+    -------
+    entities: list(dict)
+        List of entities. Each entity is a dict that has four attributes:
+        name, type, start, and end. Name is a list of tokens from text
+        that belong to that entity, start denotes the index which starts
+        the entity, and end is the end index of the entity.
+
+        ```text[entity['start'] : entity['end']]``` retrieves the entity text
+
+        Example
+        {
+            'name': list(str),
+            'type': str,
+            'start': int,
+            'end': int
+        }
+    """
+    entities = []
     state = "start"
     current_tag = "N/A"
 
-    for index, tag in enumerate(sequence):
+    if len(text) != len(sequence):
+        raise ValueError("Sequence and text must be of same length")
+
+    for index, (tag, word) in enumerate(zip(sequence, text)):
         # must be either B, I, O
         if delimiter in tag:
             tag_type, tag_description = tag.split(delimiter)
@@ -215,22 +245,48 @@ def convert_sequence_to_entities(sequence, tag_schema='IOB', delimiter='-'):
             tag_type = tag[0]
             tag_description = ''
 
-        if tag_type == 'B' and (state == "start" or state == "named_entity"):
+        if tag_type == 'B' and state == "start":
             state = "named_entity"
             current_tag = tag_description
             # create new entity
-            entities[tag_description].append([])
-            # add index to newly created entity
-            entities[tag_description][-1].append(index)
+            entity = {
+                'name': [word], 'type': tag_description,
+                'start': index, 'end': -1
+            }
+            entities.append(entity)
 
-        if tag_type == 'I' and state == "named_entity":
+        elif tag_type == 'B' and state == "named_entity":
+            state = "named_entity"
+            # save previous
+            entities[-1]['end'] = index
+            # create new one
+            entity = {
+                'name': [word], 'type': tag_description,
+                'start': index, 'end': -1
+            }
+            entities.append(entity)
+
+        elif tag_type == 'I' and state == "named_entity":
             # I tag has to be after a B tag of the same type
             # B-Org I-Org is good, B-Org I-Time is not
-            # I-Time part of the entity is skipped 
-            if tag_description == current_tag:
-                entities[tag_description][-1].append(index)
+            # I-Time part of the entity is skipped
+            if tag_description == current_tag and entities:
+                entities[-1]['name'].append(word)
 
-        if tag_type == 'O':
+            # if it does not match, just close the started entity
+            elif tag_description != current_tag and entities:
+                entities[-1]['end'] = index
+                state = "start"
+
+        elif tag_type == 'O' and state == "named_entity":
             state = "start"
+            if entities:
+                entities[-1]['end'] = index
+
+        elif tag_type == 'O':
+            state = "start"
+
+    if entities and entities[-1]['end'] == -1:
+        entities[-1]['end'] = len(sequence)
 
     return entities

@@ -22,7 +22,7 @@ class Pipeline(Experiment):
                  trainer: AbstractTrainer = None,
                  trainer_iterator_callable: Callable[[Dataset], Iterator] = None,
                  label_transform_fn: Callable[[NamedTuple], np.ndarray] = None,
-                 label_itos: [List] = None,
+                 output_transform_fn: Callable[[np.array], Any] = None,
                  ):
         """Creates a new pipeline instance.
 
@@ -82,8 +82,7 @@ class Pipeline(Experiment):
         self.fields = fields
         self.example_format = example_format
         self.example_factory = ExampleFactory(fields)
-        if label_itos:
-            self.label_itos = label_itos
+        self.output_transform_fn = output_transform_fn
 
         super().__init__(model,
                          feature_transformer=feature_transformer,
@@ -113,5 +112,9 @@ class Pipeline(Experiment):
         processed_example = self.example_factory.from_format(raw_example,
                                                              self.example_format)
         ds = Dataset([processed_example], self.fields)
+        prediction = self.predict(ds, **kwargs)[0]
 
-        return self.predict(ds, **kwargs)
+        if self.output_transform_fn is not None:
+            return self.output_transform_fn(prediction)
+        else:
+            return prediction
