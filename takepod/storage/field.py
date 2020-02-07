@@ -840,7 +840,7 @@ class MultilabelField(TokenizedField):
         if self.use_vocab and len(self.vocab) > self.num_of_classes:
             error_msg = "Number of classes in data is greater than the declared number " \
                         "of classes. Declared: {}, Actual: {}".format(
-                self.num_of_classes, len(self.vocab))
+                            self.num_of_classes, len(self.vocab))
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
