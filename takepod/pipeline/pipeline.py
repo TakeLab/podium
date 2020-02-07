@@ -64,6 +64,13 @@ class Pipeline(Experiment):
             the prediction result of the model for some examples must be identical to the
             result of this callable for those same examples.
 
+        output_transform_fn: Callable[[np.ndarray], Any]
+            Callable that transforms the output of the pipeline. This transformation is
+            applied to prediction results in `predict_raw`. An example of using this
+            transformation would be to transform numeric predictions of a text generation
+            model into their corresponding characters, or even to return a string
+            of said characters directly.
+
         """
         if isinstance(example_format, ExampleFormat):
             example_format = example_format.value
