@@ -222,14 +222,15 @@ class Vocab:
             # instead of whole string
 
         if isinstance(values, Vocab):
-            self.specials = list(unique(chain(self.specials, values.specials)))
+            other_vocab = values
+            self.specials = list(unique(chain(self.specials, other_vocab.specials)))
             self._has_specials = len(self.specials) > 0
             self._itos = list(self.specials)
 
-            if values._freqs is None:
-                self += values.itos
+            if other_vocab._freqs is None:
+                self += other_vocab.itos
             else:
-                self._freqs += values._freqs  # add freqs to this instance
+                self._freqs += other_vocab._freqs  # add freqs to this instance
         else:
             try:
                 self._freqs.update(value for value in values
