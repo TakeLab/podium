@@ -202,9 +202,11 @@ class Vocab:
         ----------
         values : Iterable or Vocab
             Values to be added to this Vocab.
-            If Vocab, all of the tokens and specials from that Vocab will be added to
-            this Vocab.
-            If Iterable, all of the tokens from the Iterable will be added to this Vocab.
+            If Vocab, all of the token frequencies and specials from that Vocab will be
+            added to this Vocab.
+
+            If Iterable, all of the tokens from the Iterable will be added to this Vocab,
+            increasing the frequencies of those tokens.
 
         Returns
         -------
@@ -214,7 +216,8 @@ class Vocab:
         Raises
         ------
         RuntimeError
-            If the current vocab is finalized or if 'values' is a string
+            If the current vocab is finalized, if 'values' is a string or if the
+            RHS Vocab doesn't contain token frequencies.
 
         TypeError
             If the values cannot be iterated over.
@@ -235,15 +238,21 @@ class Vocab:
 
         if isinstance(values, Vocab):
             other_vocab = values
+
+            if other_vocab._freqs is None:
+                error_msg = "Error while adding Vocabs inplace. " \
+                            "RHS Vocab doesn't have word frequencies stored." \
+                            " Try adding a non-finalized vocab or or a Vocab with " \
+                            "`keep_freqs` enabled."
+                _LOGGER.error(error_msg)
+                raise RuntimeError(error_msg)
+
             # unique is used instead of set to somewhat preserve ordering
             self.specials = list(unique(chain(self.specials, other_vocab.specials)))
             self._has_specials = len(self.specials) > 0
             self._itos = list(self.specials)
+            self._freqs += other_vocab._freqs  # add freqs to this instance
 
-            if other_vocab._freqs is None:
-                self += other_vocab.itos
-            else:
-                self._freqs += other_vocab._freqs  # add freqs to this instance
         else:
             try:
                 self._freqs.update(value for value in values
@@ -283,27 +292,33 @@ class Vocab:
             if both Vocabs are not either both finalized or not finalized.
         """
         if isinstance(values, Vocab):
-            specials = tuple(unique(chain(self.specials, values.specials)))
-            if self._max_size is None or values._max_size is None:
+            other_vocab = values
+            specials = tuple(unique(chain(self.specials, other_vocab.specials)))
+
+            if self._max_size is None or other_vocab._max_size is None:
                 max_size = None
+
             else:
-                max_size = self._max_size + values._max_size
+                max_size = self._max_size + other_vocab._max_size
+
             new_vocab = Vocab(specials=specials,
                               max_size=max_size,
-                              min_freq=min(self._min_freq, values._min_freq),
-                              keep_freqs=self._keep_freqs or values._keep_freqs)
+                              min_freq=min(self._min_freq, other_vocab._min_freq),
+                              keep_freqs=self._keep_freqs or other_vocab._keep_freqs)
 
-            if self.finalized and values.finalized and self._keep_freqs \
-                    and values._keep_freqs or not self.finalized and not values.finalized:
-                new_freqs = self._freqs + values._freqs
+            if self.finalized and other_vocab.finalized \
+                    and self._keep_freqs and other_vocab._keep_freqs \
+                    or not self.finalized and not other_vocab.finalized:
+                # If both have _freqs add them together
+                new_freqs = self._freqs + other_vocab._freqs
                 new_vocab._freqs = new_freqs
                 if self.finalized:
                     new_vocab.finalize()
                 return new_vocab
 
-            elif self.finalized and values.finalized:
+            elif self.finalized and other_vocab.finalized:
                 new_vocab += self.itos
-                new_vocab += values.itos
+                new_vocab += other_vocab.itos
 
                 new_vocab.finalize()
                 return new_vocab
