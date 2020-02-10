@@ -18,8 +18,8 @@ sys.path.insert(0, os.path.abspath('../../../takepod'))
 # -- Project information -----------------------------------------------------
 
 project = 'Podium'
-copyright = '2019, Ivan Smoković, Domagoj Pluščec, Filip Boltužić, Martin Tutek, Marin Kačan, Mate Mijolović'
-author = 'Ivan Smoković, Domagoj Pluščec, Filip Boltužić, Martin Tutek, Marin Kačan, Mate Mijolović'
+copyright = '2019, TakeLab, FER, Zagreb'
+author = 'TakeLab, FER, Zagreb'
 
 # The full version, including alpha/beta/rc tags
 release = '2019'
