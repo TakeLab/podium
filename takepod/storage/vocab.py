@@ -8,7 +8,19 @@ import numpy as np
 _LOGGER = logging.getLogger(__name__)
 
 
-def unique(values):
+def unique(values: Iterable):
+    """ Generator that iterates over the first occurrence of every value in values,
+    preserving original order.
+
+    Parameters
+    ----------
+    values: Iterable
+        Iterable of values
+
+    Yields
+    -------
+        the first occurrence of every value in values, preserving order.
+    """
     seen = set()
     for element in values:
         if element in seen:
@@ -223,6 +235,7 @@ class Vocab:
 
         if isinstance(values, Vocab):
             other_vocab = values
+            # unique is used instead of set to somewhat preserve ordering
             self.specials = list(unique(chain(self.specials, other_vocab.specials)))
             self._has_specials = len(self.specials) > 0
             self._itos = list(self.specials)
