@@ -11,6 +11,7 @@ blocks:
         - name: Create env and run tests and flake8 check
           commands:
             - 'python -c ''print("evol"[::-1])'''
+            - python --version
             - sudo apt-get update -y
             - >-
               sudo apt-get install -y python3-pip python3-dev ipython3

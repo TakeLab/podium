@@ -1,15 +1,38 @@
 """Module contains classes related to the vocabulary."""
 import logging
+from typing import Union, Iterable
+from itertools import chain
 from collections import Counter
 import numpy as np
 
-
 _LOGGER = logging.getLogger(__name__)
+
+
+def unique(values: Iterable):
+    """ Generator that iterates over the first occurrence of every value in values,
+    preserving original order.
+
+    Parameters
+    ----------
+    values: Iterable
+        Iterable of values
+
+    Yields
+    -------
+        the first occurrence of every value in values, preserving order.
+    """
+    seen = set()
+    for element in values:
+        if element in seen:
+            continue
+        seen.add(element)
+        yield element
 
 
 class VocabDict(dict):
     """Vocab dictionary class that is used like default dict but without adding missing
     key to the dictionary."""
+
     def __init__(self, default_factory=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._default_factory = default_factory
@@ -23,7 +46,7 @@ class VocabDict(dict):
         return self._default_factory()
 
 
-class SpecialVocabSymbols():
+class SpecialVocabSymbols:
     """Class for special vocabular symbols
 
     Attributes
@@ -52,6 +75,7 @@ class Vocab:
     has_specials:
         whether the dictionary contains special symbols
     """
+
     def __init__(self, max_size=None, min_freq=1,
                  specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD),
                  keep_freqs=False):
@@ -75,6 +99,8 @@ class Vocab:
         self._min_freq = min_freq
 
         self.specials = () if specials is None else specials
+        if not isinstance(self.specials, (tuple, list)):
+            self.specials = (self.specials,)
         self._has_specials = len(self.specials) > 0
 
         self.itos = list(self.specials)
@@ -83,7 +109,7 @@ class Vocab:
         self.stoi.update({k: v for v, k in enumerate(self.itos)})
 
         self._max_size = max_size
-        self.finalized = False   # flag to know if we're ready to numericalize
+        self.finalized = False  # flag to know if we're ready to numericalize
         _LOGGER.debug("Vocabulary has been created and initialized.")
 
     @staticmethod
@@ -121,7 +147,7 @@ class Vocab:
             if unknown symbol is not present in the vocab
         """
         if self._default_unk_index is None:
-            error_msg = "Unknown symbol is not present in the vocab but "\
+            error_msg = "Unknown symbol is not present in the vocab but " \
                         "the user asked for the word that isn't in the vocab."
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
@@ -142,7 +168,7 @@ class Vocab:
             and the vocab is finalized
         """
         if self.finalized and not self._keep_freqs:
-            error_msg = "User specified that frequencies aren't kept in "\
+            error_msg = "User specified that frequencies aren't kept in " \
                         "vocabulary but the get_freqs method is called."
             _LOGGER.error(error_msg)
             raise RuntimeError(error_msg)
@@ -162,30 +188,39 @@ class Vocab:
             if the padding symbol is not pressent in the vocabulary
         """
         if SpecialVocabSymbols.PAD not in self.stoi:
-            error_msg = "Padding symbol is not in the vocabulary so"\
+            error_msg = "Padding symbol is not in the vocabulary so" \
                         " pad_symbol function raises exception."
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
         return self.stoi[SpecialVocabSymbols.PAD]
 
-    def __add__(self, values):
-        """Method allows a vocabulary to be added to current vocabulary or
-        that a set of values is added to the vocabulary.
+    def __iadd__(self,
+                 values: Union['Vocab', Iterable]):
+        """Adds additional values or another Vocab to this Vocab.
 
         Parameters
         ----------
-        values : iter or Vocab
-            values to be added to the vocabulary
+        values : Iterable or Vocab
+            Values to be added to this Vocab.
+            If Vocab, all of the token frequencies and specials from that Vocab will be
+            added to this Vocab.
+
+            If Iterable, all of the tokens from the Iterable will be added to this Vocab,
+            increasing the frequencies of those tokens.
 
         Returns
         -------
         vocab : Vocab
-            returns current Vocab instance to enable chaining
+            Returns current Vocab instance to enable chaining
 
         Raises
         ------
         RuntimeError
-            if the current vocab is finalized
+            If the current vocab is finalized, if 'values' is a string or if the
+            RHS Vocab doesn't contain token frequencies.
+
+        TypeError
+            If the values cannot be iterated over.
         """
         if self.finalized:
             error_msg = "Once finalized, vocabulary cannot be changed."
@@ -193,8 +228,8 @@ class Vocab:
             raise RuntimeError(error_msg)
 
         if isinstance(values, str):
-            error_msg = "Vocabulary doesn't support adding a string. "\
-                        "If you need single word added to vocab,"\
+            error_msg = "Vocabulary doesn't support adding a string. " \
+                        "If you need single word added to vocab," \
                         " you should wrap it to an iterable."
             _LOGGER.error(error_msg)
             raise TypeError(error_msg)
@@ -202,38 +237,107 @@ class Vocab:
             # instead of whole string
 
         if isinstance(values, Vocab):
-            self._freqs += values._freqs  # add freqs to this instance
+            other_vocab = values
+
+            if other_vocab._freqs is None:
+                error_msg = "Error while adding Vocabs inplace. " \
+                            "RHS Vocab doesn't have word frequencies stored." \
+                            " Try adding a non-finalized vocab or or a Vocab with " \
+                            "`keep_freqs` enabled."
+                _LOGGER.error(error_msg)
+                raise RuntimeError(error_msg)
+
+            # unique is used instead of set to somewhat preserve ordering
+            self.specials = list(unique(chain(self.specials, other_vocab.specials)))
+            self._has_specials = len(self.specials) > 0
+            self._itos = list(self.specials)
+            self._freqs += other_vocab._freqs  # add freqs to this instance
+
         else:
             try:
-                self._freqs.update(values)
+                self._freqs.update(value for value in values
+                                   if value not in self.specials)
             except TypeError:
-                error_msg = "TypeError exception ocured while adding values "\
-                            "to counter object. Vocab supports only adding "\
-                            "vocab or iterable to vocab"
+                error_msg = "Vocab supports only adding another Vocab or iterable."
                 _LOGGER.exception(error_msg)
                 raise TypeError(error_msg)
         return self
 
-    def __iadd__(self, values):
+    def __add__(self,
+                values: Union['Vocab', Iterable]):
         """Method allows a vocabulary to be added to current vocabulary or
         that a set of values is added to the vocabulary.
 
+        If max_size if None for any of the two Vocabs, the max_size of the resulting Vocab
+        will also be None. If they are both defined, the max_size of the resulting Vocab
+        will be the sum of max_sizes.
+
         Parameters
         ----------
-        values : iter or Vocab
-            values to be added to the vocabulary
+        values : iterable or Vocab
+            If Vocab, a new Vocab will be created containing all of the special symbols
+            and tokens from both Vocabs.
+            If Iterable, a new Vocab will be returned containing a copy of this Vocab
+            with the iterables' tokens added.
 
         Returns
         -------
-        vocab : Vocab
-            returns current Vocab instance to enable chaining
+        Vocab
+            Returns a new Vocab
 
         Raises
         ------
         RuntimeError
-            if the current vocab is finalized
+            If this vocab is Finalized and values are tried to be added, or
+            if both Vocabs are not either both finalized or not finalized.
         """
-        return self.__add__(values)
+        if isinstance(values, Vocab):
+            other_vocab = values
+            specials = tuple(unique(chain(self.specials, other_vocab.specials)))
+
+            if self._max_size is None or other_vocab._max_size is None:
+                max_size = None
+
+            else:
+                max_size = self._max_size + other_vocab._max_size
+
+            new_vocab = Vocab(specials=specials,
+                              max_size=max_size,
+                              min_freq=min(self._min_freq, other_vocab._min_freq),
+                              keep_freqs=self._keep_freqs or other_vocab._keep_freqs)
+
+            if self.finalized and other_vocab.finalized \
+                    and self._keep_freqs and other_vocab._keep_freqs \
+                    or not self.finalized and not other_vocab.finalized:
+                # If both have _freqs add them together
+                new_freqs = self._freqs + other_vocab._freqs
+                new_vocab._freqs = new_freqs
+                if self.finalized:
+                    new_vocab.finalize()
+                return new_vocab
+
+            elif self.finalized and other_vocab.finalized:
+                new_vocab += self.itos
+                new_vocab += other_vocab.itos
+
+                new_vocab.finalize()
+                return new_vocab
+
+            else:
+                error_msg = "Vocab addition error. When adding up two Vocabs " \
+                            "both must be either finalized or not finalized."
+                _LOGGER.error(error_msg)
+                raise RuntimeError(error_msg)
+        else:
+            new_vocab = Vocab(specials=self.specials,
+                              max_size=self._max_size,
+                              min_freq=self._min_freq,
+                              keep_freqs=self._keep_freqs)
+            new_vocab += self
+            new_vocab += values
+            if self.finalized:
+                new_vocab.finalize()
+            return new_vocab
 
     def finalize(self):
         """Method finalizes vocab building. It also releases frequency counter
@@ -242,7 +346,7 @@ class Vocab:
         Raises
         ------
         RuntimeError
-            if the vocab is already finalized
+            If the vocab is already finalized
         """
         if self.finalized:
             _LOGGER.warning("Vocabulary is finalized already. "
@@ -286,7 +390,7 @@ class Vocab:
             if the vocabulary is not finalized
         """
         if not self.finalized:
-            error_msg = "Cannot numericalize if the vocabulary has not been "\
+            error_msg = "Cannot numericalize if the vocabulary has not been " \
                         "finalized because itos and stoi are not yet built."
             _LOGGER.error(error_msg)
             raise RuntimeError(error_msg)
