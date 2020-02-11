@@ -396,13 +396,33 @@ class Vocab:
             raise RuntimeError(error_msg)
         return np.array([self.stoi[token] for token in data])
 
-    def reverse_numericalize(self, numericalized_data):
+    def reverse_numericalize(self, numericalized_data: Iterable):
+        """ Transforms an iterable containing numericalized data into a list of tokens.
+        The tokens are read from this Vocab's itos and no additional processing is done.
+
+        Parameters
+        ----------
+        numericalized_data: Iterable
+            data to be reverse numericalized
+
+        Returns
+        -------
+        list
+            a list of tokens
+
+        Raises
+        ------
+        RuntimeError
+            if the vocabulary is not finalized
+
+
+        """
         if not self.finalized:
             error_msg = "Cannot reverse numericalize if the vocabulary has not been " \
                         "finalized because itos and stoi are not yet built."
             _LOGGER.error(error_msg)
             raise RuntimeError(error_msg)
-        return list(map(self.itos.__getitem__, numericalized_data))
+        return [self.itos[i] for i in numericalized_data]
 
     @property
     def has_specials(self):
