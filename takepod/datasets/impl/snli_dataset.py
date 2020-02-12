@@ -68,3 +68,14 @@ class SNLIDataset(Dataset):
     def get_default_fields():
         # TODO: Vidjeti kako definirati tocno ta polja
         return None
+
+#annotator_labels - imamo field tokenizer za to
+#captionID - store_as_raw: true, store_as_tokenized: false, tokenize: false
+#gold_label - tokenize: true, store_as_token: true (`tokenizer(raw)`)
+#pairID - isto kao captionID
+#sentence1 - tokenizirano splitterom `split`
+#sentence1_parse - skip ili raw s todo
+#sentence1_binary_parse - skip ili raw s todo
+#sentence2 - kao sentence1
+#sentence2_parse - skip ili raw s todo
+#sentence2_binary_parse - skip ili raw s todo
