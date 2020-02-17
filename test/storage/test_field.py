@@ -790,3 +790,28 @@ def test_posttokenize_hooks_in_tokenized_field_single_execution(mocker):
 
     assert received == expected
     patched_hook.assert_called_once()
+
+
+def test_hook_returning_iterable():
+    data = "1,2,3,4"
+    expected_tokens = [3, 5, 7, 9]
+
+    field = Field("Iterator_hook_test_field",
+                  tokenizer=lambda raw: [int(x) for x in raw.split(',')],
+                  custom_numericalize=id)
+
+    def multiply_by_two_hook(raw, tokens):
+        return raw, (i * 2 for i in tokens)
+
+    def add_one_hook(raw, tokens):
+        assert not isinstance(tokens, (list, tuple))
+        return raw, (i + 1 for i in tokens)
+
+    field.add_posttokenize_hook(multiply_by_two_hook)
+    field.add_posttokenize_hook(add_one_hook)
+
+    _, (raw, tokens) = field.preprocess(data)[0]
+
+    assert raw == data
+    assert isinstance(tokens, (list, tuple))
+    assert tokens == expected_tokens

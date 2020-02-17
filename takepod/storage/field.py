@@ -46,7 +46,8 @@ class PosttokenizationPipeline:
         for hook in self.hooks:
             processed_raw, processed_tokenized = hook(processed_raw, processed_tokenized)
 
-        if processed_tokenized is not None:
+        if processed_tokenized is not None \
+                and not isinstance(processed_tokenized, (list, tuple)):
             processed_tokenized = list(processed_tokenized)
 
         return processed_raw, processed_tokenized
@@ -837,9 +838,9 @@ class MultilabelField(TokenizedField):
             self.fixed_length = self.num_of_classes = len(self.vocab)
 
         if self.use_vocab and len(self.vocab) > self.num_of_classes:
-            error_msg = "Number of classes in data is greater than the declared number "\
-                "of classes. Declared: {}, Actual: {}".format(
-                    self.num_of_classes, len(self.vocab))
+            error_msg = "Number of classes in data is greater than the declared number " \
+                        "of classes. Declared: {}, Actual: {}".format(
+                            self.num_of_classes, len(self.vocab))
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
