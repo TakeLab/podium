@@ -125,8 +125,8 @@ class Pipeline(Experiment):
                                                              self.example_format)
         ds = Dataset([processed_example], self.fields)
         prediction = self.predict(ds, **kwargs)
+        # Indexed with 0 to extract the single prediction from the prediction batch
         prediction = prediction[0]
-
         if self.output_transform_fn is not None:
             return self.output_transform_fn(prediction)
 
