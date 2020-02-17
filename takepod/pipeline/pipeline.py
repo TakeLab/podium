@@ -16,12 +16,13 @@ class Pipeline(Experiment):
 
     def __init__(self,
                  fields: Union[Dict, List],
-                 example_format: ExampleFormat,
+                 example_format: Union[ExampleFormat, str],
                  feature_transformer: FeatureTransformer,
                  model: Union[AbstractSupervisedModel, Type[AbstractSupervisedModel]],
                  trainer: AbstractTrainer = None,
                  trainer_iterator_callable: Callable[[Dataset], Iterator] = None,
-                 label_transform_fn: Callable[[NamedTuple], np.ndarray] = None
+                 label_transform_fn: Callable[[NamedTuple], np.ndarray] = None,
+                 output_transform_fn: Callable[[np.ndarray], Any] = None
                  ):
         """Creates a new pipeline instance.
 
@@ -63,8 +64,19 @@ class Pipeline(Experiment):
             the prediction result of the model for some examples must be identical to the
             result of this callable for those same examples.
 
+        output_transform_fn: Callable[[np.ndarray], Any]
+            Callable that transforms the output of the pipeline. This transformation is
+            applied to prediction results in `predict_raw`. An example of using this
+            transformation would be to transform numeric predictions of a text generation
+            model into their corresponding characters, or even to return a string
+            of said characters directly.
+
         """
-        if example_format in (ExampleFormat.LIST, ExampleFormat.CSV, ExampleFormat.NLTK):
+        if isinstance(example_format, ExampleFormat):
+            example_format = example_format.value
+
+        if example_format in (ExampleFormat.LIST.value, ExampleFormat.CSV.value,
+                              ExampleFormat.NLTK.value):
             if not isinstance(fields, (list, tuple)):
                 error_msg = "If example format is LIST, CSV or NLTK, `fields`" \
                             "must be either a list or tuple. " \
@@ -81,6 +93,8 @@ class Pipeline(Experiment):
         self.fields = fields
         self.example_format = example_format
         self.example_factory = ExampleFactory(fields)
+
+        self.output_transform_fn = output_transform_fn
 
         super().__init__(model,
                          feature_transformer=feature_transformer,
@@ -110,5 +124,11 @@ class Pipeline(Experiment):
         processed_example = self.example_factory.from_format(raw_example,
                                                              self.example_format)
         ds = Dataset([processed_example], self.fields)
+        prediction = self.predict(ds, **kwargs)
+        # Indexed with 0 to extract the single prediction from the prediction batch
+        prediction = prediction[0]
+        if self.output_transform_fn is not None:
+            return self.output_transform_fn(prediction)
 
-        return self.predict(ds, **kwargs)
+        else:
+            return prediction
