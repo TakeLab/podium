@@ -248,13 +248,14 @@ class Field:
             If true, the output of the tokenizer is presumed to be a list of tokens and
             will be numericalized using the provided Vocab or custom_numericalize.
             For numericalizable fields, Iterator will generate batch fields containing
-             numpy matrices.
+            numpy matrices.
 
-             If false, the out of the tokenizer is presumed to be a custom datatype.
-             Posttokenization hooks aren't allowed to be added as they can't be called
-             on custom datatypes. For non-numericalizable fields, Iterator will generate
-             batch fields containing lists of these custom data type instances returned
-             by the tokenizer.
+            If false, the out of the tokenizer is presumed to be a custom datatype.
+            Posttokenization hooks aren't allowed to be added as they can't be called
+            on custom datatypes. For non-numericalizable fields, Iterator will generate
+            batch fields containing lists of these custom data type instances returned
+            by the tokenizer.
+
         custom_numericalize : callable
             The numericalization function that will be called if the field
             doesn't use a vocabulary. If using custom_numericalize and padding is

@@ -257,7 +257,6 @@ class Iterator:
         for field in self._dataset.fields:
             if field.is_numericalizable:
                 # If this field is numericalizable, generate a possibly padded matrix
-
                 # the length to which all the rows are padded (or truncated)
                 pad_length = Iterator._get_pad_length(field, examples)
 
