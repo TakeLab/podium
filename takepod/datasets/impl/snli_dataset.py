@@ -1,6 +1,7 @@
 """
 Module contains the The Stanford Natural Language Inference (SNLI) Corpus
 For more information about the dataset see: https://nlp.stanford.edu/projects/snli/
+or check the README.txt file in the dataset directory.
 """
 import os
 
@@ -112,20 +113,13 @@ class SNLIDataset(Dataset):
 
         train_dataset = SNLIDataset(file_path=os.path.join(
             data_location, SNLIDataset.TRAIN_FILE_NAME), fields=fields)
-        # TODO: maknuti ove sve printove
-        print("Done with train...")
         test_dataset = SNLIDataset(file_path=os.path.join(
             data_location, SNLIDataset.TEST_FILE_NAME), fields=fields)
-        print("Done with test...")
         dev_dataset = SNLIDataset(file_path=os.path.join(
             data_location, SNLIDataset.DEV_FILE_NAME), fields=fields)
-        print("Done with dev...")
 
-        # TODO: Finalize nad svima ili samo nad train? U pauzi je nad train
+        # It is enough to finalize the fields once
         train_dataset.finalize_fields()
-        test_dataset.finalize_fields()
-        dev_dataset.finalize_fields()
-
         return train_dataset, test_dataset, dev_dataset
 
     @staticmethod
