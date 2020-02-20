@@ -6,7 +6,7 @@ from collections import deque
 import numpy as np
 
 from takepod.preproc.tokenizers import get_tokenizer
-from takepod.storage.vocab import Vocab
+from takepod.storage.vocab import Vocab, SpecialVocabSymbols
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -86,7 +86,7 @@ TABULAR_TEXT = (
     "a b c",
     "a",
     "a b c d",
-    "a",
+    None,
     "d b",
     "d c g",
     "b b b b b b"
