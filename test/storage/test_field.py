@@ -34,7 +34,7 @@ class MockVocab:
         self.finalized = False
         self.numericalized = False
 
-    def pad_symbol(self):
+    def pad_symbol_index(self):
         return PAD_NUM
 
     def __add__(self, values):
@@ -618,12 +618,12 @@ def test_multilabel_field_class_count():
 @pytest.mark.parametrize("tokens, expected_numericalization",
                          [
                              (
-                                 ["class1", "class2", "class3", "class4"],
-                                 np.array([1, 1, 1, 1, 0, 0])
+                                     ["class1", "class2", "class3", "class4"],
+                                     np.array([1, 1, 1, 1, 0, 0])
                              ),
                              (
-                                 [],
-                                 np.array([0, 0, 0, 0, 0, 0])
+                                     [],
+                                     np.array([0, 0, 0, 0, 0, 0])
                              )
                          ])
 def test_multilabel_field_custom_numericalization(tokens, expected_numericalization):
@@ -688,8 +688,8 @@ def test_missing_values_default_sequential():
     assert np.all(fld.numericalize(data_exists) == np.array([hash("data_string")]))
 
 
-def test_missing_values_default_not_sequential():
-    fld = Field(name="bla",
+def test_missing_values_custom_numericalize():
+    fld = Field(name="test_field",
                 store_as_raw=True,
                 tokenize=False,
                 custom_numericalize=int,
@@ -703,9 +703,37 @@ def test_missing_values_default_not_sequential():
 
     fld.finalize()
 
-    assert np.allclose(fld.numericalize(data_missing), np.array([np.nan]),
-                       equal_nan=True)
+    assert fld.numericalize(data_missing) is None
     assert np.all(fld.numericalize(data_exists) == np.array([404]))
+
+
+def test_missing_symbol_index_vocab():
+    vocab = Vocab()
+    fld = Field(name="test_field",
+                tokenizer='split',
+                store_as_raw=False,
+                tokenize=True,
+                vocab=vocab,
+                allow_missing_data=True)
+
+    fld.preprocess("a b c d")
+    ((_, data),) = fld.preprocess(None)
+    assert data == (None, None)
+
+    fld.finalize()
+    assert fld.numericalize((None, None)) is None
+    assert fld.get_default_value() == -1
+
+
+def test_missing_symbol_index_custom_numericalize():
+    fld = Field(name="test_field",
+                store_as_raw=True,
+                tokenize=False,
+                custom_numericalize=int,
+                allow_missing_data=True)
+
+    fld.finalize()
+    assert fld.get_default_value() == -1
 
 
 def test_missing_values_fail():

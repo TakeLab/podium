@@ -127,7 +127,7 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
     x_test, y_test = batch_transform_function(*next(test_iter.__iter__()))
     prediction = model.predict(X=x_test)[BLCCModel.PREDICTION_KEY]
 
-    pad_symbol = fields['labels'].vocab.pad_symbol()
+    pad_symbol = fields['labels'].vocab.pad_symbol_index()
     prediction_filtered, y_test_filtered = filter_out_padding(
         pad_symbol,
         prediction,

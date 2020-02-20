@@ -6,6 +6,7 @@ from collections import deque
 import numpy as np
 
 from takepod.preproc.tokenizers import get_tokenizer
+from takepod.storage.vocab import SpecialVocabSymbols
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -584,14 +585,25 @@ class Field:
 
         Returns
         -------
-            missing : iterable
-                empty numpy array if the field is sequential or numpy array with one
+            missing_symbol index or None
+                The index of the missing data token, if this field is numericalizable.
                 None value otherwise.
-        """
-        if self.is_sequential:
-            return np.empty(0)
 
-        return np.array([np.nan])
+        Raises
+        ------
+        ValueError
+            If missing data is not allowed in this field.
+        """
+        if not self.allow_missing_data:
+            error_msg = "Missing data not allowed in field {}".format(self.name)
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
+
+        if self.is_numericalizable:
+            return -1
+
+        else:
+            return None
 
     def numericalize(self, data):
         """Numericalize the already preprocessed data point based either on
@@ -608,8 +620,13 @@ class Field:
         Returns
         -------
         numpy array
-            Array of stoi indexes of the tokens.
+            Array of stoi indexes of the tokens, if data exists.
+            None, if data is missing and missing data is allowed.
 
+        Raises
+        ------
+        ValueError
+            If data is None and missing data is not allowed in this field.
         """
         raw, tokenized = data
 
@@ -620,7 +637,7 @@ class Field:
                 raise ValueError(error_msg)
 
             else:
-                return self.get_default_value()
+                return None
 
         # raw data is just a string, so we need to wrap it into an iterable
         tokens = tokenized if self.tokenize or self.store_as_tokenized else [raw]
@@ -673,7 +690,7 @@ class Field:
             # padding
 
             if self.use_vocab:
-                pad_symbol = self.vocab.pad_symbol()
+                pad_symbol = self.vocab.pad_symbol_index()
             else:
                 pad_symbol = custom_pad_symbol
 
@@ -873,7 +890,7 @@ class MultilabelField(TokenizedField):
 
         if self.use_vocab and len(self.vocab) > self.num_of_classes:
             error_msg = "Number of classes in data is greater than the declared number " \
-                        "of classes. Declared: {}, Actual: {}"\
+                        "of classes. Declared: {}, Actual: {}" \
                 .format(self.num_of_classes, len(self.vocab))
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
