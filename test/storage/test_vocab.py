@@ -401,3 +401,23 @@ def test_vocab_dict_default_factory_none_error():
     vocab_dict = vocab.VocabDict(default_factory=None)
     with pytest.raises(KeyError):
         vocab_dict["item_not_in_dict"]
+
+
+def test_reverse_numericalize():
+    words = ['first', 'second', 'third']
+
+    voc = vocab.Vocab()
+    voc += words
+    voc.finalize()
+
+    assert words == voc.reverse_numericalize(voc.numericalize(words))
+
+
+def test_reverse_numericalize_not_finalized():
+    words = ['first', 'second', 'third']
+
+    voc = vocab.Vocab()
+    voc += words
+
+    with pytest.raises(RuntimeError):
+        voc.reverse_numericalize(voc.numericalize(words))
