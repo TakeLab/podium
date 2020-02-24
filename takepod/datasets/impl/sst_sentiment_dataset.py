@@ -5,6 +5,7 @@ from takepod.storage.example_factory import ExampleFactory
 from takepod.storage.vocab import Vocab
 from takepod.storage.resources.large_resource import LargeResource
 
+
 class SST(Dataset):
     """The Stanford sentiment treebank dataset.
 
@@ -90,7 +91,7 @@ class SST(Dataset):
         examples = []
         with open(file=file_path, mode='r', encoding='utf8') as fpr:
             for line in fpr:
-              examples.append(example_factory.from_fields_tree(line))
+                examples.append(example_factory.from_fields_tree(line))
         return examples
 
     @staticmethod
