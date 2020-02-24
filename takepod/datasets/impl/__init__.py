@@ -1,4 +1,4 @@
-"""Package contains concrete datasets"""sst_sentiment_dataset
+"""Package contains concrete datasets"""
 
 from .pauza_dataset import PauzaHRDataset
 from .catacx_dataset import CatacxDataset
