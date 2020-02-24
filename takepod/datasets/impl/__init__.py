@@ -10,4 +10,3 @@ from .sst_sentiment_dataset import SST
 __all__ = ["BasicSupervisedImdbDataset", "CatacxDataset",
            "CornellMovieDialogsConversationalDataset", "EuroVocDataset", "PauzaHRDataset",
            "SST"]
-sst_sentiment_dataset
