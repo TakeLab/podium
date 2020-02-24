@@ -14,7 +14,8 @@ _LOGGER = logging.getLogger(__name__)
 
 class SNLISimple(Dataset):
     """
-    A SNLI Dataset class.
+    A Simple SNLI Dataset class. This class only uses three fields by default:
+    gold_label, sentence1, sentence2.
 
     Attributes
     ----------
@@ -33,6 +34,7 @@ class SNLISimple(Dataset):
         Name of the file in which the test dataset is stored.
     DEV_FILE_NAME : str
         Name of the file in which the dev (validation) dataset is stored.
+
     GOLD_LABEL_FIELD_NAME : str
         Name of the field containing gold label
     SENTENCE1_FIELD_NAME : str
@@ -163,7 +165,8 @@ class SNLISimple(Dataset):
 
 class SNLIDataset(SNLISimple):
     """
-    A SNLI Dataset class.
+    A SNLI Dataset class. Unlike `SNLISimple`, this class
+    includes all the fields included in the SNLI dataset by default.
 
     Attributes
     ----------
@@ -182,6 +185,7 @@ class SNLIDataset(SNLISimple):
         Name of the file in which the test dataset is stored.
     DEV_FILE_NAME : str
         Name of the file in which the dev (validation) dataset is stored.
+
     ANNOTATOR_LABELS_FIELD_NAME : str
         Name of the field containing annotator labels
     CAPTION_ID_FIELD_NAME : str
