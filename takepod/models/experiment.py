@@ -20,7 +20,8 @@ class Experiment:
 
     def __init__(self,
                  model: Union[Type[AbstractSupervisedModel], AbstractSupervisedModel],
-                 feature_transformer: FeatureTransformer = None,
+                 feature_transformer:
+                 Union[FeatureTransformer, Callable[[NamedTuple], np.array]] = None,
                  trainer: AbstractTrainer = None,
                  training_iterator_callable: Callable[[Dataset], Iterator] = None,
                  prediction_iterator_callable: Callable[[Dataset], Iterator] = None,
@@ -38,7 +39,14 @@ class Experiment:
             be created. For fine-tuning of the passed model instance call
             `partial_fit`.
             Must be a subclass of Podium's `AbstractSupervisedModel`
-
+        
+        feature_transformer : Union[FeatureTransformer, Callable[[NamedTuple], np.array]
+            FeatureTransformer that transforms the input part of the batch returned by the
+            iterator into features that can be fed into the model. Will also be fitted
+            during Experiment fitting.
+            A callable taking an input batch and returning a numpy array of features can
+            also be passed.
+        
         trainer : AbstractTrainer
             Trainer used to fit the model.
 
@@ -51,11 +59,6 @@ class Experiment:
             Tensors which are prediction results for seperate batches will be stacked into
             a single tensor before being returned. If passed None, a SingleBatchIterator
             will be used as a default.
-
-        feature_transformer : FeatureTransformer
-            FeatureTransformer that transforms the input part of the batch returned by the
-            iterator into features that can be fed into the model. Will also be fitted
-            during Experiment fitting.
 
         label_transform_fun : Callable[[NamedTuple], np.ndarray]
             Callable that transforms the target part of the batch returned by the iterator
@@ -84,9 +87,14 @@ class Experiment:
         else:
             self.prediction_iterator_callable = prediction_iterator_callable
 
-        self.feature_transformer = feature_transformer \
-            if feature_transformer is not None \
-            else FeatureTransformer(default_feature_transform)
+        if feature_transformer is None:
+            self.feature_transformer = FeatureTransformer(default_feature_transform)
+
+        elif callable(feature_transformer):
+            self.feature_transformer = FeatureTransformer(feature_transformer)
+
+        else:
+            self.feature_transformer = feature_transformer
 
         self.label_transform_fun = label_transform_fun \
             if label_transform_fun is not None \
