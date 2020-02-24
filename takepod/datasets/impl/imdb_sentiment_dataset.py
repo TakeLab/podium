@@ -201,7 +201,7 @@ class BasicSupervisedImdbDataset(Dataset):
             Dictionary mapping field name to field.
         """
         text = Field(name=BasicSupervisedImdbDataset.TEXT_FIELD_NAME, vocab=Vocab(),
-                     tokenizer='split', language="hr", tokenize=True,
+                     tokenizer='split', language="en", tokenize=True,
                      store_as_raw=False)
         label = Field(name=BasicSupervisedImdbDataset.LABEL_FIELD_NAME,
                       vocab=Vocab(specials=()), tokenize=False, is_target=True)
