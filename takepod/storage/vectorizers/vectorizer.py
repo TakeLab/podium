@@ -227,6 +227,7 @@ class BasicVectorStorage(VectorStorage):
             raise ValueError(error_msg)
         self._load_vectors(vocab=vocab)
         _LOGGER.debug("Loaded vectors for vocab.")
+        return self.get_embedding_matrix(vocab)
 
     def token_to_vector(self, token):
         if not self._initialized:
