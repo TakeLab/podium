@@ -162,7 +162,7 @@ class VectorStorage(ABC):
         """
         pass
 
-    def get_embedding_matrix(self, vocab):
+    def get_embedding_matrix(self, vocab=None):
         """Method constructs embedding matrix.
 
         Parameters
@@ -170,12 +170,16 @@ class VectorStorage(ABC):
         vocab : iter(token)
             collection of tokens for creation of embedding matrix
             default use case is to give this function vocab or itos list
+            or `None` if you wish to retrieve all loaded vectors.
 
         Raises
         ------
         RuntimeError
             if vector storage is not initialized
         """
+        if vocab is None:
+            # Retrieve all loaded vectors
+            vocab = list(self._vectors.keys())
         return np.vstack([self.token_to_vector(token) for token in vocab])
 
     def __str__(self):
