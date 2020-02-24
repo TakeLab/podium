@@ -85,6 +85,7 @@ class TabularDataset(Dataset):
 
         # create a Dataset with lists of examples and fields
         super(TabularDataset, self).__init__(examples, fields, **kwargs)
+        self.finalize_fields()
 
 
 def create_examples(reader, format, fields, skip_header):

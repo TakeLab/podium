@@ -194,7 +194,8 @@ class Field:
                  custom_numericalize=None,
                  is_target=False,
                  fixed_length=None,
-                 allow_missing_data=False
+                 allow_missing_data=False,
+                 missing_data_token=-1
                  ):
         """Create a Field from arguments.
 
@@ -269,10 +270,12 @@ class Field:
             is false and None is sent to be preprocessed, an ValueError will be raised.
             If 'allow_missing_data' is True, if a None is sent to be preprocessed, it will
             be stored and later numericalized properly.
-            If the field is sequential the numericalization of a missing data field will
-            be an empty numpy Array, else the numericalization will be a numpy Array
-            containing a single np.Nan ([np.Nan])
             Default: False
+        missing_data_token : number
+            Token to use to mark batch rows as missing. If data for a field is missing,
+            its matrix row will be filled with this value. For non numericalizable fields,
+            this parameter is ignored and the value will be None.
+            Default: -1
 
         Raises
         ------
@@ -332,6 +335,7 @@ class Field:
         self.pretokenize_pipeline = PretokenizationPipeline()
         self.posttokenize_pipeline = PosttokenizationPipeline()
         self.allow_missing_data = allow_missing_data
+        self.missing_data_token = missing_data_token
 
     @property
     def use_vocab(self):
@@ -600,7 +604,7 @@ class Field:
             raise ValueError(error_msg)
 
         if self.is_numericalizable:
-            return -1
+            return self.missing_data_token
 
         else:
             return None

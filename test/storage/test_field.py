@@ -684,7 +684,7 @@ def test_missing_values_default_sequential():
     assert data_exists == (None, ["data_string"])
     fld.finalize()
 
-    assert np.all(fld.numericalize(data_missing) == np.empty(0))
+    assert fld.numericalize(data_missing) is None
     assert np.all(fld.numericalize(data_exists) == np.array([hash("data_string")]))
 
 
