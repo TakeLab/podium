@@ -266,19 +266,26 @@ class Iterator:
                         missing_data_symbol_index = field.get_default_value()
                         # TODO cache missing data
                         #      row for batch to avoid multiple instantiations?
-                        row = np.full(pad_length, missing_data_symbol_index)
+
+                        if matrix is None:
+                            # Create matrix of the correct dtype
+                            matrix = np.empty(shape=(n_rows, pad_length),
+                                              dtype=type(missing_data_symbol_index))
+
+                        matrix[i] = missing_data_symbol_index
 
                     else:
                         row = data
                         if should_pad:
                             row = field.pad_to_length(row, pad_length)
 
-                    if matrix is None:
-                        # Create matrix of the correct dtype
-                        matrix = np.empty(shape=(n_rows, pad_length), dtype=row.dtype)
+                        if matrix is None:
+                            # Create matrix of the correct dtype
+                            matrix = np.empty(shape=(n_rows, pad_length),
+                                              dtype=row.dtype)
 
-                    # set the matrix row to the numericalized, padded array
-                    matrix[i] = row
+                        # set the matrix row to the numericalized, padded array
+                        matrix[i] = row
 
                 batch_feature = matrix
 
