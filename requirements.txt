@@ -26,3 +26,4 @@ urllib3==1.23
 wget==3.2
 paramiko==2.4.2
 dill==0.2.8.2
+nltk>=3.0
