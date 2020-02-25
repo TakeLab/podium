@@ -1,10 +1,9 @@
 import os
 from takepod.datasets.dataset import Dataset
 from takepod.storage.field import Field
-from takepod.storage.example_factory import ExampleFactory
+from takepod.storage.example_factory import ExampleFactory, set_example_attributes
 from takepod.storage.vocab import Vocab
 from takepod.storage.resources.large_resource import LargeResource
-
 
 class SST(Dataset):
     """The Stanford sentiment treebank dataset.
@@ -19,16 +18,14 @@ class SST(Dataset):
         name of the folder in the dataset containing train and test directories
     ARCHIVE_TYPE : str
         string that defines archive type, used for unpacking dataset
-    TRAIN_FILE : str
-        string that defines the name of the train file in the directory
-    VALID_FILE : str
-        string that defines the name of the validation file in the directory
-    TEST_FILE : str
-        string that defines the name of the test file in the directory
     TEXT_FIELD_NAME : str
         name of the field containing comment text
     LABEL_FIELD_NAME : str
         name of the field containing label value
+    POSITIVE_LABEL : int
+        positive sentiment label
+    NEGATIVE_LABEL : int
+        negative sentiment label
     """
 
     NAME = "sst"
@@ -43,7 +40,7 @@ class SST(Dataset):
     TEXT_FIELD_NAME = "text"
     LABEL_FIELD_NAME = "label"
 
-    def __init__(self, file_path, fields):
+    def __init__(self, file_path, fields, fine_grained=False):
         """
         Dataset constructor. User should use static method
         get_train_test_dataset rather than using directly constructor.
@@ -60,12 +57,12 @@ class SST(Dataset):
             LargeResource.RESOURCE_NAME: SST.NAME,
             LargeResource.ARCHIVE: SST.ARCHIVE_TYPE,
             LargeResource.URI: SST.URL})
-        examples = self._create_examples(file_path=file_path, fields=fields)
+        examples = self._create_examples(file_path=file_path, fields=fields, fine_grained=fine_grained)
         super(SST, self).__init__(
             **{"examples": examples, "fields": fields})
 
     @staticmethod
-    def _create_examples(file_path, fields):
+    def _create_examples(file_path, fields, fine_grained):
         """
         Method creates examples for the sst dataset. Examples are arranged in two
         folders, one for examples with positive sentiment and other with negative
@@ -83,19 +80,22 @@ class SST(Dataset):
         examples : list(Example)
             list of examples from given dir_path
         """
+        fields_as_list = [fields[SST.TEXT_FIELD_NAME], fields[SST.LABEL_FIELD_NAME]]
+        example_factory = ExampleFactory(fields_as_list)
 
-        # Fields should be mapped to a list since `from_tree` ends up calling `from_list`
-        if isinstance(fields, dict):
-            fields = list(fields.values())
-        example_factory = ExampleFactory(fields)
         examples = []
         with open(file=file_path, mode='r', encoding='utf8') as fpr:
             for line in fpr:
-                examples.append(example_factory.from_fields_tree(line))
+                example = example_factory.from_fields_tree(line)
+                label, _ = getattr(example, SST.LABEL_FIELD_NAME)
+                # TODO @mttk: Check if this can be done cleaner
+                label_str = get_label_str(label, fine_grained)
+                set_example_attributes(example, fields[SST.LABEL_FIELD_NAME], label_str)
+                examples.append(example)
         return examples
 
     @staticmethod
-    def get_dataset_splits(fields=None):
+    def get_dataset_splits(fields=None, fine_grained=False):
         """Method loads and creates dataset splits for the SST dataset.
 
         Parameters
@@ -118,17 +118,17 @@ class SST(Dataset):
         train_dataset = SST(
             file_path=os.path.join(
                 data_location, SST.TRAIN_FILE),
-            fields=fields)
+            fields=fields, fine_grained=fine_grained)
 
         valid_dataset = SST(
             file_path=os.path.join(
                 data_location, SST.VALID_FILE),
-            fields=fields)
+            fields=fields, fine_grained=fine_grained)
 
         test_dataset = SST(
             file_path=os.path.join(
                 data_location, SST.TEST_FILE),
-            fields=fields)
+            fields=fields, fine_grained=fine_grained)
 
         train_dataset.finalize_fields()
         return (train_dataset, valid_dataset, test_dataset)
@@ -149,3 +149,8 @@ class SST(Dataset):
                       vocab=Vocab(specials=()), tokenize=False, is_target=True)
         return {SST.TEXT_FIELD_NAME: text,
                 SST.LABEL_FIELD_NAME: label}
+
+def get_label_str(label, fine_grained):
+    pre = 'very ' if fine_grained else ''
+    return {'0': pre + 'negative', '1': 'negative', '2': 'neutral',
+            '3': 'positive', '4': pre + 'positive'}[label]
