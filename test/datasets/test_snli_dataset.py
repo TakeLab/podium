@@ -6,7 +6,7 @@ from takepod.datasets.dataset import Dataset
 from takepod.storage.resources.large_resource import LargeResource
 
 
-# TODO: Add full test examples once LabelField is merged.
+# TODO: Add full test examples once LabelField is merged to master.
 
 TRAIN_EXAMPLES_SIMPLE = [
     '{"gold_label": "neutral", "sentence1": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.", '
