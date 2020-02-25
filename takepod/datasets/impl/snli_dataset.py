@@ -152,7 +152,7 @@ class SNLISimple(Dataset):
         """
 
         gold_label = Field(name=SNLISimple.GOLD_LABEL_FIELD_NAME, vocab=Vocab(),
-                           tokenize=False, store_as_raw=True)
+                           tokenize=False, store_as_raw=True, is_target=True)
         sentence1 = Field(name=SNLISimple.SENTENCE1_FIELD_NAME, vocab=Vocab(),
                           tokenizer="split", tokenize=True, store_as_raw=False)
         sentence2 = Field(name=SNLISimple.SENTENCE2_FIELD_NAME, vocab=Vocab(),
