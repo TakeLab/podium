@@ -39,14 +39,14 @@ class Experiment:
             be created. For fine-tuning of the passed model instance call
             `partial_fit`.
             Must be a subclass of Podium's `AbstractSupervisedModel`
-        
+
         feature_transformer : Union[FeatureTransformer, Callable[[NamedTuple], np.array]
             FeatureTransformer that transforms the input part of the batch returned by the
             iterator into features that can be fed into the model. Will also be fitted
             during Experiment fitting.
             A callable taking an input batch and returning a numpy array of features can
             also be passed.
-        
+
         trainer : AbstractTrainer
             Trainer used to fit the model.
 
