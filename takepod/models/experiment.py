@@ -286,4 +286,4 @@ class Experiment:
 
     def __str__(self):
         return "{}[model: {}, trainer: {}]".format(
-            self.__class__.__name__, self.model, self.trainer)
+            self.__class__.__name__, str(self.model), str(self.trainer))
