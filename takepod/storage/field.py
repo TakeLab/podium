@@ -298,7 +298,11 @@ class Field:
         self.eager = eager
         self.vocab = vocab
 
-        self.tokenizer = get_tokenizer(tokenizer, language)
+        if tokenize:
+            self.tokenizer = get_tokenizer(tokenizer, language)
+        else:
+            self.tokenizer = None
+
         self.custom_numericalize = custom_numericalize
 
         self.is_target = is_target
