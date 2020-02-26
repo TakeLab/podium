@@ -353,6 +353,11 @@ class Iterator:
 
         return xs
 
+    def __str__(self):
+        return "{}[batch_size: {}, batch_to_matrix: {}, sort_key: {}, shuffle: {}]"\
+            .format(self.__class__.__name__, self.batch_size, self.batch_to_matrix,
+                    self.sort_key, self.shuffle)
+
 
 class SingleBatchIterator(Iterator):
     """ Iterator that creates one batch per epoch
@@ -486,6 +491,13 @@ class BucketIterator(Iterator):
         # prepare for new epoch
         self.iterations = 0
         self.epoch += 1
+
+    def __str__(self):
+        return "{}[batch_size: {}, batch_to_matrix: {}, sort_key: {}, " \
+            "shuffle: {}, look_ahead_multiplier: {}, bucket_sort_key: {}]".format(
+                self.__class__.__name__, self.batch_size,
+                self.batch_to_matrix, self.sort_key, self.shuffle,
+                self.look_ahead_multiplier, self.bucket_sort_key)
 
 
 class HierarchicalDatasetIterator(Iterator):
@@ -710,3 +722,10 @@ class HierarchicalDatasetIterator(Iterator):
             dataset_nodes.sort(key=lambda node: self.sort_key(node.example))
 
         return dataset_nodes
+
+    def __str__(self):
+        return "{}[batch_size: {}, batch_to_matrix: {}, sort_key: {}, " \
+            "shuffle: {}, context_max_length: {}, context_max_depth: {}]".format(
+                self.__class__.__name__, self.batch_size,
+                self.batch_to_matrix, self.sort_key, self.shuffle,
+                self._context_max_size, self._context_max_depth)

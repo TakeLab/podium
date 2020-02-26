@@ -433,6 +433,11 @@ class Dataset(ABC):
 
         random.shuffle(self.examples)
 
+    def __str__(self):
+        fields = [field.name for field in self.fields]
+        return "{}[Size: {}, Fields: {}]".format(
+            self.__class__.__name__, len(self.examples), fields)
+
 
 def check_split_ratio(split_ratio):
     """Checks that the split ratio argument is not malformed and if not

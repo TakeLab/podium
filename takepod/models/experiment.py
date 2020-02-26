@@ -283,3 +283,7 @@ class Experiment:
                      "the constructor or call `fit` before calling `partial_fit.`"
             _LOGGER.error(errmsg)
             raise RuntimeError(errmsg)
+
+    def __str__(self):
+        return "{}[model: {}, trainer: {}]".format(
+            self.__class__.__name__, self.model, self.trainer)
