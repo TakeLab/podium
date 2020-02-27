@@ -153,6 +153,14 @@ class CountVectorizer:
                         "or by providing field with a non-empty vocab property."
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
+
+        if field and field.allow_missing_data:
+            error_msg = "CountVectorizer doesn't support fields that " \
+                        "contain missing data: " \
+                        "{}, field: {}".format(str(dataset), str(field))
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
+
         self._vocab = field.vocab if self._vocab is None else self._vocab
         self._init_special_indexes()
         self._fitted = True

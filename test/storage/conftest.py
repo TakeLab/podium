@@ -61,20 +61,32 @@ def tabular_dataset(json_file_path):
 @pytest.fixture()
 def tabular_dataset_fields(fixed_length=None):
     text = Field('text', eager=True, vocab=Vocab(),
-                 fixed_length=fixed_length, allow_missing_data=True)
+                 fixed_length=fixed_length, allow_missing_data=False)
+    text_missing = Field('text_with_missing_data', eager=True, vocab=Vocab(),
+                         fixed_length=fixed_length, allow_missing_data=True)
     rating = Field('rating', tokenize=False, eager=False, is_target=True,
                    custom_numericalize=float)
 
-    fields = {"text": text, "rating": rating}
+    fields = {"text": text, "text_with_missing_data": text_missing, "rating": rating}
 
     return fields
 
+
+TABULAR_TEXT_WITH_MISSING = (
+    "a b c",
+    "a",
+    "a b c d",
+    None,
+    "d b",
+    "d c g",
+    "b b b b b b"
+)
 
 TABULAR_TEXT = (
     "a b c",
     "a",
     "a b c d",
-    None,
+    "a",
     "d b",
     "d c g",
     "b b b b b b"
@@ -87,6 +99,7 @@ TABULAR_RATINGS = (2.5, 3.2, 1.1, 2.1, 5.4, 2.8, 1.9)
 def tabular_data():
     return {
         "text": TABULAR_TEXT,
+        "text_with_missing_data": TABULAR_TEXT_WITH_MISSING,
         "rating": TABULAR_RATINGS,
     }
 
