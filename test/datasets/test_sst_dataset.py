@@ -8,8 +8,8 @@ from takepod.storage.resources.large_resource import LargeResource
 
 EXPECTED_TRAIN_EXAMPLES = [
     {"text": ("The Rock is destined to be the 21st Century 's new `` Conan ''"
-            " and that he 's going to make a splash even greater than "
-            "Arnold Schwarzenegger , Jean-Claud Van Damme or Steven Segal .").split(),
+              " and that he 's going to make a splash even greater than "
+              "Arnold Schwarzenegger , Jean-Claud Van Damme or Steven Segal .").split(),
      "label": "positive"},
     {"text": "This is n't a new idea .".split(),
      "label": "negative"}
@@ -46,15 +46,17 @@ def create_examples(file_name, raw_examples):
         for example in raw_examples:
             fpr.write(example + "\n")
 
+
 def test_default_fields():
-  fields = SST.get_default_fields()
-  assert len(fields) == 2
-  field_names = [SST.TEXT_FIELD_NAME, SST.LABEL_FIELD_NAME]
-  assert all([name in fields for name in field_names])
-  # Label field is a target
-  assert fields[SST.LABEL_FIELD_NAME].is_target
-  # Text field is not a target
-  assert not fields[SST.TEXT_FIELD_NAME].is_target
+    fields = SST.get_default_fields()
+    assert len(fields) == 2
+    field_names = [SST.TEXT_FIELD_NAME, SST.LABEL_FIELD_NAME]
+    assert all([name in fields for name in field_names])
+    # Label field is a target
+    assert fields[SST.LABEL_FIELD_NAME].is_target
+    # Text field is not a target
+    assert not fields[SST.TEXT_FIELD_NAME].is_target
+
 
 def test_load_dataset(mock_dataset_path):
     train_dataset = SST(file_path=mock_dataset_path, fields=SST.get_default_fields())
@@ -62,5 +64,5 @@ def test_load_dataset(mock_dataset_path):
 
     assert len(train_dataset) == 2
     for ex in train_dataset:
-      ex_data = {"text": ex.text[1], "label": ex.label[0]}
-      assert ex_data in EXPECTED_TRAIN_EXAMPLES
+        ex_data = {"text": ex.text[1], "label": ex.label[0]}
+        assert ex_data in EXPECTED_TRAIN_EXAMPLES
