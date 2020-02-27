@@ -189,6 +189,7 @@ class Field:
                  store_as_raw=True,
                  store_as_tokenized=False,
                  eager=True,
+                 is_numericalizable=True,
                  custom_numericalize=None,
                  is_target=False,
                  fixed_length=None,
@@ -238,6 +239,20 @@ class Field:
         eager : bool
             Whether to build the vocabulary online, each time the field
             preprocesses raw data.
+        is_numericalizable : bool
+            Whether the output of tokenizer can be numericalized.
+
+            If true, the output of the tokenizer is presumed to be a list of tokens and
+            will be numericalized using the provided Vocab or custom_numericalize.
+            For numericalizable fields, Iterator will generate batch fields containing
+             numpy matrices.
+
+             If false, the out of the tokenizer is presumed to be a custom datatype.
+             Posttokenization hooks aren't allowed to be added as they can't be called
+             on custom datatypes. For non-numericalizable fields, Iterator will generate
+             batch fields containing lists of these custom data type instances returned
+             by the tokenizer.
+
         custom_numericalize : callable
             The numericalization function that will be called if the field
             doesn't use a vocabulary.
@@ -268,6 +283,7 @@ class Field:
         self.name = name
         self.language = language
         self._tokenizer_arg = tokenizer
+        self.is_numericalizable = is_numericalizable
 
         if store_as_tokenized and tokenize:
             error_msg = "Store_as_tokenized' and 'tokenize' both set to True." \
@@ -290,7 +306,15 @@ class Field:
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
-        self.sequential = store_as_tokenized or tokenize
+        if not is_numericalizable \
+                and (custom_numericalize is not None or vocab is not None):
+            error_msg = "Field that is not numericalizable can't have " \
+                        "custom_numericalize or vocab."
+
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
+
+        self.is_sequential = (store_as_tokenized or tokenize) and is_numericalizable
         self.store_as_raw = store_as_raw
         self.tokenize = tokenize
         self.store_as_tokenized = store_as_tokenized
@@ -377,6 +401,11 @@ class Field:
         hook : callable
             The post-tokenization hook that we want to add to the field.
         """
+        if not self.is_numericalizable:
+            error_msg = "Field is declared as non numericalizable. Posttokenization " \
+                        "hooks aren't used in such fields."
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
 
         self.posttokenize_pipeline.add_hook(hook)
 
@@ -521,7 +550,8 @@ class Field:
             the data and tokens processed by posttokenization hooks.
         """
 
-        data, tokens = self._run_posttokenization_hooks(data, tokens)
+        if self.is_numericalizable:
+            data, tokens = self._run_posttokenization_hooks(data, tokens)
 
         if self.eager and self.use_vocab and not self.vocab.finalized:
             self.update_vocab(data, tokens)
@@ -562,7 +592,7 @@ class Field:
                 empty numpy array if the field is sequential or numpy array with one
                 None value otherwise.
         """
-        if self.sequential:
+        if self.is_sequential:
             return np.empty(0)
 
         return np.array([np.nan])
@@ -599,7 +629,11 @@ class Field:
         # raw data is just a string, so we need to wrap it into an iterable
         tokens = tokenized if self.tokenize or self.store_as_tokenized else [raw]
 
-        return self._numericalize_tokens(tokens)
+        if self.is_numericalizable:
+            return self._numericalize_tokens(tokens)
+
+        else:
+            return tokens
 
     def pad_to_length(self, row, length, custom_pad_symbol=None,
                       pad_left=False, truncate_left=False):
@@ -721,8 +755,8 @@ class Field:
         self.tokenizer = get_tokenizer(self._tokenizer_arg, self.language)
 
     def __str__(self):
-        return "{}[name: {}, sequential: {}, is_target: {}]".format(
-            self.__class__.__name__, self.name, self.sequential, self.is_target)
+        return "{}[name: {}, is_sequential: {}, is_target: {}]".format(
+            self.__class__.__name__, self.name, self.is_sequential, self.is_target)
 
     def get_output_fields(self):
         """Returns an Iterable of the contained output fields.
@@ -876,8 +910,8 @@ class MultilabelField(TokenizedField):
 
         if self.use_vocab and len(self.vocab) > self.num_of_classes:
             error_msg = "Number of classes in data is greater than the declared number " \
-                        "of classes. Declared: {}, Actual: {}".format(
-                            self.num_of_classes, len(self.vocab))
+                        "of classes. Declared: {}, Actual: {}"\
+                .format(self.num_of_classes, len(self.vocab))
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
