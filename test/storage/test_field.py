@@ -631,12 +631,12 @@ def test_multilabel_field_class_count():
 @pytest.mark.parametrize("tokens, expected_numericalization",
                          [
                              (
-                                     ["class1", "class2", "class3", "class4"],
-                                     np.array([1, 1, 1, 1, 0, 0])
+                                 ["class1", "class2", "class3", "class4"],
+                                 np.array([1, 1, 1, 1, 0, 0])
                              ),
                              (
-                                     [],
-                                     np.array([0, 0, 0, 0, 0, 0])
+                                 [],
+                                 np.array([0, 0, 0, 0, 0, 0])
                              )
                          ])
 def test_multilabel_field_custom_numericalization(tokens, expected_numericalization):
