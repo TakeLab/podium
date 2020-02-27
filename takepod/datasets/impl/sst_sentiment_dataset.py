@@ -5,6 +5,7 @@ from takepod.storage.example_factory import ExampleFactory, set_example_attribut
 from takepod.storage.vocab import Vocab
 from takepod.storage.resources.large_resource import LargeResource
 
+
 class SST(Dataset):
     """The Stanford sentiment treebank dataset.
 
@@ -43,7 +44,7 @@ class SST(Dataset):
     def __init__(self, file_path, fields, fine_grained=False):
         """
         Dataset constructor. User should use static method
-        get_train_test_dataset rather than using directly constructor.
+        get_dataset_splits rather than using the constructor directly.
 
         Parameters
         ----------
@@ -57,7 +58,8 @@ class SST(Dataset):
             LargeResource.RESOURCE_NAME: SST.NAME,
             LargeResource.ARCHIVE: SST.ARCHIVE_TYPE,
             LargeResource.URI: SST.URL})
-        examples = self._create_examples(file_path=file_path, fields=fields, fine_grained=fine_grained)
+        examples = self._create_examples(file_path=file_path, fields=fields,
+                                         fine_grained=fine_grained)
         super(SST, self).__init__(
             **{"examples": examples, "fields": fields})
 
@@ -149,6 +151,7 @@ class SST(Dataset):
                       vocab=Vocab(specials=()), tokenize=False, is_target=True)
         return {SST.TEXT_FIELD_NAME: text,
                 SST.LABEL_FIELD_NAME: label}
+
 
 def get_label_str(label, fine_grained):
     pre = 'very ' if fine_grained else ''
