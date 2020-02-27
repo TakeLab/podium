@@ -73,7 +73,7 @@ def test_field_preprocess_eager():
 
 
 @pytest.mark.parametrize(
-    "value, store_raw, sequential, expected_raw_value, "
+    "value, store_raw, is_sequential, expected_raw_value, "
     "expected_tokenized_value",
     [
         ("some text", True, True, "some text", ["some", "text"]),
@@ -81,10 +81,10 @@ def test_field_preprocess_eager():
         ("some text", False, True, None, ["some", "text"]),
     ]
 )
-def test_field_preprocess_raw_sequential(value, store_raw, sequential,
+def test_field_preprocess_raw_sequential(value, store_raw, is_sequential,
                                          expected_raw_value,
                                          expected_tokenized_value):
-    f = Field(name="F", store_as_raw=store_raw, tokenize=sequential)
+    f = Field(name="F", store_as_raw=store_raw, tokenize=is_sequential)
 
     (_, (received_raw_value, received_tokenized_value)), = f.preprocess(value)
 
@@ -93,7 +93,7 @@ def test_field_preprocess_raw_sequential(value, store_raw, sequential,
 
 
 @pytest.mark.parametrize(
-    "value, store_raw, sequential, expected_raw_value, "
+    "value, store_raw, is_sequential, expected_raw_value, "
     "expected_tokenized_value",
     [
         ("some text", True, True, "some text", ["some", "text"]),
@@ -101,10 +101,10 @@ def test_field_preprocess_raw_sequential(value, store_raw, sequential,
         ("some text", False, True, None, ["some", "text"]),
     ]
 )
-def test_field_pickle_tokenized(value, store_raw, sequential,
+def test_field_pickle_tokenized(value, store_raw, is_sequential,
                                 expected_raw_value,
                                 expected_tokenized_value, tmpdir):
-    fld = Field(name="F", store_as_raw=store_raw, tokenize=sequential)
+    fld = Field(name="F", store_as_raw=store_raw, tokenize=is_sequential)
 
     (_, (received_raw_value, received_tokenized_value)), = fld.preprocess(value)
 
@@ -124,7 +124,7 @@ def test_field_pickle_tokenized(value, store_raw, sequential,
         assert tokenized_value == expected_tokenized_value
         assert loaded_fld.name == "F"
         assert loaded_fld.store_as_raw == store_raw
-        assert loaded_fld.sequential == sequential
+        assert loaded_fld.is_sequential == is_sequential
 
 
 @pytest.mark.parametrize(
@@ -141,7 +141,7 @@ def test_field_use_vocab(vocab, expected_value):
 
 
 @pytest.mark.parametrize(
-    "use_vocab, sequential, expected_vocab_values",
+    "use_vocab, is_sequential, expected_vocab_values",
     [
         (False, False, []),
         (False, True, []),
@@ -149,10 +149,10 @@ def test_field_use_vocab(vocab, expected_value):
         (True, True, ["some", "text"]),
     ]
 )
-def test_field_update_vocab(use_vocab, sequential, expected_vocab_values):
+def test_field_update_vocab(use_vocab, is_sequential, expected_vocab_values):
     vocab = MockVocab()
     f = Field(name="F", vocab=vocab if use_vocab else None,
-              tokenize=sequential)
+              tokenize=is_sequential)
 
     raw_value = "some text"
     tokenized_value = ["some", "text"]

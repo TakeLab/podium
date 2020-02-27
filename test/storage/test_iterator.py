@@ -1,5 +1,4 @@
 import random
-import copy
 
 from test.storage.conftest import (
     create_tabular_dataset_from_json, tabular_dataset_fields, TABULAR_TEXT)
@@ -113,6 +112,34 @@ def test_create_batch(tabular_dataset):
         else:
             assert x_batch.text.shape[0] == batch_size
             assert y_batch.rating.shape[0] == batch_size
+
+
+@pytest.mark.usefixtures("json_file_path")
+def test_not_numericalizable_field(json_file_path):
+    class MockCustomDataClass:
+
+        def __init__(self, data):
+            self.data = data
+
+    def custom_datatype_tokenizer(data):
+        return MockCustomDataClass(data)
+
+    fields = tabular_dataset_fields()
+    text_field = fields['text']
+    non_numericalizable_field = Field("non_numericalizable_field",
+                                      tokenizer=custom_datatype_tokenizer,
+                                      is_numericalizable=False)
+
+    fields['text'] = (text_field, non_numericalizable_field)
+
+    dataset = create_tabular_dataset_from_json(fields, json_file_path)
+    dataset.finalize_fields()
+
+    for x_batch, _ in Iterator(dataset, batch_size=len(dataset)):
+        assert isinstance(x_batch.non_numericalizable_field, (list, tuple))
+        for batch_data, real_data in zip(x_batch.non_numericalizable_field, TABULAR_TEXT):
+            assert isinstance(batch_data, MockCustomDataClass)
+            assert batch_data.data == real_data
 
 
 @pytest.mark.usefixtures("tabular_dataset")
@@ -337,44 +364,6 @@ def np_arrays_equal(arr_1, arr_2):
         arrs_equal = arrs_equal.all()
 
     return arrs_equal
-
-
-@pytest.mark.usefixtures("tabular_dataset")
-def test_batch_as_vector_list(tabular_dataset):
-    tabular_dataset.finalize_fields()
-    text_vocab = tabular_dataset.field_dict["text"].vocab
-
-    # case where we have both input and target fields
-    iterator = Iterator(tabular_dataset, batch_size=3, batch_to_matrix=False)
-
-    example_index = 0
-    for x_batch, y_batch in iterator:
-        assert isinstance(x_batch.text, list)
-        assert isinstance(y_batch.rating, list)
-
-        for x, y in zip(x_batch.text, y_batch.rating):
-            example = tabular_dataset[example_index]
-            assert all(x == text_vocab.numericalize(example.text[1]))
-            assert y == [example.rating[0]]
-            example_index += 1
-
-    # case where we have only input fields
-    tabular_dataset = copy.deepcopy(tabular_dataset)
-    tabular_dataset.field_dict["rating"].is_target = False
-
-    iterator = Iterator(tabular_dataset, batch_size=3, batch_to_matrix=False)
-
-    example_index = 0
-    for x_batch, y_batch in iterator:
-        assert isinstance(x_batch.text, list)
-        assert isinstance(x_batch.rating, list)
-        assert not y_batch
-
-        for example_text, example_rating in zip(x_batch.text, x_batch.rating):
-            example = tabular_dataset[example_index]
-            assert all(example_text == text_vocab.numericalize(example.text[1]))
-            assert example_rating == [example.rating[0]]
-            example_index += 1
 
 
 @pytest.fixture()
