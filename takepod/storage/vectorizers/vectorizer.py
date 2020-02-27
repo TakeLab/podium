@@ -165,12 +165,17 @@ class VectorStorage(ABC):
     def get_embedding_matrix(self, vocab=None):
         """Method constructs embedding matrix.
 
+        Note: From python 3.6 dictionaries preserve insertion order
+        https://docs.python.org/3.6/whatsnew/3.6.html#other-language-changes
+
         Parameters
         ----------
         vocab : iter(token)
             collection of tokens for creation of embedding matrix
             default use case is to give this function vocab or itos list
-            or `None` if you wish to retrieve all loaded vectors.
+            or `None` if you wish to retrieve all loaded vectors. In case
+            `None` is returned, the order of vectors is the same as the
+            insertion order of loaded vectors in `VectorStorage`.
 
         Raises
         ------
