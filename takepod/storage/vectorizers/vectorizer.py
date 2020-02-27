@@ -35,6 +35,7 @@ def zeros_default_vector(token, dim):
         raise ValueError(error_msg)
     return np.zeros(dim)
 
+
 def random_normal_default_vector(token, dim):
     """Draw a random vector from a standard normal distribution.
     Dimension of returned array is equal to given dim.
