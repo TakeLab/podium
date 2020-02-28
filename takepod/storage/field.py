@@ -796,7 +796,8 @@ class LabelField(Field):
                  vocab=None,
                  eager=True,
                  custom_numericalize=None,
-                 allow_missing_data=False
+                 allow_missing_data=False,
+                 missing_data_token=-1
                  ):
         if vocab is not None and vocab.has_specials:
             error_msg = "Vocab contains special symbols." \
@@ -816,9 +817,8 @@ class LabelField(Field):
                          custom_numericalize=custom_numericalize,
                          is_target=True,
                          fixed_length=1,
-                         allow_missing_data=allow_missing_data
-                         # TODO add default missing value token when merged
-                         #  with missing value branch
+                         allow_missing_data=allow_missing_data,
+                         missing_data_token=missing_data_token
                          )
 
 
@@ -835,7 +835,8 @@ class TokenizedField(Field):
                  custom_numericalize=None,
                  is_target=False,
                  fixed_length=None,
-                 allow_missing_data=False):
+                 allow_missing_data=False,
+                 missing_data_token=-1):
         super().__init__(
             name=name,
             vocab=vocab,
@@ -846,7 +847,8 @@ class TokenizedField(Field):
             custom_numericalize=custom_numericalize,
             is_target=is_target,
             fixed_length=fixed_length,
-            allow_missing_data=allow_missing_data
+            allow_missing_data=allow_missing_data,
+            missing_data_token=missing_data_token
         )
 
 
@@ -860,8 +862,9 @@ class MultilabelField(TokenizedField):
                  num_of_classes=None,
                  vocab=None,
                  eager=True,
+                 custom_numericalize=None,
                  allow_missing_data=False,
-                 custom_numericalize=None):
+                 missing_data_token=-1):
         """Create a MultilabelField from arguments.
 
                 Parameters
@@ -921,7 +924,8 @@ class MultilabelField(TokenizedField):
                          custom_numericalize=custom_numericalize,
                          is_target=True,
                          fixed_length=num_of_classes,
-                         allow_missing_data=allow_missing_data)
+                         allow_missing_data=allow_missing_data,
+                         missing_data_token=missing_data_token)
 
     def finalize(self):
         super().finalize()
