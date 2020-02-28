@@ -7,7 +7,8 @@ import logging
 import os
 
 from takepod.datasets import Dataset
-from takepod.storage import LargeResource, ExampleFactory, Field, Vocab, MultilabelField, LabelField, TokenizedField
+from takepod.storage import LargeResource, ExampleFactory, Field, \
+    Vocab, LabelField, TokenizedField
 
 _LOGGER = logging.getLogger(__name__)
 
