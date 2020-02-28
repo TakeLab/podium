@@ -325,7 +325,11 @@ class Field:
         self.eager = eager
         self.vocab = vocab
 
-        self.tokenizer = get_tokenizer(tokenizer, language)
+        if tokenize:
+            self.tokenizer = get_tokenizer(tokenizer, language)
+        else:
+            self.tokenizer = None
+
         self.custom_numericalize = custom_numericalize
 
         self.is_target = is_target
@@ -783,6 +787,39 @@ class Field:
             an Iterable of the contained output fields.
         """
         return self,
+
+
+class LabelField(Field):
+
+    def __init__(self,
+                 name,
+                 vocab=None,
+                 eager=True,
+                 custom_numericalize=None,
+                 allow_missing_data=False
+                 ):
+        if vocab is not None and vocab.has_specials:
+            error_msg = "Vocab contains special symbols." \
+                        " Vocabs with special symbols cannot be used" \
+                        " with LabelFields."
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
+
+        super().__init__(name,
+                         tokenizer=None,
+                         language=None,
+                         vocab=vocab,
+                         tokenize=False,
+                         store_as_raw=True,
+                         store_as_tokenized=False,
+                         eager=eager,
+                         custom_numericalize=custom_numericalize,
+                         is_target=True,
+                         fixed_length=1,
+                         allow_missing_data=allow_missing_data
+                         # TODO add default missing value token when merged
+                         #  with missing value branch
+                         )
 
 
 class TokenizedField(Field):

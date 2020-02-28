@@ -5,7 +5,7 @@ import pytest
 from mock import patch
 
 from takepod.storage import Field, TokenizedField, MultilabelField, \
-    Vocab, SpecialVocabSymbols, MultioutputField
+    Vocab, SpecialVocabSymbols, MultioutputField, LabelField
 
 ONE_TO_FIVE = [1, 2, 3, 4, 5]
 
@@ -843,3 +843,22 @@ def test_hook_returning_iterable():
     assert raw == data
     assert isinstance(tokens, (list, tuple))
     assert tokens == expected_tokens
+
+
+def test_label_field():
+    vocab = Vocab(specials=())
+    data = ["label_1", "label_2", "label_3"]
+
+    vocab += data
+    vocab.finalize()
+
+    label_field = LabelField("test_label_field", vocab=vocab)
+
+    preprocessed_data = [label_field.preprocess(label) for label in data]
+
+    label_field.finalize()
+
+    for x in preprocessed_data:
+        _, example = x[0]
+        raw, _ = example
+        assert label_field.numericalize(example) == vocab.stoi[raw]
