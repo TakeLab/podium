@@ -53,7 +53,7 @@ def random_normal_default_vector(token, dim):
         sampled from normal distribution with given dimension
     """
     if dim is None:
-        error_msg = "Can't create zeros default vector with dimension "\
+        error_msg = "Can't create random normal vector with dimension "\
                     "equal to None. Given token= {}, dim={}".format(token, dim)
         _LOGGER.error(error_msg)
         raise ValueError(error_msg)
@@ -198,8 +198,8 @@ class VectorStorage(ABC):
             collection of tokens for creation of embedding matrix
             default use case is to give this function vocab or itos list
             or `None` if you wish to retrieve all loaded vectors. In case
-            `None` is returned, the order of vectors is the same as the
-            insertion order of loaded vectors in `VectorStorage`.
+            `None` is passed as argument, the order of vectors is the same
+            as the insertion order of loaded vectors in `VectorStorage`.
 
         Raises
         ------
