@@ -12,18 +12,18 @@ except ImportError:
 
 
 class YAKE():
-    """Yet Another Keyword Extractor is and unsupervised, corpus-independent, and
+    """Yet Another Keyword Extractor is an unsupervised, corpus-independent, and
        domain and language independent keyword extraction algorithm for extraction from
        single documents. This class is a wrapper of the official implementation available
        at https://github.com/LIAAD/yake."""
 
     def __init__(self,
-                 lan="en",
-                 n=3,
-                 dedupLim=0.9,
-                 dedupFunc='seqm',
-                 windowsSize=1,
-                 top=20):
+                 lan: str = "en",
+                 n: int = 3,
+                 dedupLim: float = 0.8,
+                 dedupFunc: str = 'levenshtein',
+                 windowsSize: int = 2,
+                 top: int = 20):
         """Constructor that initializes YAKE.
 
         Parameters

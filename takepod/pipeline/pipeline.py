@@ -20,7 +20,6 @@ class Pipeline(Experiment):
                  feature_transformer: FeatureTransformer,
                  model: Union[AbstractSupervisedModel, Type[AbstractSupervisedModel]],
                  trainer: AbstractTrainer = None,
-                 trainer_iterator_callable: Callable[[Dataset], Iterator] = None,
                  label_transform_fn: Callable[[NamedTuple], np.ndarray] = None,
                  output_transform_fn: Callable[[np.ndarray], Any] = None
                  ):
@@ -53,10 +52,6 @@ class Pipeline(Experiment):
             Trainer used to fit the model. If provided, this trainer instance will be
             stored in the pipeline and used as the default trainer if no trainer is
             provided in the `fit` and `partial_fit` methods.
-
-        trainer_iterator_callable: Callable[[Dataset], Iterator]
-            Callable used to instantiate new instances of the Iterator used in fitting the
-            model.
 
         label_transform_fn: Callable[[NamedTuple], np.ndarray]
             Callable that transforms the target part of the batch returned by the iterator
@@ -99,7 +94,6 @@ class Pipeline(Experiment):
         super().__init__(model,
                          feature_transformer=feature_transformer,
                          trainer=trainer,
-                         training_iterator_callable=trainer_iterator_callable,
                          label_transform_fun=label_transform_fn)
 
     def predict_raw(self,

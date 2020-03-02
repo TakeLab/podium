@@ -23,7 +23,6 @@ class Experiment:
                  feature_transformer:
                  Union[FeatureTransformer, Callable[[NamedTuple], np.array]] = None,
                  trainer: AbstractTrainer = None,
-                 training_iterator_callable: Callable[[Dataset], Iterator] = None,
                  prediction_iterator_callable: Callable[[Dataset], Iterator] = None,
                  label_transform_fun:
                  Callable[[NamedTuple], np.ndarray] = None
@@ -50,10 +49,6 @@ class Experiment:
         trainer : AbstractTrainer
             Trainer used to fit the model.
 
-        training_iterator_callable : Callable[[Dataset], Iterator]
-            Callable used to instantiate new instances of the Iterator used in fitting the
-            model.
-
         prediction_iterator_callable : Callable[[Dataset], Iterator]
             Callable used to instantiate new instances of the Iterator used in prediction.
             Tensors which are prediction results for seperate batches will be stacked into
@@ -74,7 +69,6 @@ class Experiment:
             self.model = model
 
         self.trainer = trainer
-        self.training_iterator_callable = training_iterator_callable
 
         self.set_default_model_args()
         self.set_default_trainer_args()
@@ -129,8 +123,7 @@ class Experiment:
             model_kwargs: Dict = None,
             trainer_kwargs: Dict = None,
             feature_transformer: FeatureTransformer = None,
-            trainer: AbstractTrainer = None,
-            training_iterator_callable: Callable[[Dataset], Iterator] = None,
+            trainer: AbstractTrainer = None
             ):
         """Fits the model to the provided Dataset. During fitting, the provided Iterator
         and Trainer are used.
@@ -194,14 +187,12 @@ class Experiment:
         # Train the model
         self.partial_fit(dataset,
                          trainer_kwargs,
-                         trainer,
-                         training_iterator_callable)
+                         trainer)
 
     def partial_fit(self,
                     dataset: Dataset,
                     trainer_kwargs: Dict = None,
-                    trainer: AbstractTrainer = None,
-                    training_iterator_callable: Callable[[Dataset], Iterator] = None):
+                    trainer: AbstractTrainer = None):
         """Fits the model to the data without resetting the model.
 
         Parameters
@@ -216,11 +207,6 @@ class Experiment:
 
         trainer : AbstractTrainer, Optional
             Trainer used to fit the model. If None, the trainer provided in the
-            constructor will be used.
-
-        training_iterator_callable: Callable[[Dataset], Iterator]
-            Callable used to instantiate new instances of the Iterator used in fitting the
-            model. If None, the training_iterator_callable provided in the
             constructor will be used.
 
         Returns
@@ -240,14 +226,8 @@ class Experiment:
         trainer_args = self.default_trainer_args.copy()
         trainer_args.update(trainer_kwargs)
 
-        training_iterator_callable = training_iterator_callable \
-            if training_iterator_callable is not None \
-            else self.training_iterator_callable
-
-        train_iterator = training_iterator_callable(dataset)
-
         trainer.train(self.model,
-                      train_iterator,
+                      dataset,
                       self.feature_transformer,
                       self.label_transform_fun,
                       **trainer_args)

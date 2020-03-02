@@ -71,7 +71,7 @@ class MockIterator:
 
 @pytest.mark.parametrize("fit_transformer", (False, True))
 def test_experiment_train(fit_transformer):
-    dataset = get_dataset()
+    test_dataset = get_dataset()
 
     default_model_args = {
         'm_arg1': 1,
@@ -107,8 +107,6 @@ def test_experiment_train(fit_transformer):
 
     mock_transformer = MockTransformer(fit_transformer)
 
-    my_iterator = MockIterator()
-
     class MockModel:
         def __init__(self, **kwargs):
             assert kwargs == expected_model_args
@@ -120,12 +118,12 @@ def test_experiment_train(fit_transformer):
 
         def train(self,
                   model,
-                  iterator,
+                  dataset,
                   feature_transformer,
                   label_transform_fun,
                   **kwargs):
             assert isinstance(model, MockModel)
-            assert iterator is my_iterator
+            assert dataset is test_dataset
             assert feature_transformer is mock_transformer
             assert label_transform_fun is mock_label_transform_fun
             assert kwargs == expected_trainer_args
@@ -135,14 +133,13 @@ def test_experiment_train(fit_transformer):
 
     experiment = Experiment(MockModel,
                             trainer=trainer,
-                            training_iterator_callable=lambda _: my_iterator,
                             feature_transformer=mock_transformer,
                             label_transform_fun=mock_label_transform_fun)
 
     experiment.set_default_model_args(**default_model_args)
     experiment.set_default_trainer_args(**default_trainer_args)
 
-    experiment.fit(dataset,
+    experiment.fit(test_dataset,
                    model_args,
                    trainer_args)
 
@@ -154,9 +151,13 @@ def test_experiment_train(fit_transformer):
 
 
 def test_experiment_predict():
+
     class MockIterator:
         input_batch_class = namedtuple("input_batch_class", ["input"])
         output_batch_class = namedtuple("output_batch_class", ["output"])
+
+        def __call__(self, dataset):
+            pass
 
         def __iter__(self):
             x1 = np.array(
@@ -218,7 +219,6 @@ def test_experiment_predict():
     experiment = Experiment(
         MockModel,
         trainer=MockTrainer(),
-        training_iterator_callable=lambda _: MockIterator(),
         prediction_iterator_callable=lambda _: MockIterator()
 
     )

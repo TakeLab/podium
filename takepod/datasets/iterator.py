@@ -41,10 +41,6 @@ class Iterator:
             number of examples in the dataset is not a multiple of
             batch_size the last returned batch will be smaller
             (dataset_len MOD batch_size).
-        batch_to_matrix : bool
-            A flag denoting whether the vectors for a field in a batch should be
-            returned as a list of numpy vectors or a matrix where each row is a padded
-            vector
         sort_key : callable
             A callable object used to sort the dataset prior to batching. If
             None, the dataset won't be sorted.
@@ -135,13 +131,31 @@ class Iterator:
 
         self._dataset = dataset
 
+    def __call__(self, dataset: Dataset):
+        """ Sets the dataset for this Iterator and returns an iterable over the batches of
+        that Dataset. Same as calling iterator.set_dataset() followed by
+        iterator.__iter__()
+
+        Parameters
+        ----------
+        dataset: Dataset
+            Dataset to iterate over.
+
+        Returns
+        -------
+        Iterable over batches in the Dataset.
+
+        """
+        self.set_dataset(dataset)
+        return self.__iter__()
+
     def __len__(self):
         """ Returns the number of batches this iterator provides in one epoch.
 
         Returns
         -------
         int
-            Number of batche s provided in one epoch.
+            Number of batches s provided in one epoch.
         """
 
         return math.ceil(len(self._dataset) / self.batch_size)

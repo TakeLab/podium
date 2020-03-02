@@ -52,9 +52,6 @@ def experiment_example():
 
     trainer = SimpleTrainer()
 
-    def train_iterator_provider(dataset):
-        return Iterator(dataset, shuffle=True)
-
     vector_cache_path = os.path.join(LargeResource.BASE_RESOURCE_DIR,
                                      "experimet_example_nlpl_cache.txt")
 
@@ -75,7 +72,6 @@ def experiment_example():
 
     experiment = Experiment(ScikitMLPClassifier,
                             trainer=trainer,
-                            training_iterator_callable=train_iterator_provider,
                             feature_transformer=feature_transformer,
                             label_transform_fun=label_transform_fun)
 
