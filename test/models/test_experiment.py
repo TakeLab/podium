@@ -1,8 +1,6 @@
-from collections import namedtuple
-
 import pytest
-import numpy as np
-from takepod.models import AbstractSupervisedModel, Experiment
+
+from takepod.models import Experiment
 from takepod.datasets import Dataset
 from takepod.storage import Field, ExampleFactory, Vocab
 
@@ -149,80 +147,4 @@ def test_experiment_train(fit_transformer):
     else:
         assert mock_transformer.fit_called == 0
 
-
-def test_experiment_predict():
-
-    class MockIterator:
-        input_batch_class = namedtuple("input_batch_class", ["input"])
-        output_batch_class = namedtuple("output_batch_class", ["output"])
-
-        def __call__(self, dataset):
-            pass
-
-        def __iter__(self):
-            x1 = np.array(
-                [
-                    [1, 2],
-                    [3, 4]
-                ])
-
-            x2 = np.array(
-                [
-                    [7, 8],
-                    [9, 10]
-                ])
-
-            input_batch1 = self.input_batch_class(input=x1)
-            # Y values are just filler values for now
-            target_batch1 = self.output_batch_class(output=np.arange(len(input_batch1)))
-            yield input_batch1, target_batch1
-
-            input_batch2 = self.input_batch_class(input=x2)
-            target_batch2 = self.output_batch_class(output=np.arange(len(input_batch2)))
-            yield input_batch2, target_batch2
-
-    class MockModel:
-        def __init__(self, **kwargs):
-            self.expected_x_batches = [
-                np.array(
-                    [
-                        [1, 2],
-                        [3, 4]
-                    ]),
-                np.array(
-                    [
-                        [7, 8],
-                        [9, 10]
-                    ])
-            ]
-
-            self.predictions = [
-                np.array([[5], [6]]),
-                np.array([[11], [12]])
-            ]
-
-            self.current_batch = 0
-
-        def predict(self, x):
-            # Check if correct batches received
-            assert np.all(x == self.expected_x_batches[self.current_batch])
-            y = self.predictions[self.current_batch]
-            self.current_batch += 1
-
-            return {AbstractSupervisedModel.PREDICTION_KEY: y}
-
-    class MockTrainer:
-        def train(self, model, iterator, feature_transform_fun=None,
-                  label_transform_fun=None, **kwargs):
-            pass
-
-    experiment = Experiment(
-        MockModel,
-        trainer=MockTrainer(),
-        prediction_iterator_callable=lambda _: MockIterator()
-
-    )
-    experiment.fit(MockDataset())
-    y = experiment.predict(MockDataset())
-
-    assert np.all(y == np.array([[5], [6], [11], [12]]))
+# TODO test .predict()

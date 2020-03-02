@@ -23,7 +23,6 @@ class Experiment:
                  feature_transformer:
                  Union[FeatureTransformer, Callable[[NamedTuple], np.array]] = None,
                  trainer: AbstractTrainer = None,
-                 prediction_iterator_callable: Callable[[Dataset], Iterator] = None,
                  label_transform_fun:
                  Callable[[NamedTuple], np.ndarray] = None
                  ):
@@ -49,12 +48,6 @@ class Experiment:
         trainer : AbstractTrainer
             Trainer used to fit the model.
 
-        prediction_iterator_callable : Callable[[Dataset], Iterator]
-            Callable used to instantiate new instances of the Iterator used in prediction.
-            Tensors which are prediction results for seperate batches will be stacked into
-            a single tensor before being returned. If passed None, a SingleBatchIterator
-            will be used as a default.
-
         label_transform_fun : Callable[[NamedTuple], np.ndarray]
             Callable that transforms the target part of the batch returned by the iterator
             into the same format the model prediction is. For a hypothetical perfect model
@@ -72,14 +65,6 @@ class Experiment:
 
         self.set_default_model_args()
         self.set_default_trainer_args()
-
-        if prediction_iterator_callable is None:
-            def default_prediction_iterator_callable(dataset):
-                return SingleBatchIterator(dataset)
-
-            self.prediction_iterator_callable = default_prediction_iterator_callable
-        else:
-            self.prediction_iterator_callable = prediction_iterator_callable
 
         if feature_transformer is None:
             self.feature_transformer = FeatureTransformer(default_feature_transform)
@@ -234,6 +219,7 @@ class Experiment:
 
     def predict(self,
                 dataset: Dataset,
+                batch_size: int = 128,
                 **kwargs
                 ) -> np.ndarray:
         """Computes the prediction of the model for every example in the provided dataset.
@@ -242,6 +228,12 @@ class Experiment:
         ----------
         dataset : Dataset
             Dataset to compute predictions for.
+
+        batch_size : int
+            If None, predictions for the whole dataset will be done in a single batch.
+            Else, predictions will be calculated in batches of batch_size size.
+            This argument is useful in case the whole dataset can't be processed in a
+            single batch.
 
         kwargs
             Keyword arguments passed to the model's `predict` method
@@ -257,7 +249,12 @@ class Experiment:
 
         y = []
 
-        for x_batch, _ in self.prediction_iterator_callable(dataset):
+        if batch_size is None:
+            prediction_iterator = SingleBatchIterator()
+        else:
+            prediction_iterator = Iterator(batch_size=batch_size)
+
+        for x_batch, _ in prediction_iterator(dataset):
             x_batch_tensor = self.feature_transformer.transform(x_batch)
             batch_prediction = self.model.predict(x_batch_tensor, **kwargs)
             prediction_tensor = batch_prediction[AbstractSupervisedModel.PREDICTION_KEY]

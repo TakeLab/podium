@@ -2,7 +2,7 @@ from typing import Union, Dict, List, Callable, NamedTuple, Any, Type
 import logging
 
 from takepod.storage import ExampleFactory, ExampleFormat
-from takepod.datasets import Dataset, Iterator
+from takepod.datasets import Dataset
 from takepod.models import AbstractSupervisedModel, FeatureTransformer, Experiment, \
     AbstractTrainer
 import numpy as np

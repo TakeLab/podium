@@ -3,8 +3,8 @@ import os
 import numpy as np
 
 from takepod.storage import Field, LargeResource, Vocab, ExampleFormat
-from takepod.datasets import Iterator
 from takepod.datasets.impl.pauza_dataset import PauzaHRDataset
+from takepod.datasets import Iterator
 from takepod.models.impl.fc_model import ScikitMLPClassifier
 from takepod.models.impl.simple_trainers import SimpleTrainer
 from takepod.models import Experiment, FeatureTransformer, SklearnTensorTransformerWrapper
@@ -81,7 +81,9 @@ def experiment_example():
                     accuracy_score,
                     model_param_grid={'classes': ([i for i in range(num_of_classes)],),
                                       'hidden_layer_sizes': [(10,), (10, 10), (100,)]},
-                    trainer_param_grid={SimpleTrainer.MAX_EPOCH_KEY: [2, 3, 4, 5]}
+                    trainer_param_grid={'max_epoch': [2, 3, 4],
+                                        'iterator': [Iterator(batch_size=32),
+                                                     Iterator(batch_size=64)]}
                     )
 
     experiment.set_default_model_args(**model_params)
