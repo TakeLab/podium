@@ -446,7 +446,7 @@ class Dataset(ABC):
         # TODO Remove local import and fix circular dependency
         from takepod.datasets.iterator import SingleBatchIterator
 
-        for x_batch, y_batch in SingleBatchIterator(dataset=self):
+        for x_batch, y_batch in SingleBatchIterator(dataset=self, shuffle=False):
             # There will only ever be a single batch created
             return x_batch, y_batch
 

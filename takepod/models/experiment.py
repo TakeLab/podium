@@ -81,7 +81,7 @@ class Experiment:
 
         if prediction_iterator_callable is None:
             def default_prediction_iterator_callable(dataset):
-                return SingleBatchIterator(dataset)
+                return SingleBatchIterator(dataset, shuffle=False)
 
             self.prediction_iterator_callable = default_prediction_iterator_callable
         else:
@@ -184,9 +184,9 @@ class Experiment:
 
         # Fit the feature transformer if it needs fitting
         if self.feature_transformer.requires_fitting():
-            x_batch, y_batch = next(SingleBatchIterator(dataset).__iter__())
-            y = self.label_transform_fun(y_batch)
-            self.feature_transformer.fit(x_batch, y)
+            for x_batch, y_batch in SingleBatchIterator(dataset, shuffle=False):
+                y = self.label_transform_fun(y_batch)
+                self.feature_transformer.fit(x_batch, y)
 
         # Create new model instance
         self.model = self.model_class(**model_args)

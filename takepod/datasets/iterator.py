@@ -27,7 +27,7 @@ class Iterator:
                  dataset=None,
                  batch_size=32,
                  sort_key=None,
-                 shuffle=False,
+                 shuffle=True,
                  seed=1,
                  internal_random_state=None):
         """ Creates an iterator for the given dataset and batch size.
@@ -338,7 +338,8 @@ class SingleBatchIterator(Iterator):
 
     def __init__(
             self,
-            dataset: Dataset = None):
+            dataset: Dataset = None,
+            shuffle=True):
         """Creates an Iterator that creates one batch per epoch
         containing all examples in the dataset.
 
@@ -346,8 +347,18 @@ class SingleBatchIterator(Iterator):
         ----------
         dataset : Dataset
             The dataset whose examples the iterator will iterate over.
+
+        shuffle : bool
+            A flag denoting whether the examples should be shuffled before
+            each iteration.
+            If sort_key is not None, this flag being True may not have any
+            effect since the dataset will always be sorted after being
+            shuffled (the only difference shuffling can make is in the
+            order of elements with the same value of sort_key)..
+            Default is False.
         """
-        super().__init__(dataset=dataset)
+        super().__init__(dataset=dataset,
+                         shuffle=shuffle)
 
     def set_dataset(self, dataset: Dataset):
         super().set_dataset(dataset)
