@@ -433,6 +433,22 @@ class Dataset(ABC):
 
         random.shuffle(self.examples)
 
+    def batch(self):
+        """Creates an input and target batch containing the whole dataset.
+        The format of the batch is the same as the batches returned by the
+        Returns
+        -------
+        input_batch, target_batch
+                Two objects containing the input and target batches over
+                the whole dataset.
+        """
+        # Local import to avoid circular dependency
+        # TODO Remove local import and fix circular dependency
+        from takepod.datasets.iterator import SingleBatchIterator
+
+        for x_batch, y_batch in SingleBatchIterator(dataset=self):
+            # There will only ever be a single batch created
+            return x_batch, y_batch
 
 def check_split_ratio(split_ratio):
     """Checks that the split ratio argument is not malformed and if not

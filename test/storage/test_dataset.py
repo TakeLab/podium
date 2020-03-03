@@ -52,10 +52,10 @@ TABULAR_SOURCES = (
 
 
 class MockField:
-    def __init__(self, name, eager, sequential=True, is_target=False):
+    def __init__(self, name, eager, is_sequential=True, is_target=False):
         self.name = name
         self.eager = eager
-        self.sequential = sequential
+        self.is_sequential = is_sequential
 
         self.finalized = False
         self.updated_count = 0
@@ -64,8 +64,12 @@ class MockField:
 
         self.is_target = is_target
 
+        self.is_numericalizable = True
+
+        self.fixed_length = None
+
     def preprocess(self, data):
-        return ((self.name, (data, [data])),) if self.sequential \
+        return ((self.name, (data, [data])),) if self.is_sequential \
             else ((self.name, (data, None)),)
 
     def update_vocab(self, raw, tokenized):
