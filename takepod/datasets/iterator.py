@@ -346,11 +346,6 @@ class SingleBatchIterator(Iterator):
         ----------
         dataset : Dataset
             The dataset whose examples the iterator will iterate over.
-
-        batch_to_matrix : bool
-            A flag denoting whether the vectors for a field in a batch should be
-            returned as a list of numpy vectors or a matrix where each row is a padded
-            vector.
         """
         super().__init__(dataset=dataset)
 

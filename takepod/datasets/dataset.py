@@ -450,6 +450,7 @@ class Dataset(ABC):
             # There will only ever be a single batch created
             return x_batch, y_batch
 
+
 def check_split_ratio(split_ratio):
     """Checks that the split ratio argument is not malformed and if not
     transforms it to a tuple of (train_size, valid_size, test_size) and
@@ -496,14 +497,14 @@ def check_split_ratio(split_ratio):
 
         if length not in {2, 3}:
             error_msg = "Split ratio list/tuple should be of length 2 or 3, " \
-                "got {}.".format(length)
+                        "got {}.".format(length)
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
         for i, ratio in enumerate(split_ratio):
             if float(ratio) <= 0.0:
                 error_msg = "Elements of ratio tuple/list must be > 0.0 " \
-                    "(got value {} at index {}).".format(ratio, i)
+                            "(got value {} at index {}).".format(ratio, i)
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
@@ -522,7 +523,7 @@ def check_split_ratio(split_ratio):
             test_ratio = split_ratio[2]
     else:
         error_msg = "Split ratio must be a float, a list or a tuple, " \
-            "got {}".format(type(split_ratio))
+                    "got {}".format(type(split_ratio))
         _LOGGER.error(error_msg)
         raise ValueError(error_msg)
 
