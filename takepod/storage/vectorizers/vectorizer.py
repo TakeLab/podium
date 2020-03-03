@@ -36,6 +36,30 @@ def zeros_default_vector(token, dim):
     return np.zeros(dim)
 
 
+def random_normal_default_vector(token, dim):
+    """Draw a random vector from a standard normal distribution.
+    Dimension of returned array is equal to given dim.
+
+    Parameters
+    ----------
+    token : str
+        string token from vocabulary
+    dim : int
+        vector dimension
+
+    Returns
+    -------
+    vector : array-like
+        sampled from normal distribution with given dimension
+    """
+    if dim is None:
+        error_msg = "Can't create random normal vector with dimension "\
+                    "equal to None. Given token= {}, dim={}".format(token, dim)
+        _LOGGER.error(error_msg)
+        raise ValueError(error_msg)
+    return np.random.randn(dim)
+
+
 class VectorStorage(ABC):
     """Interface for classes that can vectorize token. One example of such
     vectorizer is word2vec.
@@ -162,20 +186,29 @@ class VectorStorage(ABC):
         """
         pass
 
-    def get_embedding_matrix(self, vocab):
+    def get_embedding_matrix(self, vocab=None):
         """Method constructs embedding matrix.
+
+        Note: From python 3.6 dictionaries preserve insertion order
+        https://docs.python.org/3.6/whatsnew/3.6.html#other-language-changes
 
         Parameters
         ----------
         vocab : iter(token)
             collection of tokens for creation of embedding matrix
             default use case is to give this function vocab or itos list
+            or `None` if you wish to retrieve all loaded vectors. In case
+            `None` is passed as argument, the order of vectors is the same
+            as the insertion order of loaded vectors in `VectorStorage`.
 
         Raises
         ------
         RuntimeError
             if vector storage is not initialized
         """
+        if vocab is None:
+            # Retrieve all loaded vectors
+            vocab = list(self._vectors.keys())
         return np.vstack([self.token_to_vector(token) for token in vocab])
 
     def __str__(self):
@@ -200,7 +233,7 @@ class BasicVectorStorage(VectorStorage):
 
     """
 
-    def __init__(self, path, default_vector_function=zeros_default_vector,
+    def __init__(self, path, default_vector_function=random_normal_default_vector,
                  cache_path=None, max_vectors=None, encoding='utf-8', binary=True):
         self._vectors = dict()
         self._dim = None
@@ -227,6 +260,7 @@ class BasicVectorStorage(VectorStorage):
             raise ValueError(error_msg)
         self._load_vectors(vocab=vocab)
         _LOGGER.debug("Loaded vectors for vocab.")
+        return self.get_embedding_matrix(vocab)
 
     def token_to_vector(self, token):
         if not self._initialized:
