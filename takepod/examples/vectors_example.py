@@ -1,7 +1,7 @@
 """Module contains example on how to use vectorizer class by using GloVe concrete
 vectors class."""
 from takepod.storage import (Vocab, LargeResource)
-from takepod.storage.vectorizers.vectorizer import GloVe
+from takepod.storage.vectorizers.impl import GloVe
 
 
 if __name__ == "__main__":

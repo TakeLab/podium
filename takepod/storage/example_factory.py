@@ -5,6 +5,7 @@ import logging
 import json
 import csv
 from enum import Enum
+from typing import Union
 
 import xml.etree.ElementTree as ET
 from takepod.storage.field import unpack_fields
@@ -13,23 +14,22 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class ExampleFormat(Enum):
-    def LIST(data, factory):
-        return factory.from_list(data)
+    LIST = "list"
+    DICT = "dict"
+    CSV = "csv"
+    NLTK = "nltk"
+    XML = "xml"
+    JSON = "json"
 
-    def DICT(data, factory):
-        return factory.from_dict(data)
 
-    def CSV(data, factory):
-        return factory.from_csv(data)
-
-    def NLTK(data, factory):
-        return factory.from_fields_tree(data)
-
-    def XML(data, factory):
-        return factory.from_xml_str(data)
-
-    def JSON(data, factory):
-        return factory.from_json(data)
+FACTORY_METHOD_DICT = {
+    "list": lambda data, factory: factory.from_list(data),
+    "dict": lambda data, factory: factory.from_dict(data),
+    "csv": lambda data, factory: factory.from_csv(data),
+    "nltk": lambda data, factory: factory.from_fields_tree(data),
+    "xml": lambda data, factory: factory.from_xml_str(data),
+    "json": lambda data, factory: factory.from_json(data)
+}
 
 
 class Example:
@@ -274,8 +274,28 @@ class ExampleFactory:
 
     def from_format(self,
                     data,
-                    format_tag: ExampleFormat):
-        return format_tag(data, self)
+                    format_tag: Union[ExampleFormat, str]):
+
+        if isinstance(format_tag, ExampleFormat):
+            format_str = format_tag.value
+
+        elif isinstance(format_tag, str):
+            format_str = format_tag.lower()
+
+        else:
+            err_msg = "format_tag must be either an ExampleFormat or a string. " \
+                      "Passed value is of type : '{}'"\
+                .format(format_tag.__class__.__name__)
+            _LOGGER.error(err_msg)
+            raise TypeError(err_msg)
+
+        factory_method = FACTORY_METHOD_DICT.get(format_str)
+        if factory_method is None:
+            err_msg = "Unsupported example format: '{}'".format(format_str)
+            _LOGGER.error(err_msg)
+            raise ValueError(err_msg)
+
+        return factory_method(data, self)
 
 
 def tree_to_list(tree):

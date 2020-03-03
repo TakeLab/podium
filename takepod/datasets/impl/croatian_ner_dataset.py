@@ -30,6 +30,7 @@ class CroatianNERDataset(Dataset):
         fields : list(Field)
             Dictionary that maps field name to the field
         """
+
         example_factory = ExampleFactory(fields)
         examples = []
 
@@ -59,13 +60,16 @@ class CroatianNERDataset(Dataset):
         ----------
         tokenizer: str | callable
             Word-level tokenizer used to tokenize the input text
+
         tag_schema: str
             Tag schema used for constructing the token labels
-            - supported tag schemas:
-                - 'IOB': the label of the beginning token of the entity is
+
+            supported tag schemas:
+                'IOB': the label of the beginning token of the entity is
                 prefixed with 'B-', the remaining tokens that belong to the
                 same entity are prefixed with 'I-'. The tokens that don't
                 belong to any named entity are labeled 'O'
+
         fields : dict(str, Field)
             dictionary mapping field names to fields. If set to None, the
             default fields are used.
@@ -81,6 +85,7 @@ class CroatianNERDataset(Dataset):
             SCPLargeResource.SCP_PASS_KEY:
                 Password for the ssh private key (optional). Can be omitted
                 if the private key is not encrypted.
+
 
         Returns
         -------
