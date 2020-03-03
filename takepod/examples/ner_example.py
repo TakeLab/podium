@@ -198,10 +198,8 @@ if __name__ == '__main__':
     fields = ner_dataset_classification_fields()
     dataset = CroatianNERDataset.get_dataset(fields=fields)
 
-    vectorizer = BasicVectorStorage(path=vectors_path)
-    vectorizer.load_vocab(vocab=fields['inputs'].tokens.vocab)
-    embedding_matrix = vectorizer.get_embedding_matrix(
-        fields['inputs'].tokens.vocab)
+    vocab = fields['inputs'].tokens.vocab
+    embedding_matrix = BasicVectorStorage(path=vectors_path).load_vocab(vocab)
 
     feature_transform = partial(
         feature_extraction_fn,
