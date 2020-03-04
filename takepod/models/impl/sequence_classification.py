@@ -92,6 +92,7 @@ class MyTorchModel(AbstractSupervisedModel):
         self.model_class = model_class
         self.config = config
         self._model = model_class(config).to(config.device)
+        self.optimizer_class = optimizer
         self.optimizer = optimizer(self.model.parameters(), config.lr)
         self.criterion = criterion
 
@@ -109,13 +110,13 @@ class MyTorchModel(AbstractSupervisedModel):
         # Train-specific code
         self.model.train()
         self.model.zero_grad()
-        
+
         return_dict = self(X)
         logits = return_dict['pred']
         #print(logits.view(-1, self.config.num_classes), y.squeeze())
         loss = self.criterion(logits.view(-1, self.config.num_classes), y.squeeze())
         return_dict['loss'] = loss
-        
+
         loss.backward()
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config.clip)
         self.optimizer.step()
@@ -136,11 +137,42 @@ class MyTorchModel(AbstractSupervisedModel):
             loss = self.criterion(logits.view(-1, self.config.num_classes), y.squeeze())
             return_dict['loss'] = loss
             return return_dict
-    
+
     def reset(self, **kwargs):
         # Restart model
-        self._model = self.model_class(self.config)
+        self._model = self.model_class(self.config).to(self.config.device)
 
+    def __setstate__(self, state):
+        print("Restoring model from state")
+        self.model_class = state['model_class']
+        self.config = state['config']
+
+        # Deserialize model
+        model = self.model_class(self.config).to(config.device)
+        model.load_state_dict(state['model_state'])
+        self._model = model
+
+        # Deserialize optimizer
+        self.optimizer_class = state['optimizer_class']
+        self.optimizer = optimizer_class(self.model.parameters(), self.config.lr)
+        self.optimizer.load_state_dict(state['optimizer_state'])
+
+        # Deserialize loss
+        loss_class = state['loss_class']
+        self.criterion = loss_class()
+        self.criterion.load_state_dict(['loss_state'])
+
+    def __getstate__(self):
+        state = {
+            'model_class': self.model_class,
+            'config': self.config,
+            'model_state': self.model.state_dict(),
+            'optimizer_class': self.optimizer_class,
+            'optimizer_state': self.optimizer.state_dict(),
+            'loss_class': self.criterion.__class__,
+            'loss_state': self.criterion.state_dict()
+        }
+        return state
 
 class TorchTrainer(AbstractTrainer):
     def __init__(self, num_epochs, device, valid_iterator=None):

@@ -1,6 +1,8 @@
 import math
 import time
+import pickle
 import takepod
+
 from takepod.datasets import BucketIterator, Iterator, BasicSupervisedImdbDataset
 from takepod.storage import Field, Vocab
 from takepod.storage.vectorizers.impl import GloVe
@@ -89,6 +91,13 @@ def main():
             'optimizer': torch.optim.Adam
         },
     )
+
+    fitted_model = experiment.model
+
+    model_save_file = 'model.pt'
+    pickle.dump(fitted_model, model_save_file)
+
+    loaded_model = pickle.load(model_save_file)
 
 
 if __name__ == '__main__':
