@@ -194,7 +194,7 @@ class TorchTrainer(AbstractTrainer):
 
         for _ in range(self.epochs):
             total_time = time.time()
-            for batch_num, (batch_x, batch_y) in enumerate(self.iterator(iterator)):
+            for batch_num, (batch_x, batch_y) in enumerate(self.iterator(dataset)):
                 t = time.time()
                 X = torch.from_numpy(
                     feature_transformer.transform(batch_x).swapaxes(0,1) # swap batch_size and T
