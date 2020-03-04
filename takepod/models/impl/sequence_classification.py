@@ -133,7 +133,7 @@ class MyTorchModel(AbstractSupervisedModel):
                 print("Casting to numpy")
                 # Cast everything to numpy
                 preds = return_dict['pred']
-                preds.cpu().numpy()
+                preds = preds.cpu().numpy()
                 return_dict['pred'] = preds
 
             return return_dict
