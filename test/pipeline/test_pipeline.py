@@ -120,12 +120,12 @@ def test_pipeline_fit_raw():
 
         def train(self,
                   model,
-                  iterator,
+                  dataset,
                   feature_transformer,
                   label_transform_fun,
                   **kwargs):
             #  Using single batch iterator so only one batch
-            x_batch, y_batch = next(iterator.__iter__())
+            x_batch, y_batch = dataset.batch()
             model.fit(feature_transformer.transform(x_batch),
                       label_transform_fun(y_batch))
 
@@ -136,7 +136,6 @@ def test_pipeline_fit_raw():
                              model=MockModel,
                              trainer=MockTrainer(),
                              example_format="list",
-                             trainer_iterator_callable=SingleBatchIterator,
                              feature_transformer=mock_feature_transform,
                              label_transform_fn=mock_label_extractor)
 
