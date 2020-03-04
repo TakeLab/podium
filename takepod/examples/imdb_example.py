@@ -102,7 +102,7 @@ def main():
       loaded_model = pickle.load(load_file)
 
     pipe = Pipeline(
-      fields = fields,
+      fields = list(fields.values()),
       example_format = 'list',
       feature_transformer = experiment.feature_transformer,
       model = fitted_model
