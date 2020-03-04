@@ -41,7 +41,7 @@ def create_fields():
     label = Field(name='label', vocab=Vocab(specials=()), is_target=True, tokenize=False)
     return {text.name : text, label.name: label}
 
-def main()
+def main():
     fields = create_fields()
     imdb_train, imdb_test = BasicSupervisedImdbDataset.get_train_test_dataset(fields)
 
