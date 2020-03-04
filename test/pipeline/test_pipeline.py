@@ -3,7 +3,6 @@ import numpy as np
 from takepod.pipeline import Pipeline
 from takepod.storage import Field, ExampleFormat
 from takepod.models import AbstractSupervisedModel, FeatureTransformer
-from takepod.datasets import SingleBatchIterator
 
 name_dict = {
     "Marko": 1,
@@ -158,7 +157,7 @@ def test_output_transform_fn():
     fields_list = [fields['Name'], fields['Score']]
     list_pipeline = Pipeline(fields_list,
                              ExampleFormat.LIST,
-                             feature_transformer=MockFeatureTransformer(),
+                             feature_transformer=mock_feature_transform,
                              model=MockModel(),
                              output_transform_fn=lambda x: transform_dict[x[0]])
 

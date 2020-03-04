@@ -105,7 +105,7 @@ class Experiment:
 
         else:
             err_msg = """Invalid feature_transformer. feature_transformer must be either
-            be None, a FeatureTransformer instance or a callable 
+            be None, a FeatureTransformer instance or a callable
             taking a batch and returning a numpy matrix of features."""
             _LOGGER.error(err_msg)
             raise TypeError(err_msg)
