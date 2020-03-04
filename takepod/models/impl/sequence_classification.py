@@ -171,7 +171,7 @@ class TorchTrainer(AbstractTrainer):
                    batch_num, len(iterator), time.time() - t, return_dict['loss']), 
                    end='\r', flush=True)
 
-        for batch_num, batch_x, batch_y in enumerate(self.valid_iterator):
+        for batch_num, (batch_x, batch_y) in enumerate(self.valid_iterator):
             X = feature_transformer.transform(batch_x)
             y = label_transform_fun(batch_y)
 
