@@ -156,7 +156,9 @@ class TorchTrainer(AbstractTrainer):
               **kwargs):
         # Actual training loop
         # Single training epoch
+
         for _ in range(self.epochs):
+            total_time = time.time()
             for batch_num, (batch_x, batch_y) in enumerate(iterator):
                 t = time.time()
                 X = torch.from_numpy(
@@ -172,7 +174,11 @@ class TorchTrainer(AbstractTrainer):
                        batch_num, len(iterator), time.time() - t, return_dict['loss']), 
                        end='\r', flush=True)
 
+            print(f"\nTotal time for train epoch: {time.time() - total_time}")
+
+            total_time = time.time()
             for batch_num, (batch_x, batch_y) in enumerate(self.valid_iterator):
+                t = time.time()
                 X = torch.from_numpy(
                     feature_transformer.transform(batch_x).swapaxes(0,1) # swap batch_size and T
                     ).to(self.device)
@@ -186,3 +192,5 @@ class TorchTrainer(AbstractTrainer):
                 print("[Valid]: {}/{} in {:.5f} seconds, loss={:.5f}".format(
                        batch_num, len(self.valid_iterator), time.time() - t, loss), 
                        end='\r', flush=True)
+
+            print(f"\nTotal time for valid epoch: {time.time() - total_time}")
