@@ -65,7 +65,7 @@ def main():
         'bidirectional': True,
         'cuda': False,
         'vocab_size': len(vocab),
-        'num_classes': len(label_vocab)
+        'num_classes': len(label_vocab),
         'device': torch.device('cuda:0')
     }
 
