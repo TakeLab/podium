@@ -49,7 +49,7 @@ def main():
 
     # Construct vectoziter based on vocab
     vocab = fields['text'].vocab
-    embeddings = GloVe().load_vocab(vocab)
+    #embeddings = GloVe().load_vocab(vocab)
 
     criterion = nn.CrossEntropyLoss()
     label_vocab = fields['label'].vocab
