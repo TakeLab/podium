@@ -123,11 +123,19 @@ class MyTorchModel(AbstractSupervisedModel):
         self.optimizer.step()
         return return_dict
 
-    def predict(self, X, **kwargs):
+    def predict(self, X, return_as_numpy=True, **kwargs):
         # Assumes that the model is in _eval_ mode
         self.model.eval()
         with torch.no_grad():
             return_dict = self(X)
+
+
+            if return_as_numpy:
+                # Cast everything to numpy
+                preds = return_dict['pred']
+                preds.cpu().numpy()
+                return_dict['pred'] = preds
+
             return return_dict
     
     def evaluate(self, X, y, **kwargs):
