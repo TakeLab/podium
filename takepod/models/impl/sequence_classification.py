@@ -143,20 +143,22 @@ class MyTorchModel(AbstractSupervisedModel):
 
 
 class TorchTrainer(AbstractTrainer):
-    def __init__(self, num_epochs, device, valid_iterator=None):
+    def __init__(self, num_epochs, device, iterator, valid_data=None):
         self.epochs = num_epochs
-        self.valid_iterator = valid_iterator
+        self.iterator = iterator
+        self.valid_data = valid_data
         self.device = device
 
+
     def train(self,
-              model: AbstractSupervisedModel,
-              iterator: Iterator,
+              model,
+              dataset,
               feature_transformer,
               label_transform_fun,
               **kwargs):
         # Actual training loop
         # Single training epoch
-        for batch_num, (batch_x, batch_y) in enumerate(iterator):
+        for batch_num, (batch_x, batch_y) in enumerate(self.iterator(dataset)):
             t = time.time()
             X = torch.from_numpy(
                 feature_transformer.transform(batch_x).swapaxes(0,1) # swap batch_size and T
@@ -171,9 +173,14 @@ class TorchTrainer(AbstractTrainer):
                    batch_num, len(iterator), time.time() - t, return_dict['loss']), 
                    end='\r', flush=True)
 
-        for batch_num, (batch_x, batch_y) in enumerate(self.valid_iterator):
-            X = feature_transformer.transform(batch_x)
-            y = label_transform_fun(batch_y)
+        for batch_num, (batch_x, batch_y) in enumerate(self.iterator(dataset)):
+            X = torch.from_numpy(
+                feature_transformer.transform(batch_x).swapaxes(0,1) # swap batch_size and T
+                ).to(self.device)
+            y = torch.from_numpy(
+                label_transform_fun(batch_y)
+                ).to(self.device)
+
 
             return_dict = model.evaluate(X, y)
             loss = return_dict['loss']
