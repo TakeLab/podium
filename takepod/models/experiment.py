@@ -87,18 +87,8 @@ class Experiment:
         else:
             self.prediction_iterator_callable = prediction_iterator_callable
 
-        if feature_transformer is None:
-            self.feature_transformer = FeatureTransformer(default_feature_transform)
-
-        elif callable(feature_transformer):
-            self.feature_transformer = FeatureTransformer(feature_transformer)
-
-        else:
-            self.feature_transformer = feature_transformer
-
-        self.label_transform_fun = label_transform_fun \
-            if label_transform_fun is not None \
-            else default_label_transform
+        self.set_feature_transformer(feature_transformer)
+        self.set_label_transformer(label_transform_fun)
 
     def set_default_model_args(self, **kwargs):
         """Sets the default model arguments. Model arguments are keyword arguments passed
@@ -123,6 +113,28 @@ class Experiment:
             Default trainer arguments.
         """
         self.default_trainer_args = kwargs
+
+    def set_feature_transformer(self, feature_transformer):
+        if feature_transformer is None:
+            self.feature_transformer = FeatureTransformer(default_feature_transform)
+
+        elif isinstance(feature_transformer, FeatureTransformer):
+            self.feature_transformer = feature_transformer
+
+        elif callable(feature_transformer):
+            self.feature_transformer = FeatureTransformer(feature_transformer)
+
+        else:
+            err_msg = """Invalid feature_transformer. feature_transformer must be either
+            be None, a FeatureTransformer instance or a callable 
+            taking a batch and returning a numpy matrix of features."""
+            _LOGGER.error(err_msg)
+            raise TypeError(err_msg)
+
+    def set_label_transformer(self, label_transform_fun):
+        self.label_transform_fun = label_transform_fun \
+            if label_transform_fun is not None \
+            else default_label_transform
 
     def fit(self,
             dataset: Dataset,
@@ -180,7 +192,7 @@ class Experiment:
             raise RuntimeError(errmsg)
 
         if feature_transformer is not None:
-            self.feature_transformer = feature_transformer
+            self.set_feature_transformer(feature_transformer)
 
         # Fit the feature transformer if it needs fitting
         if self.feature_transformer.requires_fitting():

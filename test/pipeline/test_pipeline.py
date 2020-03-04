@@ -2,7 +2,7 @@ import numpy as np
 
 from takepod.pipeline import Pipeline
 from takepod.storage import Field, ExampleFormat
-from takepod.models import AbstractSupervisedModel
+from takepod.models import AbstractSupervisedModel, FeatureTransformer
 from takepod.datasets import SingleBatchIterator
 
 name_dict = {
@@ -31,7 +31,11 @@ def get_fields():
             "Age": age_field}
 
 
-class MockFeatureTransformer:
+def mock_feature_transform(x_batch):
+    return np.hstack((x_batch.Name, x_batch.Score))
+
+
+class MockFeatureTransformer(FeatureTransformer):
 
     def transform(self, x_batch):
         return np.hstack((x_batch.Name, x_batch.Score))
@@ -59,7 +63,7 @@ def test_pipeline_predict_raw():
     fields_list = [fields['Name'], fields['Score'], None]
     list_pipeline = Pipeline(fields_list,
                              example_format="list",
-                             feature_transformer=MockFeatureTransformer(),
+                             feature_transformer=mock_feature_transform,
                              model=MockModel())
 
     raw_list = ["Marko", 30]
@@ -71,7 +75,7 @@ def test_pipeline_predict_raw():
     fields_dict = {field.name: field for field in fields_list if field}
     dict_pipeline = Pipeline(fields_dict,
                              ExampleFormat.DICT,
-                             feature_transformer=MockFeatureTransformer(),
+                             feature_transformer=mock_feature_transform,
                              model=MockModel())
 
     # Test for Dict format
@@ -85,7 +89,7 @@ def test_pipeline_predict_raw():
     raw_csv = "Marko,30"
     csv_pipeline = Pipeline(fields_list,
                             ExampleFormat.CSV,
-                            feature_transformer=MockFeatureTransformer(),
+                            feature_transformer=mock_feature_transform,
                             model=MockModel())
     expected_prediction = np.array([1, 30])
     prediction = csv_pipeline.predict_raw(raw_csv)
@@ -127,12 +131,13 @@ def test_pipeline_fit_raw():
 
     # Test for list format
     fields_list = [fields['Name'], fields['Score'], fields['Age']]
+
     list_pipeline = Pipeline(fields_list,
                              model=MockModel,
                              trainer=MockTrainer(),
                              example_format="list",
                              trainer_iterator_callable=SingleBatchIterator,
-                             feature_transformer=MockFeatureTransformer(),
+                             feature_transformer=mock_feature_transform,
                              label_transform_fn=mock_label_extractor)
 
     list_pipeline.fit_raw(mock_data)

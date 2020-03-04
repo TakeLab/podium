@@ -2,7 +2,7 @@ from collections import namedtuple
 
 import pytest
 import numpy as np
-from takepod.models import AbstractSupervisedModel, Experiment
+from takepod.models import AbstractSupervisedModel, Experiment, FeatureTransformer
 from takepod.datasets import Dataset
 from takepod.storage import Field, ExampleFactory, Vocab
 
@@ -48,7 +48,7 @@ def mock_label_transform_fun(y_batch):
     return y_batch.Score
 
 
-class MockTransformer:
+class MockTransformer(FeatureTransformer):
 
     def __init__(self, to_fit):
         self.to_fit = to_fit
