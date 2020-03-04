@@ -102,7 +102,7 @@ def main():
       loaded_model = pickle.load(load_file)
 
     ft = experiment.feature_transformer
-    cast_to_torch_transformer = lambda t: torch.from_numpy(ft(t).swapaxes(0,1)).to(device)
+    cast_to_torch_transformer = lambda t: torch.from_numpy(ft.transform(t).swapaxes(0,1)).to(device)
 
     pipe = Pipeline(
       fields = list(fields.values()),
