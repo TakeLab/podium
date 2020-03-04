@@ -88,10 +88,11 @@ class AttentionRNN(nn.Module):
 
 
 class MyTorchModel(AbstractSupervisedModel):
-    def __init__(self, model_class, config, criterion, optimizer):
+    def __init__(self, model_class, config, criterion, optimizer, device):
         self.model_class = model_class
         self.config = config
-        self._model = model_class(config).to(config.device)
+        self.device = device
+        self._model = model_class(config).to(device)
         self.optimizer_class = optimizer
         self.optimizer = optimizer(self.model.parameters(), config.lr)
         self.criterion = criterion
@@ -145,7 +146,7 @@ class MyTorchModel(AbstractSupervisedModel):
     def __setstate__(self, state):
         print("Restoring model from state")
         self.model_class = state['model_class']
-        self.config = state['config']
+        self.config = Config(state['config'])
 
         # Deserialize model
         model = self.model_class(self.config).to(config.device)
@@ -165,7 +166,7 @@ class MyTorchModel(AbstractSupervisedModel):
     def __getstate__(self):
         state = {
             'model_class': self.model_class,
-            'config': self.config,
+            'config': dict(self.config),
             'model_state': self.model.state_dict(),
             'optimizer_class': self.optimizer_class,
             'optimizer_state': self.optimizer.state_dict(),
@@ -226,3 +227,14 @@ class TorchTrainer(AbstractTrainer):
                        end='\r', flush=True)
 
             print(f"\nTotal time for valid epoch: {time.time() - total_time}")
+
+
+class Config(dict):
+    def __init__(self, *args, **kwargs): 
+        dict.__init__(self, *args, **kwargs)
+            
+    def __getattr__(self, key):
+        return self[key]
+
+    def __setattr__(self, key, value):
+        self[key] = value

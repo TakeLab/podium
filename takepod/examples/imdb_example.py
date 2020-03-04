@@ -17,7 +17,7 @@ import torch.nn.functional as F
 
 class Config(dict):
     def __init__(self, *args, **kwargs): 
-        dict.__init__(self, *args, **kwargs)     
+        dict.__init__(self, *args, **kwargs)
             
     def __getattr__(self, key):
         return self[key]
@@ -68,27 +68,29 @@ def main():
         'cuda': False,
         'vocab_size': len(vocab),
         'num_classes': len(label_vocab),
-        'device': torch.device('cuda:0')
     }
 
+    device = torch.device('cuda:0')
     config = Config(config_dict)
 
     from functools import partial
     valid_iterator = Iterator(dataset=imdb_train, batch_size=32)
     train_iterator = partial(Iterator, batch_size=32)
 
-    trainer = TorchTrainer(config.epochs, config.device, valid_iterator)
+    trainer = TorchTrainer(config.epochs, device, valid_iterator)
 
 
     experiment = Experiment(MyTorchModel, trainer=trainer, 
                             training_iterator_callable=train_iterator)
-    experiment.fit(
+    model = experiment.fit(
         imdb_train,
         model_kwargs={
             'model_class': AttentionRNN, 
             'config': config, 
             'criterion': criterion,
-            'optimizer': torch.optim.Adam
+            'optimizer': torch.optim.Adam,
+            'device': device
+            #'embedding': embedding
         },
     )
 
