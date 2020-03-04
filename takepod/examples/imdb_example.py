@@ -61,7 +61,7 @@ def main():
         'nlayers': 1,
         'lr': 1e-3,
         'clip': 5,
-        'epochs': 5,
+        'epochs': 1,
         'batch_size': 32,
         'dropout': 0.,
         'bidirectional': True,

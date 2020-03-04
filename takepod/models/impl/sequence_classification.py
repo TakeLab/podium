@@ -88,7 +88,7 @@ class AttentionRNN(nn.Module):
 
 
 class MyTorchModel(AbstractSupervisedModel):
-    def __init__(self, model_class, config, criterion, optimizer, device):
+    def __init__(self, model_class, config, criterion, optimizer, device='cpu'):
         self.model_class = model_class
         self.config = config
         self.device = device
@@ -149,7 +149,7 @@ class MyTorchModel(AbstractSupervisedModel):
         self.config = Config(state['config'])
 
         # Deserialize model
-        model = self.model_class(self.config).to(config.device)
+        model = self.model_class(self.config)
         model.load_state_dict(state['model_state'])
         self._model = model
 
