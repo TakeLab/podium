@@ -147,7 +147,7 @@ class MyTorchModel(AbstractSupervisedModel):
         print("Restoring model from state")
         self.model_class = state['model_class']
         self.config = Config(state['config'])
-
+        self.device = state['device']
         # Deserialize model
         model = self.model_class(self.config)
         model.load_state_dict(state['model_state'])
@@ -171,7 +171,8 @@ class MyTorchModel(AbstractSupervisedModel):
             'optimizer_class': self.optimizer_class,
             'optimizer_state': self.optimizer.state_dict(),
             'loss_class': self.criterion.__class__,
-            'loss_state': self.criterion.state_dict()
+            'loss_state': self.criterion.state_dict(),
+            'device': self.device
         }
         return state
 
