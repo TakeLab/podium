@@ -156,7 +156,7 @@ class TorchTrainer(AbstractTrainer):
               **kwargs):
         # Actual training loop
         # Single training epoch
-        for _ in self.epochs:
+        for _ in range(self.epochs):
             for batch_num, (batch_x, batch_y) in enumerate(iterator):
                 t = time.time()
                 X = torch.from_numpy(
