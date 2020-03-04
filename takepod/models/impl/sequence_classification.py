@@ -156,32 +156,33 @@ class TorchTrainer(AbstractTrainer):
               **kwargs):
         # Actual training loop
         # Single training epoch
-        for batch_num, (batch_x, batch_y) in enumerate(iterator):
-            t = time.time()
-            X = torch.from_numpy(
-                feature_transformer.transform(batch_x).swapaxes(0,1) # swap batch_size and T
-                ).to(self.device)
-            y = torch.from_numpy(
-                label_transform_fun(batch_y)
-                ).to(self.device)
+        for _ in self.epochs:
+            for batch_num, (batch_x, batch_y) in enumerate(iterator):
+                t = time.time()
+                X = torch.from_numpy(
+                    feature_transformer.transform(batch_x).swapaxes(0,1) # swap batch_size and T
+                    ).to(self.device)
+                y = torch.from_numpy(
+                    label_transform_fun(batch_y)
+                    ).to(self.device)
 
-            return_dict = model.fit(X, y)
+                return_dict = model.fit(X, y)
 
-            print("[Batch]: {}/{} in {:.5f} seconds, loss={:.5f}".format(
-                   batch_num, len(iterator), time.time() - t, return_dict['loss']), 
-                   end='\r', flush=True)
+                print("[Batch]: {}/{} in {:.5f} seconds, loss={:.5f}".format(
+                       batch_num, len(iterator), time.time() - t, return_dict['loss']), 
+                       end='\r', flush=True)
 
-        for batch_num, (batch_x, batch_y) in enumerate(self.valid_iterator):
-            X = torch.from_numpy(
-                feature_transformer.transform(batch_x).swapaxes(0,1) # swap batch_size and T
-                ).to(self.device)
-            y = torch.from_numpy(
-                label_transform_fun(batch_y)
-                ).to(self.device)
+            for batch_num, (batch_x, batch_y) in enumerate(self.valid_iterator):
+                X = torch.from_numpy(
+                    feature_transformer.transform(batch_x).swapaxes(0,1) # swap batch_size and T
+                    ).to(self.device)
+                y = torch.from_numpy(
+                    label_transform_fun(batch_y)
+                    ).to(self.device)
 
 
-            return_dict = model.evaluate(X, y)
-            loss = return_dict['loss']
-            print("[Valid]: {}/{} in {:.5f} seconds, loss={:.5f}".format(
-                   batch_num, len(self.valid_iterator), time.time() - t, loss), 
-                   end='\r', flush=True)
+                return_dict = model.evaluate(X, y)
+                loss = return_dict['loss']
+                print("[Valid]: {}/{} in {:.5f} seconds, loss={:.5f}".format(
+                       batch_num, len(self.valid_iterator), time.time() - t, loss), 
+                       end='\r', flush=True)

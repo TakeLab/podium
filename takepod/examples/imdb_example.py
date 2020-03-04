@@ -55,7 +55,7 @@ def main():
     config_dict = {
         'rnn_type': 'LSTM',
         'embed_dim': 300,
-        'hidden_dim': 300,
+        'hidden_dim': 150,
         'nlayers': 1,
         'lr': 1e-3,
         'clip': 5,
