@@ -75,7 +75,7 @@ def main():
     valid_iterator = Iterator(dataset=imdb_train, batch_size=32, shuffle=True)
     train_iterator = partial(Iterator, batch_size=32, shuffle=True)
 
-    trainer = TorchTrainer(config.epochs, valid_iterator)
+    trainer = TorchTrainer(config.epochs, config.device, valid_iterator)
 
 
     experiment = Experiment(MyTorchModel, trainer=trainer, 
