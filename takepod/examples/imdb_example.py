@@ -111,8 +111,10 @@ def main():
       model = fitted_model
       )
 
-    prediction = pipe.predict_raw(['This movie is horrible'])
-    print(prediction)
+    instance = ['This movie is horrible']
+    prediction = pipe.predict_raw(instance)
+    print(f"For instance: {instance}, the prediction is: {fields['label'].vocab.itos[prediction.argmax()]}, with logits: {prediction}")
+    #print(prediction.argmax())
 
 if __name__ == '__main__':
   main()
