@@ -205,7 +205,7 @@ class TorchTrainer(AbstractTrainer):
 
                 return_dict = model.fit(X, y)
 
-                print("[Batch]: {}/{} in {:.5f} seconds, loss={:.5f}".format(
+                print("[Batch]: {} in {:.5f} seconds, loss={:.5f}".format(
                        batch_num, time.time() - t, return_dict['loss']), 
                        end='\r', flush=True)
 
@@ -223,7 +223,7 @@ class TorchTrainer(AbstractTrainer):
 
                 return_dict = model.evaluate(X, y)
                 loss = return_dict['loss']
-                print("[Valid]: {}/{} in {:.5f} seconds, loss={:.5f}".format(
+                print("[Valid]: {} in {:.5f} seconds, loss={:.5f}".format(
                        batch_num, time.time() - t, loss), 
                        end='\r', flush=True)
 
