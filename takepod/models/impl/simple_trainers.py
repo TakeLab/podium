@@ -1,5 +1,6 @@
 """Module contains simple trainer classes."""
 from takepod.models.trainer import AbstractTrainer
+from takepod.datasets import Iterator
 
 
 class SimpleTrainer(AbstractTrainer):
@@ -15,13 +16,17 @@ class SimpleTrainer(AbstractTrainer):
 
     def train(self,
               model,
-              iterator,
+              dataset,
               feature_transformer,
               label_transform_fun,
-              **kwargs):
-        self._check_kwargs(**kwargs)
-        for _ in range(kwargs[SimpleTrainer.MAX_EPOCH_KEY]):
-            for x_batch, y_batch in iterator:
+              max_epoch,
+              iterator=None):
+
+        if iterator is None:
+            iterator = Iterator()
+
+        for _ in range(max_epoch):
+            for x_batch, y_batch in iterator(dataset):
                 x = feature_transformer.transform(x_batch)
                 y = label_transform_fun(y_batch)
                 model.fit(X=x, y=y)

@@ -2,7 +2,7 @@ from typing import Union, Dict, List, Callable, NamedTuple, Any, Type, Iterable
 import logging
 
 from takepod.storage import ExampleFactory, ExampleFormat
-from takepod.datasets import Dataset, Iterator
+from takepod.datasets import Dataset
 from takepod.models import AbstractSupervisedModel, FeatureTransformer, Experiment, \
     AbstractTrainer
 import numpy as np
@@ -20,7 +20,6 @@ class Pipeline(Experiment):
                  feature_transformer: FeatureTransformer,
                  model: Union[AbstractSupervisedModel, Type[AbstractSupervisedModel]],
                  trainer: AbstractTrainer = None,
-                 trainer_iterator_callable: Callable[[Dataset], Iterator] = None,
                  label_transform_fn: Callable[[NamedTuple], np.ndarray] = None,
                  output_transform_fn: Callable[[np.ndarray], Any] = None
                  ):
@@ -53,10 +52,6 @@ class Pipeline(Experiment):
             Trainer used to fit the model. If provided, this trainer instance will be
             stored in the pipeline and used as the default trainer if no trainer is
             provided in the `fit` and `partial_fit` methods.
-
-        trainer_iterator_callable: Callable[[Dataset], Iterator]
-            Callable used to instantiate new instances of the Iterator used in fitting the
-            model.
 
         label_transform_fn: Callable[[NamedTuple], np.ndarray]
             Callable that transforms the target part of the batch returned by the iterator
@@ -112,7 +107,6 @@ class Pipeline(Experiment):
         super().__init__(model,
                          feature_transformer=feature_transformer,
                          trainer=trainer,
-                         training_iterator_callable=trainer_iterator_callable,
                          label_transform_fun=label_transform_fn)
 
     def predict_raw(self,
@@ -150,8 +144,7 @@ class Pipeline(Experiment):
     def partial_fit_raw(self,
                         examples: Iterable[Union[Dict, List]],
                         trainer_kwargs: Dict = None,
-                        trainer: AbstractTrainer = None,
-                        training_iterator_callable: Callable[[Dataset], Iterator] = None):
+                        trainer: AbstractTrainer = None):
         """
         Fits the model to the data without resetting the model.
         Each example must be of the format provided in the constructor as the
@@ -183,16 +176,14 @@ class Pipeline(Experiment):
         ds = Dataset(processed_examples, self.all_fields)
         self.partial_fit(dataset=ds,
                          trainer_kwargs=trainer_kwargs,
-                         trainer=trainer,
-                         training_iterator_callable=training_iterator_callable)
+                         trainer=trainer)
 
     def fit_raw(self,
                 examples: Iterable[Union[Dict, List]],
                 model_kwargs: Dict = None,
                 trainer_kwargs: Dict = None,
                 feature_transformer: FeatureTransformer = None,
-                trainer: AbstractTrainer = None,
-                training_iterator_callable: Callable[[Dataset], Iterator] = None,
+                trainer: AbstractTrainer = None
                 ):
         """Fits the model to the provided examples.
         During fitting, the provided Iterator and Trainer are used.
@@ -237,5 +228,4 @@ class Pipeline(Experiment):
                  model_kwargs=model_kwargs,
                  trainer_kwargs=trainer_kwargs,
                  feature_transformer=feature_transformer,
-                 trainer=trainer,
-                 training_iterator_callable=training_iterator_callable)
+                 trainer=trainer)

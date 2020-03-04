@@ -10,7 +10,7 @@ from takepod.models import FeatureTransformer
 
 def numericalize_pauza_rating(rating):
     """Function numericalizes pauza_hr dataset rating field"""
-    label = round(float(rating) * 2)
+    label = round(float(rating) * 2) - 1
     return label
 
 
@@ -49,11 +49,10 @@ def pauza_mlp_example():
     fields = basic_pauza_hr_fields()
     train_set, test_set = PauzaHRDataset.get_train_test_dataset(fields=fields)
 
-    train_iter = Iterator(dataset=train_set, batch_size=100)
-    test_iter = Iterator(dataset=test_set, batch_size=10)
+    train_iter = Iterator(batch_size=100)
 
     model = ScikitMLPClassifier(
-        classes=[i for i in range(1, len(fields["Rating"].vocab.itos) + 1)],
+        classes=[i for i in range(len(fields["Rating"].vocab.itos))],
         verbose=True, hidden_layer_sizes=(50, 20), solver="adam")
 
     # Define a FeatureTranformer used to extract and transform feature matrices
@@ -61,12 +60,14 @@ def pauza_mlp_example():
     feature_transformer = FeatureTransformer(feature_extraction_fn)
 
     trainer = SimpleTrainer()
-    trainer.train(model, iterator=train_iter,
+    trainer.train(model,
+                  train_set,
+                  iterator=train_iter,
                   feature_transformer=feature_transformer,
                   label_transform_fun=label_extraction_fun,
                   **{trainer.MAX_EPOCH_KEY: 10})
 
-    test_batch_x, test_batch_y = next(test_iter.__iter__())
+    test_batch_x, test_batch_y = next(train_iter(train_set).__iter__())
     x_test = feature_transformer.transform(test_batch_x)
     y_test = label_extraction_fun(test_batch_y)
     prediction = model.predict(X=x_test)
