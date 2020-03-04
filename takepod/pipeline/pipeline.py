@@ -1,4 +1,4 @@
-from typing import Union, Dict, List, Callable, NamedTuple, Any, Type
+from typing import Union, Dict, List, Callable, NamedTuple, Any, Type, Iterable
 import logging
 
 from takepod.storage import ExampleFactory, ExampleFormat
@@ -90,9 +90,22 @@ class Pipeline(Experiment):
             _LOGGER.error(error_msg)
             raise TypeError(error_msg)
 
-        self.fields = fields
+        if isinstance(fields, (list, tuple)):
+            self.feature_fields = [field for field in fields
+                                   if field and not field.is_target]
+
+        else:
+            self.feature_fields = {field_key: field
+                                   for field_key, field
+                                   in fields.items()
+                                   if field and not field.is_target}
+
+        self.all_fields = fields
+
         self.example_format = example_format
-        self.example_factory = ExampleFactory(fields)
+
+        self.training_example_factory = ExampleFactory(self.all_fields)
+        self.prediction_example_factory = ExampleFactory(self.feature_fields)
 
         self.output_transform_fn = output_transform_fn
 
@@ -121,9 +134,10 @@ class Pipeline(Experiment):
         -------
         ndarray
             Tensor containing the prediction for the example."""
-        processed_example = self.example_factory.from_format(raw_example,
-                                                             self.example_format)
-        ds = Dataset([processed_example], self.fields)
+        processed_example = \
+            self.prediction_example_factory.from_format(raw_example,
+                                                        self.example_format)
+        ds = Dataset([processed_example], self.feature_fields)
         prediction = self.predict(ds, **kwargs)
         # Indexed with 0 to extract the single prediction from the prediction batch
         prediction = prediction[0]
@@ -132,3 +146,96 @@ class Pipeline(Experiment):
 
         else:
             return prediction
+
+    def partial_fit_raw(self,
+                        examples: Iterable[Union[Dict, List]],
+                        trainer_kwargs: Dict = None,
+                        trainer: AbstractTrainer = None,
+                        training_iterator_callable: Callable[[Dataset], Iterator] = None):
+        """
+        Fits the model to the data without resetting the model.
+        Each example must be of the format provided in the constructor as the
+        `example_format` parameter.
+
+        Parameters
+        ----------
+        examples: Iterable[Union[Dict, List]]
+            Iterable of examples in raw state.
+
+        trainer_kwargs : dict
+            Dict containing trainer arguments. Arguments passed to the trainer are the
+            default arguments defined with `set_default_trainer_args` updated/overridden
+            by 'trainer_kwargs'.
+
+        trainer: AbstractTrainer, Optional
+            Trainer used to fit the model. If None, the trainer provided in the
+            constructor will be used.
+
+        training_iterator_callable: Callable[[Dataset], Iterator]
+            Callable used to instantiate new instances of the Iterator used in fitting the
+            model. If None, the training_iterator_callable provided in the
+            constructor will be used.
+        """
+
+        processed_examples = \
+            [self.training_example_factory.from_format(ex, self.example_format)
+             for ex in examples]
+        ds = Dataset(processed_examples, self.all_fields)
+        self.partial_fit(dataset=ds,
+                         trainer_kwargs=trainer_kwargs,
+                         trainer=trainer,
+                         training_iterator_callable=training_iterator_callable)
+
+    def fit_raw(self,
+                examples: Iterable[Union[Dict, List]],
+                model_kwargs: Dict = None,
+                trainer_kwargs: Dict = None,
+                feature_transformer: FeatureTransformer = None,
+                trainer: AbstractTrainer = None,
+                training_iterator_callable: Callable[[Dataset], Iterator] = None,
+                ):
+        """Fits the model to the provided examples.
+        During fitting, the provided Iterator and Trainer are used.
+        Each example must be of the format provided in the constructor as the
+        `example_format` parameter.
+        Parameters
+        ----------
+        examples : Iterable[Union[Dict, List]]
+            Examples that will be used in fitting,
+
+        model_kwargs : dict
+            Dict containing model arguments. Arguments passed to the model are the default
+            arguments defined with `set_default_model_args` updated/overridden by
+            model_kwargs.
+
+        trainer_kwargs : dict
+            Dict containing trainer arguments. Arguments passed to the trainer are the
+            default arguments defined with `set_default_trainer_args` updated/overridden
+            by 'trainer_kwargs'.
+
+        feature_transformer : FeatureTransformer, Optional
+            FeatureTransformer that transforms the input part of the batch returned by the
+            iterator into features that can be fed into the model. Will also be fitted
+            during Experiment fitting.
+            If None, the default FeatureTransformer provided in the constructor will be
+            used. Otherwise, this will overwrite the default feature transformer.
+
+        trainer : AbstractTrainer, Optional
+            Trainer used to fit the model. If None, the trainer provided in the
+            constructor will be used.
+
+        training_iterator_callable: Callable[[Dataset], Iterator]
+            Callable used to instantiate new instances of the Iterator used in fitting the
+            model. If None, the training_iterator_callable provided in the
+            constructor will be used.
+        """
+        processed_examples = \
+            [self.training_example_factory.from_format(ex, self.example_format)
+             for ex in examples]
+        ds = Dataset(processed_examples, self.all_fields)
+        self.fit(ds,
+                 model_kwargs=model_kwargs,
+                 trainer_kwargs=trainer_kwargs,
+                 feature_transformer=feature_transformer,
+                 trainer=trainer,
+                 training_iterator_callable=training_iterator_callable)

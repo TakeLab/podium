@@ -3,6 +3,7 @@ import numpy as np
 from takepod.pipeline import Pipeline
 from takepod.storage import Field, ExampleFormat
 from takepod.models import AbstractSupervisedModel
+from takepod.datasets import SingleBatchIterator
 
 name_dict = {
     "Marko": 1,
@@ -11,35 +12,23 @@ name_dict = {
 }
 
 mock_data = [
-    ["Marko", 50],
-    ["Darko", 60],
-    ["Ivana", 45]
+    ["Marko", 50, 20],
+    ["Darko", 60, 30],
+    ["Ivana", 45, 40]
 ]
 
 
 def get_fields():
     name_field = Field("Name", custom_numericalize=name_dict.get)
     score_field = Field("Score", tokenize=False, custom_numericalize=int)
+    age_field = Field("Age", tokenize=False, custom_numericalize=int, is_target=True)
 
     name_field.finalize()
     score_field.finalize()
 
     return {"Name": name_field,
-            "Score": score_field}
-
-
-class MockModel:
-
-    def fit(self, *args, **kwargs):
-        pass
-
-    def predict(self, x, **kwargs):
-        return {AbstractSupervisedModel.PREDICTION_KEY: x}
-
-
-class MockTrainer:
-    def train(self, *args, **kwargs):
-        pass
+            "Score": score_field,
+            "Age": age_field}
 
 
 class MockFeatureTransformer:
@@ -47,12 +36,27 @@ class MockFeatureTransformer:
     def transform(self, x_batch):
         return np.hstack((x_batch.Name, x_batch.Score))
 
+    def requires_fitting(self):
+        return False
 
-def test_pipeline_from_raw():
+
+def mock_label_extractor(y_batch):
+    return y_batch.Age
+
+
+def test_pipeline_predict_raw():
+    class MockModel:
+
+        def fit(self, x, y, **kwargs):
+            pass
+
+        def predict(self, x, **kwargs):
+            return {AbstractSupervisedModel.PREDICTION_KEY: x}
+
     fields = get_fields()
 
     # Test for list format
-    fields_list = [fields['Name'], fields['Score']]
+    fields_list = [fields['Name'], fields['Score'], None]
     list_pipeline = Pipeline(fields_list,
                              example_format="list",
                              feature_transformer=MockFeatureTransformer(),
@@ -64,7 +68,7 @@ def test_pipeline_from_raw():
 
     assert np.all(expected_prediction == prediction)
 
-    fields_dict = {field.name: field for field in fields_list}
+    fields_dict = {field.name: field for field in fields_list if field}
     dict_pipeline = Pipeline(fields_dict,
                              ExampleFormat.DICT,
                              feature_transformer=MockFeatureTransformer(),
@@ -88,7 +92,62 @@ def test_pipeline_from_raw():
     assert np.all(expected_prediction == prediction)
 
 
+def test_pipeline_fit_raw():
+    fields = get_fields()
+
+    class MockModel:
+
+        def fit(self, x_batch, y_batch):
+            expected_x_batch = np.array(
+                [[1, 50],
+                 [2, 60],
+                 [3, 45]]
+            )
+            expected_y_batch = np.array(
+                [[20],
+                 [30],
+                 [40]]
+            )
+
+            assert np.all(x_batch == expected_x_batch)
+            assert np.all(y_batch == expected_y_batch)
+
+    class MockTrainer:
+
+        def train(self,
+                  model,
+                  iterator,
+                  feature_transformer,
+                  label_transform_fun,
+                  **kwargs):
+            #  Using single batch iterator so only one batch
+            x_batch, y_batch = next(iterator.__iter__())
+            model.fit(feature_transformer.transform(x_batch),
+                      label_transform_fun(y_batch))
+
+    # Test for list format
+    fields_list = [fields['Name'], fields['Score'], fields['Age']]
+    list_pipeline = Pipeline(fields_list,
+                             model=MockModel,
+                             trainer=MockTrainer(),
+                             example_format="list",
+                             trainer_iterator_callable=SingleBatchIterator,
+                             feature_transformer=MockFeatureTransformer(),
+                             label_transform_fn=mock_label_extractor)
+
+    list_pipeline.fit_raw(mock_data)
+    list_pipeline.partial_fit_raw(mock_data)
+
+
 def test_output_transform_fn():
+    class MockModel:
+
+        def fit(self, x, y, **kwargs):
+            pass
+
+        def predict(self, x, **kwargs):
+            return {AbstractSupervisedModel.PREDICTION_KEY: x}
+
     transform_dict = {val: key.upper() for key, val in name_dict.items()}
 
     fields = get_fields()
