@@ -59,7 +59,6 @@ class Experiment:
             If None, a default label transformer that returns a single feature from
             the batch will be used. In this case the Dataset used in training must contain
             a single target field.
-            
         """
         if isclass(model):
             self.model_class = model

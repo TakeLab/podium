@@ -72,7 +72,7 @@ class Pipeline(Experiment):
             If None, a default label transformer that returns a single feature from
             the batch will be used. In this case the Dataset used in training must contain
             a single target field.
-        
+
         output_transform_fn: Callable[[np.ndarray], Any]
             Callable used to transform the prediction result of the model.
         """
