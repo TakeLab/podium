@@ -161,7 +161,7 @@ class MyTorchModel(AbstractSupervisedModel):
         # Deserialize loss
         loss_class = state['loss_class']
         self.criterion = loss_class()
-        self.criterion.load_state_dict(['loss_state'])
+        self.criterion.load_state_dict(state['loss_state'])
 
     def __getstate__(self):
         state = {
