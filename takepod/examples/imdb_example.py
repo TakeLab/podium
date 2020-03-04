@@ -111,8 +111,8 @@ def main():
       model = fitted_model
       )
 
-    pipe.predict_raw(['This movie is horrible', ''])
-
+    prediction = pipe.predict_raw(['This movie is horrible', ''])
+    print(prediction)
 
 if __name__ == '__main__':
   main()
