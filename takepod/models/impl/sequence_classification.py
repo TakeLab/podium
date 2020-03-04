@@ -177,14 +177,15 @@ class MyTorchModel(AbstractSupervisedModel):
         return state
 
 class TorchTrainer(AbstractTrainer):
-    def __init__(self, num_epochs, device, valid_iterator=None):
+    def __init__(self, num_epochs, device, iterator, valid_data=None):
         self.epochs = num_epochs
-        self.valid_iterator = valid_iterator
+        self.valid_data = valid_data
         self.device = device
+        self.iterator = iterator
 
     def train(self,
-              model: AbstractSupervisedModel,
-              iterator: Iterator,
+              model,
+              dataset,
               feature_transformer,
               label_transform_fun,
               **kwargs):
@@ -193,7 +194,7 @@ class TorchTrainer(AbstractTrainer):
 
         for _ in range(self.epochs):
             total_time = time.time()
-            for batch_num, (batch_x, batch_y) in enumerate(iterator):
+            for batch_num, (batch_x, batch_y) in enumerate(self.iterator(iterator)):
                 t = time.time()
                 X = torch.from_numpy(
                     feature_transformer.transform(batch_x).swapaxes(0,1) # swap batch_size and T
@@ -211,7 +212,7 @@ class TorchTrainer(AbstractTrainer):
             print(f"\nTotal time for train epoch: {time.time() - total_time}")
 
             total_time = time.time()
-            for batch_num, (batch_x, batch_y) in enumerate(self.valid_iterator):
+            for batch_num, (batch_x, batch_y) in enumerate(self.iterator(self.valid_data)):
                 t = time.time()
                 X = torch.from_numpy(
                     feature_transformer.transform(batch_x).swapaxes(0,1) # swap batch_size and T
