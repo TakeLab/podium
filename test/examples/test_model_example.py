@@ -27,10 +27,9 @@ def test_basic_batch_transform_fun():
 @pytest.mark.parametrize(
     "rating, expected_output",
     [
-        (0, 0),
-        (0.5, 1),
-        (3, 6),
-        (5.5, 11)
+        (0.5, 0),
+        (3, 5),
+        (5.5, 10)
     ]
 )
 def test_numericalize_pauza_rating(rating, expected_output):
