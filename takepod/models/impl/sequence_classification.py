@@ -1,0 +1,182 @@
+import math
+import time
+
+from takepod.datasets import BucketIterator, Iterator, BasicSupervisedImdbDataset
+from takepod.storage import Field, Vocab
+from takepod.storage.vectorizers.impl import GloVe
+from takepod.models import Experiment, AbstractSupervisedModel
+from takepod.models.trainer import AbstractTrainer
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+RNNS = ['LSTM', 'GRU']
+
+class Encoder(nn.Module):
+    def __init__(self, embedding_dim, hidden_dim, nlayers=1, dropout=0.,
+                   bidirectional=True, rnn_type='GRU'):
+        super(Encoder, self).__init__()
+        
+        self.bidirectional = bidirectional
+        assert rnn_type in RNNS, 'Use one of the following: {}'.format(str(RNNS))
+        rnn_cell = getattr(nn, rnn_type) # fetch constructor from torch.nn, cleaner than if
+        self.rnn = rnn_cell(embedding_dim, hidden_dim, nlayers, 
+                                dropout=dropout, bidirectional=bidirectional)
+
+    def forward(self, input, hidden=None):
+        return self.rnn(input, hidden)
+
+
+class Attention(nn.Module):
+    def __init__(self, query_dim, key_dim, value_dim):
+        super(Attention, self).__init__()
+        self.scale = 1. / math.sqrt(query_dim)
+
+    def forward(self, query, keys, values):
+        # Query = [BxQ]
+        # Keys = [TxBxK]
+        # Values = [TxBxV]
+        # Outputs = a:[TxB], lin_comb:[BxV]
+
+        # Here we assume q_dim == k_dim (dot product attention)
+
+        query = query.unsqueeze(1) # [BxQ] -> [Bx1xQ]
+        keys = keys.transpose(0,1).transpose(1,2) # [TxBxK] -> [BxKxT]
+        energy = torch.bmm(query, keys) # [Bx1xQ]x[BxKxT] -> [Bx1xT]
+        energy = F.softmax(energy.mul_(self.scale), dim=2) # scale, normalize
+
+        values = values.transpose(0,1) # [TxBxV] -> [BxTxV]
+        linear_combination = torch.bmm(energy, values).squeeze(1) #[Bx1xT]x[BxTxV] -> [BxV]
+        return energy, linear_combination
+
+class AttentionRNN(nn.Module):
+    def __init__(self, cfg):
+        super(AttentionRNN, self).__init__()
+        self.config = cfg
+        self.embedding = nn.Embedding(cfg.vocab_size, cfg.embed_dim)
+        self.encoder = Encoder(cfg.embed_dim, cfg.hidden_dim, cfg.nlayers, 
+                               cfg.dropout, cfg.bidirectional, cfg.rnn_type)
+        attention_dim = cfg.hidden_dim if not cfg.bidirectional else 2 * cfg.hidden_dim
+        self.attention = Attention(attention_dim, attention_dim, attention_dim)
+        self.decoder = nn.Linear(attention_dim, cfg.num_classes)
+
+        size = 0
+        for p in self.parameters():
+            size += p.nelement()
+        print('Total param size: {}'.format(size))
+
+
+    def forward(self, input):
+        outputs, hidden = self.encoder(self.embedding(input))
+        if isinstance(hidden, tuple): # LSTM
+            hidden = hidden[1] # take the cell state
+
+        if self.encoder.bidirectional: # need to concat the last 2 hidden layers
+            hidden = torch.cat([hidden[-1], hidden[-2]], dim=1)
+        else:
+            hidden = hidden[-1]
+
+        energy, linear_combination = self.attention(hidden, outputs, outputs) 
+        logits = self.decoder(linear_combination)
+        return_dict = {
+            'pred': logits,
+            'attention_weights':energy
+        }
+
+        return return_dict
+
+
+class MyTorchModel(AbstractSupervisedModel):
+    def __init__(self, model_class, config, criterion, optimizer):
+        self.model_class = model_class
+        self.config = config
+        self._model = model_class(config).to(config.device)
+        self.optimizer = optimizer(self.model.parameters(), config.lr)
+        self.criterion = criterion
+
+    @property
+    def model(self):
+        return self._model
+        
+    def __call__(self, x):
+        return self._model(x)
+
+    def fit(self, X, y, **kwargs):
+        # This is a _step_ in the iteration process.
+        # Should assume model is in training mode
+        
+        # Train-specific code
+        self.model.train()
+        self.model.zero_grad()
+        
+        return_dict = self(X)
+        logits = return_dict['pred']
+        #print(logits.view(-1, self.config.num_classes), y.squeeze())
+        loss = self.criterion(logits.view(-1, self.config.num_classes), y.squeeze())
+        return_dict['loss'] = loss
+        
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config.clip)
+        self.optimizer.step()
+        return return_dict
+
+    def predict(self, X, **kwargs):
+        # Assumes that the model is in _eval_ mode
+        self.model.eval()
+        with torch.no_grad():
+            return_dict = self(X)
+            return return_dict
+    
+    def evaluate(self, X, y, **kwargs):
+        self.model.eval()
+        with torch.no_grad():
+            return_dict = self(X)
+            logits = return_dict['pred']
+            loss = self.criterion(logits.view(-1, self.config.num_classes), y.squeeze())
+            return_dict['loss'] = loss
+            return return_dict
+    
+    def reset(self, **kwargs):
+        # Restart model
+        self._model = self.model_class(self.config)
+
+
+class TorchTrainer(AbstractTrainer):
+    def __init__(self, num_epochs, device, valid_iterator=None):
+        self.epochs = num_epochs
+        self.valid_iterator = valid_iterator
+        self.device = device
+
+    def train(self,
+              model: AbstractSupervisedModel,
+              iterator: Iterator,
+              feature_transformer,
+              label_transform_fun,
+              **kwargs):
+        # Actual training loop
+        # Single training epoch
+        for batch_num, (batch_x, batch_y) in enumerate(iterator):
+            t = time.time()
+            X = torch.from_numpy(
+                feature_transformer.transform(batch_x).swapaxes(0,1) # swap batch_size and T
+                ).to(device)
+            y = torch.from_numpy(
+                label_transform_fun(batch_y)
+                ).to(device)
+
+            return_dict = model.fit(X, y)
+
+            print("[Batch]: {}/{} in {:.5f} seconds, loss={:.5f}".format(
+                   batch_num, len(iterator), time.time() - t, return_dict['loss']), 
+                   end='\r', flush=True)
+
+        for batch_num, batch_x, batch_y in enumerate(self.valid_iterator):
+            X = feature_transformer.transform(batch_x)
+            y = label_transform_fun(batch_y)
+
+            return_dict = model.evaluate(X, y)
+            loss = return_dict['loss']
+            print("[Valid]: {}/{} in {:.5f} seconds, loss={:.5f}".format(
+                   batch_num, len(self.valid_iterator), time.time() - t, loss), 
+                   end='\r', flush=True)
