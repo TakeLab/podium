@@ -3,7 +3,6 @@ import numpy as np
 from takepod.pipeline import Pipeline
 from takepod.storage import Field, ExampleFormat
 from takepod.models import AbstractSupervisedModel
-from takepod.datasets import SingleBatchIterator
 
 name_dict = {
     "Marko": 1,
