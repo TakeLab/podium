@@ -8,6 +8,7 @@ from takepod.storage import Field, Vocab
 from takepod.storage.vectorizers.impl import GloVe
 from takepod.models import Experiment, AbstractSupervisedModel
 from takepod.models.trainer import AbstractTrainer
+from takepod.pipeline import Pipeline
 
 from takepod.models.impl.sequence_classification import *
 
@@ -94,6 +95,7 @@ def main():
         },
     )
 
+    # Check serialization for _model_ only (should be for experiment as well)
     fitted_model = experiment.model
 
     model_save_file = 'model.pt'
@@ -102,6 +104,15 @@ def main():
 
     with open(model_save_file, 'rb') as load_file:
       loaded_model = pickle.load(load_file)
+
+    pipe = Pipeline(
+      fields = imdb_train.fields,
+      example_format = 'list',
+      feature_transformer = experiment.feature_transformer,
+      model = fitted_model
+      )
+
+    pipe.predict_raw(['This movie is horrible', ''])
 
 
 if __name__ == '__main__':
