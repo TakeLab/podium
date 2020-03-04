@@ -132,7 +132,7 @@ def test_experiment_train(fit_transformer):
     experiment = Experiment(MockModel,
                             trainer=trainer,
                             feature_transformer=mock_transformer,
-                            label_transform_fun=mock_label_transform_fun)
+                            label_transform_fn=mock_label_transform_fun)
 
     experiment.set_default_model_args(**default_model_args)
     experiment.set_default_trainer_args(**default_trainer_args)

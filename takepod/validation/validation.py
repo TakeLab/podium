@@ -61,7 +61,7 @@ def kfold_scores(
         y_pred = experiment.predict(test_split)
 
         _, y_true_batch = test_split.batch()
-        y_true = experiment.label_transform_fun(y_true_batch)
+        y_true = experiment.label_transform_fn(y_true_batch)
 
         split_score = score_fun(y_true, y_pred)
         results.append(split_score)

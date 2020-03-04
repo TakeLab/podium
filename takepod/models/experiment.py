@@ -23,7 +23,7 @@ class Experiment:
                  trainer: AbstractTrainer = None,
                  feature_transformer:
                  Union[FeatureTransformer, Callable[[NamedTuple], np.array]] = None,
-                 label_transform_fun:
+                 label_transform_fn:
                  Callable[[NamedTuple], np.ndarray] = None
                  ):
         """Creates a new Experiment. The Experiment class is used to simplify model
@@ -38,6 +38,9 @@ class Experiment:
             `partial_fit`.
             Must be a subclass of Podium's `AbstractSupervisedModel`
 
+        trainer : AbstractTrainer
+            Trainer used to fit the model.
+
         feature_transformer : Union[FeatureTransformer, Callable[[NamedTuple], np.array]
             FeatureTransformer that transforms the input part of the batch returned by the
             iterator into features that can be fed into the model. Will also be fitted
@@ -45,10 +48,7 @@ class Experiment:
             A callable taking an input batch and returning a numpy array of features can
             also be passed.
 
-        trainer : AbstractTrainer
-            Trainer used to fit the model.
-
-        label_transform_fun : Callable[[NamedTuple], np.ndarray]
+        label_transform_fn : Callable[[NamedTuple], np.ndarray]
             Callable that transforms the target part of the batch returned by the iterator
             into the same format the model prediction is. For a hypothetical perfect model
             the prediction result of the model for some examples must be identical to the
@@ -67,7 +67,7 @@ class Experiment:
         self.set_default_trainer_args()
 
         self.set_feature_transformer(feature_transformer)
-        self.set_label_transformer(label_transform_fun)
+        self.set_label_transformer(label_transform_fn)
 
     def set_default_model_args(self, **kwargs):
         """Sets the default model arguments. Model arguments are keyword arguments passed
@@ -110,9 +110,9 @@ class Experiment:
             _LOGGER.error(err_msg)
             raise TypeError(err_msg)
 
-    def set_label_transformer(self, label_transform_fun):
-        self.label_transform_fun = label_transform_fun \
-            if label_transform_fun is not None \
+    def set_label_transformer(self, label_transform_fn):
+        self.label_transform_fn = label_transform_fn \
+            if label_transform_fn is not None \
             else default_label_transform
 
     def fit(self,
@@ -175,7 +175,7 @@ class Experiment:
         # Fit the feature transformer if it needs fitting
         if self.feature_transformer.requires_fitting():
             for x_batch, y_batch in SingleBatchIterator(dataset, shuffle=False):
-                y = self.label_transform_fun(y_batch)
+                y = self.label_transform_fn(y_batch)
                 self.feature_transformer.fit(x_batch, y)
 
         # Create new model instance
@@ -226,7 +226,7 @@ class Experiment:
         trainer.train(self.model,
                       dataset,
                       self.feature_transformer,
-                      self.label_transform_fun,
+                      self.label_transform_fn,
                       **trainer_args)
 
     def predict(self,
