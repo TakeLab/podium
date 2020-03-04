@@ -60,13 +60,21 @@ class Pipeline(Experiment):
             during Experiment fitting.
             A callable taking an input batch and returning a numpy array of features can
             also be passed.
+            If None, a default feature transformer that returns a single feature from
+            the batch will be used. In this case the Dataset used in training must contain
+            a single input field.
 
-        label_transform_fun : Callable[[NamedTuple], np.ndarray]
+        label_transform_fn : Callable[[NamedTuple], np.ndarray]
             Callable that transforms the target part of the batch returned by the iterator
             into the same format the model prediction is. For a hypothetical perfect model
             the prediction result of the model for some examples must be identical to the
             result of this callable for those same examples.
-
+            If None, a default label transformer that returns a single feature from
+            the batch will be used. In this case the Dataset used in training must contain
+            a single target field.
+        
+        output_transform_fn: Callable[[np.ndarray], Any]
+            Callable used to transform the prediction result of the model.
         """
         if isinstance(example_format, ExampleFormat):
             example_format = example_format.value
