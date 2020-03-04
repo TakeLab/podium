@@ -95,9 +95,11 @@ def main():
     fitted_model = experiment.model
 
     model_save_file = 'model.pt'
-    pickle.dump(fitted_model, model_save_file)
+    with open(model_save_file, 'wb') as dump_file:
+      pickle.dump(fitted_model, dump_file)
 
-    loaded_model = pickle.load(model_save_file)
+    with open(model_save_file, 'rb') as load_file:
+      loaded_model = pickle.load(load_file)
 
 
 if __name__ == '__main__':
