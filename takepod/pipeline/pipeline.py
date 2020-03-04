@@ -144,8 +144,7 @@ class Pipeline(Experiment):
     def partial_fit_raw(self,
                         examples: Iterable[Union[Dict, List]],
                         trainer_kwargs: Dict = None,
-                        trainer: AbstractTrainer = None,
-                        training_iterator_callable: Callable[[Dataset], Iterator] = None):
+                        trainer: AbstractTrainer = None):
         """
         Fits the model to the data without resetting the model.
         Each example must be of the format provided in the constructor as the
@@ -177,16 +176,14 @@ class Pipeline(Experiment):
         ds = Dataset(processed_examples, self.all_fields)
         self.partial_fit(dataset=ds,
                          trainer_kwargs=trainer_kwargs,
-                         trainer=trainer,
-                         training_iterator_callable=training_iterator_callable)
+                         trainer=trainer)
 
     def fit_raw(self,
                 examples: Iterable[Union[Dict, List]],
                 model_kwargs: Dict = None,
                 trainer_kwargs: Dict = None,
                 feature_transformer: FeatureTransformer = None,
-                trainer: AbstractTrainer = None,
-                training_iterator_callable: Callable[[Dataset], Iterator] = None,
+                trainer: AbstractTrainer = None
                 ):
         """Fits the model to the provided examples.
         During fitting, the provided Iterator and Trainer are used.
@@ -231,5 +228,4 @@ class Pipeline(Experiment):
                  model_kwargs=model_kwargs,
                  trainer_kwargs=trainer_kwargs,
                  feature_transformer=feature_transformer,
-                 trainer=trainer,
-                 training_iterator_callable=training_iterator_callable)
+                 trainer=trainer)
