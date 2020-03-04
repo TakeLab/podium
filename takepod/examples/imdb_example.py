@@ -71,11 +71,12 @@ def main():
 
     config = Config(config_dict)
 
+    valid_iterator = Iterator(dataset=imdb_train, batch_size=32, shuffle=True)
+    train_iterator = partial(Iterator, batch_size=32, shuffle=True)
+
     trainer = TorchTrainer(config.epochs, valid_iterator)
 
     from functools import partial
-    train_iterator = partial(Iterator, batch_size=32, shuffle=True)
-    valid_iterator = Iterator(dataset=imdb_train, batch_size=32, shuffle=True)
 
     experiment = Experiment(MyTorchModel, trainer=trainer, 
                             training_iterator_callable=train_iterator)
