@@ -129,8 +129,8 @@ class MyTorchModel(AbstractSupervisedModel):
         with torch.no_grad():
             return_dict = self(X)
 
-
             if return_as_numpy:
+                print("Casting to numpy")
                 # Cast everything to numpy
                 preds = return_dict['pred']
                 preds.cpu().numpy()
