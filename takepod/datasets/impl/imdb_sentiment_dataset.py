@@ -20,7 +20,7 @@ When using this dataset, please cite:
 
 import os
 from takepod.datasets.dataset import Dataset
-from takepod.storage.field import Field
+from takepod.storage.field import LabelField, Field
 from takepod.storage.example_factory import ExampleFactory
 from takepod.storage.vocab import Vocab
 from takepod.storage.resources.large_resource import LargeResource
@@ -69,8 +69,8 @@ class BasicSupervisedImdbDataset(Dataset):
     TEXT_FIELD_NAME = "text"
     LABEL_FIELD_NAME = "label"
 
-    POSITIVE_LABEL = 1
-    NEGATIVE_LABEL = 0
+    POSITIVE_LABEL = 'positive'
+    NEGATIVE_LABEL = 'negative'
 
     def __init__(self, dir_path, fields):
         """
@@ -158,7 +158,7 @@ class BasicSupervisedImdbDataset(Dataset):
         return examples
 
     @staticmethod
-    def get_train_test_dataset(fields=None):
+    def get_dataset_splits(fields=None):
         """Method creates train and test dataset for Imdb dataset.
 
         Parameters
@@ -201,9 +201,9 @@ class BasicSupervisedImdbDataset(Dataset):
             Dictionary mapping field name to field.
         """
         text = Field(name=BasicSupervisedImdbDataset.TEXT_FIELD_NAME, vocab=Vocab(),
-                     tokenizer='split', language="hr", tokenize=True,
+                     tokenizer='spacy', language="en", tokenize=True,
                      store_as_raw=False)
-        label = Field(name=BasicSupervisedImdbDataset.LABEL_FIELD_NAME,
-                      vocab=Vocab(specials=()), tokenize=False, is_target=True)
+        label = LabelField(name=BasicSupervisedImdbDataset.LABEL_FIELD_NAME,
+                      vocab=Vocab(specials=()))
         return {BasicSupervisedImdbDataset.TEXT_FIELD_NAME: text,
                 BasicSupervisedImdbDataset.LABEL_FIELD_NAME: label}

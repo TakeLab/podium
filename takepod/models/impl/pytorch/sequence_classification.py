@@ -10,7 +10,7 @@ RNNS = ['LSTM', 'GRU']
 class RNNEncoder(nn.Module):
     def __init__(self, embedding_dim, hidden_dim, nlayers=1, dropout=0.,
                    bidirectional=True, rnn_type='GRU'):
-        super(Encoder, self).__init__()
+        super(RNNEncoder, self).__init__()
         
         self.bidirectional = bidirectional
         assert rnn_type in RNNS, 'Use one of the following: {}'.format(str(RNNS))

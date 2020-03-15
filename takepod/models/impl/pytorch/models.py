@@ -81,7 +81,7 @@ class TorchModel(AbstractSupervisedModel):
         self.optimizer = self.optimizer_class(self.model.parameters(), self.model_config['lr'])
 
     def __setstate__(self, state):
-        self.model_class = state['model_class']
+        self.model_class = state['model_class'] 
         self.model_config = state['model_config']
         self.device = state['device']
 
@@ -103,7 +103,7 @@ class TorchModel(AbstractSupervisedModel):
     def __getstate__(self):
         state = {
             'model_class': self.model_class,
-            'config': self.model_config,
+            'model_config': self.model_config,
             'model_state': self.model.state_dict(),
             'optimizer_class': self.optimizer_class,
             'optimizer_state': self.optimizer.state_dict(),
