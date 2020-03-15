@@ -86,7 +86,7 @@ class TorchModel(AbstractSupervisedModel):
         self.device = state['device']
 
         # Deserialize model
-        model = self.model_class(self.config)
+        model = self.model_class(self.model_config)
         model.load_state_dict(state['model_state'])
         self._model = model
 
