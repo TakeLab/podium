@@ -18,7 +18,7 @@ class TorchModel(AbstractSupervisedModel):
     @property
     def model(self):
         return self._model
-        
+
     def __call__(self, X):
         """Call the forward method of the internalized model
         """
