@@ -83,6 +83,7 @@ def create_examples(base_dir, examples):
                   mode='w', encoding="utf8") as fpr:
             fpr.write(examples[i])
 
+
 @pytest.mark.skipif('spacy' not in sys.modules,
                     reason="requires the Spacy library")
 def test_return_params(mock_dataset_path):
@@ -90,6 +91,7 @@ def test_return_params(mock_dataset_path):
     assert len(data) == 2
     assert isinstance(data[0], Dataset)
     assert isinstance(data[1], Dataset)
+
 
 @pytest.mark.skipif('spacy' not in sys.modules,
                     reason="requires the Spacy library")
@@ -99,6 +101,7 @@ def test_default_fields():
     field_names = [BasicSupervisedImdbDataset.LABEL_FIELD_NAME,
                    BasicSupervisedImdbDataset.TEXT_FIELD_NAME]
     assert all([name in fields for name in field_names])
+
 
 @pytest.mark.skipif('spacy' not in sys.modules,
                     reason="requires the Spacy library")
