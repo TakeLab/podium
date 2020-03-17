@@ -51,7 +51,7 @@ class GloVe(BasicVectorStorage):
     _BINARY = True
 
     def __init__(self, name="glove-wikipedia", dim=300,
-                 default_vector_function=zeros_default_vector,
+                 default_vector_function=random_normal_default_vector,
                  cache_path=None, max_vectors=None):
         """
         GloVe constructor that initializes vector storage and downloads vectors if

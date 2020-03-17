@@ -17,23 +17,23 @@ TRAIN_EXAMPLES = {
 
 EXPECTED_TRAIN_EXAMPLES = [
     {IMDB.TEXT_FIELD_NAME: "If you like comedy cartoons then "
-                                                 "this is nearly a similar "
-                                                 "format".split(),
+                           "this is nearly a similar "
+                           "format".split(),
      IMDB.LABEL_FIELD_NAME: 1},
     {IMDB.TEXT_FIELD_NAME: "I came in in the middle of this "
-                                                 "film so I had no idea about any "
-                                                 "credit".split(),
+                           "film so I had no idea about any "
+                           "credit".split(),
      IMDB.LABEL_FIELD_NAME: 1},
     {IMDB.TEXT_FIELD_NAME: "The production quality, cast, "
-                                                 "premise, authentic New "
-                                                 "England".split(),
+                           "premise, authentic New "
+                           "England".split(),
      IMDB.LABEL_FIELD_NAME: 1},
     {IMDB.TEXT_FIELD_NAME: "If I had not read Pat Barker's "
-                                                 "'Union Street' before seeing this "
-                                                 "film".split(),
+                           "'Union Street' before seeing this "
+                           "film".split(),
      IMDB.LABEL_FIELD_NAME: 0},
     {IMDB.TEXT_FIELD_NAME: "There are lots of extremely "
-                                                 "good-looking people".split(),
+                           "good-looking people".split(),
      IMDB.LABEL_FIELD_NAME: 0}
 ]
 
