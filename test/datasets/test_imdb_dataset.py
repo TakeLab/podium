@@ -84,7 +84,7 @@ def create_examples(base_dir, examples):
 
 
 def test_return_params(mock_dataset_path):
-    data = BasicSupervisedImdbDataset.get_train_test_dataset()
+    data = BasicSupervisedImdbDataset.get_dataset_splits()
     assert len(data) == 2
     assert isinstance(data[0], Dataset)
     assert isinstance(data[1], Dataset)
@@ -99,7 +99,7 @@ def test_default_fields():
 
 
 def test_loaded_data(mock_dataset_path):
-    data = BasicSupervisedImdbDataset.get_train_test_dataset()
+    data = BasicSupervisedImdbDataset.get_dataset_splits()
     train_dataset, _ = data
     for ex in train_dataset:
         ex_data = {"text": ex.text[1], "label": ex.label[0]}
