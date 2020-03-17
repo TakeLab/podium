@@ -5,7 +5,7 @@ import time
 import pickle
 import takepod
 
-from takepod.datasets import BucketIterator, Iterator, BasicSupervisedImdbDataset
+from takepod.datasets import BucketIterator, Iterator, IMDB
 from takepod.storage import Field, Vocab
 from takepod.storage.vectorizers.impl import GloVe
 from takepod.models import Experiment, AbstractSupervisedModel
@@ -38,7 +38,7 @@ def create_fields():
 
 def main():
     fields = create_fields()
-    imdb_train, imdb_test = BasicSupervisedImdbDataset.get_train_test_dataset(fields)
+    imdb_train, imdb_test = IMDB.get_train_test_dataset(fields)
 
     # Construct vectoziter based on vocab
     vocab = fields['text'].vocab
