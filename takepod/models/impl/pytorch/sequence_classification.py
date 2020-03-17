@@ -60,7 +60,7 @@ class AttentionRNN(nn.Module):
                                   config['nlayers'], config['dropout'],
                                   config['bidirectional'], config['rnn_type'])
 
-        dim_multiplier = 1 if if not config['bidirectional'] else 2
+        dim_multiplier = 1 if not config['bidirectional'] else 2
         attention_dim = dim_multiplier * config['hidden_dim']
         self.attention = Attention(attention_dim, attention_dim, attention_dim)
         self.decoder = nn.Linear(attention_dim, config['num_classes'])
