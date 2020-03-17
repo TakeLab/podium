@@ -1,4 +1,5 @@
 import os
+import sys
 import tempfile
 import pytest
 from takepod.datasets.impl.imdb_sentiment_dataset import BasicSupervisedImdbDataset
@@ -89,7 +90,8 @@ def test_return_params(mock_dataset_path):
     assert isinstance(data[0], Dataset)
     assert isinstance(data[1], Dataset)
 
-
+@pytest.mark.skipif('spacy' not in sys.modules,
+                    reason="requires the Spacy library")
 def test_default_fields():
     fields = BasicSupervisedImdbDataset.get_default_fields()
     assert len(fields) == 2
