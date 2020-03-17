@@ -83,7 +83,8 @@ def create_examples(base_dir, examples):
                   mode='w', encoding="utf8") as fpr:
             fpr.write(examples[i])
 
-
+@pytest.mark.skipif('spacy' not in sys.modules,
+                    reason="requires the Spacy library")
 def test_return_params(mock_dataset_path):
     data = BasicSupervisedImdbDataset.get_dataset_splits()
     assert len(data) == 2
@@ -99,7 +100,8 @@ def test_default_fields():
                    BasicSupervisedImdbDataset.TEXT_FIELD_NAME]
     assert all([name in fields for name in field_names])
 
-
+@pytest.mark.skipif('spacy' not in sys.modules,
+                    reason="requires the Spacy library")
 def test_loaded_data(mock_dataset_path):
     data = BasicSupervisedImdbDataset.get_dataset_splits()
     train_dataset, _ = data
