@@ -2,7 +2,7 @@ import logging
 import os
 
 from takepod.storage import BasicVectorStorage, LargeResource
-from takepod.storage.vectorizers.vectorizer import zeros_default_vector
+from takepod.storage.vectorizers.vectorizer import random_normal_default_vector
 
 _LOGGER = logging.getLogger(__name__)
 
