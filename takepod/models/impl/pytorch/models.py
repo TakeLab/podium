@@ -94,7 +94,8 @@ class TorchModel(AbstractSupervisedModel):
 
         # Deserialize optimizer
         self.optimizer_class = state['optimizer_class']
-        self.optimizer = self.optimizer_class(self.model.parameters(), self.model_config['lr'])
+        self.optimizer = self.optimizer_class(self.model.parameters(),
+                                              self.model_config['lr'])
         self.optimizer.load_state_dict(state['optimizer_state'])
 
         # Deserialize loss
