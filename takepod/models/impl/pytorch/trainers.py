@@ -24,10 +24,8 @@ class TorchTrainer(AbstractTrainer):
                 t = time.time()
                 X = torch.from_numpy(
                     feature_transformer.transform(batch_x).swapaxes(0, 1)  # swap B and T
-                                     ).to(self.device)
-                y = torch.from_numpy(
-                    label_transform_fun(batch_y)
-                                     ).to(self.device)
+                                    ).to(self.device)
+                y = torch.from_numpy(label_transform_fun(batch_y)).to(self.device)
 
                 return_dict = model.fit(X, y)
 
@@ -42,10 +40,8 @@ class TorchTrainer(AbstractTrainer):
                 t = time.time()
                 X = torch.from_numpy(
                     feature_transformer.transform(batch_x).swapaxes(0, 1)  # swap B and T
-                                     ).to(self.device)
-                y = torch.from_numpy(
-                    label_transform_fun(batch_y)
-                                     ).to(self.device)
+                                    ).to(self.device)
+                y = torch.from_numpy(label_transform_fun(batch_y)).to(self.device)
 
                 return_dict = model.evaluate(X, y)
                 loss = return_dict['loss']

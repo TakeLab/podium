@@ -38,7 +38,7 @@ class Attention(nn.Module):
         query = query.unsqueeze(1)  # [BxQ] -> [Bx1xQ]
         keys = keys.transpose(0, 1).transpose(1, 2)  # [TxBxK] -> [BxKxT]
         energy = torch.bmm(query, keys)  # [Bx1xQ]x[BxKxT] -> [Bx1xT]
-        energy = F.softmax(energy.mul_(self.scale), dim=2) # scale, normalize
+        energy = F.softmax(energy.mul_(self.scale), dim=2)  # scale, normalize
 
         values = values.transpose(0, 1)  # [TxBxV] -> [BxTxV]
         # [Bx1xT]x[BxTxV] -> [BxV]
@@ -60,8 +60,8 @@ class AttentionRNN(nn.Module):
                                   config['nlayers'], config['dropout'],
                                   config['bidirectional'], config['rnn_type'])
 
-        attention_dim = config['hidden_dim'] if not config['bidirectional']
-                                             else 2 * config['hidden_dim']
+        dim_multiplier = 1 if if not config['bidirectional'] else 2
+        attention_dim = dim_multiplier * config['hidden_dim']
         self.attention = Attention(attention_dim, attention_dim, attention_dim)
         self.decoder = nn.Linear(attention_dim, config['num_classes'])
 
@@ -69,7 +69,6 @@ class AttentionRNN(nn.Module):
         for p in self.parameters():
             size += p.nelement()
         print('Total parameter size: {}'.format(size))
-
 
     def forward(self, input):
         outputs, hidden = self.encoder(self.embedding(input))

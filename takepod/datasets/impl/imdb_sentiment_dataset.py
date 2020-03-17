@@ -204,6 +204,6 @@ class BasicSupervisedImdbDataset(Dataset):
                      tokenizer='spacy', language="en", tokenize=True,
                      store_as_raw=False)
         label = LabelField(name=BasicSupervisedImdbDataset.LABEL_FIELD_NAME,
-                      vocab=Vocab(specials=()))
+                           vocab=Vocab(specials=()))
         return {BasicSupervisedImdbDataset.TEXT_FIELD_NAME: text,
                 BasicSupervisedImdbDataset.LABEL_FIELD_NAME: label}
