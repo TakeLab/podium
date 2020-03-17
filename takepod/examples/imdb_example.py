@@ -1,3 +1,5 @@
+# flake8: noqa
+# For now; code will change a lot
 import math
 import time
 import pickle

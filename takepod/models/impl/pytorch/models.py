@@ -2,14 +2,15 @@ import torch
 
 from takepod.models import AbstractSupervisedModel
 
+
 class TorchModel(AbstractSupervisedModel):
-    def __init__(self, model_class, criterion, optimizer, 
+    def __init__(self, model_class, criterion, optimizer,
                  device=torch.device('cpu'), **model_config):
         self.model_class = model_class
         self.model_config = model_config
         self.device = device
         self.optimizer_class = optimizer
-        
+
         self._model = model_class(**model_config).to(self.device)
         self.optimizer = optimizer(self.model.parameters(), model_config['lr'])
 
@@ -25,7 +26,7 @@ class TorchModel(AbstractSupervisedModel):
         return self.model(X)
 
     def fit(self, X, y, **kwargs):
-        """Fit the model on (X, y). 
+        """Fit the model on (X, y).
         Assumes that the model is in training mode.
         """
         # Train-specific boilerplate code
@@ -37,7 +38,7 @@ class TorchModel(AbstractSupervisedModel):
 
         loss = self.criterion(logits, y.squeeze())
         return_dict['loss'] = loss
-        
+
         # Optimization
         loss.backward()
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.model_config['clip'])
@@ -59,9 +60,9 @@ class TorchModel(AbstractSupervisedModel):
                 return_dict['pred'] = preds
 
             return return_dict
-    
+
     def evaluate(self, X, y, **kwargs):
-        """Evaluate the model (compute loss) on (X, y). 
+        """Evaluate the model (compute loss) on (X, y).
         Assumes that the model is in evaluation mode.
         """
 
@@ -78,10 +79,11 @@ class TorchModel(AbstractSupervisedModel):
         Also resets the internal state of the optimizer.
         """
         self._model = self.model_class(self.model_config).to(self.model_config['device'])
-        self.optimizer = self.optimizer_class(self.model.parameters(), self.model_config['lr'])
+        self.optimizer = self.optimizer_class(self.model.parameters(),
+                                              self.model_config['lr'])
 
     def __setstate__(self, state):
-        self.model_class = state['model_class'] 
+        self.model_class = state['model_class']
         self.model_config = state['model_config']
         self.device = state['device']
 
