@@ -306,7 +306,7 @@ def text_len_key(example):
 def test_iterator_missing_data_in_batch(json_file_path):
     missing_data_default_value = -99
     fields = tabular_dataset_fields()
-    missing_value_field = Field("non_numericalizable_field",
+    missing_value_field = Field("missing_value_field",
                                 tokenizer="split",
                                 vocab=Vocab(),
                                 allow_missing_data=True,
@@ -314,9 +314,9 @@ def test_iterator_missing_data_in_batch(json_file_path):
     fields['text_with_missing_data'] = missing_value_field
     ds = create_tabular_dataset_from_json(fields, json_file_path)
 
-    for x_batch, _ in Iterator(ds, batch_size=len(ds)):
+    for x_batch, _ in Iterator(ds, batch_size=len(ds), shuffle=False):
         # test if the value we know is missing is correctly filled out
-        missing_value_row = x_batch.non_numericalizable_field[3]
+        missing_value_row = x_batch.missing_value_field[3]
         assert np.all(missing_value_row == missing_data_default_value)
 
 
