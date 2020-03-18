@@ -2,6 +2,7 @@
 import logging
 import itertools
 from collections import deque
+from typing import Callable
 
 import numpy as np
 
@@ -648,7 +649,7 @@ class Field:
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
-            else:
+            elif not self.custom_numericalize:
                 return None
 
         # raw data is just a string, so we need to wrap it into an iterable
@@ -959,6 +960,25 @@ class MultilabelField(TokenizedField):
 
         return numericalize_multihot(tokens, token_numericalize, self.num_of_classes)
 
+
+class SentenceEmbeddingField(Field):
+    """Field used for sentence-level multidimensional embeddings."""
+
+    def __init__(self,
+                 name: str,
+                 embedding_fn: Callable[[str], np.array],
+                 embedding_size: int):
+        super().__init__(name,
+                         custom_numericalize=embedding_fn,
+                         tokenizer=None,
+                         language=None,
+                         vocab=None,
+                         tokenize=False,
+                         store_as_raw=True,
+                         store_as_tokenized=False,
+                         is_target=False,
+                         fixed_length=embedding_size,
+                         allow_missing_data=True)
 
 def numericalize_multihot(tokens, token_indexer, num_of_classes):
     active_classes = list(map(token_indexer, tokens))
