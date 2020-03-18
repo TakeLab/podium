@@ -248,19 +248,23 @@ class Experiment:
         self._check_if_model_exists()
 
         y = []
+        prediction_key = AbstractSupervisedModel.PREDICTION_KEY
 
         if batch_size is None:
-            prediction_iterator = SingleBatchIterator()
+            x_batch_tensor = self.feature_transformer.transform(dataset.batch())
+            batch_prediction = self.model.predict(x_batch_tensor, **kwargs)
+            prediction_tensor = batch_prediction[prediction_key]
+            return prediction_tensor
         else:
             prediction_iterator = Iterator(batch_size=batch_size)
 
-        for x_batch, _ in prediction_iterator(dataset):
-            x_batch_tensor = self.feature_transformer.transform(x_batch)
-            batch_prediction = self.model.predict(x_batch_tensor, **kwargs)
-            prediction_tensor = batch_prediction[AbstractSupervisedModel.PREDICTION_KEY]
-            y.append(prediction_tensor)
+            for x_batch, _ in prediction_iterator(dataset):
+                x_batch_tensor = self.feature_transformer.transform(x_batch)
+                batch_prediction = self.model.predict(x_batch_tensor, **kwargs)
+                prediction_tensor = batch_prediction[prediction_key]
+                y.append(prediction_tensor)
 
-        return np.concatenate(y)
+            return np.concatenate(y)
 
     def _check_if_model_exists(self):
         if self.model is None:

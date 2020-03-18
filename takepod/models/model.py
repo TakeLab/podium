@@ -11,7 +11,7 @@ class AbstractSupervisedModel(ABC):
         key for defining prediction return variable
     """
 
-    PREDICTION_KEY = "predict_y"
+    PREDICTION_KEY = "pred"
 
     @abstractmethod
     def fit(self, X, y, **kwargs):

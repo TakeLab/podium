@@ -4,7 +4,7 @@ from sklearn.metrics import accuracy_score
 from takepod.storage.vectorizers.tfidf import TfIdfVectorizer
 from takepod.models.impl import ScikitLinearSVCModel
 from takepod.models import AbstractSupervisedModel, FeatureTransformer
-from takepod.datasets import BasicSupervisedImdbDataset
+from takepod.datasets import IMDB
 from takepod.models.impl.simple_trainers import SimpleTrainer
 from takepod.storage import LargeResource
 from takepod.datasets.iterator import Iterator, SingleBatchIterator
@@ -13,7 +13,7 @@ from takepod.datasets.iterator import Iterator, SingleBatchIterator
 def tfidf_svm_example_main():
     """Function obtains imdb dataset and then trains scikit svc linear model by using
     tfidf as input."""
-    train_set, test_set = BasicSupervisedImdbDataset.get_train_test_dataset()
+    train_set, test_set = IMDB.get_train_test_dataset()
 
     train_iter = Iterator(batch_size=len(train_set))
     test_iter = SingleBatchIterator()
