@@ -1,6 +1,6 @@
 import pytest
 
-from takepod.models import Experiment
+from takepod.models import Experiment, FeatureTransformer
 from takepod.datasets import Dataset
 from takepod.storage import Field, ExampleFactory, Vocab
 
@@ -46,7 +46,7 @@ def mock_label_transform_fun(y_batch):
     return y_batch.Score
 
 
-class MockTransformer:
+class MockTransformer(FeatureTransformer):
 
     def __init__(self, to_fit):
         self.to_fit = to_fit
@@ -132,7 +132,7 @@ def test_experiment_train(fit_transformer):
     experiment = Experiment(MockModel,
                             trainer=trainer,
                             feature_transformer=mock_transformer,
-                            label_transform_fun=mock_label_transform_fun)
+                            label_transform_fn=mock_label_transform_fun)
 
     experiment.set_default_model_args(**default_model_args)
     experiment.set_default_trainer_args(**default_trainer_args)

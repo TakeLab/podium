@@ -17,9 +17,10 @@ class Pipeline(Experiment):
     def __init__(self,
                  fields: Union[Dict, List],
                  example_format: Union[ExampleFormat, str],
-                 feature_transformer: FeatureTransformer,
                  model: Union[AbstractSupervisedModel, Type[AbstractSupervisedModel]],
                  trainer: AbstractTrainer = None,
+                 feature_transformer:
+                 Union[FeatureTransformer, Callable[[NamedTuple], np.array]] = None,
                  label_transform_fn: Callable[[NamedTuple], np.ndarray] = None,
                  output_transform_fn: Callable[[np.ndarray], Any] = None
                  ):
@@ -53,19 +54,27 @@ class Pipeline(Experiment):
             stored in the pipeline and used as the default trainer if no trainer is
             provided in the `fit` and `partial_fit` methods.
 
-        label_transform_fn: Callable[[NamedTuple], np.ndarray]
+        feature_transformer : Union[FeatureTransformer, Callable[[NamedTuple], np.array]
+            FeatureTransformer that transforms the input part of the batch returned by the
+            iterator into features that can be fed into the model. Will also be fitted
+            during Experiment fitting.
+            A callable taking an input batch and returning a numpy array of features can
+            also be passed.
+            If None, a default feature transformer that returns a single feature from
+            the batch will be used. In this case the Dataset used in training must contain
+            a single input field.
+
+        label_transform_fn : Callable[[NamedTuple], np.ndarray]
             Callable that transforms the target part of the batch returned by the iterator
             into the same format the model prediction is. For a hypothetical perfect model
             the prediction result of the model for some examples must be identical to the
             result of this callable for those same examples.
+            If None, a default label transformer that returns a single feature from
+            the batch will be used. In this case the Dataset used in training must contain
+            a single target field.
 
         output_transform_fn: Callable[[np.ndarray], Any]
-            Callable that transforms the output of the pipeline. This transformation is
-            applied to prediction results in `predict_raw`. An example of using this
-            transformation would be to transform numeric predictions of a text generation
-            model into their corresponding characters, or even to return a string
-            of said characters directly.
-
+            Callable used to transform the prediction result of the model.
         """
         if isinstance(example_format, ExampleFormat):
             example_format = example_format.value
@@ -107,7 +116,7 @@ class Pipeline(Experiment):
         super().__init__(model,
                          feature_transformer=feature_transformer,
                          trainer=trainer,
-                         label_transform_fun=label_transform_fn)
+                         label_transform_fn=label_transform_fn)
 
     def predict_raw(self,
                     raw_example: Any,
