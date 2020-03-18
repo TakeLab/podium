@@ -978,6 +978,18 @@ class SentenceEmbeddingField(Field):
                  name: str,
                  embedding_fn: Callable[[str], np.array],
                  embedding_size: int):
+        """
+        Field used for sentence-level multidimensional embeddings.
+
+        Parameters
+        ----------
+        name: str
+            Field name, used for referencing data in the dataset.
+        embedding_fn: Callable[[str], np.array]
+            Callable that takes a string and returns a fixed-width embedding.
+        embedding_size: int
+            Width of the embedding.
+        """
         super().__init__(name,
                          custom_numericalize=embedding_fn,
                          tokenizer=None,
