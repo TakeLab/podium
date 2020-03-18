@@ -115,7 +115,7 @@ def main():
     model_config['vocab_size'] = len(vocab)
     model_config['pretrained_embedding'] = embeddings
     # Run on CPU since we don't have a GPU on this machine
-    device = torch.device('cpu:0')
+    device = torch.device('gpu:0')
     # Define the model criterion
     criterion = nn.CrossEntropyLoss()
 
