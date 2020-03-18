@@ -990,6 +990,7 @@ class SentenceEmbeddingField(Field):
                          fixed_length=embedding_size,
                          allow_missing_data=True)
 
+
 def numericalize_multihot(tokens, token_indexer, num_of_classes):
     active_classes = list(map(token_indexer, tokens))
     multihot_encoding = np.zeros(num_of_classes, dtype=np.bool)
