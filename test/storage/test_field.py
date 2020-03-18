@@ -226,6 +226,19 @@ def test_field_pad_to_length(row, length, expected_row, pad_left,
     assert received_row.tolist() == expected_row
 
 
+def test_field_pad_custom_numericalize():
+    custom_padding_token = -999
+    f = Field("test_field",
+              custom_numericalize=int,
+              custom_numericalize_padding_token=custom_padding_token,
+              tokenizer='split')
+    mock_numericalization = np.array([1, 2, 3, 4])
+    expected_numericalization = np.array([1, 2, 3, 4] + [custom_padding_token] * 6)
+
+    padded = f.pad_to_length(mock_numericalization, 10, pad_left=False)
+    assert np.all(padded == expected_numericalization)
+
+
 @pytest.mark.parametrize(
     "row, length, expected_row",
     [
@@ -618,12 +631,12 @@ def test_multilabel_field_class_count():
 @pytest.mark.parametrize("tokens, expected_numericalization",
                          [
                              (
-                                 ["class1", "class2", "class3", "class4"],
-                                 np.array([1, 1, 1, 1, 0, 0])
+                                     ["class1", "class2", "class3", "class4"],
+                                     np.array([1, 1, 1, 1, 0, 0])
                              ),
                              (
-                                 [],
-                                 np.array([0, 0, 0, 0, 0, 0])
+                                     [],
+                                     np.array([0, 0, 0, 0, 0, 0])
                              )
                          ])
 def test_multilabel_field_custom_numericalization(tokens, expected_numericalization):

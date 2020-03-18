@@ -191,6 +191,7 @@ class Field:
                  eager=True,
                  is_numericalizable=True,
                  custom_numericalize=None,
+                 custom_numericalize_padding_token=-1,
                  is_target=False,
                  fixed_length=None,
                  allow_missing_data=False,
@@ -253,10 +254,13 @@ class Field:
              on custom datatypes. For non-numericalizable fields, Iterator will generate
              batch fields containing lists of these custom data type instances returned
              by the tokenizer.
-
         custom_numericalize : callable
             The numericalization function that will be called if the field
             doesn't use a vocabulary.
+        custom_numericalize_padding_token : int
+            If custom_numericalize is provided and padding the batch matrix is needed,
+            this token is used to pad the end of the matrix row.
+            If custom_numericalize is None, this is ignored.
         is_target : bool
             Whether this field is a target variable. Affects iteration over
             batches. Default: False.
@@ -331,6 +335,7 @@ class Field:
             self.tokenizer = None
 
         self.custom_numericalize = custom_numericalize
+        self.custom_numericalize_padding_token = custom_numericalize_padding_token
 
         self.is_target = is_target
         self.fixed_length = fixed_length
@@ -698,6 +703,10 @@ class Field:
 
             if self.use_vocab:
                 pad_symbol = self.vocab.pad_symbol_index()
+
+            elif self.custom_numericalize:
+                pad_symbol = self.custom_numericalize_padding_token
+
             else:
                 pad_symbol = custom_pad_symbol
 
@@ -833,6 +842,7 @@ class TokenizedField(Field):
                  vocab=None,
                  eager=True,
                  custom_numericalize=None,
+                 custom_numericalize_padding_token=-1,
                  is_target=False,
                  fixed_length=None,
                  allow_missing_data=False,
@@ -845,6 +855,7 @@ class TokenizedField(Field):
             store_as_tokenized=True,
             eager=eager,
             custom_numericalize=custom_numericalize,
+            custom_numericalize_padding_token=custom_numericalize_padding_token,
             is_target=is_target,
             fixed_length=fixed_length,
             allow_missing_data=allow_missing_data,
