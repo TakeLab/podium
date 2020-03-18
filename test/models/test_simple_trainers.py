@@ -14,24 +14,15 @@ def model(mocker):
     model = mocker.MagicMock(spec=AbstractSupervisedModel)
     return model
 
-@pytest.mark.usefixtures("tabular_dataset", "model")  # noqa
-def test_simple_trainer_no_num_epoch(tabular_dataset, model):
-    iterator = Iterator(tabular_dataset, 1)
-    with pytest.raises(ValueError):
-        trainer = SimpleTrainer()
-        trainer.train(model,
-                      iterator=iterator,
-                      feature_transformer=lambda x: x,
-                      label_transform_fun=lambda y: y)
-
 
 @pytest.mark.usefixtures("tabular_dataset", "model")  # noqa
 def test_simple_trainer_num_epoch(tabular_dataset, model):
     tabular_dataset.finalize_fields()
-    iterator = Iterator(tabular_dataset, batch_size=len(tabular_dataset))
+    iterator = Iterator(batch_size=len(tabular_dataset))
     trainer = SimpleTrainer()
     feature_transformer = FeatureTransformer(lambda x: x)
     trainer.train(model=model,
+                  dataset=tabular_dataset,
                   iterator=iterator,
                   feature_transformer=feature_transformer,
                   label_transform_fun=lambda y: y,
@@ -61,6 +52,7 @@ def test_simple_trainer_batch_transform_call(tabular_dataset, mocker, model):
             trainer = SimpleTrainer()
             trainer.train(
                 model=model,
+                dataset=tabular_dataset,
                 iterator=iterator,
                 feature_transformer=feature_transformer,
                 label_transform_fun=mock_label_transform_fun,

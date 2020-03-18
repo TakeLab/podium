@@ -433,6 +433,23 @@ class Dataset(ABC):
 
         random.shuffle(self.examples)
 
+    def batch(self):
+        """Creates an input and target batch containing the whole dataset.
+        The format of the batch is the same as the batches returned by the
+        Returns
+        -------
+        input_batch, target_batch
+                Two objects containing the input and target batches over
+                the whole dataset.
+        """
+        # Local import to avoid circular dependency
+        # TODO Remove local import and fix circular dependency
+        from takepod.datasets.iterator import SingleBatchIterator
+
+        for x_batch, y_batch in SingleBatchIterator(dataset=self, shuffle=False):
+            # There will only ever be a single batch created
+            return x_batch, y_batch
+
 
 def check_split_ratio(split_ratio):
     """Checks that the split ratio argument is not malformed and if not
@@ -480,14 +497,14 @@ def check_split_ratio(split_ratio):
 
         if length not in {2, 3}:
             error_msg = "Split ratio list/tuple should be of length 2 or 3, " \
-                "got {}.".format(length)
+                        "got {}.".format(length)
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
         for i, ratio in enumerate(split_ratio):
             if float(ratio) <= 0.0:
                 error_msg = "Elements of ratio tuple/list must be > 0.0 " \
-                    "(got value {} at index {}).".format(ratio, i)
+                            "(got value {} at index {}).".format(ratio, i)
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
@@ -506,7 +523,7 @@ def check_split_ratio(split_ratio):
             test_ratio = split_ratio[2]
     else:
         error_msg = "Split ratio must be a float, a list or a tuple, " \
-            "got {}".format(type(split_ratio))
+                    "got {}".format(type(split_ratio))
         _LOGGER.error(error_msg)
         raise ValueError(error_msg)
 
