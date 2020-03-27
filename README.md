@@ -3,7 +3,6 @@
 Home of the **TakeLab Podium** project. Podium is a framework agnostic Python natural language processing library which standardizes data loading and preprocessing as well as provides convenience classes for model training, (cross-)validation and selection, among others.
 Our goal is to accelerate users' development of NLP models whichever aspect of the library they decide to use.
 
-- [More about PyTorch](#more-about-pytorch)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Building and running unit tests](#building-and-running-unit-tests)
