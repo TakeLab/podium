@@ -1,6 +1,20 @@
 # TakeLab Podium
 
-Home of the **TakeLab Podium** project. Podium is a Python machine learning library that helps users to accelerate use of natural language processing models. 
+Home of the **TakeLab Podium** project. Podium is a framework agnostic Python natural language processing library which standardizes data loading and preprocessing as well as provides convenience classes for model training, (cross-)validation and selection, among others.
+Our goal is to accelerate users' development of NLP models whichever aspect of the library they decide to use.
+
+- [More about PyTorch](#more-about-pytorch)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Building and running unit tests](#building-and-running-unit-tests)
+  - [Adding new dependencies](#adding-new-dependencies)
+  - [Windows specifics](#windows-specifics)
+- [Usage examples](#usage-examples)
+- [Contributing](#contributing)
+- [Versioning](#versioning)
+- [Contributing](#contributing)
+- [Authors](#authors)
+- [License](#license)
 
 ## Getting Started
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
@@ -82,7 +96,31 @@ python setup.py install
 ```
 
 ## Usage examples
-For usage examples see examples in [takepod/examples](https://github.com/FilipBolt/takepod/tree/master/takepod/examples)
+For detailed usage examples see examples in [takepod/examples](https://github.com/mtutek/takepod/tree/master/takepod/examples)
+
+### Load a dataset
+
+Use some of our pre-defined datasets:
+
+```python
+>>> from takepod.datasets import IMDB
+>>> imdb_train, imdb_test = IMDB.get_dataset_splits()
+```
+
+Define your own pre-processing for your dataset:
+
+```python
+>>> # Limit the size of our vocabulary
+>>> max_vocab_size = 10000
+>>> min_frequency = 5
+>>> vocab = Vocab(max_size=max_vocab_size, min_freq=min_frequency)
+>>> # A Field defines the pre-processing sequence for an input modality
+>>> text = Field(name='text', vocab=vocab, tokenizer='spacy')
+>>> label = LabelField(name='label')
+
+>>> fields = {'text': text, 'label':label}
+>>> imdb_train, imdb_test = IMDB.get_dataset_splits(fields=fields)
+```
 
 ## Code style standards
 In this repository we use [numpydoc](https://numpydoc.readthedocs.io/en/latest/) as a standard for documentation and Flake8 for code sytle. Code style references are [Flake8](http://flake8.pycqa.org/en/latest/) and [PEP8](https://www.python.org/dev/peps/pep-0008/).
@@ -99,22 +137,19 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduc
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/FilipBolt/takepod/tags). 
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/mtutek/takepod/tags). 
 
 ## Authors
 
-* Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Domagoj Pluščec](https://github.com/domi385), [Filip Boltužić](https://github.com/FilipBolt) and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list of collaborators needs to mention: [Marin Kačan](https://github.com/mkacan), [Mate Mijolović](https://github.com/matemijolovic).
+* Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Silvije Skudar](https://github.com/sskudar), [Filip Boltužić](https://github.com/FilipBolt) and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list of collaborators needs to mention: [Domagoj Pluščec](https://github.com/domi385), [Marin Kačan](https://github.com/mkacan), [Mate Mijolović](https://github.com/matemijolovic).
 * Project made as part of TakeLab at Faculty of Electrical Engineering and Computing, University of Zagreb
 * Laboratory url: http://takelab.fer.hr
 
-See also the list of [contributors](https://github.com/FilipBolt/takepod/graphs/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/mtutek/takepod/graphs/contributors) who participated in this project.
 
 ## License
 
 This project is licensed under the (TODO) - see the [LICENSE.md](LICENSE.md) file for details
-
-## List of References
-
 
 ## Project package TODOs
 
