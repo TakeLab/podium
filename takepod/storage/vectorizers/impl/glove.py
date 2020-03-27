@@ -2,7 +2,7 @@ import logging
 import os
 
 from takepod.storage import BasicVectorStorage, LargeResource
-from takepod.storage.vectorizers.vectorizer import zeros_default_vector
+from takepod.storage.vectorizers.vectorizer import random_normal_default_vector
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ class GloVe(BasicVectorStorage):
     _BINARY = True
 
     def __init__(self, name="glove-wikipedia", dim=300,
-                 default_vector_function=zeros_default_vector,
+                 default_vector_function=random_normal_default_vector,
                  cache_path=None, max_vectors=None):
         """
         GloVe constructor that initializes vector storage and downloads vectors if
@@ -104,7 +104,7 @@ class GloVe(BasicVectorStorage):
         file_name = "{}.{}d.txt".format(GloVe._NAME_FILE_MAPPING[name], dim)
         path = os.path.join(LargeResource.BASE_RESOURCE_DIR, name, file_name)
 
-        vectors_kwargs = {"default_vector_function": zeros_default_vector,
+        vectors_kwargs = {"default_vector_function": random_normal_default_vector,
                           "cache_path": cache_path, "max_vectors": max_vectors,
                           "path": path, "binary": GloVe._BINARY}
         super(GloVe, self).__init__(**vectors_kwargs)

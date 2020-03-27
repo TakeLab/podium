@@ -53,6 +53,9 @@ class TensorTransformer(ABC):
         """
         pass
 
+    def __call__(self, x: np.ndarray):
+        return self.transform(x)
+
 
 class SklearnTensorTransformerWrapper(TensorTransformer):
     """Wrapper class for Sklearn feature transformers."""
@@ -151,8 +154,24 @@ class FeatureTransformer:
         else:
             return self.tensor_transformer.transform(x_tensor)
 
+    def __call__(self, x: NamedTuple):
+        """
+        Trasforms the provided podium feature batch into a numpy array.
+        Parameters
+        ----------
+        x: NamedTuple
+            Feature batch to be transformed.
+
+        Returns
+        -------
+        np.ndarray
+            Transformed features.
+        """
+        return self.transform(x)
+
     def requires_fitting(self):
-        """Returns True if the contained TensorTransformer exists and requires fitting,
+        """
+        Returns True if the contained TensorTransformer exists and requires fitting,
         else returns None.
 
         Returns
