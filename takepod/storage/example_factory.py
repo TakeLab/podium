@@ -267,13 +267,15 @@ class ExampleFactory:
             subtree_lists = map(tree_to_list, tree.subtrees())
             if label_transform is not None:
                 # This is perhaps inefficient but probably the best place to insert this
-                subtree_lists = [[text, label_transform(label)] for text, label in subtree_lists]
+                subtree_lists = [[text, label_transform(label)]
+                                 for text, label in subtree_lists]
             # an example is created for each subtree
             return [self.from_list(subtree_list) for subtree_list in
                     subtree_lists]
         else:
             text, label = tree_to_list(tree)
-            if label_transform is not None: label = label_transform(label)
+            if label_transform is not None:
+                label = label_transform(label)
             return self.from_list([text, label])
 
     def from_format(self,

@@ -1,7 +1,7 @@
 import os
 from takepod.datasets.dataset import Dataset
 from takepod.storage.field import Field, LabelField
-from takepod.storage.example_factory import ExampleFactory, set_example_attributes
+from takepod.storage.example_factory import ExampleFactory
 from takepod.storage.vocab import Vocab
 from takepod.storage.resources.large_resource import LargeResource
 
@@ -87,14 +87,16 @@ class SST(Dataset):
         example_factory = ExampleFactory(fields_as_list)
 
         label_to_string_map = _label_to_string_map(fine_grained=fine_grained)
-        def label_transform(label): return label_to_string_map[label]
+
+        def label_trf(label):
+            return label_to_string_map[label]
 
         examples = []
         with open(file=file_path, mode='r', encoding='utf8') as fpr:
             for line in fpr:
 
                 example = example_factory.from_fields_tree(line, subtrees=subtrees,
-                                                           label_transform=label_transform)
+                                                           label_transform=label_trf)
                 examples.append(example)
         return examples
 
@@ -166,6 +168,7 @@ def _label_to_string_map(fine_grained):
     pre = 'very ' if fine_grained else ''
     return {'0': pre + 'negative', '1': 'negative', '2': 'neutral',
             '3': 'positive', '4': pre + 'positive'}
+
 
 def _get_label_str(label, fine_grained):
     return _label_to_string_map(fine_grained)[label]
