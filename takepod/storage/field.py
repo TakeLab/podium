@@ -6,6 +6,7 @@ from collections import deque
 import numpy as np
 
 from takepod.preproc.tokenizers import get_tokenizer
+from takepod.storage.vocab import Vocab
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -773,7 +774,7 @@ class LabelField(Field):
 
     def __init__(self,
                  name,
-                 vocab=None,
+                 vocab=Vocab(specials=()),
                  eager=True,
                  custom_numericalize=None,
                  allow_missing_data=False
