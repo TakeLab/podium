@@ -264,7 +264,7 @@ class ExampleFactory:
 
         tree = Tree.fromstring(data)
         if subtrees:
-            subtree_lists = map(tree_to_list, tree.subtrees())
+            subtree_lists = list(map(tree_to_list, tree.subtrees()))
             if label_transform is not None:
                 # This is perhaps inefficient but probably the best place to insert this
                 subtree_lists = [[text, label_transform(label)]

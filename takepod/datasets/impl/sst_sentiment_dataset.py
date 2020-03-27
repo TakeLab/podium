@@ -97,7 +97,11 @@ class SST(Dataset):
 
                 example = example_factory.from_fields_tree(line, subtrees=subtrees,
                                                            label_transform=label_trf)
-                examples.append(example)
+                if subtrees:
+                    # Example is actually a list
+                    examples.extend(example)
+                else:
+                    examples.append(example)
         return examples
 
     @staticmethod

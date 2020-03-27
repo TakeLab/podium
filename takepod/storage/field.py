@@ -771,14 +771,17 @@ class Field:
 
 
 class LabelField(Field):
-
     def __init__(self,
                  name,
-                 vocab=Vocab(specials=()),
+                 vocab=None,
                  eager=True,
                  custom_numericalize=None,
                  allow_missing_data=False
                  ):
+        if vocab is None and custom_numericalize is None:
+            # Default to a vocabulary if custom numericalize is not set
+            vocab = Vocab(specials=())
+
         if vocab is not None and vocab.has_specials:
             error_msg = "Vocab contains special symbols." \
                         " Vocabs with special symbols cannot be used" \
