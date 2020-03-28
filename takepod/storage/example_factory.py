@@ -250,7 +250,6 @@ class ExampleFactory:
             A flag denoting whether an example will be created from every
             subtree in the tree (when set to True), or just from the whole
             tree (when set to False).
-
         Returns
         -------
         (Example | list)
