@@ -102,23 +102,29 @@ For detailed usage examples see examples in [takepod/examples](https://github.co
 Use some of our pre-defined datasets:
 
 ```python
->>> from takepod.datasets import IMDB
->>> imdb_train, imdb_test = IMDB.get_dataset_splits()
+>>> from takepod.datasets import SST
+>>> sst_train, sst_test, sst_dev = SST.get_dataset_splits()
+>>> print(len(sst_train), len(sst_test), len(sst_dev))
+6920 872 1821
+>>> print(sst_train[222]) # A short example
+Example[label: ('positive', None); text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])]
 ```
 
-Define your own pre-processing for your dataset:
+Define your own pre-processing for your dataset trough customizing `Field` and `Vocab` classes:
 
 ```python
+>>> from takepod.storage import Vocab, Field, LabelField
 >>> # Limit the size of our vocabulary
 >>> max_vocab_size = 10000
 >>> min_frequency = 5
+>>> # A vocab automatically builds token-to-index and reverse mappings
 >>> vocab = Vocab(max_size=max_vocab_size, min_freq=min_frequency)
 >>> # A Field defines the pre-processing sequence for an input modality
 >>> text = Field(name='text', vocab=vocab, tokenizer='spacy')
 >>> label = LabelField(name='label')
-
+>>> # The fields argument to get_dataset_splits has to be a dict
 >>> fields = {'text': text, 'label':label}
->>> imdb_train, imdb_test = IMDB.get_dataset_splits(fields=fields)
+>>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
 ```
 
 ## Code style standards
