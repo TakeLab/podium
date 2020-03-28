@@ -58,10 +58,20 @@ class SST(Dataset):
             LargeResource.RESOURCE_NAME: SST.NAME,
             LargeResource.ARCHIVE: SST.ARCHIVE_TYPE,
             LargeResource.URI: SST.URL})
-        examples = self._create_examples(file_path=file_path, fields=fields,
+        # Assign these to enable filtering
+        self.examples = self._create_examples(file_path=file_path, fields=fields,
                                          fine_grained=fine_grained, subtrees=subtrees)
+        self.fields = fields
+
+        # If not fine-grained, return binary task: filter out neutral instances
+        if not fine_grained:
+            # TODO @mttk: Perhaps issue warning if any of fields is eager
+            def filter_neutral(example):
+                return example.label[0] != 'neutral'
+            self.filter(predicate=filter_neutral, inplace=True)
+
         super(SST, self).__init__(
-            **{"examples": examples, "fields": fields})
+            **{"examples": self.examples, "fields": self.fields})
 
     @staticmethod
     def _create_examples(file_path, fields, fine_grained, subtrees):
@@ -139,14 +149,6 @@ class SST(Dataset):
             file_path=os.path.join(
                 data_location, SST.TEST_FILE),
             fields=fields, fine_grained=fine_grained, subtrees=subtrees)
-
-        # If not fine-grained, return binary task: filter out neutral instances
-        if not fine_grained:
-            def filter_neutral(example):
-                return example.label[0] != 'neutral'
-            train_dataset.filter(predicate=filter_neutral, inplace=True)
-            valid_dataset.filter(predicate=filter_neutral, inplace=True)
-            test_dataset.filter(predicate=filter_neutral, inplace=True)
 
         train_dataset.finalize_fields()
         return (train_dataset, valid_dataset, test_dataset)

@@ -12,7 +12,9 @@ EXPECTED_TRAIN_EXAMPLES = [
               "Arnold Schwarzenegger , Jean-Claud Van Damme or Steven Segal .").split(),
      "label": "positive"},
     {"text": "This is n't a new idea .".split(),
-     "label": "negative"}
+     "label": "negative"},
+     {"text": "This is n't a bad idea .".split(),
+      "label": "neutral"}
 ]
 
 RAW_EXAMPLES = [
@@ -24,7 +26,9 @@ RAW_EXAMPLES = [
     "(2 Schwarzenegger)) (2 ,)) (2 (2 Jean-Claud) (2 (2 Van) (2 Damme)))) "
     "(2 or)) (2 (2 Steven) (2 Segal))))))))))))) (2 .))) ",
 
-    "(1 (2 This) (2 (1 (1 (2 is) (2 n't)) (3 (2 a) (2 (3 new) (2 idea)))) (2 .)))"
+    "(1 (2 This) (2 (1 (1 (2 is) (2 n't)) (3 (2 a) (2 (3 new) (2 idea)))) (2 .)))",
+
+    "(2 (2 This) (2 (1 (1 (2 is) (2 n't)) (3 (2 a) (2 (1 bad) (2 idea)))) (2 .)))"
 ]
 
 
@@ -60,9 +64,41 @@ def test_default_fields():
 
 def test_load_dataset(mock_dataset_path):
     train_dataset = SST(file_path=mock_dataset_path, fields=SST.get_default_fields())
+    train_dataset.finalize_fields()
     assert isinstance(train_dataset, Dataset)
 
     assert len(train_dataset) == 2
+    assert len(train_dataset.fields[1].vocab) == 2
+    # The neutral example will be filtered
+    for ex in train_dataset:
+        ex_data = {"text": ex.text[1], "label": ex.label[0]}
+        assert ex_data in EXPECTED_TRAIN_EXAMPLES[:2]
+
+def test_load_finegrained(mock_dataset_path):
+    train_dataset = SST(file_path=mock_dataset_path, fields=SST.get_default_fields(), fine_grained=True)
+    train_dataset.finalize_fields()
+    assert isinstance(train_dataset, Dataset)
+
+    assert len(train_dataset) == 3
+    assert len(train_dataset.fields[1].vocab) == 3
     for ex in train_dataset:
         ex_data = {"text": ex.text[1], "label": ex.label[0]}
         assert ex_data in EXPECTED_TRAIN_EXAMPLES
+
+def test_load_subtrees(mock_dataset_path):
+    train_dataset = SST(file_path=mock_dataset_path, fields=SST.get_default_fields(), subtrees=True)
+    train_dataset.finalize_fields()
+    assert isinstance(train_dataset, Dataset)
+
+    # The length of all subtrees is 26
+    assert len(train_dataset) == 26
+
+
+def test_load_subtrees_finegrained(mock_dataset_path):
+    train_dataset = SST(file_path=mock_dataset_path, fields=SST.get_default_fields(),
+                        subtrees=True, fine_grained=True)
+    train_dataset.finalize_fields()
+    assert isinstance(train_dataset, Dataset)
+
+    # The length of all subtrees is 97
+    assert len(train_dataset) == 97
