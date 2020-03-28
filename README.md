@@ -110,6 +110,28 @@ Use some of our pre-defined datasets:
 Example[label: ('positive', None); text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])]
 ```
 
+Or load your own dataset in a standardized format (`csv`, `tsv`):
+
+```python
+>>> from takepod.datasets import TabularDataset
+>>> from takepod.storage import Vocab, Field, LabelField
+>>> # Assign each column of your TabularDataset a `Field`
+>>> # The Fields define the preprocessing for that column
+>>> vocab = Vocab()  # Share vocab
+>>> premise = Field('premise', vocab=vocab, store_as_raw=False)
+>>> hypothesis = Field('hypothesis', vocab=vocab, store_as_raw=False)
+>>> label = LabelField('label')
+>>> # Our toy dataset has two input texts
+>>> fields = {"premise" :premise,
+              "hypothesis" :hypothesis,
+              "label" :label}
+>>> dataset = TabularDataset('my_dataset.csv', format='csv',
+                   fields=fields
+>>> print(dataset.examples[0])
+Example[hypothesis: (None, ['And', 'this', 'is', 'another', 'input', 'sentence']); label: ('entailment', None); premise: (None, ['This', 'is', 'an', 'input', 'sentence'])]
+```
+
+
 Define your own pre-processing for your dataset trough customizing `Field` and `Vocab` classes:
 
 ```python
@@ -126,6 +148,8 @@ Define your own pre-processing for your dataset trough customizing `Field` and `
 >>> fields = {'text': text, 'label':label}
 >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
 ```
+
+
 
 ## Code style standards
 In this repository we use [numpydoc](https://numpydoc.readthedocs.io/en/latest/) as a standard for documentation and Flake8 for code sytle. Code style references are [Flake8](http://flake8.pycqa.org/en/latest/) and [PEP8](https://www.python.org/dev/peps/pep-0008/).
