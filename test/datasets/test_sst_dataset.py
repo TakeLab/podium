@@ -13,8 +13,8 @@ EXPECTED_TRAIN_EXAMPLES = [
      "label": "positive"},
     {"text": "This is n't a new idea .".split(),
      "label": "negative"},
-     {"text": "This is n't a bad idea .".split(),
-      "label": "neutral"}
+    {"text": "This is n't a bad idea .".split(),
+     "label": "neutral"}
 ]
 
 RAW_EXAMPLES = [
@@ -74,8 +74,10 @@ def test_load_dataset(mock_dataset_path):
         ex_data = {"text": ex.text[1], "label": ex.label[0]}
         assert ex_data in EXPECTED_TRAIN_EXAMPLES[:2]
 
+
 def test_load_finegrained(mock_dataset_path):
-    train_dataset = SST(file_path=mock_dataset_path, fields=SST.get_default_fields(), fine_grained=True)
+    train_dataset = SST(file_path=mock_dataset_path, fields=SST.get_default_fields(),
+                        fine_grained=True)
     train_dataset.finalize_fields()
     assert isinstance(train_dataset, Dataset)
 
@@ -85,8 +87,10 @@ def test_load_finegrained(mock_dataset_path):
         ex_data = {"text": ex.text[1], "label": ex.label[0]}
         assert ex_data in EXPECTED_TRAIN_EXAMPLES
 
+
 def test_load_subtrees(mock_dataset_path):
-    train_dataset = SST(file_path=mock_dataset_path, fields=SST.get_default_fields(), subtrees=True)
+    train_dataset = SST(file_path=mock_dataset_path, fields=SST.get_default_fields(),
+                        subtrees=True)
     train_dataset.finalize_fields()
     assert isinstance(train_dataset, Dataset)
 
