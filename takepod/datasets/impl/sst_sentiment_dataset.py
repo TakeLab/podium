@@ -60,7 +60,8 @@ class SST(Dataset):
             LargeResource.URI: SST.URL})
         # Assign these to enable filtering
         self.examples = self._create_examples(file_path=file_path, fields=fields,
-                                         fine_grained=fine_grained, subtrees=subtrees)
+                                              fine_grained=fine_grained, 
+                                              subtrees=subtrees)
         self.fields = fields
 
         # If not fine-grained, return binary task: filter out neutral instances
