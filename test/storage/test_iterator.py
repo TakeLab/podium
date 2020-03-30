@@ -346,7 +346,7 @@ def test_bucket_iterator_no_dataset_on_init(tabular_dataset):
 
 
 @pytest.mark.usefixtures("tabular_dataset")
-def test_bucket_iterator_no_dataset_on_init(tabular_dataset):
+def test_bucket_iterator_set_dataset_on_init(tabular_dataset):
     tabular_dataset.finalize_fields()
 
     bi = BucketIterator(
@@ -487,8 +487,8 @@ def test_hierarchial_dataset_iterator_numericalization_caching(hierarchical_data
 
 def test_hierarchical_no_dataset_set():
     hi = HierarchicalDatasetIterator(
-         batch_size=20,
-         context_max_depth=2
+        batch_size=20,
+        context_max_depth=2
     )
     with pytest.raises(AttributeError):
         for b in hi:
@@ -497,8 +497,8 @@ def test_hierarchical_no_dataset_set():
 
 def test_hierarchical_set_dataset_after(hierarchical_dataset):
     hi = HierarchicalDatasetIterator(
-         batch_size=20,
-         context_max_depth=2
+        batch_size=20,
+        context_max_depth=2
     )
     hi.set_dataset(hierarchical_dataset)
     for b in hi:
