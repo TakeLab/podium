@@ -19,7 +19,7 @@ setup(
     setup_requires=["pytest-runner"],
     # pytest version because of https://github.com/pytest-dev/pytest/issues/3950
     # tests need to be rewritten
-    tests_require=["pytest==3.7.4", "pandas", "mock", "pytest_mock"],
+    tests_require=["pytest==3.7.4", "pandas", "mock", "pytest_mock", "nltk"],
     install_requires=install_requires,
     package_data={'takepod': ['preproc/stemmer/data/*.txt']},
     zip_safe=False
