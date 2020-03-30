@@ -126,7 +126,7 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
     _LOGGER.info('Training started')
     trainer.train(
         model=model,
-        dataset=train_iter,
+        dataset=train_set,
         feature_transformer=feature_transformer,
         iterator=train_iter,
         label_transform_fun=label_transform_fun,
