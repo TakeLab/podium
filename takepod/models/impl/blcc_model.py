@@ -16,7 +16,7 @@ try:
     from keras.layers import Input, LSTM, TimeDistributed
     from keras.models import Model
     from keras.optimizers import Adadelta, Adagrad, Adam, Nadam, RMSprop, SGD
-except ImportError as ex:
+except ImportError:
     _LOGGER.debug("Problem occured while trying to import keras. If the "
                   "library is not installed visit https://keras.io/"
                   " for more details.")

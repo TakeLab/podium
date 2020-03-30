@@ -1,7 +1,6 @@
 """Modules defines an experiment - class used to combine iteration over data,
 model training and prediction."""
 from typing import Callable, NamedTuple, Dict, Type, Union
-from functools import partial
 from inspect import isclass
 import logging
 

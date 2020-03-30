@@ -13,7 +13,7 @@ try:
     from keras import constraints
     from keras import initializers
     from keras.engine import Layer, InputSpec
-except ImportError as ex:
+except ImportError:
     _LOGGER.error("Problem occured while trying to import keras. If the "
                   "library is not installed visit https://keras.io/"
                   " for more details.")
