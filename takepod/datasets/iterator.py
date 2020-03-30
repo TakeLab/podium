@@ -399,8 +399,8 @@ class BucketIterator(Iterator):
 
     def __init__(
             self,
-            dataset,
             batch_size,
+            dataset=None,
             sort_key=None,
             shuffle=True,
             seed=42,
@@ -498,8 +498,8 @@ class HierarchicalDatasetIterator(Iterator):
 
     def __init__(
             self,
-            dataset,
             batch_size,
+            dataset=None,
             sort_key=None,
             shuffle=False,
             seed=1,
