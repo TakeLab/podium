@@ -1,7 +1,8 @@
 import os
+import sys
 import tempfile
 import pytest
-from takepod.datasets.impl.imdb_sentiment_dataset import BasicSupervisedImdbDataset
+from takepod.datasets.impl.imdb_sentiment_dataset import IMDB
 from takepod.datasets.dataset import Dataset
 from takepod.storage.resources.large_resource import LargeResource
 
@@ -15,25 +16,25 @@ TRAIN_EXAMPLES = {
 }
 
 EXPECTED_TRAIN_EXAMPLES = [
-    {BasicSupervisedImdbDataset.TEXT_FIELD_NAME: "If you like comedy cartoons then "
-                                                 "this is nearly a similar "
-                                                 "format".split(),
-     BasicSupervisedImdbDataset.LABEL_FIELD_NAME: 1},
-    {BasicSupervisedImdbDataset.TEXT_FIELD_NAME: "I came in in the middle of this "
-                                                 "film so I had no idea about any "
-                                                 "credit".split(),
-     BasicSupervisedImdbDataset.LABEL_FIELD_NAME: 1},
-    {BasicSupervisedImdbDataset.TEXT_FIELD_NAME: "The production quality, cast, "
-                                                 "premise, authentic New "
-                                                 "England".split(),
-     BasicSupervisedImdbDataset.LABEL_FIELD_NAME: 1},
-    {BasicSupervisedImdbDataset.TEXT_FIELD_NAME: "If I had not read Pat Barker's "
-                                                 "'Union Street' before seeing this "
-                                                 "film".split(),
-     BasicSupervisedImdbDataset.LABEL_FIELD_NAME: 0},
-    {BasicSupervisedImdbDataset.TEXT_FIELD_NAME: "There are lots of extremely "
-                                                 "good-looking people".split(),
-     BasicSupervisedImdbDataset.LABEL_FIELD_NAME: 0}
+    {IMDB.TEXT_FIELD_NAME: "If you like comedy cartoons then "
+                           "this is nearly a similar "
+                           "format".split(),
+     IMDB.LABEL_FIELD_NAME: 1},
+    {IMDB.TEXT_FIELD_NAME: "I came in in the middle of this "
+                           "film so I had no idea about any "
+                           "credit".split(),
+     IMDB.LABEL_FIELD_NAME: 1},
+    {IMDB.TEXT_FIELD_NAME: "The production quality, cast, "
+                           "premise, authentic New "
+                           "England".split(),
+     IMDB.LABEL_FIELD_NAME: 1},
+    {IMDB.TEXT_FIELD_NAME: "If I had not read Pat Barker's "
+                           "'Union Street' before seeing this "
+                           "film".split(),
+     IMDB.LABEL_FIELD_NAME: 0},
+    {IMDB.TEXT_FIELD_NAME: "There are lots of extremely "
+                           "good-looking people".split(),
+     IMDB.LABEL_FIELD_NAME: 0}
 ]
 
 TEST_EXAMPLES = {
@@ -83,23 +84,29 @@ def create_examples(base_dir, examples):
             fpr.write(examples[i])
 
 
+@pytest.mark.skipif('spacy' not in sys.modules,
+                    reason="requires the Spacy library")
 def test_return_params(mock_dataset_path):
-    data = BasicSupervisedImdbDataset.get_train_test_dataset()
+    data = IMDB.get_dataset_splits()
     assert len(data) == 2
     assert isinstance(data[0], Dataset)
     assert isinstance(data[1], Dataset)
 
 
+@pytest.mark.skipif('spacy' not in sys.modules,
+                    reason="requires the Spacy library")
 def test_default_fields():
-    fields = BasicSupervisedImdbDataset.get_default_fields()
+    fields = IMDB.get_default_fields()
     assert len(fields) == 2
-    field_names = [BasicSupervisedImdbDataset.LABEL_FIELD_NAME,
-                   BasicSupervisedImdbDataset.TEXT_FIELD_NAME]
+    field_names = [IMDB.LABEL_FIELD_NAME,
+                   IMDB.TEXT_FIELD_NAME]
     assert all([name in fields for name in field_names])
 
 
+@pytest.mark.skipif('spacy' not in sys.modules,
+                    reason="requires the Spacy library")
 def test_loaded_data(mock_dataset_path):
-    data = BasicSupervisedImdbDataset.get_train_test_dataset()
+    data = IMDB.get_dataset_splits()
     train_dataset, _ = data
     for ex in train_dataset:
         ex_data = {"text": ex.text[1], "label": ex.label[0]}

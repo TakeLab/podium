@@ -27,7 +27,7 @@ class Iterator:
                  dataset=None,
                  batch_size=32,
                  sort_key=None,
-                 shuffle=False,
+                 shuffle=True,
                  seed=1,
                  internal_random_state=None):
         """ Creates an iterator for the given dataset and batch size.
@@ -41,10 +41,6 @@ class Iterator:
             number of examples in the dataset is not a multiple of
             batch_size the last returned batch will be smaller
             (dataset_len MOD batch_size).
-        batch_to_matrix : bool
-            A flag denoting whether the vectors for a field in a batch should be
-            returned as a list of numpy vectors or a matrix where each row is a padded
-            vector
         sort_key : callable
             A callable object used to sort the dataset prior to batching. If
             None, the dataset won't be sorted.
@@ -135,13 +131,31 @@ class Iterator:
 
         self._dataset = dataset
 
+    def __call__(self, dataset: Dataset):
+        """ Sets the dataset for this Iterator and returns an iterable over the batches of
+        that Dataset. Same as calling iterator.set_dataset() followed by
+        iterator.__iter__()
+
+        Parameters
+        ----------
+        dataset: Dataset
+            Dataset to iterate over.
+
+        Returns
+        -------
+        Iterable over batches in the Dataset.
+
+        """
+        self.set_dataset(dataset)
+        return self.__iter__()
+
     def __len__(self):
         """ Returns the number of batches this iterator provides in one epoch.
 
         Returns
         -------
         int
-            Number of batche s provided in one epoch.
+            Number of batches s provided in one epoch.
         """
 
         return math.ceil(len(self._dataset) / self.batch_size)
@@ -338,7 +352,8 @@ class SingleBatchIterator(Iterator):
 
     def __init__(
             self,
-            dataset: Dataset = None):
+            dataset: Dataset = None,
+            shuffle=True):
         """Creates an Iterator that creates one batch per epoch
         containing all examples in the dataset.
 
@@ -347,12 +362,17 @@ class SingleBatchIterator(Iterator):
         dataset : Dataset
             The dataset whose examples the iterator will iterate over.
 
-        batch_to_matrix : bool
-            A flag denoting whether the vectors for a field in a batch should be
-            returned as a list of numpy vectors or a matrix where each row is a padded
-            vector.
+        shuffle : bool
+            A flag denoting whether the examples should be shuffled before
+            each iteration.
+            If sort_key is not None, this flag being True may not have any
+            effect since the dataset will always be sorted after being
+            shuffled (the only difference shuffling can make is in the
+            order of elements with the same value of sort_key)..
+            Default is False.
         """
-        super().__init__(dataset=dataset)
+        super().__init__(dataset=dataset,
+                         shuffle=shuffle)
 
     def set_dataset(self, dataset: Dataset):
         super().set_dataset(dataset)

@@ -21,12 +21,10 @@ class Experiment:
 
     def __init__(self,
                  model: Union[Type[AbstractSupervisedModel], AbstractSupervisedModel],
+                 trainer: AbstractTrainer = None,
                  feature_transformer:
                  Union[FeatureTransformer, Callable[[NamedTuple], np.array]] = None,
-                 trainer: AbstractTrainer = None,
-                 training_iterator_callable: Callable[[Dataset], Iterator] = None,
-                 prediction_iterator_callable: Callable[[Dataset], Iterator] = None,
-                 label_transform_fun:
+                 label_transform_fn:
                  Callable[[NamedTuple], np.ndarray] = None
                  ):
         """Creates a new Experiment. The Experiment class is used to simplify model
@@ -41,31 +39,27 @@ class Experiment:
             `partial_fit`.
             Must be a subclass of Podium's `AbstractSupervisedModel`
 
+        trainer : AbstractTrainer
+            Trainer used to fit the model.
+
         feature_transformer : Union[FeatureTransformer, Callable[[NamedTuple], np.array]
             FeatureTransformer that transforms the input part of the batch returned by the
             iterator into features that can be fed into the model. Will also be fitted
             during Experiment fitting.
             A callable taking an input batch and returning a numpy array of features can
             also be passed.
+            If None, a default feature transformer that returns a single feature from
+            the batch will be used. In this case the Dataset used in training must contain
+            a single input field.
 
-        trainer : AbstractTrainer
-            Trainer used to fit the model.
-
-        training_iterator_callable : Callable[[Dataset], Iterator]
-            Callable used to instantiate new instances of the Iterator used in fitting the
-            model.
-
-        prediction_iterator_callable : Callable[[Dataset], Iterator]
-            Callable used to instantiate new instances of the Iterator used in prediction.
-            Tensors which are prediction results for seperate batches will be stacked into
-            a single tensor before being returned. If passed None, a SingleBatchIterator
-            will be used as a default.
-
-        label_transform_fun : Callable[[NamedTuple], np.ndarray]
+        label_transform_fn : Callable[[NamedTuple], np.ndarray]
             Callable that transforms the target part of the batch returned by the iterator
             into the same format the model prediction is. For a hypothetical perfect model
             the prediction result of the model for some examples must be identical to the
             result of this callable for those same examples.
+            If None, a default label transformer that returns a single feature from
+            the batch will be used. In this case the Dataset used in training must contain
+            a single target field.
         """
         if isclass(model):
             self.model_class = model
@@ -75,28 +69,12 @@ class Experiment:
             self.model = model
 
         self.trainer = trainer
-        self.training_iterator_callable = training_iterator_callable
 
         self.set_default_model_args()
         self.set_default_trainer_args()
 
-        if prediction_iterator_callable is None:
-            self.prediction_iterator_callable = partial(SingleBatchIterator)
-        else:
-            self.prediction_iterator_callable = prediction_iterator_callable
-
-        if feature_transformer is None:
-            self.feature_transformer = FeatureTransformer(default_feature_transform)
-
-        elif callable(feature_transformer):
-            self.feature_transformer = FeatureTransformer(feature_transformer)
-
-        else:
-            self.feature_transformer = feature_transformer
-
-        self.label_transform_fun = label_transform_fun \
-            if label_transform_fun is not None \
-            else default_label_transform
+        self.set_feature_transformer(feature_transformer)
+        self.set_label_transformer(label_transform_fn)
 
     def set_default_model_args(self, **kwargs):
         """Sets the default model arguments. Model arguments are keyword arguments passed
@@ -122,13 +100,34 @@ class Experiment:
         """
         self.default_trainer_args = kwargs
 
+    def set_feature_transformer(self, feature_transformer):
+        if feature_transformer is None:
+            self.feature_transformer = FeatureTransformer(default_feature_transform)
+
+        elif isinstance(feature_transformer, FeatureTransformer):
+            self.feature_transformer = feature_transformer
+
+        elif callable(feature_transformer):
+            self.feature_transformer = FeatureTransformer(feature_transformer)
+
+        else:
+            err_msg = """Invalid feature_transformer. feature_transformer must be either
+            be None, a FeatureTransformer instance or a callable
+            taking a batch and returning a numpy matrix of features."""
+            _LOGGER.error(err_msg)
+            raise TypeError(err_msg)
+
+    def set_label_transformer(self, label_transform_fn):
+        self.label_transform_fn = label_transform_fn \
+            if label_transform_fn is not None \
+            else default_label_transform
+
     def fit(self,
             dataset: Dataset,
             model_kwargs: Dict = None,
             trainer_kwargs: Dict = None,
             feature_transformer: FeatureTransformer = None,
-            trainer: AbstractTrainer = None,
-            training_iterator_callable: Callable[[Dataset], Iterator] = None,
+            trainer: AbstractTrainer = None
             ):
         """Fits the model to the provided Dataset. During fitting, the provided Iterator
         and Trainer are used.
@@ -178,13 +177,13 @@ class Experiment:
             raise RuntimeError(errmsg)
 
         if feature_transformer is not None:
-            self.feature_transformer = feature_transformer
+            self.set_feature_transformer(feature_transformer)
 
         # Fit the feature transformer if it needs fitting
         if self.feature_transformer.requires_fitting():
-            x_batch, y_batch = next(SingleBatchIterator(dataset).__iter__())
-            y = self.label_transform_fun(y_batch)
-            self.feature_transformer.fit(x_batch, y)
+            for x_batch, y_batch in SingleBatchIterator(dataset, shuffle=False):
+                y = self.label_transform_fn(y_batch)
+                self.feature_transformer.fit(x_batch, y)
 
         # Create new model instance
         self.model = self.model_class(**model_args)
@@ -192,14 +191,12 @@ class Experiment:
         # Train the model
         self.partial_fit(dataset,
                          trainer_kwargs,
-                         trainer,
-                         training_iterator_callable)
+                         trainer)
 
     def partial_fit(self,
                     dataset: Dataset,
                     trainer_kwargs: Dict = None,
-                    trainer: AbstractTrainer = None,
-                    training_iterator_callable: Callable[[Dataset], Iterator] = None):
+                    trainer: AbstractTrainer = None):
         """Fits the model to the data without resetting the model.
 
         Parameters
@@ -214,11 +211,6 @@ class Experiment:
 
         trainer : AbstractTrainer, Optional
             Trainer used to fit the model. If None, the trainer provided in the
-            constructor will be used.
-
-        training_iterator_callable: Callable[[Dataset], Iterator]
-            Callable used to instantiate new instances of the Iterator used in fitting the
-            model. If None, the training_iterator_callable provided in the
             constructor will be used.
 
         Returns
@@ -238,20 +230,15 @@ class Experiment:
         trainer_args = self.default_trainer_args.copy()
         trainer_args.update(trainer_kwargs)
 
-        training_iterator_callable = training_iterator_callable \
-            if training_iterator_callable is not None \
-            else self.training_iterator_callable
-
-        train_iterator = training_iterator_callable(dataset)
-
         trainer.train(self.model,
-                      train_iterator,
+                      dataset,
                       self.feature_transformer,
-                      self.label_transform_fun,
+                      self.label_transform_fn,
                       **trainer_args)
 
     def predict(self,
                 dataset: Dataset,
+                batch_size: int = 128,
                 **kwargs
                 ) -> np.ndarray:
         """Computes the prediction of the model for every example in the provided dataset.
@@ -260,6 +247,12 @@ class Experiment:
         ----------
         dataset : Dataset
             Dataset to compute predictions for.
+
+        batch_size : int
+            If None, predictions for the whole dataset will be done in a single batch.
+            Else, predictions will be calculated in batches of batch_size size.
+            This argument is useful in case the whole dataset can't be processed in a
+            single batch.
 
         kwargs
             Keyword arguments passed to the model's `predict` method
@@ -274,14 +267,23 @@ class Experiment:
         self._check_if_model_exists()
 
         y = []
+        prediction_key = AbstractSupervisedModel.PREDICTION_KEY
 
-        for x_batch, _ in self.prediction_iterator_callable(dataset):
-            x_batch_tensor = self.feature_transformer.transform(x_batch)
+        if batch_size is None:
+            x_batch_tensor = self.feature_transformer.transform(dataset.batch())
             batch_prediction = self.model.predict(x_batch_tensor, **kwargs)
-            prediction_tensor = batch_prediction[AbstractSupervisedModel.PREDICTION_KEY]
-            y.append(prediction_tensor)
+            prediction_tensor = batch_prediction[prediction_key]
+            return prediction_tensor
+        else:
+            prediction_iterator = Iterator(batch_size=batch_size)
 
-        return np.concatenate(y)
+            for x_batch, _ in prediction_iterator(dataset):
+                x_batch_tensor = self.feature_transformer.transform(x_batch)
+                batch_prediction = self.model.predict(x_batch_tensor, **kwargs)
+                prediction_tensor = batch_prediction[prediction_key]
+                y.append(prediction_tensor)
+
+            return np.concatenate(y)
 
     def _check_if_model_exists(self):
         if self.model is None:

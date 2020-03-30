@@ -1,7 +1,7 @@
 from typing import Callable, Optional, Union, List, Tuple
 import numpy as np
 
-from takepod.datasets import Dataset, SingleBatchIterator
+from takepod.datasets import Dataset
 from takepod.validation import KFold
 from takepod.models.experiment import Experiment
 
@@ -55,15 +55,13 @@ def kfold_scores(
     kfold = KFold(n_splits=n_splits,
                   shuffle=shuffle,
                   random_state=random_state)
-    it = SingleBatchIterator()
     results = list()
     for train_split, test_split in kfold.split(dataset):
         experiment.fit(train_split)
         y_pred = experiment.predict(test_split)
 
-        it.set_dataset(test_split)
-        _, y_true_batch = next(iter(it))
-        y_true = experiment.label_transform_fun(y_true_batch)
+        _, y_true_batch = test_split.batch()
+        y_true = experiment.label_transform_fn(y_true_batch)
 
         split_score = score_fun(y_true, y_pred)
         results.append(split_score)
