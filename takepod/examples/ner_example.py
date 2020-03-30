@@ -84,7 +84,7 @@ def feature_extraction_fn(x_batch, embedding_matrix):
     tokens_numericalized = x_batch.tokens.astype(int)
     casing_numericalized = x_batch.casing.astype(int)
     X = [
-        np.take(embedding_matrix, tokens_numericalized, axis=0).astype(int),
+        np.take(embedding_matrix, tokens_numericalized, axis=0),
         casing_numericalized
     ]
     return X
@@ -129,7 +129,7 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
         iterator=train_iter,
         feature_transformer=feature_transformer,
         label_transform_fun=label_transform_fun,
-        **{trainer.MAX_EPOCH_KEY: 2}
+        **{trainer.MAX_EPOCH_KEY: 1}
     )
     _LOGGER.info('Training finished')
 
