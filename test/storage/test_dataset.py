@@ -493,7 +493,6 @@ def test_tabular_dataset_iterate_over_single_field(file_format, use_dict,
     field_val_expected_data_tuples = zip(getattr(dataset, field_name),
                                          tabular_data[field_name])
 
-    print(field_val_expected_data_tuples)
     for field_value, val in field_val_expected_data_tuples:
         expected_data = (val, [val])
 
