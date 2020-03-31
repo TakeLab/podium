@@ -107,7 +107,6 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
     train_set, test_set = dataset.split(split_ratio=0.8)
 
     train_iter = BucketIterator(batch_size=32, sort_key=example_word_count)
-    test_iter = BucketIterator(batch_size=32, sort_key=example_word_count)
 
     model = BLCCModel(**{
         BLCCModel.OUTPUT_SIZE: output_size,
