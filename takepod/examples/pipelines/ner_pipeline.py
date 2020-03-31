@@ -28,7 +28,15 @@ from takepod.examples.ner_example import (
 )
 
 
-_LOGGER = logging.getLogger(__name__)
+root = logging.getLogger()
+root.setLevel(logging.DEBUG)
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+root.addHandler(handler)
+LOGGER = root
 
 
 def map_iterable(iterable, mapping):
@@ -104,7 +112,7 @@ class CroatianNER:
                             batch_size=32,
                             sort_key=example_word_count
                         ),
-            'max_epoch': 1
+            'max_epoch': 2
         }
         experiment.set_default_trainer_args(**trainer_args)
         experiment.fit(train_set)
