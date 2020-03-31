@@ -171,7 +171,7 @@ def test_output_transform_fn():
         assert list_pipeline.predict_raw(example) == example[0].upper()
 
 
-def test_pipeline_multioutputfield():
+def test_pipeline_multioutputfield_without_target():
     # case where name is used to generate two fields => name and case
     name_field = Field("Name", custom_numericalize=name_dict.get)
     case_field = Field("Case", custom_numericalize={True: 1, False: 0}.get)
@@ -180,7 +180,9 @@ def test_pipeline_multioutputfield():
         return raw, list(map(lambda x: x.islower(), tokenized))
 
     case_field.add_posttokenize_hook(get_case)
-    age_field = Field("Age", tokenize=False, custom_numericalize=int, is_target=True)
+    age_field = Field(
+        "Age", tokenize=False, custom_numericalize=int, is_target=True
+    )
 
     name_field.finalize()
     case_field.finalize()
@@ -189,19 +191,72 @@ def test_pipeline_multioutputfield():
     model.predict.return_value = {
         AbstractSupervisedModel.PREDICTION_KEY: [0]
     }
-
+    input_field = MultioutputField((name_field, case_field))
     pipeline = Pipeline(
-        # multioutput fields can be used for non-target
-        (MultioutputField((name_field, case_field)), age_field),
+        [input_field, age_field],
         ExampleFormat.LIST,
         feature_transformer=lambda x: np.hstack((x.Name, x.Case)),
         model=model,
     )
     assert pipeline.predict_raw(["Marko vrago"]) == 0
+    assert pipeline.feature_fields == [input_field]
 
 
-def test_pipeline_nested_fields():
-    # case where name is used to generate two fields => name and case
+def test_pipeline_multioutputfield_with_some_target():
+
+    text_dict = {"Marko": 1, "radi": 2}
+    mask_dict = {"XXXXX": 1, "XXXX": 2}
+    text_field = Field("Text", custom_numericalize=text_dict.get)
+    mask_field = Field(
+        "Masked", custom_numericalize=mask_dict.get, is_target=True
+    )
+    text_field.finalize()
+
+    model = Mock()
+    model.predict.return_value = {
+        AbstractSupervisedModel.PREDICTION_KEY: [0]
+    }
+    field = MultioutputField((text_field, mask_field))
+    pipeline = Pipeline(
+        # multioutput fields can be used for non-target
+        [field],
+        ExampleFormat.LIST,
+        feature_transformer=lambda x: x.Text,
+        model=model,
+    )
+    assert pipeline.predict_raw(["Marko vrago"]) == 0
+    assert pipeline.feature_fields == [field]
+
+
+def test_pipeline_multioutputfield_with_all_targets():
+    text_dict = {"Marko": 1, "radi": 2}
+    mask_dict = {"XXXXX": 1, "XXXX": 2}
+    text_field = Field("Text", custom_numericalize=text_dict.get)
+    mask1_field = Field(
+        "Masked", custom_numericalize=mask_dict.get, is_target=True
+    )
+    mask2_field = Field(
+        "Masked", custom_numericalize=mask_dict.get, is_target=True
+    )
+    text_field.finalize()
+
+    model = Mock()
+    model.predict.return_value = {
+        AbstractSupervisedModel.PREDICTION_KEY: [0]
+    }
+
+    pipeline = Pipeline(
+        # multioutput fields can be used for non-target
+        [text_field, MultioutputField((mask1_field, mask2_field))],
+        ExampleFormat.LIST,
+        feature_transformer=lambda x: x.Text,
+        model=model,
+    )
+    assert pipeline.predict_raw(["Marko vrago"]) == 0
+    assert pipeline.feature_fields == [text_field]
+
+
+def test_pipeline_nested_fields_no_targets():
     name_field = Field("Name", custom_numericalize=name_dict.get)
     case_field = Field("Case", custom_numericalize={True: 1, False: 0}.get)
 
@@ -227,6 +282,34 @@ def test_pipeline_nested_fields():
         model=model,
     )
     assert pipeline.predict_raw(["Marko vrago"]) == 0
+    assert pipeline.feature_fields == [(name_field, case_field)]
+
+
+def test_pipeline_nested_fields_all_targets():
+    text_dict = {"Marko": 1, "radi": 2}
+    mask_dict = {"XXXXX": 1, "XXXX": 2}
+    text_field = Field("Text", custom_numericalize=text_dict.get)
+    mask1_field = Field(
+        "Masked", custom_numericalize=mask_dict.get, is_target=True
+    )
+    mask2_field = Field(
+        "Masked", custom_numericalize=mask_dict.get, is_target=True
+    )
+    text_field.finalize()
+
+    model = Mock()
+    model.predict.return_value = {
+        AbstractSupervisedModel.PREDICTION_KEY: [0]
+    }
+    pipeline = Pipeline(
+        # multioutput fields can be used for non-target
+        [text_field, ((mask1_field, mask2_field))],
+        ExampleFormat.LIST,
+        feature_transformer=lambda x: x.Text,
+        model=model,
+    )
+    assert pipeline.predict_raw(["Marko vrago"]) == 0
+    assert pipeline.feature_fields == [text_field]
 
 
 def test_pipeline_label_and_tokenized_fields():

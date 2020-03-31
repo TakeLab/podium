@@ -740,15 +740,6 @@ def test_unpack_fields():
     assert all(f in unpacked_fields for f in (field1, field2, field3))
 
 
-def test_target_field_in_tuple():
-    field1 = Field("field1")
-    field2 = Field("field2")
-    field3 = Field("field3", is_target=True)
-
-    with pytest.raises(ValueError):
-        unpack_fields([field1, (field2, field3)])
-
-
 def test_eager_tokenization():
 
     def create_dataset():
