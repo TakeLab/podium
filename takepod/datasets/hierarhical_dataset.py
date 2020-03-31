@@ -1,5 +1,7 @@
 import json
 import logging
+from itertools import chain
+
 from takepod.datasets.dataset import Dataset
 from takepod.storage.field import unpack_fields
 from takepod.storage.example_factory import ExampleFactory
@@ -13,7 +15,7 @@ class HierarchicalDataset:
     """
 
     class Node(object):
-        """Class defines a node in hierarhical dataset.
+        """Class defines a node in hierarchical dataset.
 
         Attributes
         ----------
@@ -21,17 +23,22 @@ class HierarchicalDataset:
             example instance containing node data
         index : int
             index in current hierarchy level
-        parent : Node
+        parent_node : Node
             parent node
-        children : tuple(Node)
+        next_node : Node
+            next node at the same level
+        children_nodes : tuple(Node)
             children nodes
         """
-        __slots__ = 'example', 'index', 'parent', 'children'
+        __slots__ = 'example', 'index', 'parent_node', 'next_node', 'children_nodes'
 
-        def __init__(self, example, index, parent):
+        def __init__(self, example, index, parent_node,
+                     next_node=None, children_nodes=None):
             self.example = example
             self.index = index
-            self.parent = parent
+            self.parent_node = parent_node
+            self.next_node = next_node
+            self.children_nodes = children_nodes
 
     def __init__(self, parser, fields):
         """
@@ -139,9 +146,19 @@ class HierarchicalDataset:
 
         """
         self._root_nodes = tuple(self._parse(root, None, 0) for root in root_examples)
+        for root, next_root in zip(self._root_nodes, self._root_nodes[1:]):
+            root.next_node = next_root
 
     def finalize_fields(self):
         """Finalizes all fields in this dataset."""
+
+        fields_to_build = [f for f in self.fields if
+                           not f.eager and f.use_vocab]
+
+        if fields_to_build:
+            for example in self.flatten():
+                for field in fields_to_build:
+                    field.update_vocab(*getattr(example, field.name))
 
         for field in self.fields:
             field.finalize()
@@ -172,7 +189,9 @@ class HierarchicalDataset:
 
         current_node = HierarchicalDataset.Node(example, index, parent)
         children = tuple(self._parse(c, current_node, depth + 1) for c in raw_children)
-        current_node.children = children
+        for child, next_child in zip(children, children[1:]):
+            child.next_node = next_child
+        current_node.children_nodes = children
 
         self._max_depth = max(self._max_depth, depth)
 
@@ -182,7 +201,7 @@ class HierarchicalDataset:
 
         def flat_node_iterator(node):
             yield node
-            for subnode in node.children:
+            for subnode in node.children_nodes:
                 for ex in flat_node_iterator(subnode):
                     yield ex
 
@@ -245,7 +264,7 @@ class HierarchicalDataset:
         """
         if index < 0 or index >= len(self):
             error_msg = "Index {} out of bounds. Must be within " \
-                "[0, len(dataset) - 1]".format(index)
+                        "[0, len(dataset) - 1]".format(index)
             _LOGGER.error(error_msg)
             raise IndexError(error_msg)
 
@@ -283,20 +302,26 @@ class HierarchicalDataset:
                 return nodes[start - 1]
 
             else:
-                return get_item(nodes[start - 1].children, index)
+                return get_item(nodes[start - 1].children_nodes, index)
 
         return get_item(self._root_nodes, index)
 
     @staticmethod
-    def _get_node_context(node, levels=None):
-        """Returns an Iterator iterating through the context of the passed node.
+    def _get_pre_context_nodes(node, levels=None):
+        """Returns an Iterator iterating through the pre-context Nodes of the passed node.
 
         Parameters
         ----------
         node : Node
             Node for which the context should be retrieved.
-        levels : the maximum number of levels of the hierarchy the context should contain.
-            If None, the context will contain all levels up to the root nodes of the
+        levels :
+            the maximum number of levels of the hierarchy above the node the context
+            should contain.
+
+            If 0, the parent Node and all its children nodes before the passed node will
+            will be contained in the context.
+
+            If None, the context will contain all levels up to the root node of the
             dataset.
 
         Returns
@@ -308,58 +333,152 @@ class HierarchicalDataset:
         levels = float('Inf') if levels is None else levels
         if levels < 0:
             error_msg = "Number of context levels must be greater or equal to 0." \
-                " Passed value: {}".format(levels)
+                        " Passed value: {}".format(levels)
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
+        # Go up the hierarchy `level` times
         parent = node
         while parent.parent is not None and levels >= 0:
             parent = parent.parent
             levels -= 1
 
-        def context_iterator(start_node, finish_node):
+        def pre_context_node_iterator(start_node, finish_node):
             if start_node is finish_node:
                 return
 
-            yield start_node.example
+            # Return root node
+            yield start_node
 
-            children = start_node.children
+            children = start_node.children_nodes
             i = 0
+            # Iterate over children
             while True:
                 if i == len(children) - 1 or children[i + 1].index > finish_node.index:
-                    for sub_child in context_iterator(children[i], finish_node):
+                    for sub_child in pre_context_node_iterator(children[i], finish_node):
                         yield sub_child
 
                     return
 
                 else:
-                    yield children[i].example
+                    yield children[i]
                     i += 1
 
-        return context_iterator(parent, node)
+        return pre_context_node_iterator(parent, node)
 
-    def get_context(self, index, levels=None):
-        """Returns an Iterator iterating through the context of the Example with the
+    def get_pre_context_examples(self, index, levels=None):
+        """Returns an Iterator iterating over the pre-context of the Example with the
         passed index.
 
         Parameters
         ----------
         index : int
-            Index of the Example the context should be retrieved for.
-        levels : int
-            the maximum number of levels of the hierarchy the context should contain.
+            Index of the Example the pre-context should be retrieved for.
+        levels :
+            the maximum number of levels of the hierarchy above the node the context
+            should contain.
+
+            If 0, the parent Node and all its children nodes before the passed node will
+            will be contained in the context.
+
             If None, the context will contain all levels up to the root node of the
             dataset.
 
         Returns
         -------
-        Iterator(Node)
-            an Iterator iterating through the context of the Example with the passed
+        Iterator(Example)
+            an Iterator iterating through the pre-context of the Example with the passed
             index.
 
         """
         node = self._get_node_by_index(index)
-        return HierarchicalDataset._get_node_context(node, levels)
+        pre_context_nodes = HierarchicalDataset._get_pre_context_nodes(node, levels)
+        return (n.example for n in pre_context_nodes)
+
+    @staticmethod
+    def _get_post_context_nodes(node: Node,
+                                levels: int = 1,
+                                skip_same_level=False,
+                                skip_same_level_if_root=True):
+        levels = float('Inf') if levels is None else levels
+        if levels < 0:
+            error_msg = "Number of context levels must be greater or equal to 0." \
+                        " Passed value: {}".format(levels)
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
+
+        def children_iterator(parent_node, current_level, max_level):
+            if current_level >= max_level:
+                return
+
+            for child in parent_node.children_nodes:
+                yield child
+                if current_level < max_level - 1:
+                    for sub_child in children_iterator(child,
+                                                       current_level + 1,
+                                                       max_level):
+                        yield sub_child
+
+        def same_level_iterator(node):
+            node = node.next_node
+            while node is not None:
+                yield node
+                node = node.next_node
+
+        children = children_iterator(node, 0, levels)
+
+        if skip_same_level \
+                or skip_same_level_if_root and node.parent_node is None:
+            return children
+
+        else:
+            same_level_nodes = same_level_iterator(node)
+            return chain(children, same_level_nodes)
+
+    def get_post_context_examples(self,
+                                  index: int,
+                                  levels: int = 1,
+                                  skip_same_level=False,
+                                  skip_same_level_if_root=True):
+        """Returns an Iterator iterating over the post-context of the Example with the
+            passed index. The post-context contains `levels` levels of children of the
+            indexed Example and all Examples that come after the indexed example at the
+            same level.
+
+            Parameters
+            ----------
+            index : int
+                Index of the Example the post-context should be retrieved for.
+            levels : int
+                the maximum number of levels of children below the node the
+                context should contain. For example, for `levels` 2 the context will
+                contain the children, and the children of those children.
+
+                If 0, no children will be contained in the context.
+
+                If None, the context will contain all children.
+            skip_same_level: bool
+                If True, the Examples that come after the indexed Example at the same
+                level will not be added to the context.
+            skip_same_level_if_root: bool
+                If True, the Examples that come after the indexed Example at the same
+                level will not be added to the context if the indexed Example is a root
+                node.
+
+            Returns
+            -------
+            Iterator(Example)
+                an Iterator iterating through the pre-context of the Example with the passed
+                index.
+        """
+        node = self._get_node_by_index(index)
+        post_context_nodes = HierarchicalDataset._get_post_context_nodes(
+            node,
+            levels,
+            skip_same_level,
+            skip_same_level_if_root
+        )
+        return (n.example for n in post_context_nodes)
 
     def __len__(self):
         return self._size

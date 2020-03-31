@@ -222,7 +222,7 @@ class Dataset(ABC):
 
         Parameters
         ----------
-        \*args
+        *args
             A variable number of Dataset objects from which to build the
             vocabularies for non-eager fields. If none provided, the
             vocabularies are built from this Dataset (self).

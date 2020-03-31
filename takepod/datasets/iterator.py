@@ -609,10 +609,10 @@ class HierarchicalDatasetIterator(Iterator):
             limitations.
 
         """
-        context_iterator = HierarchicalDataset._get_node_context(
+        context_iterator = HierarchicalDataset._get_pre_context_nodes(
             node, self._context_max_depth
         )
-        context = list(context_iterator)
+        context = list(n.example for n in context_iterator)
 
         if self._context_max_size is not None:
             # if context max size is defined, truncate it
