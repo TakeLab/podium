@@ -938,7 +938,7 @@ class MultilabelField(TokenizedField):
 
 def _raise_if_target_field_contained(field_list):
     target_fields = list(filter(
-        lambda x: x.is_target == True,
+        lambda x: x.is_target is True,
         unpack_fields(field_list)
     ))
     if target_fields:

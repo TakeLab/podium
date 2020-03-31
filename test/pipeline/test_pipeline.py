@@ -1,11 +1,11 @@
 import numpy as np
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
 from takepod.pipeline import Pipeline
 from takepod.storage import (
-    Field, ExampleFormat, TokenizedField,
-    MultilabelField, MultioutputField,
-    LabelField
+    Field, ExampleFormat,
+    MultioutputField,
+    LabelField, TokenizedField
 )
 from takepod.models import AbstractSupervisedModel, FeatureTransformer
 
@@ -174,7 +174,7 @@ def test_output_transform_fn():
 def test_pipeline_multioutputfield():
     # case where name is used to generate two fields => name and case
     name_field = Field("Name", custom_numericalize=name_dict.get)
-    case_field = Field("Case", custom_numericalize={True: 1, False:0}.get)
+    case_field = Field("Case", custom_numericalize={True: 1, False: 0}.get)
 
     def get_case(raw, tokenized):
         return raw, list(map(lambda x: x.islower(), tokenized))
@@ -203,7 +203,7 @@ def test_pipeline_multioutputfield():
 def test_pipeline_nested_fields():
     # case where name is used to generate two fields => name and case
     name_field = Field("Name", custom_numericalize=name_dict.get)
-    case_field = Field("Case", custom_numericalize={True: 1, False:0}.get)
+    case_field = Field("Case", custom_numericalize={True: 1, False: 0}.get)
 
     def get_case(raw, tokenized):
         return raw, list(map(lambda x: x.islower(), tokenized))
@@ -227,3 +227,34 @@ def test_pipeline_nested_fields():
         model=model,
     )
     assert pipeline.predict_raw(["Marko vrago"]) == 0
+
+
+def test_pipeline_label_and_tokenized_fields():
+    # case where name is used to generate two fields => name and case
+    name_field = TokenizedField("Name", custom_numericalize=name_dict.get)
+    case_field = TokenizedField("Case", custom_numericalize={True: 1, False: 0}.get)
+
+    def get_case(raw, tokenized):
+        return raw, list(map(lambda x: x.islower(), tokenized))
+    case_field.add_posttokenize_hook(get_case)
+
+    age_field = LabelField(
+        "Age", custom_numericalize=int,
+    )
+
+    name_field.finalize()
+    case_field.finalize()
+
+    model = Mock()
+    model.predict.return_value = {
+        AbstractSupervisedModel.PREDICTION_KEY: [0]
+    }
+
+    pipeline = Pipeline(
+        # nested fields also can contain target fields
+        ((name_field, case_field), age_field),
+        ExampleFormat.LIST,
+        feature_transformer=lambda x: np.hstack((x.Name, x.Case)),
+        model=model,
+    )
+    assert pipeline.predict_raw(["Marko", "vrago"]) == 0
