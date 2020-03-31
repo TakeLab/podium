@@ -13,7 +13,7 @@ try:
     from keras import constraints
     from keras import initializers
     from keras.engine import Layer, InputSpec
-except ImportError as ex:
+except ImportError:
     _LOGGER.error("Problem occured while trying to import keras. If the "
                   "library is not installed visit https://keras.io/"
                   " for more details.")
@@ -231,7 +231,7 @@ class ChainCRF(Layer):
 
     # Input shape
         3D tensor with shape `(nb_samples, timesteps, nb_classes)`, where
-        ´timesteps >= 2`and `nb_classes >= 2`.
+        `timesteps >= 2`and `nb_classes >= 2`.
 
     # Output shape
         Same shape as input.
@@ -239,44 +239,40 @@ class ChainCRF(Layer):
     # Masking
         This layer supports masking for input sequences of variable length.
 
-    # Example
+    Examples
+    --------
 
-    ```python
-    # As the last layer of sequential layer with
-    # model.output_shape == (None, timesteps, nb_classes)
-    crf = ChainCRF()
-    model.add(crf)
-    # now: model.output_shape == (None, timesteps, nb_classes)
+    .. code-block:: python
 
-    # Compile model with chain crf loss (and one-hot encoded labels) and
-    accuracy
-    model.compile(loss=crf.loss, optimizer='sgd', metrics=['accuracy'])
+        # As the last layer of sequential layer with
+        # model.output_shape == (None, timesteps, nb_classes)
+        crf = ChainCRF()
+        model.add(crf)
+        # now: model.output_shape == (None, timesteps, nb_classes)
+        # Compile model with chain crf loss (and one-hot encoded labels) and accuracy
+        model.compile(loss=crf.loss, optimizer='sgd', metrics=['accuracy'])
+        # Alternatively, compile model with sparsely encoded labels and sparse accuracy:
+        model.compile(loss=crf.sparse_loss, optimizer='sgd',
+            metrics=['sparse_categorical_accuracy'])
 
-    # Alternatively, compile model with sparsely encoded labels and sparse
-    accuracy:
-    model.compile(
-        loss=crf.sparse_loss,
-        optimizer='sgd',
-        metrics=['sparse_categorical_accuracy']
-    )
-    ```
 
-    # Gotchas
+    Notes
+    -----
 
     ## Model loading
 
     When you want to load a saved model that has a crf output, then loading
-    the model with 'keras.models.load_model' won't work properly because
+    the model with ``keras.models.load_model`` won't work properly because
     the reference of the loss function to the transition parameters is lost. To
-    fix this, you need to use the parameter 'custom_objects' as follows:
+    fix this, you need to use the parameter ``custom_objects`` as follows:
 
-    ```python
-    from keras.layer.crf import create_custom_objects:
-    model = keras.models.load_model(
-        filename,
-        custom_objects=create_custom_objects()
-    )
-    ```
+    .. code-block:: python
+
+        from keras.layer.crf import create_custom_objects:
+        model = keras.models.load_model(
+            filename,
+            custom_objects=create_custom_objects()
+        )
 
     ## Temporal sample weights
 
@@ -358,6 +354,7 @@ class ChainCRF(Layer):
         self.built = True
 
     def call(self, x, mask=None):
+        """Call method."""
         y_pred = viterbi_decode(x, self.U, self.b_start, self.b_end, mask)
         nb_classes = self.input_spec[0].shape[2]
         y_pred_one_hot = K.one_hot(y_pred, nb_classes)

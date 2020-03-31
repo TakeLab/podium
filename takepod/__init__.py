@@ -12,6 +12,9 @@ from . import metrics
 from . import models
 from . import preproc
 from . import storage
+from . import validation
+from . import model_selection
+from . import pipeline
 
 __name__ = "takepod"
 
@@ -23,6 +26,7 @@ __all__ = ["dataload",
            "preproc",
            "storage",
            "validation",
+           "model_selection",
            "pipeline"]
 
 

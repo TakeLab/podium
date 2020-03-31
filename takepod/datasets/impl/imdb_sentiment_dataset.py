@@ -3,30 +3,30 @@ Module contains IMDB Large Movie Review Dataset
 Dataset webpage: http://ai.stanford.edu/~amaas/data/sentiment/
 
 When using this dataset, please cite:
-@InProceedings{maas-EtAl:2011:ACL-HLT2011,
-  author    = {Maas, Andrew L.  and  Daly, Raymond E.  and  Pham, Peter T.  and
-               Huang, Dan  and  Ng, Andrew Y.  and  Potts, Christopher},
-  title     = {Learning Word Vectors for Sentiment Analysis},
-  booktitle = {Proceedings of the 49th Annual Meeting of the Association for
-               Computational Linguistics: Human Language Technologies},
-  month     = {June},
-  year      = {2011},
-  address   = {Portland, Oregon, USA},
-  publisher = {Association for Computational Linguistics},
-  pages     = {142--150},
-  url       = {http://www.aclweb.org/anthology/P11-1015}
-}
+    @InProceedings{maas-EtAl:2011:ACL-HLT2011,
+    author    = {Maas, Andrew L.  and  Daly, Raymond E.  and  Pham, Peter T.  and
+    Huang, Dan  and  Ng, Andrew Y.  and  Potts, Christopher},
+    title     = {Learning Word Vectors for Sentiment Analysis},
+    booktitle = {Proceedings of the 49th Annual Meeting of the Association for
+    Computational Linguistics: Human Language Technologies},
+    month     = {June},
+    year      = {2011},
+    address   = {Portland, Oregon, USA},
+    publisher = {Association for Computational Linguistics},
+    pages     = {142--150},
+    url       = {http://www.aclweb.org/anthology/P11-1015}
+    }
 """
 
 import os
 from takepod.datasets.dataset import Dataset
-from takepod.storage.field import Field
+from takepod.storage.field import LabelField, Field
 from takepod.storage.example_factory import ExampleFactory
 from takepod.storage.vocab import Vocab
 from takepod.storage.resources.large_resource import LargeResource
 
 
-class BasicSupervisedImdbDataset(Dataset):
+class IMDB(Dataset):
     """Simple Imdb dataset with only supervised data which uses non processed data.
 
     Attributes
@@ -56,6 +56,7 @@ class BasicSupervisedImdbDataset(Dataset):
     NEGATIVE_LABEL : int
         negative sentiment label
     """
+
     NAME = "imdb"
     URL = "http://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz"
     DATASET_DIR = os.path.join("imdb", "aclImdb")
@@ -68,8 +69,8 @@ class BasicSupervisedImdbDataset(Dataset):
     TEXT_FIELD_NAME = "text"
     LABEL_FIELD_NAME = "label"
 
-    POSITIVE_LABEL = 1
-    NEGATIVE_LABEL = 0
+    POSITIVE_LABEL = 'positive'
+    NEGATIVE_LABEL = 'negative'
 
     def __init__(self, dir_path, fields):
         """
@@ -85,11 +86,11 @@ class BasicSupervisedImdbDataset(Dataset):
             dictionary that maps field name to the field
         """
         LargeResource(**{
-            LargeResource.RESOURCE_NAME: BasicSupervisedImdbDataset.NAME,
-            LargeResource.ARCHIVE: BasicSupervisedImdbDataset.ARCHIVE_TYPE,
-            LargeResource.URI: BasicSupervisedImdbDataset.URL})
+            LargeResource.RESOURCE_NAME: IMDB.NAME,
+            LargeResource.ARCHIVE: IMDB.ARCHIVE_TYPE,
+            LargeResource.URI: IMDB.URL})
         examples = self._create_examples(dir_path=dir_path, fields=fields)
-        super(BasicSupervisedImdbDataset, self).__init__(
+        super(IMDB, self).__init__(
             **{"examples": examples, "fields": fields})
 
     @staticmethod
@@ -112,16 +113,16 @@ class BasicSupervisedImdbDataset(Dataset):
             list of examples from given dir_path
         """
         dir_pos_path = os.path.join(
-            dir_path, BasicSupervisedImdbDataset.POSITIVE_LABEL_DIR)
+            dir_path, IMDB.POSITIVE_LABEL_DIR)
         dir_neg_path = os.path.join(
-            dir_path, BasicSupervisedImdbDataset.NEGATIVE_LABEL_DIR)
+            dir_path, IMDB.NEGATIVE_LABEL_DIR)
         examples = []
         examples.extend(
-            BasicSupervisedImdbDataset._create_labeled_examples(
-                dir_pos_path, BasicSupervisedImdbDataset.POSITIVE_LABEL, fields))
+            IMDB._create_labeled_examples(
+                dir_pos_path, IMDB.POSITIVE_LABEL, fields))
         examples.extend(
-            BasicSupervisedImdbDataset._create_labeled_examples(
-                dir_neg_path, BasicSupervisedImdbDataset.NEGATIVE_LABEL, fields))
+            IMDB._create_labeled_examples(
+                dir_neg_path, IMDB.NEGATIVE_LABEL, fields))
         return examples
 
     @staticmethod
@@ -151,13 +152,13 @@ class BasicSupervisedImdbDataset(Dataset):
         for file_path in files_list:
             with open(file=os.path.join(dir_path, file_path),
                       mode='r', encoding='utf8') as fpr:
-                data = {BasicSupervisedImdbDataset.TEXT_FIELD_NAME: fpr.read(),
-                        BasicSupervisedImdbDataset.LABEL_FIELD_NAME: label}
+                data = {IMDB.TEXT_FIELD_NAME: fpr.read(),
+                        IMDB.LABEL_FIELD_NAME: label}
                 examples.append(example_factory.from_dict(data))
         return examples
 
     @staticmethod
-    def get_train_test_dataset(fields=None):
+    def get_dataset_splits(fields=None):
         """Method creates train and test dataset for Imdb dataset.
 
         Parameters
@@ -173,18 +174,18 @@ class BasicSupervisedImdbDataset(Dataset):
             tuple containing train dataset and test dataset
         """
         data_location = os.path.join(LargeResource.BASE_RESOURCE_DIR,
-                                     BasicSupervisedImdbDataset.DATASET_DIR)
+                                     IMDB.DATASET_DIR)
         if not fields:
-            fields = BasicSupervisedImdbDataset.get_default_fields()
+            fields = IMDB.get_default_fields()
 
-        train_dataset = BasicSupervisedImdbDataset(
+        train_dataset = IMDB(
             dir_path=os.path.join(
-                data_location, BasicSupervisedImdbDataset.TRAIN_DIR),
+                data_location, IMDB.TRAIN_DIR),
             fields=fields)
 
-        test_dataset = BasicSupervisedImdbDataset(
+        test_dataset = IMDB(
             dir_path=os.path.join(
-                data_location, BasicSupervisedImdbDataset.TEST_DIR),
+                data_location, IMDB.TEST_DIR),
             fields=fields)
 
         train_dataset.finalize_fields()
@@ -199,10 +200,10 @@ class BasicSupervisedImdbDataset(Dataset):
         fields : dict(str, Field)
             Dictionary mapping field name to field.
         """
-        text = Field(name=BasicSupervisedImdbDataset.TEXT_FIELD_NAME, vocab=Vocab(),
-                     tokenizer='split', language="hr", tokenize=True,
+        text = Field(name=IMDB.TEXT_FIELD_NAME, vocab=Vocab(),
+                     tokenizer='spacy', language="en", tokenize=True,
                      store_as_raw=False)
-        label = Field(name=BasicSupervisedImdbDataset.LABEL_FIELD_NAME,
-                      vocab=Vocab(specials=()), tokenize=False, is_target=True)
-        return {BasicSupervisedImdbDataset.TEXT_FIELD_NAME: text,
-                BasicSupervisedImdbDataset.LABEL_FIELD_NAME: label}
+        label = LabelField(name=IMDB.LABEL_FIELD_NAME,
+                           vocab=Vocab(specials=()))
+        return {IMDB.TEXT_FIELD_NAME: text,
+                IMDB.LABEL_FIELD_NAME: label}

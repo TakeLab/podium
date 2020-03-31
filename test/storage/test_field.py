@@ -5,7 +5,7 @@ import pytest
 from mock import patch
 
 from takepod.storage import Field, TokenizedField, MultilabelField, \
-    Vocab, SpecialVocabSymbols, MultioutputField
+    Vocab, SpecialVocabSymbols, MultioutputField, LabelField
 
 ONE_TO_FIVE = [1, 2, 3, 4, 5]
 
@@ -73,7 +73,7 @@ def test_field_preprocess_eager():
 
 
 @pytest.mark.parametrize(
-    "value, store_raw, sequential, expected_raw_value, "
+    "value, store_raw, is_sequential, expected_raw_value, "
     "expected_tokenized_value",
     [
         ("some text", True, True, "some text", ["some", "text"]),
@@ -81,10 +81,10 @@ def test_field_preprocess_eager():
         ("some text", False, True, None, ["some", "text"]),
     ]
 )
-def test_field_preprocess_raw_sequential(value, store_raw, sequential,
+def test_field_preprocess_raw_sequential(value, store_raw, is_sequential,
                                          expected_raw_value,
                                          expected_tokenized_value):
-    f = Field(name="F", store_as_raw=store_raw, tokenize=sequential)
+    f = Field(name="F", store_as_raw=store_raw, tokenize=is_sequential)
 
     (_, (received_raw_value, received_tokenized_value)), = f.preprocess(value)
 
@@ -93,7 +93,7 @@ def test_field_preprocess_raw_sequential(value, store_raw, sequential,
 
 
 @pytest.mark.parametrize(
-    "value, store_raw, sequential, expected_raw_value, "
+    "value, store_raw, is_sequential, expected_raw_value, "
     "expected_tokenized_value",
     [
         ("some text", True, True, "some text", ["some", "text"]),
@@ -101,10 +101,10 @@ def test_field_preprocess_raw_sequential(value, store_raw, sequential,
         ("some text", False, True, None, ["some", "text"]),
     ]
 )
-def test_field_pickle_tokenized(value, store_raw, sequential,
+def test_field_pickle_tokenized(value, store_raw, is_sequential,
                                 expected_raw_value,
                                 expected_tokenized_value, tmpdir):
-    fld = Field(name="F", store_as_raw=store_raw, tokenize=sequential)
+    fld = Field(name="F", store_as_raw=store_raw, tokenize=is_sequential)
 
     (_, (received_raw_value, received_tokenized_value)), = fld.preprocess(value)
 
@@ -124,7 +124,7 @@ def test_field_pickle_tokenized(value, store_raw, sequential,
         assert tokenized_value == expected_tokenized_value
         assert loaded_fld.name == "F"
         assert loaded_fld.store_as_raw == store_raw
-        assert loaded_fld.sequential == sequential
+        assert loaded_fld.is_sequential == is_sequential
 
 
 @pytest.mark.parametrize(
@@ -141,7 +141,7 @@ def test_field_use_vocab(vocab, expected_value):
 
 
 @pytest.mark.parametrize(
-    "use_vocab, sequential, expected_vocab_values",
+    "use_vocab, is_sequential, expected_vocab_values",
     [
         (False, False, []),
         (False, True, []),
@@ -149,10 +149,10 @@ def test_field_use_vocab(vocab, expected_value):
         (True, True, ["some", "text"]),
     ]
 )
-def test_field_update_vocab(use_vocab, sequential, expected_vocab_values):
+def test_field_update_vocab(use_vocab, is_sequential, expected_vocab_values):
     vocab = MockVocab()
     f = Field(name="F", vocab=vocab if use_vocab else None,
-              tokenize=sequential)
+              tokenize=is_sequential)
 
     raw_value = "some text"
     tokenized_value = ["some", "text"]
@@ -765,3 +765,72 @@ def test_multioutput_field_remove_pretokenization():
 
     assert tokenized_1 == ["THIS", "IS", "A", "TEST", "SENTENCE"]
     assert tokenized_2 == ["tHIS", "iS", "a", "tEST", "sENTENCE"]
+
+
+def test_posttokenize_hooks_in_tokenized_field_single_execution(mocker):
+    f = TokenizedField(name="F")
+
+    def hk(data, tokenized):
+        def caseness(token):
+            if token.islower():
+                return 'lowercase'
+            else:
+                return 'uppercase'
+
+        return data, list(map(caseness, tokenized))
+
+    patched_hook = mocker.spy(hk, '__call__')
+
+    f.add_posttokenize_hook(patched_hook)
+
+    raw_str = ["Upper", "lower"]
+
+    _, received = f.preprocess(raw_str)[0]
+    expected = (None, ['uppercase', 'lowercase'])
+
+    assert received == expected
+    patched_hook.assert_called_once()
+
+
+def test_hook_returning_iterable():
+    data = "1,2,3,4"
+    expected_tokens = [3, 5, 7, 9]
+
+    field = Field("Iterator_hook_test_field",
+                  tokenizer=lambda raw: [int(x) for x in raw.split(',')],
+                  custom_numericalize=id)
+
+    def multiply_by_two_hook(raw, tokens):
+        return raw, (i * 2 for i in tokens)
+
+    def add_one_hook(raw, tokens):
+        assert not isinstance(tokens, (list, tuple))
+        return raw, (i + 1 for i in tokens)
+
+    field.add_posttokenize_hook(multiply_by_two_hook)
+    field.add_posttokenize_hook(add_one_hook)
+
+    _, (raw, tokens) = field.preprocess(data)[0]
+
+    assert raw == data
+    assert isinstance(tokens, (list, tuple))
+    assert tokens == expected_tokens
+
+
+def test_label_field():
+    vocab = Vocab(specials=())
+    data = ["label_1", "label_2", "label_3"]
+
+    vocab += data
+    vocab.finalize()
+
+    label_field = LabelField("test_label_field", vocab=vocab)
+
+    preprocessed_data = [label_field.preprocess(label) for label in data]
+
+    label_field.finalize()
+
+    for x in preprocessed_data:
+        _, example = x[0]
+        raw, _ = example
+        assert label_field.numericalize(example) == vocab.stoi[raw]

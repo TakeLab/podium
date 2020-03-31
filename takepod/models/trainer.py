@@ -5,7 +5,7 @@ from typing import Callable, NamedTuple
 import numpy as np
 
 from takepod.models import AbstractSupervisedModel, FeatureTransformer
-from takepod.datasets import Iterator
+from takepod.datasets import Dataset
 
 
 class AbstractTrainer(ABC):
@@ -14,18 +14,20 @@ class AbstractTrainer(ABC):
     @abstractmethod
     def train(self,
               model: AbstractSupervisedModel,
-              iterator: Iterator,
+              dataset: Dataset,
               feature_transformer: FeatureTransformer,
               label_transform_fun:
                   Callable[[NamedTuple], np.ndarray],
               **kwargs):
+
         """Method trains a model with data from given Iterator.
+
         Parameters
         ----------
         model : AbstractSupervisedModel
             The model that needs to be trained.
-        iterator : Iterator
-            Iterator instance that provides data from a dataset
+        dataset : Dataset
+            Dataset the model will be trained on
         feature_transformer: Callable[[NamedTuple], np.ndarray]
             Callable that transforms the input part of the batch returned by the iterator
             into features that can be fed into the model.
@@ -37,4 +39,5 @@ class AbstractTrainer(ABC):
         kwargs : dict
             Trainer specific parameters.
         """
+
         pass

@@ -161,13 +161,6 @@ def test_get_stoi_for_unknown_word_default_unk():
     assert voc.stoi["unknown"] == 1
 
 
-def test_add_word_after_finalization_error():
-    voc = vocab.Vocab()
-    voc.finalize()
-    with pytest.raises(RuntimeError):
-        voc = voc + {"word"}
-
-
 def test_iadd_word_after_finalization_error():
     voc = vocab.Vocab()
     voc.finalize()
@@ -182,14 +175,66 @@ def test_add_vocab_to_vocab():
     expected_freq = {"w1": 2, "w2": 1, "w3": 1, "a1": 1, "a2": 2}
 
     voc1 = vocab.Vocab()
-    voc1 = (voc1 + set(data1)) + set(data3)
-    voc2 = vocab.Vocab()
-    voc2 += set(data2)
+    voc1 += data1
+    voc1 += data3
 
-    voc = voc1 + voc2  # voc1 should be changed also
-    assert voc == voc1
+    voc2 = vocab.Vocab()
+    voc2 += data2
+
+    voc = voc1 + voc2
+    assert not voc.finalized
     for word in voc._freqs:
         assert voc._freqs[word] == expected_freq[word]
+
+    voc3 = vocab.Vocab(specials=vocab.SpecialVocabSymbols.UNK)
+    voc3 += data1
+    voc3 += data3
+    voc3.finalize()
+
+    voc4 = vocab.Vocab(specials=vocab.SpecialVocabSymbols.PAD)
+    voc4 += data2
+    voc4.finalize()
+
+    voc = voc3 + voc4
+    assert set(voc.specials) == {vocab.SpecialVocabSymbols.PAD,
+                                 vocab.SpecialVocabSymbols.UNK}
+    assert voc.finalized
+    assert len(voc.itos) == 7
+
+
+def test_iadd_vocab_to_vocab():
+    data1 = ['w1', 'w2', 'w3']
+    data2 = ['a1', 'a2', 'w1']
+    expected_freqs = {'w1': 2, 'w2': 1, 'w3': 1, 'a1': 1, 'a2': 1}
+
+    voc1 = vocab.Vocab(specials=vocab.SpecialVocabSymbols.PAD)
+    voc1 += data1
+
+    voc2 = vocab.Vocab(specials=vocab.SpecialVocabSymbols.UNK)
+    voc2 += data2
+
+    voc1 += voc2
+
+    assert voc1.get_freqs() == expected_freqs
+    assert all(spec in voc1.specials for spec in (vocab.SpecialVocabSymbols.PAD,
+                                                  vocab.SpecialVocabSymbols.UNK))
+
+
+def test_add_vocab_to_vocab_error():
+    voc1 = vocab.Vocab()
+    voc2 = vocab.Vocab()
+
+    voc1 += ["one", "two"]
+    voc2 += ["three", "four"]
+
+    voc1.finalize()
+
+    # This should cause an error because the finalization state of the vocabs differs
+    with pytest.raises(RuntimeError):
+        voc1 + voc2
+
+    with pytest.raises(RuntimeError):
+        voc2 + voc1
 
 
 def test_add_list_word_to_vocab():
@@ -197,6 +242,26 @@ def test_add_list_word_to_vocab():
     voc += ["word", "word", "light", "heavy"]
     assert len(voc) == 3
     assert voc._freqs["word"] == 2
+
+
+def test_add_non_iterable_object_to_vocab():
+    class NonIterableClass:
+        pass
+
+    voc = vocab.Vocab()
+
+    with pytest.raises(TypeError):
+        voc + NonIterableClass()
+
+
+def test_iadd_non_iterable_object_to_vocab():
+    class NonIterableClass:
+        pass
+
+    voc = vocab.Vocab()
+
+    with pytest.raises(TypeError):
+        voc += NonIterableClass()
 
 
 @pytest.mark.parametrize(
@@ -309,6 +374,10 @@ def test_vocab_has_specials():
     voc = vocab.Vocab()
     assert voc.has_specials
 
+    voc2 = vocab.Vocab(specials=vocab.SpecialVocabSymbols.UNK)
+    assert voc2._has_specials
+    assert voc2.specials == (vocab.SpecialVocabSymbols.UNK,)
+
 
 def test_vocab_dict_normal_dict_use():
     vocab_dict = vocab.VocabDict()
@@ -332,3 +401,23 @@ def test_vocab_dict_default_factory_none_error():
     vocab_dict = vocab.VocabDict(default_factory=None)
     with pytest.raises(KeyError):
         vocab_dict["item_not_in_dict"]
+
+
+def test_reverse_numericalize():
+    words = ['first', 'second', 'third']
+
+    voc = vocab.Vocab()
+    voc += words
+    voc.finalize()
+
+    assert words == voc.reverse_numericalize(voc.numericalize(words))
+
+
+def test_reverse_numericalize_not_finalized():
+    words = ['first', 'second', 'third']
+
+    voc = vocab.Vocab()
+    voc += words
+
+    with pytest.raises(RuntimeError):
+        voc.reverse_numericalize(voc.numericalize(words))

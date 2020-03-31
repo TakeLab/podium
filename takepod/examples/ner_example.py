@@ -4,6 +4,7 @@ import sys
 import logging
 from collections import namedtuple
 from functools import partial
+import pickle
 
 import numpy as np
 
@@ -83,7 +84,7 @@ def feature_extraction_fn(x_batch, embedding_matrix):
     tokens_numericalized = x_batch.tokens.astype(int)
     casing_numericalized = x_batch.casing.astype(int)
     X = [
-        np.take(embedding_matrix, tokens_numericalized, axis=0).astype(int),
+        np.take(embedding_matrix, tokens_numericalized, axis=0),
         casing_numericalized
     ]
     return X
@@ -105,8 +106,7 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
 
     train_set, test_set = dataset.split(split_ratio=0.8)
 
-    train_iter = BucketIterator(train_set, 32, sort_key=example_word_count)
-    test_iter = BucketIterator(test_set, 32, sort_key=example_word_count)
+    train_iter = BucketIterator(batch_size=32, sort_key=example_word_count)
 
     model = BLCCModel(**{
         BLCCModel.OUTPUT_SIZE: output_size,
@@ -125,18 +125,21 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
     _LOGGER.info('Training started')
     trainer.train(
         model=model,
-        iterator=train_iter,
+        dataset=train_set,
         feature_transformer=feature_transformer,
+        iterator=train_iter,
         label_transform_fun=label_transform_fun,
-        **{trainer.MAX_EPOCH_KEY: 20}
+        max_epoch=1
     )
     _LOGGER.info('Training finished')
 
-    X_test_batch, y_test_batch = next(test_iter.__iter__())
+    X_test_batch, y_test_batch = test_set[:32].batch()
     X_test = feature_transformer.transform(X_test_batch)
     y_test = label_transform_fun(y_test_batch)
 
     prediction = model.predict(X=X_test)[BLCCModel.PREDICTION_KEY]
+    # pickle for later use
+    pickle.dump(model, open('ner_model.pkl', 'wb'))
 
     pad_symbol = fields['labels'].vocab.pad_symbol()
     prediction_filtered, y_test_filtered = filter_out_padding(
@@ -195,10 +198,8 @@ if __name__ == '__main__':
     fields = ner_dataset_classification_fields()
     dataset = CroatianNERDataset.get_dataset(fields=fields)
 
-    vectorizer = BasicVectorStorage(path=vectors_path)
-    vectorizer.load_vocab(vocab=fields['inputs'].tokens.vocab)
-    embedding_matrix = vectorizer.get_embedding_matrix(
-        fields['inputs'].tokens.vocab)
+    vocab = fields['inputs'].tokens.vocab
+    embedding_matrix = BasicVectorStorage(path=vectors_path).load_vocab(vocab)
 
     feature_transform = partial(
         feature_extraction_fn,

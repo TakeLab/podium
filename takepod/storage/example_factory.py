@@ -5,6 +5,7 @@ import logging
 import json
 import csv
 from enum import Enum
+from typing import Union
 
 import xml.etree.ElementTree as ET
 from takepod.storage.field import unpack_fields
@@ -13,23 +14,22 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class ExampleFormat(Enum):
-    def LIST(data, factory):
-        return factory.from_list(data)
+    LIST = "list"
+    DICT = "dict"
+    CSV = "csv"
+    NLTK = "nltk"
+    XML = "xml"
+    JSON = "json"
 
-    def DICT(data, factory):
-        return factory.from_dict(data)
 
-    def CSV(data, factory):
-        return factory.from_csv(data)
-
-    def NLTK(data, factory):
-        return factory.from_fields_tree(data)
-
-    def XML(data, factory):
-        return factory.from_xml_str(data)
-
-    def JSON(data, factory):
-        return factory.from_json(data)
+FACTORY_METHOD_DICT = {
+    "list": lambda data, factory: factory.from_list(data),
+    "dict": lambda data, factory: factory.from_dict(data),
+    "csv": lambda data, factory: factory.from_csv(data),
+    "nltk": lambda data, factory: factory.from_fields_tree(data),
+    "xml": lambda data, factory: factory.from_xml_str(data),
+    "json": lambda data, factory: factory.from_json(data)
+}
 
 
 class Example:
@@ -236,7 +236,7 @@ class ExampleFactory:
             data_dict = {f: elements[idx] for f, idx in field_to_index.items()}
             return self.from_dict(data_dict)
 
-    def from_fields_tree(self, data, subtrees=False):
+    def from_fields_tree(self, data, subtrees=False, label_transform=None):
         """ Creates an Example (or multiple Examples) from a string
         representing an nltk tree and a list of corresponding values.
 
@@ -249,6 +249,10 @@ class ExampleFactory:
             A flag denoting whether an example will be created from every
             subtree in the tree (when set to True), or just from the whole
             tree (when set to False).
+        label_transform : callable
+            A function which converts the tree labels to a string representation,
+            if wished. Useful for converting multiclass tasks to binary (SST) and
+            making labels verbose. If None, the labels are not changed.
 
         Returns
         -------
@@ -264,18 +268,44 @@ class ExampleFactory:
 
         tree = Tree.fromstring(data)
         if subtrees:
-            subtree_lists = map(tree_to_list, tree.subtrees())
-
+            subtree_lists = list(map(tree_to_list, tree.subtrees()))
+            if label_transform is not None:
+                # This is perhaps inefficient but probably the best place to insert this
+                subtree_lists = [[text, label_transform(label)]
+                                 for text, label in subtree_lists]
             # an example is created for each subtree
             return [self.from_list(subtree_list) for subtree_list in
                     subtree_lists]
         else:
-            return self.from_list(tree_to_list(tree))
+            text, label = tree_to_list(tree)
+            if label_transform is not None:
+                label = label_transform(label)
+            return self.from_list([text, label])
 
     def from_format(self,
                     data,
-                    format_tag: ExampleFormat):
-        return format_tag(data, self)
+                    format_tag: Union[ExampleFormat, str]):
+
+        if isinstance(format_tag, ExampleFormat):
+            format_str = format_tag.value
+
+        elif isinstance(format_tag, str):
+            format_str = format_tag.lower()
+
+        else:
+            err_msg = "format_tag must be either an ExampleFormat or a string. " \
+                      "Passed value is of type : '{}'"\
+                .format(format_tag.__class__.__name__)
+            _LOGGER.error(err_msg)
+            raise TypeError(err_msg)
+
+        factory_method = FACTORY_METHOD_DICT.get(format_str)
+        if factory_method is None:
+            err_msg = "Unsupported example format: '{}'".format(format_str)
+            _LOGGER.error(err_msg)
+            raise ValueError(err_msg)
+
+        return factory_method(data, self)
 
 
 def tree_to_list(tree):
