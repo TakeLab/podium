@@ -246,16 +246,19 @@ def _filter_feature_fields(fields):
         return hasattr(x, "is_target") and getattr(x, "is_target")
 
     for field_key, field in fields.items():
-        # multi-output fields can contain target fields,
-        # like in language modeling
         if not field:
             continue
 
+        # if at least one Field of the MultioutputField is
+        # not a target, add the entire MultioutputField
         if isinstance(field, MultioutputField) and \
            not(all(map(is_target, field.get_output_fields()))):
             feature_fields[field_key] = field
+        # equivalent to MultioutputField for Fields
+        # in tuples such as ((f1, f2))
         elif isinstance(field, tuple) and not all(map(is_target, field)):
             feature_fields[field_key] = field
+        # all instances of Fields, except LabelField are feature fields
         elif isinstance(field, Field) and \
                 not isinstance(field, LabelField) and not field.is_target:
             feature_fields[field_key] = field

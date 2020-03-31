@@ -92,11 +92,6 @@ class MultioutputField:
             The language argument for the tokenizer (if necessary, e. g. for
             spacy).
             Default is 'en'.
-
-        Raises
-        ------
-        ValueError
-            If the MultioutputField contains a Field which is a target field.
         """
 
         self.language = language
@@ -967,7 +962,8 @@ def unpack_fields(fields):
             output_fields = map(lambda f: f.get_output_fields(), field)
 
             # Flatten output fields to a flat list
-            output_fields = list(itertools.chain.from_iterable(output_fields))
+            output_fields = itertools.chain.from_iterable(output_fields)
+
         else:
             output_fields = field.get_output_fields()
 
