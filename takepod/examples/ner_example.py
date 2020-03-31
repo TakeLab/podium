@@ -134,7 +134,7 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
     )
     _LOGGER.info('Training finished')
 
-    X_test_batch, y_test_batch = test_iter[:32].batch()
+    X_test_batch, y_test_batch = test_set[:32].batch()
     X_test = feature_transformer.transform(X_test_batch)
     y_test = label_transform_fun(y_test_batch)
 
