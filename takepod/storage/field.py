@@ -92,6 +92,11 @@ class MultioutputField:
             The language argument for the tokenizer (if necessary, e. g. for
             spacy).
             Default is 'en'.
+
+        Raises
+        ------
+        ValueError
+            If the MultioutputField contains a Field which is a target field.
         """
 
         self.language = language
@@ -99,6 +104,8 @@ class MultioutputField:
         self.pretokenization_pipeline = PretokenizationPipeline()
         self.tokenizer = get_tokenizer(tokenizer, language)
         self.output_fields = deque(output_fields)
+        # get fields in a flat list, then check if one is a target field
+        _raise_if_target_field_contained(unpack_fields(output_fields))
 
     def add_pretokenize_hook(self, hook):
         """Add a pre-tokenization hook to the MultioutputField.
@@ -929,6 +936,19 @@ class MultilabelField(TokenizedField):
         return numericalize_multihot(tokens, token_numericalize, self.num_of_classes)
 
 
+def _raise_if_target_field_contained(field_list):
+    target_fields = list(filter(
+        lambda x: x.is_target == True,
+        unpack_fields(field_list)
+    ))
+    if target_fields:
+        error_msg = "MultioutputField must not contain target " \
+                    "fields but contains {}" \
+                    .format(target_fields)
+        _LOGGER.error(error_msg)
+        raise ValueError(error_msg)
+
+
 def numericalize_multihot(tokens, token_indexer, num_of_classes):
     active_classes = list(map(token_indexer, tokens))
     multihot_encoding = np.zeros(num_of_classes, dtype=np.bool)
@@ -962,8 +982,11 @@ def unpack_fields(fields):
             output_fields = map(lambda f: f.get_output_fields(), field)
 
             # Flatten output fields to a flat list
-            output_fields = itertools.chain.from_iterable(output_fields)
+            output_fields = list(itertools.chain.from_iterable(output_fields))
 
+            # Target fields are not allowed for fields in tuples
+            if len(field) > 1:
+                _raise_if_target_field_contained(output_fields)
         else:
             output_fields = field.get_output_fields()
 

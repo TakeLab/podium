@@ -767,6 +767,14 @@ def test_multioutput_field_remove_pretokenization():
     assert tokenized_2 == ["tHIS", "iS", "a", "tEST", "sENTENCE"]
 
 
+def test_multioutput_field_is_target():
+    output_field_1 = Field("test_field_1", is_target=True)
+    output_field_2 = Field("test_field_2")
+
+    with pytest.raises(ValueError):
+        MultioutputField((output_field_1, output_field_2))
+
+
 def test_posttokenize_hooks_in_tokenized_field_single_execution(mocker):
     f = TokenizedField(name="F")
 

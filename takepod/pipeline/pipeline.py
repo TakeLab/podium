@@ -94,22 +94,27 @@ class Pipeline(Experiment):
             _LOGGER.error(error_msg)
             raise TypeError(error_msg)
 
-        # if isinstance(fields, (list, tuple)):
-        #     self.feature_fields = [field for field in fields
-        #                            if field and not field.is_target]
+        has_istarget_attribute = lambda x: hasattr(x, "is_target")
+        non_empty_feature_field = lambda x: x and \
+            (not has_istarget_attribute(x) or not x.is_target)
 
-        # else:
-        #     self.feature_fields = {field_key: field
-        #                            for field_key, field
-        #                            in fields.items()
-        #                            if field and not field.is_target}
-
+        if isinstance(fields, (list, tuple)):
+            self.feature_fields = [
+                field for field in fields
+                if non_empty_feature_field(field)
+            ]
+        else:
+            self.feature_fields = {
+                field_key: field
+                for field_key, field in fields.items()
+                if non_empty_feature_field(field)
+            }
         self.all_fields = fields
 
         self.example_format = example_format
 
         self.training_example_factory = ExampleFactory(self.all_fields)
-        self.prediction_example_factory = ExampleFactory(self.all_fields)
+        self.prediction_example_factory = ExampleFactory(self.feature_fields)
 
         self.output_transform_fn = output_transform_fn
 
@@ -140,7 +145,7 @@ class Pipeline(Experiment):
         processed_example = \
             self.prediction_example_factory.from_format(raw_example,
                                                         self.example_format)
-        ds = Dataset([processed_example], self.all_fields)
+        ds = Dataset([processed_example], self.feature_fields)
         prediction = self.predict(ds, **kwargs)
         # Indexed with 0 to extract the single prediction from the prediction batch
         prediction = prediction[0]
