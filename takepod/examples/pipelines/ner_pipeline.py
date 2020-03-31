@@ -62,10 +62,10 @@ class CroatianNER:
         trainer = SimpleTrainer()
         feature_transformer = FeatureTransformer(feature_transform)
         _LOGGER.info('Training started')
-        train_iterator_callable = partial(
-            BucketIterator, batch_size=32,
-            sort_key=example_word_count
-        )
+        # train_iterator_callable = partial(
+        #     BucketIterator, batch_size=32,
+        #     sort_key=example_word_count
+        # )
         model_params = {
             BLCCModel.OUTPUT_SIZE: output_size,
             BLCCModel.CLASSIFIER: 'CRF',
@@ -80,13 +80,22 @@ class CroatianNER:
         experiment = Experiment(
             BLCCModel,
             trainer=trainer,
-            training_iterator_callable=train_iterator_callable,
             feature_transformer=feature_transformer,
-            label_transform_fun=label_transform_fun
+            label_transform_fn=label_transform_fun
+        )
+
+        iterator=BucketIterator(
+            batch_size=32, sort_key=example_word_count
         )
         experiment.set_default_model_args(**model_params)
-        train_params = {SimpleTrainer.MAX_EPOCH_KEY: 1}
-        experiment.set_default_trainer_args(**train_params)
+        trainer_args = {
+            'iterator': BucketIterator(
+                            batch_size=32,
+                            sort_key=example_word_count
+                        ),
+            'max_epoch': 1
+        }
+        experiment.set_default_trainer_args(**trainer_args)
         experiment.fit(train_set)
 
         dataset_fields = {
