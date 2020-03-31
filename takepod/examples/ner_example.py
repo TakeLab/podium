@@ -130,11 +130,11 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
         feature_transformer=feature_transformer,
         iterator=train_iter,
         label_transform_fun=label_transform_fun,
-        **{trainer.MAX_EPOCH_KEY: 1}
+        max_epoch=1
     )
     _LOGGER.info('Training finished')
 
-    X_test_batch, y_test_batch = next(test_iter(test_set))
+    X_test_batch, y_test_batch = test_iter[:32].batch()
     X_test = feature_transformer.transform(X_test_batch)
     y_test = label_transform_fun(y_test_batch)
 
