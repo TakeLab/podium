@@ -46,77 +46,7 @@ class Input:
             yield item
 
 
-class CroatianNER:
-
-    def __init__(self):
-        self.pipeline = None
-
-    def fit(self, vector_path):
-        LargeResource.BASE_RESOURCE_DIR = 'downloaded_datasets'
-        fields = ner_dataset_classification_fields()
-        dataset = CroatianNERDataset.get_dataset(fields=fields)
-
-        vectorizer = BasicVectorStorage(path=vector_path)
-        vectorizer.load_vocab(vocab=fields['inputs'].tokens.vocab)
-        embedding_matrix = vectorizer.get_embedding_matrix(
-            fields['inputs'].tokens.vocab
-        )
-        feature_transform = partial(
-            feature_extraction_fn,
-            embedding_matrix=embedding_matrix)
-
-        output_size = len(fields['labels'].vocab.itos)
-        casing_feature_size = len(fields['inputs'].casing.vocab.itos)
-
-        train_set, test_set = dataset.split(split_ratio=0.8)
-        trainer = SimpleTrainer()
-        feature_transformer = FeatureTransformer(feature_transform)
-
-        _LOGGER.info('Training started')
-        model_params = {
-            BLCCModel.OUTPUT_SIZE: output_size,
-            BLCCModel.CLASSIFIER: 'CRF',
-            BLCCModel.EMBEDDING_SIZE: 300,
-            BLCCModel.LSTM_SIZE: (20, 20),
-            BLCCModel.DROPOUT: (0.25, 0.25),
-            BLCCModel.FEATURE_NAMES: ('casing',),
-            BLCCModel.FEATURE_INPUT_SIZES: (casing_feature_size,),
-            # set to a high value because of a tensorflow-cpu bug
-            BLCCModel.FEATURE_OUTPUT_SIZES: (30,)
-        }
-        experiment = Experiment(
-            BLCCModel,
-            trainer=trainer,
-            feature_transformer=feature_transformer,
-            label_transform_fn=label_transform_fun
-        )
-        iterator = BucketIterator(
-            batch_size=32, sort_key=example_word_count
-        )
-        experiment.set_default_model_args(**model_params)
-        trainer_args = {
-            'iterator': iterator,
-            'max_epoch': 2
-        }
-        experiment.set_default_trainer_args(**trainer_args)
-        experiment.fit(train_set)
-
-        # model has been fit and is ready to use
-        dataset_fields = {
-            "tokens":
-                (
-                    train_set.field_dict["tokens"],
-                    train_set.field_dict["casing"]
-                )
-        }
-        self.pipeline = Pipeline(
-            dataset_fields, ExampleFormat.DICT,
-            feature_transformer=feature_transformer,
-            model=experiment.model,
-            output_transform_fn=partial(
-                map_iterable, mapping=train_set.field_dict["labels"].vocab.itos
-            )
-        )
+class CroatianNER(Pipeline):
 
     def save_pipeline(self, path):
         pickle.dump(self.pipeline, open(path, 'wb'))
@@ -133,13 +63,104 @@ class CroatianNER:
 
 if __name__ == '__main__':
     model_path = 'ner_pipeline_entire_model.pkl'
-    ner = CroatianNER()
-    # one can download from fasttext cc.hr.300.vec
-    ner.fit(vector_path=sys.argv[1])
-    ner.save_pipeline(model_path)
 
-    ner = CroatianNER()
-    ner.load_pipeline(model_path)
-    ner.predict(
-        "U Hrvatskoj državi žive mala bića . Velika bića žive u Graškogradu ."
+
+#                  fields: Union[Dict, List],
+#                  example_format: Union[ExampleFormat, str],
+#                  model: Union[AbstractSupervisedModel, Type[AbstractSupervisedModel]],
+#                  trainer: AbstractTrainer = None,
+#                  feature_transformer:
+#                  Union[FeatureTransformer, Callable[[NamedTuple], np.array]] = None,
+#                  label_transform_fn: Callable[[NamedTuple], np.ndarray] = None,
+#                  output_transform_fn: Callable[[np.ndarray], Any] = None
+
+    fields = ner_dataset_classification_fields()
+    model_params = {
+        BLCCModel.OUTPUT_SIZE: output_size,
+        BLCCModel.CLASSIFIER: 'CRF',
+        BLCCModel.EMBEDDING_SIZE: 300,
+        BLCCModel.LSTM_SIZE: (20, 20),
+        BLCCModel.DROPOUT: (0.25, 0.25),
+        BLCCModel.FEATURE_NAMES: ('casing',),
+        BLCCModel.FEATURE_INPUT_SIZES: (casing_feature_size,),
+        # set to a high value because of a tensorflow-cpu bug
+        BLCCModel.FEATURE_OUTPUT_SIZES: (30,)
+    }
+    model = BLCCModel
+
+    iterator = BucketIterator(
+        batch_size=32, sort_key=example_word_count
     )
+    trainer = SimpleTrainer(max_epoch=2, iterator=iterator)
+    feature_transform = partial(
+        feature_extraction_fn,
+        embedding_matrix=embedding_matrix
+    )
+    output_transform_fn = None
+    # partial(
+    #     map_iterable,
+    #     mapping=train_set.field_dict["labels"].vocab.itos
+    # )
+    ner = CroatianNER(
+        fields=fields,
+        example_format=ExampleFormat.DICT,
+        model=BLCCModel,
+        trainer=trainer,
+        feature_transformer=FeatureTransformer(feature_transform)
+    )
+    # LargeResource.BASE_RESOURCE_DIR = 'downloaded_datasets'
+    dataset = CroatianNERDataset.get_dataset(fields=fields)
+
+    vectorizer = BasicVectorStorage(path=vector_path)
+    embedding_matrix = vectorizer.load_vocab(
+        vocab=fields['inputs'].tokens.vocab
+    )
+    # embedding_matrix = vectorizer.get_embedding_matrix(
+    #     fields['inputs'].tokens.vocab
+    # )
+    output_size = len(fields['labels'].vocab.itos)
+    casing_feature_size = len(fields['inputs'].casing.vocab.itos)
+
+    train_set, test_set = dataset.split(split_ratio=0.8)
+
+    ner.partial_fit(dataset=train_set)
+
+    # trainer = SimpleTrainer()
+    # feature_transformer = FeatureTransformer(feature_transform)
+
+    # _LOGGER.info('Training started')
+    # experiment = Experiment(
+    #     BLCCModel,
+    #     trainer=trainer,
+    #     feature_transformer=feature_transformer,
+    #     label_transform_fn=label_transform_fun
+    # )
+    # experiment.set_default_model_args(**model_params)
+    # experiment.set_default_trainer_args(**trainer_args)
+    # experiment.fit(train_set)
+
+    # # model has been fit and is ready to use
+    # dataset_fields = {
+    #     "tokens":
+    #         (
+    #             train_set.field_dict["tokens"],
+    #             train_set.field_dict["casing"]
+    #         )
+    # }
+    # pipeline = CroatianNER(
+    #     dataset_fields, ExampleFormat.DICT,
+    #     feature_transformer=feature_transformer,
+    #     model=experiment.model,
+    #     output_transform_fn=partial(
+    #         map_iterable, mapping=train_set.field_dict["labels"].vocab.itos
+    #     )
+    # )
+    # one can download from fasttext cc.hr.300.vec
+    # ner.fit(vector_path=sys.argv[1])
+    # ner.save_pipeline(model_path)
+
+    # ner = CroatianNER()
+    # ner.load_pipeline(model_path)
+    # ner.predict(
+    #     "U Hrvatskoj državi žive mala bića . Velika bića žive u Graškogradu ."
+    # )
