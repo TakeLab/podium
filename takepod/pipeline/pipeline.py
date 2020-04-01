@@ -2,7 +2,7 @@ from typing import Union, Dict, List, Callable, NamedTuple, Any, Type, Iterable
 import logging
 
 from takepod.storage import ExampleFactory, ExampleFormat
-from takepod.storage.field import Field, LabelField, MultioutputField
+from takepod.storage.field import Field, MultioutputField
 from takepod.datasets import Dataset
 from takepod.models import AbstractSupervisedModel, FeatureTransformer, Experiment, \
     AbstractTrainer
@@ -259,8 +259,7 @@ def _filter_feature_fields(fields):
         elif isinstance(field, tuple) and not all(map(is_target, field)):
             feature_fields[field_key] = field
         # all instances of Fields, except LabelField are feature fields
-        elif isinstance(field, Field) and \
-                not isinstance(field, LabelField) and not field.is_target:
+        elif isinstance(field, Field) and not field.is_target:
             feature_fields[field_key] = field
 
     return feature_fields

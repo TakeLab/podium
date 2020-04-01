@@ -177,7 +177,7 @@ def test_pipeline_multioutputfield_without_target():
     case_field = Field("Case", custom_numericalize={True: 1, False: 0}.get)
 
     def get_case(raw, tokenized):
-        return raw, list(map(lambda x: x.islower(), tokenized))
+        return raw, list(map(str.islower, tokenized))
 
     case_field.add_posttokenize_hook(get_case)
     age_field = Field(
@@ -198,17 +198,20 @@ def test_pipeline_multioutputfield_without_target():
         feature_transformer=lambda x: np.hstack((x.Name, x.Case)),
         model=model,
     )
-    assert pipeline.predict_raw(["Marko vrago"]) == 0
+    assert pipeline.predict_raw(["Marko"]) == 0
     assert pipeline.feature_fields == [input_field]
+    # 1 -> Marko, 0 -> False
+    assert all(model.predict.call_args[0][0][0] == [1, 0])
 
 
 def test_pipeline_multioutputfield_with_some_target():
-
-    text_dict = {"Marko": 1, "radi": 2}
     mask_dict = {"XXXXX": 1, "XXXX": 2}
-    text_field = Field("Text", custom_numericalize=text_dict.get)
+    text_dict = {"Marko": 1, "radi": 2}
     mask_field = Field(
-        "Masked", custom_numericalize=mask_dict.get, is_target=True
+        "Masked", custom_numericalize=mask_dict.get
+    )
+    text_field = Field(
+        "Text", custom_numericalize=text_dict.get, is_target=True
     )
     text_field.finalize()
 
@@ -216,29 +219,33 @@ def test_pipeline_multioutputfield_with_some_target():
     model.predict.return_value = {
         AbstractSupervisedModel.PREDICTION_KEY: [0]
     }
-    field = MultioutputField((text_field, mask_field))
+    field = MultioutputField((mask_field, text_field))
     pipeline = Pipeline(
         # multioutput fields can be used for non-target
         [field],
         ExampleFormat.LIST,
-        feature_transformer=lambda x: x.Text,
+        feature_transformer=lambda x: x.Masked,
         model=model,
     )
-    assert pipeline.predict_raw(["Marko vrago"]) == 0
+    assert pipeline.predict_raw(["XXXXX XXXX"]) == 0
     assert pipeline.feature_fields == [field]
+    # 1 -> Marko, 0 -> False
+    assert all(model.predict.call_args[0][0][0] == [1, 2])
 
 
 def test_pipeline_multioutputfield_with_all_targets():
     text_dict = {"Marko": 1, "radi": 2}
     mask_dict = {"XXXXX": 1, "XXXX": 2}
-    text_field = Field("Text", custom_numericalize=text_dict.get)
-    mask1_field = Field(
-        "Masked", custom_numericalize=mask_dict.get, is_target=True
+    mask_field = Field("Mask", custom_numericalize=mask_dict.get)
+    text1_field = Field(
+        "Text1", custom_numericalize=text_dict.get,
+        is_target=True
     )
-    mask2_field = Field(
-        "Masked", custom_numericalize=mask_dict.get, is_target=True
+    text2_field = Field(
+        "Text2", custom_numericalize=text_dict.get,
+        is_target=True
     )
-    text_field.finalize()
+    mask_field.finalize()
 
     model = Mock()
     model.predict.return_value = {
@@ -247,13 +254,15 @@ def test_pipeline_multioutputfield_with_all_targets():
 
     pipeline = Pipeline(
         # multioutput fields can be used for non-target
-        [text_field, MultioutputField((mask1_field, mask2_field))],
+        [mask_field, MultioutputField((text1_field, text2_field))],
         ExampleFormat.LIST,
-        feature_transformer=lambda x: x.Text,
+        feature_transformer=lambda x: x.Mask,
         model=model,
     )
-    assert pipeline.predict_raw(["Marko vrago"]) == 0
-    assert pipeline.feature_fields == [text_field]
+    assert pipeline.predict_raw(["XXXXX XXXX"]) == 0
+    assert pipeline.feature_fields == [mask_field]
+    # 1 -> Marko, 0 -> False
+    assert all(model.predict.call_args[0][0][0] == [1, 2])
 
 
 def test_pipeline_nested_fields_no_targets():
@@ -261,19 +270,19 @@ def test_pipeline_nested_fields_no_targets():
     case_field = Field("Case", custom_numericalize={True: 1, False: 0}.get)
 
     def get_case(raw, tokenized):
-        return raw, list(map(lambda x: x.islower(), tokenized))
+        return raw, list(map(str.islower, tokenized))
 
     case_field.add_posttokenize_hook(get_case)
-    age_field = Field("Age", tokenize=False, custom_numericalize=int, is_target=True)
+    age_field = Field(
+        "Age", tokenize=False, custom_numericalize=int, is_target=True
+    )
 
     name_field.finalize()
-    case_field.finalize()
 
     model = Mock()
     model.predict.return_value = {
         AbstractSupervisedModel.PREDICTION_KEY: [0]
     }
-
     pipeline = Pipeline(
         # nested fields also can contain target fields
         ((name_field, case_field), age_field),
@@ -281,8 +290,10 @@ def test_pipeline_nested_fields_no_targets():
         feature_transformer=lambda x: np.hstack((x.Name, x.Case)),
         model=model,
     )
-    assert pipeline.predict_raw(["Marko vrago"]) == 0
+    assert pipeline.predict_raw(["Marko"]) == 0
     assert pipeline.feature_fields == [(name_field, case_field)]
+    # 1 -> Marko, 0 -> False
+    assert all(model.predict.call_args[0][0][0] == [1, 0])
 
 
 def test_pipeline_nested_fields_all_targets():
@@ -290,10 +301,10 @@ def test_pipeline_nested_fields_all_targets():
     mask_dict = {"XXXXX": 1, "XXXX": 2}
     text_field = Field("Text", custom_numericalize=text_dict.get)
     mask1_field = Field(
-        "Masked", custom_numericalize=mask_dict.get, is_target=True
+        "Masked1", custom_numericalize=mask_dict.get, is_target=True
     )
     mask2_field = Field(
-        "Masked", custom_numericalize=mask_dict.get, is_target=True
+        "Masked2", custom_numericalize=mask_dict.get, is_target=True
     )
     text_field.finalize()
 
@@ -308,8 +319,9 @@ def test_pipeline_nested_fields_all_targets():
         feature_transformer=lambda x: x.Text,
         model=model,
     )
-    assert pipeline.predict_raw(["Marko vrago"]) == 0
+    assert pipeline.predict_raw(["Marko"]) == 0
     assert pipeline.feature_fields == [text_field]
+    assert all(model.predict.call_args[0][0][0] == [1])
 
 
 def test_pipeline_label_and_tokenized_fields():
@@ -318,7 +330,7 @@ def test_pipeline_label_and_tokenized_fields():
     case_field = TokenizedField("Case", custom_numericalize={True: 1, False: 0}.get)
 
     def get_case(raw, tokenized):
-        return raw, list(map(lambda x: x.islower(), tokenized))
+        return raw, list(map(str.islower, tokenized))
     case_field.add_posttokenize_hook(get_case)
 
     age_field = LabelField(
