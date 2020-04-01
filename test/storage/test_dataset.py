@@ -825,7 +825,7 @@ def test_create_hierarchical_dataset_from_json(hierarchical_dataset):
     assert root_nodes[1].children_nodes[0].example.name[0] == "c21"
     assert root_nodes[1].children_nodes[0].example.number[0] == 6
 
-    assert len(hierarchical_dataset) == 10
+    assert len(hierarchical_dataset) == 11
     assert hierarchical_dataset.depth == 2
 
 
@@ -835,20 +835,14 @@ def test_flatten_hierarchical_dataset(hierarchical_dataset):
         assert example.number[0] == index + 1
         count += 1
 
-    assert count == 10
+    assert count == 11
 
 
 def test_hierarchical_dataset_example_indexing(hierarchical_dataset):
-    assert hierarchical_dataset[0].name[0] == "parent1"
-    assert hierarchical_dataset[1].name[0] == "c11"
-    assert hierarchical_dataset[2].name[0] == "c111"
-    assert hierarchical_dataset[3].name[0] == "c12"
-    assert hierarchical_dataset[4].name[0] == "parent2"
-    assert hierarchical_dataset[5].name[0] == "c21"
-    assert hierarchical_dataset[6].name[0] == "c22"
-    assert hierarchical_dataset[7].name[0] == "c23"
-    assert hierarchical_dataset[8].name[0] == "c231"
-    assert hierarchical_dataset[9].name[0] == "c24"
+    expected_names = ["parent1", "c11", "c111", "c12", "parent2",
+                      "c21", "c22", "c23", "c231", "c232", "c24"]
+    for i, expected in enumerate(expected_names):
+        assert hierarchical_dataset[i].name[0] == expected
 
 
 def test_hierarchical_dataset_finalize_fields(hierarchical_dataset_parser):
