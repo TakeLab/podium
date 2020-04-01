@@ -26,15 +26,7 @@ from takepod.examples.ner_example import (
 )
 
 
-root = logging.getLogger()
-root.setLevel(logging.DEBUG)
-
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-root.addHandler(handler)
-_LOGGER = root
+_LOGGER = logging.getLogger()
 
 
 def map_iterable(iterable, mapping):
@@ -79,11 +71,8 @@ class CroatianNER:
         train_set, test_set = dataset.split(split_ratio=0.8)
         trainer = SimpleTrainer()
         feature_transformer = FeatureTransformer(feature_transform)
+
         _LOGGER.info('Training started')
-        # train_iterator_callable = partial(
-        #     BucketIterator, batch_size=32,
-        #     sort_key=example_word_count
-        # )
         model_params = {
             BLCCModel.OUTPUT_SIZE: output_size,
             BLCCModel.CLASSIFIER: 'CRF',
@@ -101,8 +90,7 @@ class CroatianNER:
             feature_transformer=feature_transformer,
             label_transform_fn=label_transform_fun
         )
-
-        iterator=BucketIterator(
+        iterator = BucketIterator(
             batch_size=32, sort_key=example_word_count
         )
         experiment.set_default_model_args(**model_params)
@@ -112,24 +100,6 @@ class CroatianNER:
         }
         experiment.set_default_trainer_args(**trainer_args)
         experiment.fit(train_set)
-
-        # dataset_fields = {
-        #     "tokens": Input(
-        #         items=[
-        #             train_set.field_dict["tokens"],
-        #             train_set.field_dict["casing"]
-        #         ]
-        #     )
-        # }
-        # dataset_fields = [
-        #     MultioutputField(
-        #         output_fields=[
-        #             train_set.field_dict["tokens"],
-        #             train_set.field_dict["casing"]
-        #         ],
-        #     )
-        # ]
-        # setattr(dataset_fields[0], "is_target", False)
 
         # model has been fit and is ready to use
         dataset_fields = {
@@ -147,9 +117,6 @@ class CroatianNER:
                 map_iterable, mapping=train_set.field_dict["labels"].vocab.itos
             )
         )
-        # tokenized_text = tokenizer(text)
-        # example_to_predict = text
-        # tags = pipeline.predict_raw(example_to_predict)
 
     def save_pipeline(self, path):
         pickle.dump(self.pipeline, open(path, 'wb'))
@@ -159,7 +126,6 @@ class CroatianNER:
 
     def predict(self, text, tokenizer=str.split):
         tokenized_text = tokenizer(text)
-        # example_to_predict = [tokenized_text]
         example_to_predict = {'tokens': tokenized_text}
         tags = self.pipeline.predict_raw(example_to_predict)
         return convert_sequence_to_entities(tags, tokenized_text)
