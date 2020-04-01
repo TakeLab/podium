@@ -236,7 +236,7 @@ class ExampleFactory:
             data_dict = {f: elements[idx] for f, idx in field_to_index.items()}
             return self.from_dict(data_dict)
 
-    def from_fields_tree(self, data, subtrees=False):
+    def from_fields_tree(self, data, subtrees=False, label_transform=None):
         """ Creates an Example (or multiple Examples) from a string
         representing an nltk tree and a list of corresponding values.
 
@@ -249,6 +249,10 @@ class ExampleFactory:
             A flag denoting whether an example will be created from every
             subtree in the tree (when set to True), or just from the whole
             tree (when set to False).
+        label_transform : callable
+            A function which converts the tree labels to a string representation,
+            if wished. Useful for converting multiclass tasks to binary (SST) and
+            making labels verbose. If None, the labels are not changed.
 
         Returns
         -------
@@ -264,13 +268,19 @@ class ExampleFactory:
 
         tree = Tree.fromstring(data)
         if subtrees:
-            subtree_lists = map(tree_to_list, tree.subtrees())
-
+            subtree_lists = list(map(tree_to_list, tree.subtrees()))
+            if label_transform is not None:
+                # This is perhaps inefficient but probably the best place to insert this
+                subtree_lists = [[text, label_transform(label)]
+                                 for text, label in subtree_lists]
             # an example is created for each subtree
             return [self.from_list(subtree_list) for subtree_list in
                     subtree_lists]
         else:
-            return self.from_list(tree_to_list(tree))
+            text, label = tree_to_list(tree)
+            if label_transform is not None:
+                label = label_transform(label)
+            return self.from_list([text, label])
 
     def from_format(self,
                     data,

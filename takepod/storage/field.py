@@ -6,6 +6,7 @@ from collections import deque
 import numpy as np
 
 from takepod.preproc.tokenizers import get_tokenizer
+from takepod.storage.vocab import Vocab
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -804,7 +805,6 @@ class Field:
 
 
 class LabelField(Field):
-
     def __init__(self,
                  name,
                  vocab=None,
@@ -813,6 +813,10 @@ class LabelField(Field):
                  allow_missing_data=False,
                  missing_data_token=-1
                  ):
+        if vocab is None and custom_numericalize is None:
+            # Default to a vocabulary if custom numericalize is not set
+            vocab = Vocab(specials=())
+
         if vocab is not None and vocab.has_specials:
             error_msg = "Vocab contains special symbols." \
                         " Vocabs with special symbols cannot be used" \
