@@ -29,7 +29,7 @@ def test_len(batch_size, expected_len, tabular_dataset):
 
     iterator = Iterator(dataset=tabular_dataset, batch_size=batch_size)
 
-    assert expected_len == len(iterator)
+    assert len(iterator) == expected_len
 
 
 @pytest.mark.parametrize(
@@ -57,9 +57,13 @@ def test_padding(fixed_length, expected_shape, json_file_path):
 
     assert input_batch.text.shape == expected_shape
 
-    pad_symbol = fields["text"].vocab.pad_symbol()
+    pad_symbol = fields["text"].vocab.padding_index()
 
     for i, row in enumerate(input_batch.text):
+        if TABULAR_TEXT[i] is None:
+            # if missing data
+            continue
+
         n_el = len(TABULAR_TEXT[i].split())
 
         assert (row[:n_el].astype(np.int32) != pad_symbol).all()
@@ -125,21 +129,27 @@ def test_not_numericalizable_field(json_file_path):
         return MockCustomDataClass(data)
 
     fields = tabular_dataset_fields()
-    text_field = fields['text']
+    text_field = fields['text_with_missing_data']
     non_numericalizable_field = Field("non_numericalizable_field",
                                       tokenizer=custom_datatype_tokenizer,
-                                      is_numericalizable=False)
+                                      is_numericalizable=False,
+                                      allow_missing_data=True)
 
-    fields['text'] = (text_field, non_numericalizable_field)
+    fields['text_with_missing_data'] = (text_field, non_numericalizable_field)
 
     dataset = create_tabular_dataset_from_json(fields, json_file_path)
     dataset.finalize_fields()
 
     for x_batch, _ in Iterator(dataset, batch_size=len(dataset), shuffle=False):
         assert isinstance(x_batch.non_numericalizable_field, (list, tuple))
-        for batch_data, real_data in zip(x_batch.non_numericalizable_field, TABULAR_TEXT):
-            assert isinstance(batch_data, MockCustomDataClass)
-            assert batch_data.data == real_data
+        for i, batch_data, real_data in zip(
+                range(len(dataset)), x_batch.non_numericalizable_field, TABULAR_TEXT
+        ):
+            if i == 3:
+                assert batch_data is None
+            else:
+                assert isinstance(batch_data, MockCustomDataClass)
+                assert batch_data.data == real_data
 
 
 @pytest.mark.usefixtures("tabular_dataset")
@@ -171,7 +181,10 @@ def test_sort_key(tabular_dataset):
 
     def text_len_sort_key(example):
         tokens = example.text[1]
-        return len(tokens)
+        if tokens is None:
+            return 0
+        else:
+            return len(tokens)
 
     iterator = Iterator(dataset=tabular_dataset, batch_size=2,
                         sort_key=text_len_sort_key, shuffle=False)
@@ -283,7 +296,28 @@ def test_shuffle_random_state_exception(tabular_dataset):
 
 
 def text_len_key(example):
-    return len(example.text[1])
+    if example.text[1] is None:
+        return 0
+    else:
+        return len(example.text[1])
+
+
+@pytest.mark.usefixtures("json_file_path")
+def test_iterator_missing_data_in_batch(json_file_path):
+    missing_data_default_value = -99
+    fields = tabular_dataset_fields()
+    missing_value_field = Field("missing_value_field",
+                                tokenizer="split",
+                                vocab=Vocab(),
+                                allow_missing_data=True,
+                                missing_data_token=missing_data_default_value)
+    fields['text_with_missing_data'] = missing_value_field
+    ds = create_tabular_dataset_from_json(fields, json_file_path)
+
+    for x_batch, _ in Iterator(ds, batch_size=len(ds), shuffle=False):
+        # test if the value we know is missing is correctly filled out
+        missing_value_row = x_batch.missing_value_field[3]
+        assert np.all(missing_value_row == missing_data_default_value)
 
 
 @pytest.mark.parametrize(

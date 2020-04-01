@@ -256,6 +256,8 @@ class Iterator:
 
         for field in self._dataset.fields:
             if field.is_numericalizable:
+                # If this field is numericalizable, generate a possibly padded matrix
+
                 # the length to which all the rows are padded (or truncated)
                 pad_length = Iterator._get_pad_length(field, examples)
 
@@ -271,17 +273,33 @@ class Iterator:
                 for i, example in enumerate(examples):
 
                     # Get cached value
-                    row = field.get_numericalization_for_example(example)
+                    data = field.get_numericalization_for_example(example)
 
-                    if matrix is None:
-                        # Create matrix of the correct dtype
-                        matrix = np.empty(shape=(n_rows, pad_length), dtype=row.dtype)
+                    if data is None:
+                        # If data is missing, fill row with missing data symbol indexes
+                        missing_data_symbol_index = field.get_default_value()
+                        # TODO cache missing data
+                        #      row for batch to avoid multiple instantiations?
 
-                    if should_pad:
-                        row = field.pad_to_length(row, pad_length)
+                        if matrix is None:
+                            # Create matrix of the correct dtype
+                            matrix = np.empty(shape=(n_rows, pad_length),
+                                              dtype=type(missing_data_symbol_index))
 
-                    # set the matrix row to the numericalized, padded array
-                    matrix[i] = row
+                        matrix[i] = missing_data_symbol_index
+
+                    else:
+                        row = data
+                        if should_pad:
+                            row = field.pad_to_length(row, pad_length)
+
+                        if matrix is None:
+                            # Create matrix of the correct dtype
+                            matrix = np.empty(shape=(n_rows, pad_length),
+                                              dtype=row.dtype)
+
+                        # set the matrix row to the numericalized, padded array
+                        matrix[i] = row
 
                 batch_feature = matrix
 
@@ -315,7 +333,11 @@ class Iterator:
         # examples in the batch
         def length_of_field(example):
             _, tokens = getattr(example, field.name)
-            return len(tokens)
+            if tokens is None:
+                # missing data
+                return 1
+            else:
+                return len(tokens)
 
         return max(map(length_of_field, examples))
 

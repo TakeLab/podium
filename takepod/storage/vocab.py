@@ -174,22 +174,21 @@ class Vocab:
             raise RuntimeError(error_msg)
         return self._freqs
 
-    def pad_symbol(self):
+    def padding_index(self):
         """Method returns padding symbol index.
 
         Returns
         -------
         pad_symbol_index : int
-            padding symbol index in the vocabullary
+            padding symbol index in the vocabulary
 
         Raises
         ------
         ValueError
-            if the padding symbol is not pressent in the vocabulary
+            if the padding symbol is not present in the vocabulary.
         """
         if SpecialVocabSymbols.PAD not in self.stoi:
-            error_msg = "Padding symbol is not in the vocabulary so" \
-                        " pad_symbol function raises exception."
+            error_msg = "Padding symbol is not in the vocabulary."
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
         return self.stoi[SpecialVocabSymbols.PAD]

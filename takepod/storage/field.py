@@ -194,7 +194,8 @@ class Field:
                  custom_numericalize=None,
                  is_target=False,
                  fixed_length=None,
-                 allow_missing_data=False
+                 allow_missing_data=False,
+                 missing_data_token=-1
                  ):
         """Create a Field from arguments.
 
@@ -253,10 +254,11 @@ class Field:
              on custom datatypes. For non-numericalizable fields, Iterator will generate
              batch fields containing lists of these custom data type instances returned
              by the tokenizer.
-
         custom_numericalize : callable
             The numericalization function that will be called if the field
-            doesn't use a vocabulary.
+            doesn't use a vocabulary. If using custom_numericalize and padding is
+            required, please ensure that the `missing_data_token` is of the same type
+            as the value returned by custom_numericalize.
         is_target : bool
             Whether this field is a target variable. Affects iteration over
             batches. Default: False.
@@ -269,10 +271,15 @@ class Field:
             is false and None is sent to be preprocessed, an ValueError will be raised.
             If 'allow_missing_data' is True, if a None is sent to be preprocessed, it will
             be stored and later numericalized properly.
-            If the field is sequential the numericalization of a missing data field will
-            be an empty numpy Array, else the numericalization will be a numpy Array
-            containing a single np.Nan ([np.Nan])
             Default: False
+        missing_data_token : number
+            Token to use to mark batch rows as missing. If data for a field is missing,
+            its matrix row will be filled with this value. For non-numericalizable fields,
+            this parameter is ignored and the value will be None.
+            If using custom_numericalize and padding is required, please ensure that
+            the `missing_data_token` is of the same type as the value returned by
+            custom_numericalize.
+            Default: -1
 
         Raises
         ------
@@ -336,6 +343,7 @@ class Field:
         self.pretokenize_pipeline = PretokenizationPipeline()
         self.posttokenize_pipeline = PosttokenizationPipeline()
         self.allow_missing_data = allow_missing_data
+        self.missing_data_token = missing_data_token
 
     @property
     def use_vocab(self):
@@ -589,14 +597,25 @@ class Field:
 
         Returns
         -------
-            missing : iterable
-                empty numpy array if the field is sequential or numpy array with one
+            missing_symbol index or None
+                The index of the missing data token, if this field is numericalizable.
                 None value otherwise.
-        """
-        if self.is_sequential:
-            return np.empty(0)
 
-        return np.array([np.nan])
+        Raises
+        ------
+        ValueError
+            If missing data is not allowed in this field.
+        """
+        if not self.allow_missing_data:
+            error_msg = "Missing data not allowed in field {}".format(self.name)
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
+
+        if self.is_numericalizable:
+            return self.missing_data_token
+
+        else:
+            return None
 
     def numericalize(self, data):
         """Numericalize the already preprocessed data point based either on
@@ -613,8 +632,13 @@ class Field:
         Returns
         -------
         numpy array
-            Array of stoi indexes of the tokens.
+            Array of stoi indexes of the tokens, if data exists.
+            None, if data is missing and missing data is allowed.
 
+        Raises
+        ------
+        ValueError
+            If data is None and missing data is not allowed in this field.
         """
         raw, tokenized = data
 
@@ -625,7 +649,7 @@ class Field:
                 raise ValueError(error_msg)
 
             else:
-                return self.get_default_value()
+                return None
 
         # raw data is just a string, so we need to wrap it into an iterable
         tokens = tokenized if self.tokenize or self.store_as_tokenized else [raw]
@@ -678,7 +702,7 @@ class Field:
             # padding
 
             if self.use_vocab:
-                pad_symbol = self.vocab.pad_symbol()
+                pad_symbol = self.vocab.padding_index()
             else:
                 pad_symbol = custom_pad_symbol
 
@@ -776,7 +800,8 @@ class LabelField(Field):
                  vocab=None,
                  eager=True,
                  custom_numericalize=None,
-                 allow_missing_data=False
+                 allow_missing_data=False,
+                 missing_data_token=-1
                  ):
         if vocab is None and custom_numericalize is None:
             # Default to a vocabulary if custom numericalize is not set
@@ -800,9 +825,8 @@ class LabelField(Field):
                          custom_numericalize=custom_numericalize,
                          is_target=True,
                          fixed_length=1,
-                         allow_missing_data=allow_missing_data
-                         # TODO add default missing value token when merged
-                         #  with missing value branch
+                         allow_missing_data=allow_missing_data,
+                         missing_data_token=missing_data_token
                          )
 
 
@@ -819,7 +843,8 @@ class TokenizedField(Field):
                  custom_numericalize=None,
                  is_target=False,
                  fixed_length=None,
-                 allow_missing_data=False):
+                 allow_missing_data=False,
+                 missing_data_token=-1):
         super().__init__(
             name=name,
             vocab=vocab,
@@ -830,7 +855,8 @@ class TokenizedField(Field):
             custom_numericalize=custom_numericalize,
             is_target=is_target,
             fixed_length=fixed_length,
-            allow_missing_data=allow_missing_data
+            allow_missing_data=allow_missing_data,
+            missing_data_token=missing_data_token
         )
 
 
@@ -844,8 +870,9 @@ class MultilabelField(TokenizedField):
                  num_of_classes=None,
                  vocab=None,
                  eager=True,
+                 custom_numericalize=None,
                  allow_missing_data=False,
-                 custom_numericalize=None):
+                 missing_data_token=-1):
         """Create a MultilabelField from arguments.
 
                 Parameters
@@ -905,7 +932,8 @@ class MultilabelField(TokenizedField):
                          custom_numericalize=custom_numericalize,
                          is_target=True,
                          fixed_length=num_of_classes,
-                         allow_missing_data=allow_missing_data)
+                         allow_missing_data=allow_missing_data,
+                         missing_data_token=missing_data_token)
 
     def finalize(self):
         super().finalize()
@@ -914,7 +942,7 @@ class MultilabelField(TokenizedField):
 
         if self.use_vocab and len(self.vocab) > self.num_of_classes:
             error_msg = "Number of classes in data is greater than the declared number " \
-                        "of classes. Declared: {}, Actual: {}"\
+                        "of classes. Declared: {}, Actual: {}" \
                 .format(self.num_of_classes, len(self.vocab))
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)

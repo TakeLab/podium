@@ -141,7 +141,7 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
     # pickle for later use
     pickle.dump(model, open('ner_model.pkl', 'wb'))
 
-    pad_symbol = fields['labels'].vocab.pad_symbol()
+    pad_symbol = fields['labels'].vocab.padding_index()
     prediction_filtered, y_test_filtered = filter_out_padding(
         pad_symbol,
         prediction,
