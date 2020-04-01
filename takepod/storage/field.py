@@ -253,10 +253,11 @@ class Field:
              on custom datatypes. For non-numericalizable fields, Iterator will generate
              batch fields containing lists of these custom data type instances returned
              by the tokenizer.
-
         custom_numericalize : callable
             The numericalization function that will be called if the field
-            doesn't use a vocabulary.
+            doesn't use a vocabulary. If using custom_numericalize and padding is
+            required, please ensure that the `missing_data_token` is of the same type
+            as the value returned by custom_numericalize.
         is_target : bool
             Whether this field is a target variable. Affects iteration over
             batches. Default: False.
@@ -272,8 +273,11 @@ class Field:
             Default: False
         missing_data_token : number
             Token to use to mark batch rows as missing. If data for a field is missing,
-            its matrix row will be filled with this value. For non numericalizable fields,
+            its matrix row will be filled with this value. For non-numericalizable fields,
             this parameter is ignored and the value will be None.
+            If using custom_numericalize and padding is required, please ensure that
+            the `missing_data_token` is of the same type as the value returned by
+            custom_numericalize.
             Default: -1
 
         Raises
