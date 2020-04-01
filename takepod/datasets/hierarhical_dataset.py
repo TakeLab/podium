@@ -468,8 +468,8 @@ class HierarchicalDataset:
             Returns
             -------
             Iterator(Example)
-                an Iterator iterating through the pre-context of the Example with the passed
-                index.
+                an Iterator iterating through the pre-context of the Example with the
+                passed index.
         """
         node = self._get_node_by_index(index)
         post_context_nodes = HierarchicalDataset._get_post_context_nodes(

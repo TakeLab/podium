@@ -804,7 +804,7 @@ def hierarchical_dataset(hierarchical_dataset_fields, hierarchical_dataset_parse
                                          parser=hierarchical_dataset_parser)
 
 
-def test_create_hierarchical_dataset_from_json(hierarchical_dataset):
+def test_hierarchical_dataset_loaded(hierarchical_dataset):
     root_nodes = hierarchical_dataset._root_nodes
 
     assert root_nodes[0].example.name[0] == "parent1"
@@ -933,7 +933,7 @@ def test_hierarchical_dataset_pickle(tmpdir, hierarchical_dataset):
 
     with open(dataset_file, "rb") as fdata:
         loaded_dataset = dill.load(fdata)
-        test_create_hierarchical_dataset_from_json(loaded_dataset)
+        test_hierarchical_dataset_loaded(loaded_dataset)
 
 
 HIERARCHIAL_DATASET_JSON_EXAMPLE = """
