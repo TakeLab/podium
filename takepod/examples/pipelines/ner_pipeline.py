@@ -3,7 +3,6 @@
 import sys
 import logging
 from functools import partial
-from collections import namedtuple
 import pickle
 
 from takepod.dataload.ner_croatian import (
@@ -19,7 +18,6 @@ from takepod.storage.resources.large_resource import LargeResource
 from takepod.storage.vectorizers.vectorizer import BasicVectorStorage
 from takepod.pipeline import Pipeline
 from takepod.models import Experiment
-from takepod.storage import MultioutputField
 from takepod.examples.ner_example import (
     feature_extraction_fn,
     label_transform_fun,
@@ -36,7 +34,7 @@ handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 root.addHandler(handler)
-LOGGER = root
+_LOGGER = root
 
 
 def map_iterable(iterable, mapping):
@@ -44,6 +42,7 @@ def map_iterable(iterable, mapping):
         mapping[i]
         for i in iterable
     ]
+
 
 class Input:
     def __init__(self, items):
@@ -108,10 +107,7 @@ class CroatianNER:
         )
         experiment.set_default_model_args(**model_params)
         trainer_args = {
-            'iterator': BucketIterator(
-                            batch_size=32,
-                            sort_key=example_word_count
-                        ),
+            'iterator': iterator,
             'max_epoch': 2
         }
         experiment.set_default_trainer_args(**trainer_args)

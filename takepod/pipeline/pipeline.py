@@ -2,6 +2,7 @@ from typing import Union, Dict, List, Callable, NamedTuple, Any, Type, Iterable
 import logging
 
 from takepod.storage import ExampleFactory, ExampleFormat
+from takepod.storage.field import Field, MultioutputField
 from takepod.datasets import Dataset
 from takepod.models import AbstractSupervisedModel, FeatureTransformer, Experiment, \
     AbstractTrainer
@@ -94,21 +95,14 @@ class Pipeline(Experiment):
             _LOGGER.error(error_msg)
             raise TypeError(error_msg)
 
-        has_istarget_attribute = lambda x: hasattr(x, "is_target")
-        non_empty_feature_field = lambda x: x and \
-            (not has_istarget_attribute(x) or not x.is_target)
-
         if isinstance(fields, (list, tuple)):
-            self.feature_fields = [
-                field for field in fields
-                if non_empty_feature_field(field)
-            ]
+            feature_field_dict = _filter_feature_fields(
+                {k: v for k, v in enumerate(fields)}
+            )
+            self.feature_fields = list(feature_field_dict.values())
         else:
-            self.feature_fields = {
-                field_key: field
-                for field_key, field in fields.items()
-                if non_empty_feature_field(field)
-            }
+            self.feature_fields = _filter_feature_fields(fields)
+
         self.all_fields = fields
 
         self.example_format = example_format
@@ -243,3 +237,29 @@ class Pipeline(Experiment):
                  trainer_kwargs=trainer_kwargs,
                  feature_transformer=feature_transformer,
                  trainer=trainer)
+
+
+def _filter_feature_fields(fields):
+    feature_fields = {}
+
+    def is_target(x):
+        return hasattr(x, "is_target") and getattr(x, "is_target")
+
+    for field_key, field in fields.items():
+        if not field:
+            continue
+
+        # if at least one Field of the MultioutputField is
+        # not a target, add the entire MultioutputField
+        if isinstance(field, MultioutputField) and \
+           not(all(map(is_target, field.get_output_fields()))):
+            feature_fields[field_key] = field
+        # equivalent to MultioutputField for Fields
+        # in tuples such as ((f1, f2))
+        elif isinstance(field, tuple) and not all(map(is_target, field)):
+            feature_fields[field_key] = field
+        # all instances of Fields, except LabelField are feature fields
+        elif isinstance(field, Field) and not field.is_target:
+            feature_fields[field_key] = field
+
+    return feature_fields

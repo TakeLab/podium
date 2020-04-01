@@ -112,7 +112,7 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
         BLCCModel.OUTPUT_SIZE: output_size,
         BLCCModel.CLASSIFIER: 'CRF',
         BLCCModel.EMBEDDING_SIZE: 300,
-        BLCCModel.LSTM_SIZE: (200, 200),
+        BLCCModel.LSTM_SIZE: (100, 100),
         BLCCModel.DROPOUT: (0.25, 0.25),
         BLCCModel.FEATURE_NAMES: ('casing',),
         BLCCModel.FEATURE_INPUT_SIZES: (casing_feature_size,),

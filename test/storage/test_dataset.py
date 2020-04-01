@@ -493,7 +493,6 @@ def test_tabular_dataset_iterate_over_single_field(file_format, use_dict,
     field_val_expected_data_tuples = zip(getattr(dataset, field_name),
                                          tabular_data[field_name])
 
-    print(field_val_expected_data_tuples)
     for field_value, val in field_val_expected_data_tuples:
         expected_data = (val, [val])
 
@@ -739,15 +738,6 @@ def test_unpack_fields():
 
     assert len(unpacked_fields) == 3
     assert all(f in unpacked_fields for f in (field1, field2, field3))
-
-
-def test_target_field_in_tuple():
-    field1 = Field("field1")
-    field2 = Field("field2")
-    field3 = Field("field3", is_target=True)
-
-    with pytest.raises(ValueError):
-        unpack_fields([field1, (field2, field3)])
 
 
 def test_eager_tokenization():
