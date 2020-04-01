@@ -292,6 +292,9 @@ class Experiment:
             _LOGGER.error(errmsg)
             raise RuntimeError(errmsg)
 
-    def __str__(self):
+    def __repr__(self):
         return "{}[model: {}, trainer: {}]".format(
             self.__class__.__name__, str(self.model), str(self.trainer))
+
+    def __str__(self):
+        return self.__repr__()
