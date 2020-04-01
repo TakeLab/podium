@@ -1,11 +1,9 @@
 import os
-import sys
 import tempfile
 import pytest
 from takepod.datasets.impl.imdb_sentiment_dataset import IMDB
 from takepod.datasets.dataset import Dataset
 from takepod.storage.resources.large_resource import LargeResource
-
 
 TRAIN_EXAMPLES = {
     "pos": ["If you like comedy cartoons then this is nearly a similar format",
@@ -16,25 +14,25 @@ TRAIN_EXAMPLES = {
 }
 
 EXPECTED_TRAIN_EXAMPLES = [
-    {IMDB.TEXT_FIELD_NAME: "If you like comedy cartoons then "
-                           "this is nearly a similar "
-                           "format".split(),
-     IMDB.LABEL_FIELD_NAME: 1},
-    {IMDB.TEXT_FIELD_NAME: "I came in in the middle of this "
-                           "film so I had no idea about any "
-                           "credit".split(),
-     IMDB.LABEL_FIELD_NAME: 1},
-    {IMDB.TEXT_FIELD_NAME: "The production quality, cast, "
-                           "premise, authentic New "
-                           "England".split(),
-     IMDB.LABEL_FIELD_NAME: 1},
-    {IMDB.TEXT_FIELD_NAME: "If I had not read Pat Barker's "
-                           "'Union Street' before seeing this "
-                           "film".split(),
-     IMDB.LABEL_FIELD_NAME: 0},
-    {IMDB.TEXT_FIELD_NAME: "There are lots of extremely "
-                           "good-looking people".split(),
-     IMDB.LABEL_FIELD_NAME: 0}
+    {'text': "If you like comedy cartoons then "
+             "this is nearly a similar "
+             "format",
+     'label': "positive"},
+    {'text': "I came in in the middle of this "
+             "film so I had no idea about any "
+             "credit",
+     'label': "positive"},
+    {'text': "The production quality, cast, "
+             "premise, authentic New "
+             "England",
+     'label': "positive"},
+    {'text': "If I had not read Pat Barker's "
+             "'Union Street' before seeing this "
+             "film",
+     'label': "negative"},
+    {'text': "There are lots of extremely "
+             "good-looking people",
+     'label': "negative"}
 ]
 
 TEST_EXAMPLES = {
@@ -84,18 +82,16 @@ def create_examples(base_dir, examples):
             fpr.write(examples[i])
 
 
-@pytest.mark.skipif('spacy' not in sys.modules,
-                    reason="requires the Spacy library")
 def test_return_params(mock_dataset_path):
+    pytest.importorskip('spacy')
     data = IMDB.get_dataset_splits()
     assert len(data) == 2
     assert isinstance(data[0], Dataset)
     assert isinstance(data[1], Dataset)
 
 
-@pytest.mark.skipif('spacy' not in sys.modules,
-                    reason="requires the Spacy library")
 def test_default_fields():
+    pytest.importorskip('spacy')
     fields = IMDB.get_default_fields()
     assert len(fields) == 2
     field_names = [IMDB.LABEL_FIELD_NAME,
@@ -103,11 +99,27 @@ def test_default_fields():
     assert all([name in fields for name in field_names])
 
 
-@pytest.mark.skipif('spacy' not in sys.modules,
-                    reason="requires the Spacy library")
 def test_loaded_data(mock_dataset_path):
+    spacy = pytest.importorskip('spacy')
+    spacy_tokenizer = spacy.load('en', disable=['parser', 'ner'])
+
+    def spacy_tokenize(string):
+        return [token.text for token in spacy_tokenizer.tokenizer(string)]
+
+    expected_data = []
+    for expected_example in EXPECTED_TRAIN_EXAMPLES:
+        expected_data.append({
+            'text': spacy_tokenize(expected_example['text']),
+            'label': expected_example['label']
+        })
+
     data = IMDB.get_dataset_splits()
     train_dataset, _ = data
+    assert len(train_dataset) > 0
+
     for ex in train_dataset:
-        ex_data = {"text": ex.text[1], "label": ex.label[0]}
-        assert ex_data in EXPECTED_TRAIN_EXAMPLES
+        real_example_data = {
+            'text': ex.text[1],
+            'label': ex.label[0]
+        }
+        assert real_example_data in expected_data
