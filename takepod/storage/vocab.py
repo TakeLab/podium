@@ -174,7 +174,7 @@ class Vocab:
             raise RuntimeError(error_msg)
         return self._freqs
 
-    def pad_symbol_index(self):
+    def padding_index(self):
         """Method returns padding symbol index.
 
         Returns

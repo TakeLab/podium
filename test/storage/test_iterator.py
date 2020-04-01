@@ -57,7 +57,7 @@ def test_padding(fixed_length, expected_shape, json_file_path):
 
     assert input_batch.text.shape == expected_shape
 
-    pad_symbol = fields["text"].vocab.pad_symbol_index()
+    pad_symbol = fields["text"].vocab.padding_index()
 
     for i, row in enumerate(input_batch.text):
         if TABULAR_TEXT[i] is None:

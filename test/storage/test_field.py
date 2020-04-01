@@ -34,7 +34,7 @@ class MockVocab:
         self.finalized = False
         self.numericalized = False
 
-    def pad_symbol_index(self):
+    def padding_index(self):
         return PAD_NUM
 
     def __add__(self, values):

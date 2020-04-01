@@ -100,7 +100,7 @@ def test_empty_specials_get_pad_symbol():
     voc = vocab.Vocab(specials=[])
     voc.finalize()
     with pytest.raises(ValueError):
-        voc.pad_symbol_index()
+        voc.padding_index()
 
 
 def test_empty_specials_stoi():
@@ -116,7 +116,7 @@ def test_specials_get_pad_symbol():
     voc = vocab.Vocab(specials=(vocab.SpecialVocabSymbols.PAD,))
     data = ["tree", "plant", "grass"]
     voc = (voc + set(data))
-    assert voc.pad_symbol_index() == 0
+    assert voc.padding_index() == 0
     voc.finalize()
     assert voc.itos[0] == vocab.SpecialVocabSymbols.PAD
 

@@ -697,7 +697,7 @@ class Field:
             # padding
 
             if self.use_vocab:
-                pad_symbol = self.vocab.pad_symbol_index()
+                pad_symbol = self.vocab.padding_index()
             else:
                 pad_symbol = custom_pad_symbol
 
