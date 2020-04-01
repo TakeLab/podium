@@ -30,14 +30,14 @@ def validate_example_catacx_dataset(dataset):
     assert root_example_1.spam[0] is False
     assert root_example_1.emotions[1] == ["interest"]
 
-    comment_1 = root_nodes[0].children[0].example
+    comment_1 = root_nodes[0].children_nodes[0].example
 
     assert comment_1.likes_cnt[0] == 0
     assert comment_1.message[1] == ["Comment", "No.1", "text"]
     assert comment_1.cs[1] == ["answer"]
     assert comment_1.irony == (None, None)
 
-    reply_1 = root_nodes[0].children[0].children[0].example
+    reply_1 = root_nodes[0].children_nodes[0].children_nodes[0].example
 
     assert reply_1.speech_acts[1] == ["praising", "stating"]
     assert reply_1.irony[0] is False

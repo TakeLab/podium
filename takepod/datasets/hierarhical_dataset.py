@@ -339,8 +339,8 @@ class HierarchicalDataset:
 
         # Go up the hierarchy `level` times
         parent = node
-        while parent.parent is not None and levels >= 0:
-            parent = parent.parent
+        while parent.parent_node is not None and levels >= 0:
+            parent = parent.parent_node
             levels -= 1
 
         def pre_context_node_iterator(start_node, finish_node):

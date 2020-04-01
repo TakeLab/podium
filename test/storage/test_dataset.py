@@ -741,7 +741,6 @@ def test_unpack_fields():
 
 
 def test_eager_tokenization():
-
     def create_dataset():
 
         fields = (
@@ -814,17 +813,17 @@ def test_create_hierarchical_dataset_from_json(hierarchical_dataset):
     assert root_nodes[1].example.name[0] == "parent2"
     assert root_nodes[1].example.number[0] == 5
 
-    assert root_nodes[0].children[0].example.name[0] == "c11"
-    assert root_nodes[0].children[0].example.number[0] == 2
+    assert root_nodes[0].children_nodes[0].example.name[0] == "c11"
+    assert root_nodes[0].children_nodes[0].example.number[0] == 2
 
-    assert root_nodes[0].children[0].children[0].example.name[0] == "c111"
-    assert root_nodes[0].children[0].children[0].example.number[0] == 3
+    assert root_nodes[0].children_nodes[0].children_nodes[0].example.name[0] == "c111"
+    assert root_nodes[0].children_nodes[0].children_nodes[0].example.number[0] == 3
 
-    assert root_nodes[0].children[1].example.name[0] == "c12"
-    assert root_nodes[0].children[1].example.number[0] == 4
+    assert root_nodes[0].children_nodes[1].example.name[0] == "c12"
+    assert root_nodes[0].children_nodes[1].example.number[0] == 4
 
-    assert root_nodes[1].children[0].example.name[0] == "c21"
-    assert root_nodes[1].children[0].example.number[0] == 6
+    assert root_nodes[1].children_nodes[0].example.name[0] == "c21"
+    assert root_nodes[1].children_nodes[0].example.number[0] == 6
 
     assert len(hierarchical_dataset) == 10
     assert hierarchical_dataset.depth == 2
@@ -887,19 +886,49 @@ def test_hierarchical_dataset_json_root_element_not_list_fail(
                                       )
 
 
-def test_hierarchical_dataset_context_iteration(hierarchical_dataset):
-    c111_expected_context = ["parent1", "c11"]
-    c111_context = list(map(lambda x: x.name[0], hierarchical_dataset.get_context(2)))
-    assert c111_context == c111_expected_context
+def test_hierarchical_dataset_pre_context_iteration(hierarchical_dataset):
+    c111_expected_pre_context = ["parent1", "c11"]
+    c111_post_context = list(
+        map(lambda x: x.name[0],
+            hierarchical_dataset.get_pre_context_examples(2)
+            )
+    )
+    assert c111_post_context == c111_expected_pre_context
 
-    c23_expected_context_0_lvl = ["parent2", "c21", "c22"]
-    c23_context_0_lvl = list(
-        map(
-            lambda x: x.name[0], hierarchical_dataset.get_context(7, 0)
-        )
+    c232_expected_pre_context_0_lvl = ["c23", "c231"]
+    c232_context_0_lvl = list(
+        map(lambda x: x.name[0],
+            hierarchical_dataset.get_pre_context_examples(9, levels=0)
+            )
     )
 
-    assert c23_context_0_lvl == c23_expected_context_0_lvl
+    assert c232_context_0_lvl == c232_expected_pre_context_0_lvl
+
+
+def test_hierarchical_dataset_post_context_iteration(hierarchical_dataset):
+    c11_expected_post_context = ["c111", "c12"]
+    c11_post_context = [ex.name[0] for ex
+                        in hierarchical_dataset.get_post_context_examples(1)]
+    assert c11_post_context == c11_expected_post_context
+
+    c23_expected_0_lvl_post_context = ["c24"]
+    c23_post_context = [ex.name[0] for ex
+                        in hierarchical_dataset.get_post_context_examples(7, levels=0)]
+    assert c23_post_context == c23_expected_0_lvl_post_context
+
+    c23_expected_skip_same_level_context = ["c231", "c232"]
+    c23_skip_same_level_post_context = \
+        [ex.name[0] for ex
+         in hierarchical_dataset.get_post_context_examples(7, skip_same_level=True)]
+    assert c23_skip_same_level_post_context == c23_expected_skip_same_level_context
+
+    parent1_expected_post_context_skip_root = ["c11", "c12"]
+    parent1_skip_same_level_post_context = \
+        [ex.name[0] for ex
+         in hierarchical_dataset.get_post_context_examples(0,
+                                                           skip_same_level=False,
+                                                           skip_same_level_if_root=True)]
+    assert parent1_skip_same_level_post_context == parent1_expected_post_context_skip_root
 
 
 def test_hierarchical_dataset_pickle(tmpdir, hierarchical_dataset):
@@ -955,12 +984,16 @@ HIERARCHIAL_DATASET_JSON_EXAMPLE = """
                 {
                     "name" : "c231",
                     "number" : 9
+                },
+                {
+                    "name" : "c232",
+                    "number" : 10
                 }
             ]
         },
         {
             "name" : "c24",
-            "number" : 10
+            "number" : 11
         }
     ]
 }
