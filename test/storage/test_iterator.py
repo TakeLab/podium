@@ -135,7 +135,7 @@ def test_not_numericalizable_field(json_file_path):
     dataset = create_tabular_dataset_from_json(fields, json_file_path)
     dataset.finalize_fields()
 
-    for x_batch, _ in Iterator(dataset, batch_size=len(dataset)):
+    for x_batch, _ in Iterator(dataset, batch_size=len(dataset), shuffle=False):
         assert isinstance(x_batch.non_numericalizable_field, (list, tuple))
         for batch_data, real_data in zip(x_batch.non_numericalizable_field, TABULAR_TEXT):
             assert isinstance(batch_data, MockCustomDataClass)
@@ -331,6 +331,36 @@ def test_bucket_iterator_exception(tabular_dataset):
                        bucket_sort_key=None, look_ahead_multiplier=2)
 
 
+@pytest.mark.usefixtures("tabular_dataset")
+def test_bucket_iterator_no_dataset_on_init(tabular_dataset):
+    tabular_dataset.finalize_fields()
+
+    bi = BucketIterator(
+        dataset=None, batch_size=2, sort_key=None,
+        bucket_sort_key=text_len_key, look_ahead_multiplier=2
+    )
+    # since no dataset is set, one can not iterate
+    with pytest.raises(TypeError):
+        for x_batch, y_batch in bi:
+            pass
+
+
+@pytest.mark.usefixtures("tabular_dataset")
+def test_bucket_iterator_set_dataset_on_init(tabular_dataset):
+    tabular_dataset.finalize_fields()
+
+    bi = BucketIterator(
+        dataset=None, batch_size=2, sort_key=None,
+        bucket_sort_key=text_len_key, look_ahead_multiplier=2
+    )
+    # setting dataset
+    bi.set_dataset(tabular_dataset)
+    # iterating over dataset
+    for x_batch, y_batch in bi:
+        # asserting to iterate
+        assert True
+
+
 def iterators_behave_identically(iterator_1, iterator_2):
     all_equal = True
 
@@ -453,6 +483,27 @@ def test_hierarchial_dataset_iterator_numericalization_caching(hierarchical_data
 
             cached_data = getattr(example, "{}_".format(field.name))
             assert np.all(numericalized_data == cached_data)
+
+
+def test_hierarchical_no_dataset_set():
+    hi = HierarchicalDatasetIterator(
+        batch_size=20,
+        context_max_depth=2
+    )
+    with pytest.raises(AttributeError):
+        for b in hi:
+            pass
+
+
+def test_hierarchical_set_dataset_after(hierarchical_dataset):
+    hi = HierarchicalDatasetIterator(
+        batch_size=20,
+        context_max_depth=2
+    )
+    hi.set_dataset(hierarchical_dataset)
+    for b in hi:
+        pass
+    assert True
 
 
 HIERARCHIAL_DATASET_JSON_EXAMPLE = """

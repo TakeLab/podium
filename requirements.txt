@@ -2,7 +2,7 @@ flake8==3.5.0
 mccabe==0.6.1
 mock==2.0.0
 msgpack-numpy==0.4.3.1
-numpy==1.15.1
+numpy==1.16.1
 pandas==0.23.4
 plac==0.9.6
 pluggy==0.7.1
@@ -26,3 +26,4 @@ urllib3==1.23
 wget==3.2
 paramiko==2.4.2
 dill==0.2.8.2
+nltk>=3.0
