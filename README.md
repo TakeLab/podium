@@ -5,11 +5,12 @@ Our goal is to accelerate users' development of NLP models whichever aspect of t
 
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [Usage examples](#usage-examples)
+- [Contributing](#contributing)
   - [Building and running unit tests](#building-and-running-unit-tests)
   - [Adding new dependencies](#adding-new-dependencies)
   - [Windows specifics](#windows-specifics)
-- [Usage examples](#usage-examples)
-- [Contributing](#contributing)
 - [Versioning](#versioning)
 - [Contributing](#contributing)
 - [Authors](#authors)
@@ -17,14 +18,93 @@ Our goal is to accelerate users' development of NLP models whichever aspect of t
 
 ## Getting Started
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
-Special notes for Windows systems are at the end of this chapter.
+Special notes for Windows systems are at the [end](#windows-specifics) of this Readme.
 
 ### Prerequisites
+
 For building this project system needs to have installed the following:
 - [```git```](https://git-scm.com/)
-- [```virtualenv```](https://virtualenv.pypa.io/en/latest/installation/)
 - [```python3.6```](https://www.python.org/downloads/release/python-360/)
 - [```pip```](https://pypi.org/project/pip/)
+We also recommend usage of a virtual environment:
+- [```conda```](https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/environments.html#virtual-environments)
+- [```virtualenv```](https://virtualenv.pypa.io/en/latest/installation/)
+
+### Installing from source
+
+To install `podium`, in your terminal
+1. (optional) activate your environment
+2. Clone the repository and move to its root
+  - `git clone git@github.com:mttk/takepod.git && cd takepod`
+3. Install requirements
+  - `pip install -r requirements.txt`
+4. Install podium
+  - `python setup.py install`
+
+### Installing package from pip/wheel
+Coming soon!
+
+## Usage examples
+For detailed usage examples see examples in [takepod/examples](https://github.com/mtutek/takepod/tree/master/takepod/examples)
+
+### Loading datasets
+
+Use some of our pre-defined datasets:
+
+```python
+>>> from takepod.datasets import SST
+>>> sst_train, sst_test, sst_dev = SST.get_dataset_splits()
+>>> print(sst_train[222]) # A short example
+Example[label: ('positive', None); text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])]
+```
+
+Load your own dataset from a standardized format (`csv`, `tsv` or `jsonl`):
+
+```python
+>>> from takepod.datasets import TabularDataset
+>>> from takepod.storage import Vocab, Field, LabelField
+>>> vocab = Vocab()  # Shared vocab
+>>> premise = Field('premise', vocab=vocab)
+>>> hypothesis = Field('hypothesis', vocab=vocab)
+>>> label = LabelField('label')
+>>> fields = {"premise" :premise,
+              "hypothesis" :hypothesis,
+              "label" :label}
+>>> dataset = TabularDataset('my_dataset.csv', format='csv',fields=fields)
+>>> print(f"{dataset}\n{vocab}")
+TabularDataset[Size: 1, Fields: ['premise', 'hypothesis', 'label']]
+Vocab[finalized: True, size: 10]
+```
+
+Or define your own `Dataset` subclass by using our 
+
+Define your own pre-processing for your dataset trough customizing `Field` and `Vocab` classes:
+
+```python
+>>> from takepod.storage import Vocab, Field, LabelField
+>>> max_vocab_size = 10000
+>>> min_frequency = 5
+>>> vocab = Vocab(max_size=max_vocab_size, min_freq=min_frequency)
+>>> text = Field(name='text', vocab=vocab, tokenizer='spacy')
+>>> label = LabelField(name='label')
+>>> fields = {'text': text, 'label':label}
+>>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+>>> print(sst_train)
+SST[Size: 6920, Fields: ['text', 'label']]
+```
+
+## Code style standards
+In this repository we use [numpydoc](https://numpydoc.readthedocs.io/en/latest/) as a standard for documentation and Flake8 for code sytle. Code style references are [Flake8](http://flake8.pycqa.org/en/latest/) and [PEP8](https://www.python.org/dev/peps/pep-0008/).
+
+Commands to check flake8 compliance for written code and tests.
+```
+flake8 takepod
+flake8 test
+```
+
+## Contributing
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ### Building and running unit tests
 
@@ -93,76 +173,6 @@ python setup.py install
 ```
 .\env\Scripts\deactivate.bat
 ```
-
-## Usage examples
-For detailed usage examples see examples in [takepod/examples](https://github.com/mtutek/takepod/tree/master/takepod/examples)
-
-### Load a dataset
-
-Use some of our pre-defined datasets:
-
-```python
->>> from takepod.datasets import SST
->>> sst_train, sst_test, sst_dev = SST.get_dataset_splits()
->>> print(len(sst_train), len(sst_test), len(sst_dev))
-6920 872 1821
->>> print(sst_train[222]) # A short example
-Example[label: ('positive', None); text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])]
-```
-
-Or load your own dataset in a standardized format (`csv`, `tsv`):
-
-```python
->>> from takepod.datasets import TabularDataset
->>> from takepod.storage import Vocab, Field, LabelField
->>> # Assign each column of your TabularDataset a `Field`
->>> # The Fields define the preprocessing for that column
->>> vocab = Vocab()  # Share vocab
->>> premise = Field('premise', vocab=vocab, store_as_raw=False)
->>> hypothesis = Field('hypothesis', vocab=vocab, store_as_raw=False)
->>> label = LabelField('label')
->>> # Our toy dataset has two input texts
->>> fields = {"premise" :premise,
-              "hypothesis" :hypothesis,
-              "label" :label}
->>> dataset = TabularDataset('my_dataset.csv', format='csv',
-                   fields=fields
->>> print(dataset.examples[0])
-Example[hypothesis: (None, ['And', 'this', 'is', 'another', 'input', 'sentence']); label: ('entailment', None); premise: (None, ['This', 'is', 'an', 'input', 'sentence'])]
-```
-
-
-Define your own pre-processing for your dataset trough customizing `Field` and `Vocab` classes:
-
-```python
->>> from takepod.storage import Vocab, Field, LabelField
->>> # Limit the size of our vocabulary
->>> max_vocab_size = 10000
->>> min_frequency = 5
->>> # A vocab automatically builds token-to-index and reverse mappings
->>> vocab = Vocab(max_size=max_vocab_size, min_freq=min_frequency)
->>> # A Field defines the pre-processing sequence for an input modality
->>> text = Field(name='text', vocab=vocab, tokenizer='spacy')
->>> label = LabelField(name='label')
->>> # The fields argument to get_dataset_splits has to be a dict
->>> fields = {'text': text, 'label':label}
->>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
-```
-
-
-
-## Code style standards
-In this repository we use [numpydoc](https://numpydoc.readthedocs.io/en/latest/) as a standard for documentation and Flake8 for code sytle. Code style references are [Flake8](http://flake8.pycqa.org/en/latest/) and [PEP8](https://www.python.org/dev/peps/pep-0008/).
-
-Commands to check flake8 compliance for written code and tests.
-```
-flake8 takepod
-flake8 test
-```
-
-## Contributing
-
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ## Versioning
 

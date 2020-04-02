@@ -187,7 +187,7 @@ class Field:
                  language='en',
                  vocab=None,
                  tokenize=True,
-                 store_as_raw=True,
+                 store_as_raw=False,
                  store_as_tokenized=False,
                  eager=True,
                  is_numericalizable=True,
