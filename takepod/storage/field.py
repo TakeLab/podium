@@ -257,7 +257,7 @@ class Field:
              by the tokenizer.
         custom_numericalize : callable
             The numericalization function that will be called if the field
-            doesn't use a vocabulary.If using custom_numericalize and padding is
+            doesn't use a vocabulary. If using custom_numericalize and padding is
             required, please ensure that the `missing_data_token` is of the same type
             as the value returned by custom_numericalize.
         custom_numericalize_padding_token : int
@@ -710,7 +710,7 @@ class Field:
             if self.use_vocab:
                 pad_symbol = self.vocab.padding_index()
 
-            elif self.custom_numericalize:
+            elif self.custom_numericalize is not None:
                 pad_symbol = self.custom_numericalize_padding_token
 
             else:
