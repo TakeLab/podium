@@ -23,8 +23,9 @@ These instructions will get you a copy of the project up and running on your loc
 
 For building this project system needs to have installed the following:
 - [```git```](https://git-scm.com/)
-- [```python3.6```](https://www.python.org/downloads/release/python-360/)
+- [```python3.6```+](https://www.python.org/downloads/release/python-360/)
 - [```pip```](https://pypi.org/project/pip/)
+
 We also recommend usage of a virtual environment:
 - [```conda```](https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/environments.html#virtual-environments)
 - [```virtualenv```](https://virtualenv.pypa.io/en/latest/installation/)
@@ -58,9 +59,9 @@ Load your own dataset from a standardized format (`csv`, `tsv` or `jsonl`):
 ```python
 >>> from takepod.datasets import TabularDataset
 >>> from takepod.storage import Vocab, Field, LabelField
->>> fields = {"premise":   Field('premise', vocab=Vocab()),
-              "hypothesis":Field('hypothesis', vocab=Vocab()),
-              "label":     LabelField('label')
+>>> fields = {'premise':   Field('premise', vocab=Vocab()),
+              'hypothesis':Field('hypothesis', vocab=Vocab()),
+              'label':     LabelField('label')
              }
 >>> dataset = TabularDataset('my_dataset.csv', format='csv',fields=fields)
 >>> print(dataset)
@@ -75,14 +76,41 @@ We wrap dataset pre-processing in customizable `Field` classes. Each `Field` has
 
 ```python
 >>> from takepod.storage import Vocab, Field, LabelField
->>> text = Field(name='text', vocab=Vocab())
+>>> vocab=Vocab(max_size=5000, min_freq=2)
+>>> text = Field(name='text', vocab=vocab)
 >>> label = LabelField(name='label')
 >>> fields = {'text': text, 'label':label}
 >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
->>> print(sst_train)
-SST[Size: 6920, Fields: ['text', 'label']]
+>>> print(vocab)
+Vocab[finalized: True, size: 5000]
 ```
 
+Each `Field` allows the user full flexibility modify the data in multiple stages:
+- Prior to tokenization (`hook`s)
+- During tokenization (by using your own `tokenizer`)
+- Post tokenization (`hook`s)
+You can also completely disregard our preprocessing and define your own:
+- Set your `custom_numericalize`
+
+### Use preprocessing from other libraries
+
+A common use-case is to components of pretrained language models, such as BERT. This is extremely simple to incorporate as part of our `Field`s. This snippet requires installation of the `transformers` library.
+
+```python
+>>> from transformers import BertTokenizer
+>>> # Load the tokenizer and fetch pad index
+>>> tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+>>> pad_index = tokenizer.convert_tokens_to_ids(tokenizer.pad_token)
+>>> # Define a BERT subword Field
+>>> subword_field = Field("text",
+                          vocab=None,
+                          padding_token=pad_index,
+                          tokenizer=tokenizer.tokenize,
+                          custom_numericalize=tokenizer.convert_tokens_to_ids)
+>>> # ...
+>>> print(sst_train[222])
+Example[label: ('positive', None); text: (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.'])]
+```
 
 ## Code style standards
 In this repository we use [numpydoc](https://numpydoc.readthedocs.io/en/latest/) as a standard for documentation and Flake8 for code sytle. Code style references are [Flake8](http://flake8.pycqa.org/en/latest/) and [PEP8](https://www.python.org/dev/peps/pep-0008/).

@@ -192,7 +192,7 @@ class Field:
                  eager=True,
                  is_numericalizable=True,
                  custom_numericalize=None,
-                 custom_numericalize_padding_token=-999,
+                 padding_token=-999,
                  is_target=False,
                  fixed_length=None,
                  allow_missing_data=False,
@@ -260,7 +260,7 @@ class Field:
             doesn't use a vocabulary. If using custom_numericalize and padding is
             required, please ensure that the `missing_data_token` is of the same type
             as the value returned by custom_numericalize.
-        custom_numericalize_padding_token : int
+        padding_token : int
             If custom_numericalize is provided and padding the batch matrix is needed,
             this token is used to pad the end of the matrix row.
             If custom_numericalize is None, this is ignored.
@@ -341,7 +341,7 @@ class Field:
             self.tokenizer = None
 
         self.custom_numericalize = custom_numericalize
-        self.custom_numericalize_padding_token = custom_numericalize_padding_token
+        self.padding_token = padding_token
 
         self.is_target = is_target
         self.fixed_length = fixed_length
@@ -711,7 +711,7 @@ class Field:
                 pad_symbol = self.vocab.padding_index()
 
             elif self.custom_numericalize is not None:
-                pad_symbol = self.custom_numericalize_padding_token
+                pad_symbol = self.padding_token
 
             else:
                 pad_symbol = custom_pad_symbol
@@ -851,7 +851,7 @@ class TokenizedField(Field):
                  vocab=None,
                  eager=True,
                  custom_numericalize=None,
-                 custom_numericalize_padding_token=-999,
+                 padding_token=-999,
                  is_target=False,
                  fixed_length=None,
                  allow_missing_data=False,
@@ -864,7 +864,7 @@ class TokenizedField(Field):
             store_as_tokenized=True,
             eager=eager,
             custom_numericalize=custom_numericalize,
-            custom_numericalize_padding_token=custom_numericalize_padding_token,
+            padding_token=padding_token,
             is_target=is_target,
             fixed_length=fixed_length,
             allow_missing_data=allow_missing_data,
