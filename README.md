@@ -58,35 +58,31 @@ Load your own dataset from a standardized format (`csv`, `tsv` or `jsonl`):
 ```python
 >>> from takepod.datasets import TabularDataset
 >>> from takepod.storage import Vocab, Field, LabelField
->>> vocab = Vocab()  # Shared vocab
->>> premise = Field('premise', vocab=vocab)
->>> hypothesis = Field('hypothesis', vocab=vocab)
->>> label = LabelField('label')
->>> fields = {"premise" :premise,
-              "hypothesis" :hypothesis,
-              "label" :label}
+>>> fields = {"premise":   Field('premise', vocab=Vocab()),
+              "hypothesis":Field('hypothesis', vocab=Vocab()),
+              "label":     LabelField('label')
+             }
 >>> dataset = TabularDataset('my_dataset.csv', format='csv',fields=fields)
->>> print(f"{dataset}\n{vocab}")
+>>> print(dataset)
 TabularDataset[Size: 1, Fields: ['premise', 'hypothesis', 'label']]
-Vocab[finalized: True, size: 10]
 ```
 
-Or define your own `Dataset` subclass by using our 
+Or define your own `Dataset` subclass (tutorial coming soon)
 
-Define your own pre-processing for your dataset trough customizing `Field` and `Vocab` classes:
+### Define your preprocessing pipeline
+
+We wrap dataset pre-processing in customizable `Field` classes. Each `Field` has an optional `Vocab` instance which automatically handles token-to-index conversion.
 
 ```python
 >>> from takepod.storage import Vocab, Field, LabelField
->>> max_vocab_size = 10000
->>> min_frequency = 5
->>> vocab = Vocab(max_size=max_vocab_size, min_freq=min_frequency)
->>> text = Field(name='text', vocab=vocab, tokenizer='spacy')
+>>> text = Field(name='text', vocab=Vocab())
 >>> label = LabelField(name='label')
 >>> fields = {'text': text, 'label':label}
 >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
 >>> print(sst_train)
 SST[Size: 6920, Fields: ['text', 'label']]
 ```
+
 
 ## Code style standards
 In this repository we use [numpydoc](https://numpydoc.readthedocs.io/en/latest/) as a standard for documentation and Flake8 for code sytle. Code style references are [Flake8](http://flake8.pycqa.org/en/latest/) and [PEP8](https://www.python.org/dev/peps/pep-0008/).
