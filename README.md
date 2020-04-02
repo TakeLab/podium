@@ -95,6 +95,23 @@ Each `Field` allows the user full flexibility modify the data in multiple stages
 You can also completely disregard our preprocessing and define your own:
 - Set your `custom_numericalize`
 
+You could decide to lowercase all the characters and filter out all non-alphanumeric tokens:
+
+```python
+>>> def lowercase(raw):
+>>>    return raw.lower()
+>>> def filter_alnum(raw, tokenized):
+       filtered_tokens = [token for token in tokenized if
+                          all([char.isalnum() for char in token])]
+>>>    return raw, []
+>>> text.add_pretokenize_hook(lowercase)
+>>> ...
+>>> print(sst_train[222])
+Example[label: ('positive', None); text: (None, ['a', 'slick', 'engrossing', 'melodrama'])]
+```
+Pre-tokenization hooks do not see the tokenized data and are applied (and modify) only `raw` data. Post-tokenization hooks have access to tokenized data, and can be applied to either `raw` or `tokenized` data.
+
+
 ### Use preprocessing from other libraries
 
 A common use-case is to components of pretrained language models, such as BERT. This is extremely simple to incorporate as part of our `Field`s. This snippet requires installation of the `transformers` library.
