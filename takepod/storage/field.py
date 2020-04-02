@@ -256,7 +256,6 @@ class Field:
             on custom datatypes. For non-numericalizable fields, Iterator will generate
             batch fields containing lists of these custom data type instances returned
             by the tokenizer.
-
         custom_numericalize : callable
             The numericalization function that will be called if the field
             doesn't use a vocabulary. If using custom_numericalize and padding is
