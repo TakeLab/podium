@@ -50,9 +50,15 @@ class SST(Dataset):
         ----------
         dir_path : str
             path to the directory containing datasets
-
         fields : dict(str, Field)
             dictionary that maps field name to the field
+        fine_grained: bool
+            if false, returns the binary (positive/negative) SST dataset
+            and filters out neutral examples. If this is `False`, please
+            set your Fields *not* to be eager.
+        subtrees: bool
+            also return the subtrees of each input instance as separate
+            instances. This causes the dataset to become much larger.
         """
         LargeResource(**{
             LargeResource.RESOURCE_NAME: SST.NAME,
@@ -87,6 +93,13 @@ class SST(Dataset):
             file where examples for this split are stored
         fields : dict(str, Field)
             dictionary mapping field names to fields
+        fine_grained: bool
+            if false, returns the binary (positive/negative) SST dataset
+            and filters out neutral examples. If this is `False`, please
+            set your Fields *not* to be eager.
+        subtrees: bool
+            also return the subtrees of each input instance as separate
+            instances. This causes the dataset to become much larger.
 
         Returns
         -------
@@ -125,6 +138,13 @@ class SST(Dataset):
             dictionary mapping field name to field, if not given method will
             use ```get_default_fields```. User should use default field names
             defined in class attributes.
+        fine_grained: bool
+            if false, returns the binary (positive/negative) SST dataset
+            and filters out neutral examples. If this is `False`, please
+            set your Fields *not* to be eager.
+        subtrees: bool
+            also return the subtrees of each input instance as separate
+            instances. This causes the dataset to become much larger.
 
         Returns
         -------

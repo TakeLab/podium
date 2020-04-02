@@ -1,9 +1,13 @@
 """Module contains deep learning based sequence labelling model.."""
 import logging
 import numpy as np
+import tempfile
 
 from takepod.models import AbstractSupervisedModel
-from takepod.models.impl.blcc.chain_crf import ChainCRF
+from takepod.models.impl.blcc.chain_crf import (
+    ChainCRF, create_custom_objects
+)
+from keras.models import load_model
 
 _LOGGER = logging.getLogger(__name__)
 try:
@@ -12,7 +16,7 @@ try:
     from keras.layers import Input, LSTM, TimeDistributed
     from keras.models import Model
     from keras.optimizers import Adadelta, Adagrad, Adam, Nadam, RMSprop, SGD
-except ImportError as ex:
+except ImportError:
     _LOGGER.debug("Problem occured while trying to import keras. If the "
                   "library is not installed visit https://keras.io/"
                   " for more details.")
@@ -79,6 +83,23 @@ class BLCCModel(AbstractSupervisedModel):
 
     def __init__(self, **kwargs):
         self.reset(**kwargs)
+
+    def __getstate__(self):
+        model_str = ""
+        with tempfile.NamedTemporaryFile(suffix='.hdf5', delete=True) as fd:
+            self.model.save(fd.name, overwrite=True)
+            model_str = fd.read()
+            odict = self.__dict__.copy()
+            del odict['model']
+        return {'model_str': model_str, 'rest': odict}
+
+    def __setstate__(self, state):
+        with tempfile.NamedTemporaryFile(suffix='.hdf5', delete=True) as fd:
+            fd.write(state['model_str'])
+            fd.flush()
+            model = load_model(fd.name, custom_objects=create_custom_objects())
+        self.__dict__ = state['rest']
+        self.model = model
 
     def reset(self, **kwargs):
         default_hyperparameters = {

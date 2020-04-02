@@ -34,7 +34,7 @@ class MockVocab:
         self.finalized = False
         self.numericalized = False
 
-    def pad_symbol(self):
+    def padding_index(self):
         return PAD_NUM
 
     def __add__(self, values):
@@ -224,6 +224,19 @@ def test_field_pad_to_length(row, length, expected_row, pad_left,
                                    truncate_left=truncate_left)
 
     assert received_row.tolist() == expected_row
+
+
+def test_field_pad_custom_numericalize():
+    custom_padding_token = -999
+    f = Field("test_field",
+              custom_numericalize=int,
+              custom_numericalize_padding_token=custom_padding_token,
+              tokenizer='split')
+    mock_numericalization = np.array([1, 2, 3, 4])
+    expected_numericalization = np.array([1, 2, 3, 4] + [custom_padding_token] * 6)
+
+    padded = f.pad_to_length(mock_numericalization, 10, pad_left=False)
+    assert np.all(padded == expected_numericalization)
 
 
 @pytest.mark.parametrize(
@@ -684,12 +697,12 @@ def test_missing_values_default_sequential():
     assert data_exists == (None, ["data_string"])
     fld.finalize()
 
-    assert np.all(fld.numericalize(data_missing) == np.empty(0))
+    assert fld.numericalize(data_missing) is None
     assert np.all(fld.numericalize(data_exists) == np.array([hash("data_string")]))
 
 
-def test_missing_values_default_not_sequential():
-    fld = Field(name="bla",
+def test_missing_values_custom_numericalize():
+    fld = Field(name="test_field",
                 store_as_raw=True,
                 tokenize=False,
                 custom_numericalize=int,
@@ -703,9 +716,37 @@ def test_missing_values_default_not_sequential():
 
     fld.finalize()
 
-    assert np.allclose(fld.numericalize(data_missing), np.array([np.nan]),
-                       equal_nan=True)
+    assert fld.numericalize(data_missing) is None
     assert np.all(fld.numericalize(data_exists) == np.array([404]))
+
+
+def test_missing_symbol_index_vocab():
+    vocab = Vocab()
+    fld = Field(name="test_field",
+                tokenizer='split',
+                store_as_raw=False,
+                tokenize=True,
+                vocab=vocab,
+                allow_missing_data=True)
+
+    fld.preprocess("a b c d")
+    ((_, data),) = fld.preprocess(None)
+    assert data == (None, None)
+
+    fld.finalize()
+    assert fld.numericalize((None, None)) is None
+    assert fld.get_default_value() == -1
+
+
+def test_missing_symbol_index_custom_numericalize():
+    fld = Field(name="test_field",
+                store_as_raw=True,
+                tokenize=False,
+                custom_numericalize=int,
+                allow_missing_data=True)
+
+    fld.finalize()
+    assert fld.get_default_value() == -1
 
 
 def test_missing_values_fail():

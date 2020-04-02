@@ -250,6 +250,11 @@ class ExampleFactory:
             A flag denoting whether an example will be created from every
             subtree in the tree (when set to True), or just from the whole
             tree (when set to False).
+        label_transform : callable
+            A function which converts the tree labels to a string representation,
+            if wished. Useful for converting multiclass tasks to binary (SST) and
+            making labels verbose. If None, the labels are not changed.
+
         Returns
         -------
         (Example | list)

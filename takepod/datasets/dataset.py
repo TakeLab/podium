@@ -450,6 +450,14 @@ class Dataset(ABC):
             # There will only ever be a single batch created
             return x_batch, y_batch
 
+    def __repr__(self):
+        fields = [field.name for field in self.fields]
+        return "{}[Size: {}, Fields: {}]".format(
+            self.__class__.__name__, len(self.examples), fields)
+
+    def __str__(self):
+        return self.__repr__()
+
 
 def check_split_ratio(split_ratio):
     """Checks that the split ratio argument is not malformed and if not

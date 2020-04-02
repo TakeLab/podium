@@ -4,12 +4,14 @@ import sys
 import logging
 from collections import namedtuple
 from functools import partial
+import pickle
 
 import numpy as np
 
 from takepod.datasets.impl.croatian_ner_dataset import CroatianNERDataset
 from takepod.metrics import multiclass_f1_metric
 from takepod.models.impl.blcc_model import BLCCModel
+from takepod.models import FeatureTransformer
 from takepod.models.impl.simple_trainers import SimpleTrainer
 from takepod.storage import TokenizedField, Vocab, SpecialVocabSymbols
 from takepod.datasets.iterator import BucketIterator
@@ -17,8 +19,6 @@ from takepod.storage.resources.large_resource import LargeResource
 from takepod.storage.vectorizers.vectorizer import BasicVectorStorage
 
 _LOGGER = logging.getLogger(__name__)
-
-label_numericalized = {}
 
 # using the same label set as original CroNER
 label_mapping = {
@@ -41,19 +41,21 @@ label_mapping = {
 
 def label_mapper_hook(data, tokens):
     """Function maps the labels to a reduced set."""
+    new_tokens = []
     for i in range(len(tokens)):
         if tokens[i] == 'O':
+            new_tokens.append('O')
             continue
 
         prefix, value = tokens[i].split('-')
 
         mapped_token = label_mapping[value]
-        if mapped_token is None:
-            tokens[i] = 'O'
+        if not mapped_token:
+            new_tokens.append('O')
         else:
-            tokens[i] = prefix + mapped_token
+            new_tokens.append(prefix + '-' + mapped_token)
 
-    return data, tokens
+    return data, new_tokens
 
 
 def casing_mapper_hook(data, tokens):
@@ -76,19 +78,20 @@ def casing_mapper_hook(data, tokens):
     return data, tokens_casing
 
 
-def batch_transform_fun(x_batch, y_batch, embedding_matrix):
+def feature_extraction_fn(x_batch, embedding_matrix):
     """Function transforms iterator batches to a form acceptable by
     the model."""
-    # TODO remove casting to int after fixing the numericalization
     tokens_numericalized = x_batch.tokens.astype(int)
     casing_numericalized = x_batch.casing.astype(int)
-    y = y_batch.labels.astype(int)
-
     X = [
-        np.take(embedding_matrix, tokens_numericalized, axis=0).astype(int),
+        np.take(embedding_matrix, tokens_numericalized, axis=0),
         casing_numericalized
     ]
-    return X, y
+    return X
+
+
+def label_transform_fun(y_batch):
+    return y_batch.labels.astype(int)
 
 
 def example_word_count(example):
@@ -96,15 +99,14 @@ def example_word_count(example):
     return len(example.tokens[1])
 
 
-def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
+def ner_croatian_blcc_example(fields, dataset, feature_transform):
     """Example of training the BLCCModel with Croatian NER dataset"""
     output_size = len(fields['labels'].vocab.itos)
     casing_feature_size = len(fields['inputs'].casing.vocab.itos)
 
     train_set, test_set = dataset.split(split_ratio=0.8)
 
-    train_iter = BucketIterator(train_set, 32, sort_key=example_word_count)
-    test_iter = BucketIterator(test_set, 32, sort_key=example_word_count)
+    train_iter = BucketIterator(batch_size=32, sort_key=example_word_count)
 
     model = BLCCModel(**{
         BLCCModel.OUTPUT_SIZE: output_size,
@@ -117,17 +119,29 @@ def ner_croatian_blcc_example(fields, dataset, batch_transform_function):
         # set to a high value because of a tensorflow-cpu bug
         BLCCModel.FEATURE_OUTPUT_SIZES: (30,)
     })
-    trainer = SimpleTrainer(model=model)
+    trainer = SimpleTrainer()
+    feature_transformer = FeatureTransformer(feature_transform)
 
     _LOGGER.info('Training started')
-    trainer.train(iterator=train_iter, batch_transform=batch_transform_function,
-                  **{trainer.MAX_EPOCH_KEY: 25})
+    trainer.train(
+        model=model,
+        dataset=train_set,
+        feature_transformer=feature_transformer,
+        iterator=train_iter,
+        label_transform_fun=label_transform_fun,
+        max_epoch=1
+    )
     _LOGGER.info('Training finished')
 
-    x_test, y_test = batch_transform_function(*next(test_iter.__iter__()))
-    prediction = model.predict(X=x_test)[BLCCModel.PREDICTION_KEY]
+    X_test_batch, y_test_batch = test_set[:32].batch()
+    X_test = feature_transformer.transform(X_test_batch)
+    y_test = label_transform_fun(y_test_batch)
 
-    pad_symbol = fields['labels'].vocab.pad_symbol()
+    prediction = model.predict(X=X_test)[BLCCModel.PREDICTION_KEY]
+    # pickle for later use
+    pickle.dump(model, open('ner_model.pkl', 'wb'))
+
+    pad_symbol = fields['labels'].vocab.padding_index()
     prediction_filtered, y_test_filtered = filter_out_padding(
         pad_symbol,
         prediction,
@@ -184,15 +198,15 @@ if __name__ == '__main__':
     fields = ner_dataset_classification_fields()
     dataset = CroatianNERDataset.get_dataset(fields=fields)
 
-    vectorizer = BasicVectorStorage(path=vectors_path)
-    vectorizer.load_vocab(vocab=fields['inputs'].tokens.vocab)
-    embedding_matrix = vectorizer.get_embedding_matrix(
-        fields['inputs'].tokens.vocab)
+    vocab = fields['inputs'].tokens.vocab
+    embedding_matrix = BasicVectorStorage(path=vectors_path).load_vocab(vocab)
 
-    batch_transform = partial(
-        batch_transform_fun,
+    feature_transform = partial(
+        feature_extraction_fn,
         embedding_matrix=embedding_matrix)
 
-    ner_croatian_blcc_example(fields=fields,
-                              dataset=dataset,
-                              batch_transform_function=batch_transform)
+    ner_croatian_blcc_example(
+        fields=fields,
+        dataset=dataset,
+        feature_transform=feature_transform
+    )
