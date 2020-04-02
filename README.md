@@ -101,9 +101,9 @@ You could decide to lowercase all the characters and filter out all non-alphanum
 >>> def lowercase(raw):
 >>>    return raw.lower()
 >>> def filter_alnum(raw, tokenized):
-       filtered_tokens = [token for token in tokenized if
+>>>    filtered_tokens = [token for token in tokenized if
                           all([char.isalnum() for char in token])]
->>>    return raw, []
+>>>    return raw, filtered_tokens
 >>> text.add_pretokenize_hook(lowercase)
 >>> ...
 >>> print(sst_train[222])
