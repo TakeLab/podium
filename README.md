@@ -106,10 +106,10 @@ A common use-case is to components of pretrained language models, such as BERT. 
 >>> pad_index = tokenizer.convert_tokens_to_ids(tokenizer.pad_token)
 >>> # Define a BERT subword Field
 >>> bert_field = Field("subword",
-                          vocab=None,
-                          padding_token=pad_index,
-                          tokenizer=tokenizer.tokenize,
-                          custom_numericalize=tokenizer.convert_tokens_to_ids)
+                       vocab=None,
+                       padding_token=pad_index,
+                       tokenizer=tokenizer.tokenize,
+                       custom_numericalize=tokenizer.convert_tokens_to_ids)
 >>> # ...
 >>> print(sst_train[222])
 Example[label: ('positive', None); subword: (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.'])]
