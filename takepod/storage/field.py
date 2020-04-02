@@ -7,7 +7,7 @@ from typing import Callable
 import numpy as np
 
 from takepod.preproc.tokenizers import get_tokenizer
-from takepod.storage.vocab import Vocab, SpecialVocabSymbols
+from takepod.storage.vocab import Vocab
 
 _LOGGER = logging.getLogger(__name__)
 
