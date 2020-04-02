@@ -18,7 +18,6 @@ Our goal is to accelerate users' development of NLP models whichever aspect of t
 
 ## Getting Started
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
-Special notes for Windows systems are at the [end](#windows-specifics) of this Readme.
 
 ### Prerequisites
 
@@ -33,13 +32,9 @@ We also recommend usage of a virtual environment:
 ### Installing from source
 
 To install `podium`, in your terminal
-1. (optional) activate your environment
-2. Clone the repository and move to its root
-  - `git clone git@github.com:mttk/takepod.git && cd takepod`
-3. Install requirements
-  - `pip install -r requirements.txt`
-4. Install podium
-  - `python setup.py install`
+1. Clone the repository: `git clone git@github.com:mttk/takepod.git && cd takepod`
+3. Install requirements: `pip install -r requirements.txt`
+4. Install podium: `python setup.py install`
 
 ### Installing package from pip/wheel
 Coming soon!
