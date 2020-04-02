@@ -40,7 +40,7 @@ To install `podium`, in your terminal
 Coming soon!
 
 ## Usage examples
-For detailed usage examples see examples in [takepod/examples](https://github.com/mtutek/takepod/tree/master/takepod/examples)
+For detailed usage examples see examples in [takepod/examples](https://github.com/mttk/takepod/tree/master/takepod/examples)
 
 ### Loading datasets
 
@@ -171,7 +171,7 @@ python setup.py install
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/mtutek/takepod/tags). 
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/mttk/takepod/tags). 
 
 ## Authors
 
@@ -179,7 +179,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 * Project made as part of TakeLab at Faculty of Electrical Engineering and Computing, University of Zagreb
 * Laboratory url: http://takelab.fer.hr
 
-See also the list of [contributors](https://github.com/mtutek/takepod/graphs/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/mttk/takepod/graphs/contributors) who participated in this project.
 
 ## License
 
