@@ -89,9 +89,9 @@ Vocab[finalized: True, size: 5000]
 ```
 
 Each `Field` allows the user full flexibility modify the data in multiple stages:
-- Prior to tokenization (`hook`s)
+- Prior to tokenization (by using pre-tokenization `hooks`)
 - During tokenization (by using your own `tokenizer`)
-- Post tokenization (`hook`s)
+- Post tokenization (by using post-tokenization `hooks`)
 You can also completely disregard our preprocessing and define your own:
 - Set your `custom_numericalize`
 
@@ -105,14 +105,14 @@ A common use-case is to components of pretrained language models, such as BERT. 
 >>> tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 >>> pad_index = tokenizer.convert_tokens_to_ids(tokenizer.pad_token)
 >>> # Define a BERT subword Field
->>> subword_field = Field("text",
+>>> bert_field = Field("subword",
                           vocab=None,
                           padding_token=pad_index,
                           tokenizer=tokenizer.tokenize,
                           custom_numericalize=tokenizer.convert_tokens_to_ids)
 >>> # ...
 >>> print(sst_train[222])
-Example[label: ('positive', None); text: (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.'])]
+Example[label: ('positive', None); subword: (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.'])]
 ```
 
 ## Code style standards

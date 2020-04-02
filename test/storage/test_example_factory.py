@@ -8,6 +8,7 @@ name_field = Field("Name",
 
 score_field = Field("Score",
                     custom_numericalize=int,
+                    store_as_raw=True,
                     tokenize=False)
 
 favorite_food_field = Field("Favorite_food",
