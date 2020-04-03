@@ -64,8 +64,6 @@ class BLCCModel(AbstractSupervisedModel):
         a LSTM layer.
     """
 
-    # TODO : model expects keras=2.2.4 to be installed
-
     EMBEDDING_SIZE = 'embedding_size'
     OUTPUT_SIZE = 'output_size'
 
