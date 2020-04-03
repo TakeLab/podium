@@ -29,13 +29,6 @@ from takepod.examples.ner_example import (
 _LOGGER = logging.getLogger()
 
 
-def map_iterable(iterable, mapping):
-    return [
-        mapping[i]
-        for i in iterable
-    ]
-
-
 class CroatianNER(Pipeline):
     """Pipeline used to train named entity recognition for Croatian.
     It is designed to work on the croopinion dataset, but makes no
@@ -76,7 +69,7 @@ class CroatianNER(Pipeline):
             vector_path
         )
         self.output_transform_fn = partial(
-            map_iterable,
+            CroatianNER.map_iterable,
             mapping=self.fields['labels'].vocab.itos
         )
 
@@ -129,7 +122,7 @@ class CroatianNER(Pipeline):
                 batch_size=32, sort_key=example_word_count
             )
             trainer_kwargs = {
-                'max_epoch': 2,
+                'max_epoch': 10,
                 'iterator': iterator
             }
             _LOGGER.debug(
@@ -200,6 +193,13 @@ class CroatianNER(Pipeline):
             # set to a high value because of a tensorflow-cpu bug
             BLCCModel.FEATURE_OUTPUT_SIZES: (30,)
         }
+
+    @staticmethod
+    def map_iterable(iterable, mapping):
+        return [
+            mapping[i]
+            for i in iterable
+        ]
 
 
 if __name__ == '__main__':
