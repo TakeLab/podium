@@ -20,6 +20,8 @@ from takepod.storage.vectorizers.vectorizer import BasicVectorStorage
 
 _LOGGER = logging.getLogger(__name__)
 
+
+Inputs = namedtuple('Inputs', ['tokens', 'casing'])
 # using the same label set as original CroNER
 label_mapping = {
     'Organization': 'Organization',
@@ -185,8 +187,6 @@ def ner_dataset_classification_fields():
 
     casing.add_posttokenize_hook(casing_mapper_hook)
     labels.add_posttokenize_hook(label_mapper_hook)
-
-    Inputs = namedtuple('Inputs', ['tokens', 'casing'])
 
     return {'inputs': Inputs(tokens, casing), 'labels': labels}
 
