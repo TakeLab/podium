@@ -199,9 +199,4 @@ This project is licensed under the (TODO) - see the [LICENSE.md](LICENSE.md) fil
 ## Project package TODOs
 
 - The project still needs a to have a license picked.
-- OSX instructions on installation and building
-- Add used references
 - Add deployment notes
-- Add small examples
-- For automatic flake8 compliance we currently don't recommend use of [Black](https://github.com/ambv/black).
-
