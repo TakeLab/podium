@@ -10,7 +10,7 @@ from podium.storage import LargeResource
 _LOGGER = logging.getLogger(__name__)
 try:
     import pandas as pd
-except ImportError as ex:
+except ImportError:
     _LOGGER.debug("Problem occured while trying to import pandas. If the library is not "
                   "installed visit https://pandas.pydata.org/ for more details.")
 

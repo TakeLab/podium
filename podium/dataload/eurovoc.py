@@ -13,7 +13,7 @@ from podium.datasets.impl.eurovoc_dataset import EuroVocDataset
 _LOGGER = logging.getLogger(__name__)
 try:
     import xlrd
-except ImportError as ex:
+except ImportError:
     _LOGGER.debug("Problem occured while trying to import xlrd. If the "
                   "library is not installed visit http://www.python-excel.org/"
                   " for more details.")

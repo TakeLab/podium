@@ -6,7 +6,7 @@ _LOGGER = logging.getLogger(__name__)
 
 try:
     from sklearn.svm import SVC, LinearSVC
-except ImportError as ex:
+except ImportError:
     _LOGGER.debug("Problem occured while trying to import sklearn. If the "
                   "library is not installed visit https://scikit-learn.org"
                   " for more details.")

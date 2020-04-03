@@ -217,12 +217,12 @@ class Dataset(ABC):
     def finalize_fields(self, *args):
         """
         Builds vocabularies of all the non-eager fields in the dataset,
-        from the Dataset objects given as \*args and then finalizes all the
+        from the Dataset objects given as \\*args and then finalizes all the
         fields.
 
         Parameters
         ----------
-        \*args
+        \\*args
             A variable number of Dataset objects from which to build the
             vocabularies for non-eager fields. If none provided, the
             vocabularies are built from this Dataset (self).
