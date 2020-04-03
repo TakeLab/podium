@@ -15,7 +15,7 @@ setup(
     author_email='takelab@fer.hr',
     license='MIT',
     packages=find_packages(),
-    url="https://git.takelab.fer.hr/TakeLab/takepod",
+    url="https://github.com/mttk/takepod",  # Change to Takelab/podium on release
     setup_requires=["pytest-runner"],
     # pytest version because of https://github.com/pytest-dev/pytest/issues/3950
     # tests need to be rewritten

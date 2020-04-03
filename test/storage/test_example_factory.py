@@ -8,6 +8,7 @@ name_field = Field("Name",
 
 score_field = Field("Score",
                     custom_numericalize=int,
+                    store_as_raw=True,
                     tokenize=False)
 
 favorite_food_field = Field("Favorite_food",
@@ -238,10 +239,10 @@ def test_create_from_tsv(expected_values, example_tsv_string):
                          ]
                          )
 def test_multiple_output_for_input_dict(expected_values):
-    lower_case_name_field = Field("Lowercase_name")
+    lower_case_name_field = Field("Lowercase_name", store_as_raw=True)
     lower_case_name_field.add_pretokenize_hook(str.lower)
 
-    upper_case_name_field = Field("Uppercase_name")
+    upper_case_name_field = Field("Uppercase_name", store_as_raw=True)
     upper_case_name_field.add_pretokenize_hook(str.upper)
 
     test_field_dict = dict(field_dict)
@@ -279,10 +280,10 @@ def test_multiple_output_for_input_dict(expected_values):
                          ]
                          )
 def test_multiple_output_for_input_list(expected_values):
-    lower_case_name_field = Field("Lowercase_name")
+    lower_case_name_field = Field("Lowercase_name", store_as_raw=True)
     lower_case_name_field.add_pretokenize_hook(str.lower)
 
-    upper_case_name_field = Field("Uppercase_name")
+    upper_case_name_field = Field("Uppercase_name", store_as_raw=True)
     upper_case_name_field.add_pretokenize_hook(str.upper)
 
     test_field_list = list(field_list)

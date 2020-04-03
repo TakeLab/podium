@@ -20,6 +20,7 @@ def get_dataset():
 
     score_field = Field("Score",
                         custom_numericalize=int,
+                        store_as_raw=True,
                         tokenize=False,
                         is_target=True)
 
