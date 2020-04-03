@@ -134,7 +134,11 @@ A common use-case is to incorporate existing components of pretrained language m
 Example[label: ('positive', None); subword: (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.'])]
 ```
 
-## Code style standards
+## Contributing
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+
+### Code style standards
 In this repository we use [numpydoc](https://numpydoc.readthedocs.io/en/latest/) as a standard for documentation and Flake8 for code sytle. Code style references are [Flake8](http://flake8.pycqa.org/en/latest/) and [PEP8](https://www.python.org/dev/peps/pep-0008/).
 
 Commands to check flake8 compliance for written code and tests.
@@ -142,10 +146,6 @@ Commands to check flake8 compliance for written code and tests.
 flake8 takepod
 flake8 test
 ```
-
-## Contributing
-
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ### Building and running unit tests
 
@@ -197,4 +197,4 @@ See also the list of [contributors](https://github.com/mttk/takepod/graphs/contr
 
 ## License
 
-This project is licensed under the BSD 3-Clause - see the [LICENSE](LICENSE) file for details
+This project is licensed under the BSD 3-Clause - see the [LICENSE](LICENSE) file for details.
