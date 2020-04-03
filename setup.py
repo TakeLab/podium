@@ -9,13 +9,13 @@ with open('requirements.txt') as fp:
 
 setup(
     name='podium',
-    version='0.0.1',
-    description='TakeLab podium (podium) project',
+    version='1.0.0',
+    description='TakeLab podium project',
     author='TakeLab',
     author_email='takelab@fer.hr',
     license='MIT',
     packages=find_packages(),
-    url="https://github.com/mttk/takepod",  # Change to Takelab/podium on release
+    url="https://github.com/mttk/podium",  # Change to Takelab/podium on release
     setup_requires=["pytest-runner"],
     # pytest version because of https://github.com/pytest-dev/pytest/issues/3950
     # tests need to be rewritten

@@ -53,7 +53,7 @@ def test_yake_en_wrapper_output(keyword_data):
         windowsSize=1,
         top=20)
 
-    yake_takepod = YAKE(
+    yake_podium = YAKE(
         lan="en",
         n=3,
         dedupLim=0.9,
@@ -64,22 +64,22 @@ def test_yake_en_wrapper_output(keyword_data):
 
     output_original = [kw for kw, _ in
                        yake_original.extract_keywords(keyword_data["text"])]
-    output_takepod = yake_takepod(keyword_data["text"])
+    output_podium = yake_podium(keyword_data["text"])
 
-    assert output_takepod == output_original
+    assert output_podium == output_original
 
 
 # @pytest.mark.usefixtures("keyword_data")
 # def test_yake_en_nondefault_wrapper_output(keyword_data):
 #     yake = pytest.importorskip('yake')
 #     yake_original = yake.KeywordExtractor(n=2)
-#     yake_takepod = YAKE(n=2)
+#     yake_podium = YAKE(n=2)
 #
 #     output_original = [kw for kw, _ in
 #                        yake_original.extract_keywords(keyword_data["text"])]
-#     output_takepod = yake_takepod(keyword_data["text"])
+#     output_podium = yake_podium(keyword_data["text"])
 #
-#     assert output_takepod == output_original
+#     assert output_podium == output_original
 
 # @pytest.mark.usefixtures("keyword_data")
 # def test_yake_en_default_output(keyword_data):

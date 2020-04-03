@@ -35,7 +35,7 @@ We also recommend usage of a virtual environment:
 ### Installing from source
 
 To install `podium`, in your terminal
-1. Clone the repository: `git clone git@github.com:mttk/takepod.git && cd takepod`
+1. Clone the repository: `git clone git@github.com:mttk/podium.git && cd podium`
 2. Install requirements: `pip install -r requirements.txt`
 3. Install podium: `python setup.py install`
 
@@ -43,7 +43,7 @@ To install `podium`, in your terminal
 Coming soon!
 
 ## Usage examples
-For detailed usage examples see [takepod/examples](https://github.com/mttk/takepod/tree/master/takepod/examples)
+For detailed usage examples see [podium/examples](https://github.com/mttk/podium/tree/master/podium/examples)
 
 ### Loading datasets
 
@@ -143,7 +143,7 @@ In this repository we use [numpydoc](https://numpydoc.readthedocs.io/en/latest/)
 
 Commands to check flake8 compliance for written code and tests.
 ```
-flake8 takepod
+flake8 podium
 flake8 test
 ```
 
@@ -159,7 +159,7 @@ Commands to setup virtual environment and run tests.
 virtualenv -p python3.6 env
 source env/bin/activate
 python setup.py install
-py.test --cov-report=term-missing --cov=takepod
+py.test --cov-report=term-missing --cov=podium
 ```
 
 If you intend to develop part of podium you should use following command to install podium.
@@ -185,7 +185,7 @@ why.
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/mttk/takepod/tags). 
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/mttk/podium/tags). 
 
 ## Authors
 
@@ -193,7 +193,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 * Project made as part of TakeLab at Faculty of Electrical Engineering and Computing, University of Zagreb
 * Laboratory url: http://takelab.fer.hr
 
-See also the list of [contributors](https://github.com/mttk/takepod/graphs/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/mttk/podium/graphs/contributors) who participated in this project.
 
 ## License
 
