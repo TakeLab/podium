@@ -25,7 +25,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 For building this project system needs to have installed the following:
 - [```git```](https://git-scm.com/)
-- [```python3.6```+](https://www.python.org/downloads/release/python-360/)
+- [```python3.6```](https://www.python.org/downloads/release/python-360/) and higher
 - [```pip```](https://pypi.org/project/pip/)
 
 We also recommend usage of a virtual environment:
