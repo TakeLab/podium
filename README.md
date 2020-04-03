@@ -1,6 +1,6 @@
 # TakeLab Podium
 
-Home of the **TakeLab Podium** project. Podium is a framework agnostic Python natural language processing library which standardizes **data loading** and **preprocessing** as well as **model training** and **selection**, among others.
+Home of the **TakeLab Podium** project. Podium is a framework agnostic Python natural language processing library which standardizes data loading and preprocessing as well as model training and selection, among others.
 Our goal is to accelerate users' development of NLP models whichever aspect of the library they decide to use.
 
 - [Getting Started](#getting-started)
@@ -109,7 +109,8 @@ You could decide to lowercase all the characters and filter out all non-alphanum
 >>> print(sst_train[222])
 Example[label: ('positive', None); text: (None, ['a', 'slick', 'engrossing', 'melodrama'])]
 ```
-Pre-tokenization hooks do not see the tokenized data and are applied (and modify) only `raw` data. Post-tokenization hooks have access to tokenized data, and can be applied to either `raw` or `tokenized` data.
+**Pre-tokenization** hooks do not see the tokenized data and are applied (and modify) only `raw` data. 
+**Post-tokenization** hooks have access to tokenized data, and can be applied to either `raw` or `tokenized` data.
 
 
 ### Use preprocessing from other libraries
