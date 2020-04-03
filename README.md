@@ -195,8 +195,3 @@ See also the list of [contributors](https://github.com/mttk/takepod/graphs/contr
 ## License
 
 This project is licensed under the BSD 3-Clause - see the [LICENSE](LICENSE) file for details
-
-## Project package TODOs
-
-- The project still needs a to have a license picked.
-- Add deployment notes
