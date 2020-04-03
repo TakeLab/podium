@@ -133,7 +133,8 @@ def test_not_numericalizable_field(json_file_path):
     non_numericalizable_field = Field("non_numericalizable_field",
                                       tokenizer=custom_datatype_tokenizer,
                                       is_numericalizable=False,
-                                      allow_missing_data=True)
+                                      allow_missing_data=True,
+                                      store_as_raw=True)
 
     fields['text_with_missing_data'] = (text_field, non_numericalizable_field)
 
@@ -310,6 +311,7 @@ def test_iterator_missing_data_in_batch(json_file_path):
                                 tokenizer="split",
                                 vocab=Vocab(),
                                 allow_missing_data=True,
+                                store_as_raw=True,
                                 missing_data_token=missing_data_default_value)
     fields['text_with_missing_data'] = missing_value_field
     ds = create_tabular_dataset_from_json(fields, json_file_path)

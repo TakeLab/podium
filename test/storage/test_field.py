@@ -57,11 +57,10 @@ class MockVocab:
     def numericalize(self, data):
         self.numericalized = True
 
-
-def test_field_store_raw_sequential_exception():
-    with pytest.raises(ValueError):
-        Field(name="F", store_as_raw=False, tokenize=False)
-
+# This is obsolete as the combination no longer raises an error
+#def test_field_store_raw_sequential_exception():
+#    with pytest.raises(ValueError):
+#        Field(name="F", store_as_raw=False, tokenize=False)
 
 def test_field_preprocess_eager():
     vocab = MockVocab()
@@ -152,7 +151,7 @@ def test_field_use_vocab(vocab, expected_value):
 def test_field_update_vocab(use_vocab, is_sequential, expected_vocab_values):
     vocab = MockVocab()
     f = Field(name="F", vocab=vocab if use_vocab else None,
-              tokenize=is_sequential)
+              tokenize=is_sequential, store_as_raw=True)
 
     raw_value = "some text"
     tokenized_value = ["some", "text"]
@@ -230,7 +229,7 @@ def test_field_pad_custom_numericalize():
     custom_padding_token = -999
     f = Field("test_field",
               custom_numericalize=int,
-              custom_numericalize_padding_token=custom_padding_token,
+              padding_token=custom_padding_token,
               tokenizer='split')
     mock_numericalization = np.array([1, 2, 3, 4])
     expected_numericalization = np.array([1, 2, 3, 4] + [custom_padding_token] * 6)
@@ -276,8 +275,7 @@ def test_field_get_tokenizer_callable(vocab):
     def my_tokenizer(string):
         return [string[0], string[1:]]
 
-    f = Field(name="F", vocab=vocab, tokenizer=my_tokenizer, tokenize=True,
-              store_as_raw=False)
+    f = Field(name="F", vocab=vocab, tokenizer=my_tokenizer, tokenize=True)
 
     _, data = f.preprocess("asd dsa")[0]
     assert data == (None, ["a", "sd dsa"])
@@ -297,7 +295,7 @@ def test_field_get_tokenizer_spacy_exception():
 
 
 def test_field_get_tokenizer_default():
-    f = Field(name="F", vocab=MockVocab(), tokenize=True, store_as_raw=False)
+    f = Field(name="F", vocab=MockVocab(), tokenize=True)
 
     _, data = f.preprocess("asd dsa")[0]
     assert data == (None, ["asd", "dsa"])
@@ -306,21 +304,19 @@ def test_field_get_tokenizer_default():
 def test_field_get_tokenizer_exception():
     with pytest.raises(ValueError):
         Field(name="F", vocab=MockVocab(), tokenizer="NOT_tokenizer",
-              tokenize=True, store_as_raw=False)
+              tokenize=True)
 
 
 def test_field_get_tokenizer_spacy_ok():
     patch.dict("sys.modules", spacy=MockSpacy()).start()
-    f = Field(name="F", vocab=MockVocab(), tokenizer="spacy", tokenize=True,
-              store_as_raw=False)
+    f = Field(name="F", vocab=MockVocab(), tokenizer="spacy", tokenize=True)
     _, data = f.preprocess("bla blu")[0]
     assert data == (None, ["bla", "blu"])
 
 
 def test_field_pickle_spacy_tokenizer(tmpdir):
     patch.dict("sys.modules", spacy=MockSpacy()).start()
-    fld = Field(name="F", vocab=MockVocab(), tokenizer="spacy", tokenize=True,
-                store_as_raw=False)
+    fld = Field(name="F", vocab=MockVocab(), tokenizer="spacy", tokenize=True)
     _, data = fld.preprocess("bla blu")[0]
     assert data == (None, ["bla", "blu"])
 
@@ -339,7 +335,7 @@ def test_field_pickle_spacy_tokenizer(tmpdir):
 
 
 def test_field_pretokenize_hooks():
-    f = Field(name="F", tokenize=True)
+    f = Field(name="F", tokenize=True, store_as_raw=True)
 
     f.add_pretokenize_hook(str.lower)
     f.add_pretokenize_hook(lambda x: x.replace("bla", "blu"))
@@ -355,7 +351,7 @@ def test_field_pretokenize_hooks():
 
 
 def test_field_pretokenize_hooks_detach():
-    f = Field(name="F", tokenize=True)
+    f = Field(name="F", tokenize=True, store_as_raw=True)
 
     f.add_pretokenize_hook(str.lower)
     f.add_pretokenize_hook(lambda x: x.replace(";", " "))
@@ -374,7 +370,7 @@ def test_field_pretokenize_hooks_detach():
 
 
 def test_field_posttokenize_hooks():
-    f = Field(name="F", tokenize=True)
+    f = Field(name="F", tokenize=True, store_as_raw=True)
 
     def remove_tags_hook(raw, tokenized):
         raw = raw.replace("<tag>", "")
@@ -398,7 +394,8 @@ def test_field_posttokenize_hooks():
 
 
 def test_field_posttokenize_hooks_detach():
-    f = Field(name="F", tokenize=True, custom_numericalize=float)
+    f = Field(name="F", tokenize=True, custom_numericalize=float,
+              store_as_raw=True)
 
     def remove_tags_hook(raw, tokenized):
         raw = raw.replace("<tag>", "")
@@ -440,7 +437,8 @@ def test_field_repeated_hooks():
 
     to_lower_hook.call_count = 0
 
-    f = Field(name="F", tokenize=True, custom_numericalize=float)
+    f = Field(name="F", tokenize=True, custom_numericalize=float,
+              store_as_raw=True)
 
     # TAG -> tag
     f.add_posttokenize_hook(to_lower_hook)
@@ -673,8 +671,9 @@ def test_multilabel_too_many_classes_in_data_exception():
 @pytest.mark.parametrize("store_as_raw, store_as_tokenized, tokenize",
                          [[True, True, True],
                           [True, True, False],
-                          [False, True, True],
-                          [False, False, False]])
+                          [False, True, True]])
+                         #[False, False, False] This case autocorrects
+
 def test_field_fail_initialization(store_as_raw, store_as_tokenized, tokenize):
     with pytest.raises(ValueError):
         Field("bla",
@@ -760,8 +759,8 @@ def test_missing_values_fail():
 
 
 def test_multioutput_field_posttokenization():
-    uppercase_field = Field("uppercase_field")
-    lowercase_field = Field("lowercase_field")
+    uppercase_field = Field("uppercase_field", store_as_raw=True)
+    lowercase_field = Field("lowercase_field", store_as_raw=True)
 
     def post_tokenization_all_upper(raw, tokenized):
         return raw, list(map(str.upper, tokenized))
@@ -839,7 +838,7 @@ def test_hook_returning_iterable():
 
     field = Field("Iterator_hook_test_field",
                   tokenizer=lambda raw: [int(x) for x in raw.split(',')],
-                  custom_numericalize=id)
+                  custom_numericalize=id, store_as_raw=True)
 
     def multiply_by_two_hook(raw, tokens):
         return raw, (i * 2 for i in tokens)

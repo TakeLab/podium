@@ -510,9 +510,9 @@ def mock_load_dataset(*args):
 
 def mock_get_default_fields():
     title = Field(name="title", vocab=Vocab(), tokenizer='split', language="hr",
-                  tokenize=True, store_as_raw=False)
+                  tokenize=True)
     text = Field(name="text", vocab=Vocab(keep_freqs=True),
-                 tokenizer='split', tokenize=True, store_as_raw=False)
+                 tokenizer='split', tokenize=True)
     labels = MultilabelField(name="eurovoc_labels", vocab=Vocab(specials=()))
     crovoc_labels = MultilabelField(name="crovoc_labels", vocab=Vocab(specials=()))
     fields = {"title": title, "text": text, "eurovoc_labels": labels,
