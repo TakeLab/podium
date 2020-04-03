@@ -66,7 +66,7 @@ Load your own dataset from a standardized format (`csv`, `tsv` or `jsonl`):
 >>> fields = {'premise':   Field('premise', vocab=Vocab()),
               'hypothesis':Field('hypothesis', vocab=Vocab()),
               'label':     LabelField('label')}
->>> dataset = TabularDataset('my_dataset.csv', format='csv',fields=fields)
+>>> dataset = TabularDataset('my_dataset.csv', format='csv', fields=fields)
 >>> print(dataset)
 TabularDataset[Size: 1, Fields: ['premise', 'hypothesis', 'label']]
 ```
@@ -79,7 +79,7 @@ We wrap dataset pre-processing in customizable `Field` classes. Each `Field` has
 
 ```python
 >>> from takepod.storage import Vocab, Field, LabelField
->>> vocab=Vocab(max_size=5000, min_freq=2)
+>>> vocab = Vocab(max_size=5000, min_freq=2)
 >>> text = Field(name='text', vocab=vocab)
 >>> label = LabelField(name='label')
 >>> fields = {'text': text, 'label':label}
