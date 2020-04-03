@@ -8,7 +8,7 @@ Our goal is to accelerate users' development of NLP models whichever aspect of t
   - [Installation](#installation)
 - [Usage examples](#usage-examples)
   - [Loading datasets](#loading-datasets)
-  - [Define your preprocessing pipeline](#define-your-preprocessing-pipeline)
+  - [Define your preprocessing](#define-your-preprocessing)
   - [Use preprocessing from other libraries](#use-preprocessing-from-other-libraries)
 - [Contributing](#contributing)
   - [Building and running unit tests](#building-and-running-unit-tests)
@@ -36,8 +36,8 @@ We also recommend usage of a virtual environment:
 
 To install `podium`, in your terminal
 1. Clone the repository: `git clone git@github.com:mttk/takepod.git && cd takepod`
-3. Install requirements: `pip install -r requirements.txt`
-4. Install podium: `python setup.py install`
+2. Install requirements: `pip install -r requirements.txt`
+3. Install podium: `python setup.py install`
 
 ### Installing package from pip/wheel
 Coming soon!
@@ -73,7 +73,7 @@ TabularDataset[Size: 1, Fields: ['premise', 'hypothesis', 'label']]
 
 Or define your own `Dataset` subclass (tutorial coming soon)
 
-### Define your preprocessing pipeline
+### Define your preprocessing
 
 We wrap dataset pre-processing in customizable `Field` classes. Each `Field` has an optional `Vocab` instance which automatically handles token-to-index conversion.
 
@@ -115,7 +115,7 @@ Example[label: ('positive', None); text: (None, ['a', 'slick', 'engrossing', 'me
 
 ### Use preprocessing from other libraries
 
-A common use-case is to components of pretrained language models, such as BERT. This is extremely simple to incorporate as part of our `Field`s. This snippet requires installation of the `transformers` library.
+A common use-case is to incorporate existing components of pretrained language models, such as BERT. This is extremely simple to incorporate as part of our `Field`s. This snippet requires installation of the `transformers` (`pip install transformers`) library.
 
 ```python
 >>> from transformers import BertTokenizer
@@ -188,7 +188,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Authors
 
-* Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Silvije Skudar](https://github.com/sskudar), [Filip Boltužić](https://github.com/FilipBolt) and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list of collaborators needs to mention: [Domagoj Pluščec](https://github.com/domi385), [Marin Kačan](https://github.com/mkacan), [Mate Mijolović](https://github.com/matemijolovic).
+* Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Silvije Skudar](https://github.com/sskudar), [Filip Boltužić](https://github.com/FilipBolt) and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list of collaborators needs to mention: [Domagoj Pluščec](https://github.com/domi385), [Marin Kačan](https://github.com/mkacan), [Dunja Vesinger](https://github.com/dunja-v), [Mate Mijolović](https://github.com/matemijolovic).
 * Project made as part of TakeLab at Faculty of Electrical Engineering and Computing, University of Zagreb
 * Laboratory url: http://takelab.fer.hr
 
