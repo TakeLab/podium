@@ -2,7 +2,7 @@ from collections import namedtuple
 
 import pytest
 
-from takepod.models.batch_transform_functions import default_label_transform, \
+from podium.models.batch_transform_functions import default_label_transform, \
     default_feature_transform
 
 

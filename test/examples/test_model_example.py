@@ -1,7 +1,7 @@
 from collections import namedtuple
 import numpy as np
 import pytest
-import takepod.examples.model_example as example
+import podium.examples.model_example as example
 
 
 def test_basic_pauza_hr_fields():

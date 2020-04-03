@@ -1,10 +1,10 @@
 import pytest
 import pytest_mock  # noqa
 
-from takepod.models.impl.simple_trainers import SimpleTrainer
-from takepod.models.model import AbstractSupervisedModel
-from takepod.models import FeatureTransformer
-from takepod.datasets.iterator import Iterator
+from podium.models.impl.simple_trainers import SimpleTrainer
+from podium.models.model import AbstractSupervisedModel
+from podium.models import FeatureTransformer
+from podium.datasets.iterator import Iterator
 from test.storage.conftest import (tabular_dataset, json_file_path)  # noqa
 
 
@@ -16,7 +16,7 @@ def model(mocker):
 
 
 @pytest.mark.usefixtures("tabular_dataset", "model")  # noqa
-def test_simple_trainer_num_epoch(tabular_dataset, model):
+def test_simple_trainer_num_epoch(tabular_dataset, model):  # noqa
     tabular_dataset.finalize_fields()
     iterator = Iterator(batch_size=len(tabular_dataset))
     trainer = SimpleTrainer()
@@ -38,7 +38,7 @@ def mock_label_transform_fun(y):
     return y
 
 @pytest.mark.usefixtures("tabular_dataset", "mocker", "model")  # noqa
-def test_simple_trainer_batch_transform_call(tabular_dataset, mocker, model):
+def test_simple_trainer_batch_transform_call(tabular_dataset, mocker, model):  # noqa
     tabular_dataset.finalize_fields()
     iterator = Iterator(tabular_dataset, batch_size=len(tabular_dataset))
 

@@ -18,7 +18,7 @@ run_tests() {
 }
 
 if [[ "$SKIP_TESTS" != "true" ]]; then
-    # need to install takepod as a library
+    # need to install podium as a library
     python setup.py install
     run_tests
 fi

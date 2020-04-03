@@ -35,7 +35,7 @@ We also recommend usage of a virtual environment:
 ### Installing from source
 
 To install `podium`, in your terminal
-1. Clone the repository: `git clone git@github.com:mttk/takepod.git && cd takepod`
+1. Clone the repository: `git clone git@github.com:mttk/podium.git && cd podium`
 2. Install requirements: `pip install -r requirements.txt`
 3. Install podium: `python setup.py install`
 
@@ -43,14 +43,14 @@ To install `podium`, in your terminal
 Coming soon!
 
 ## Usage examples
-For detailed usage examples see [takepod/examples](https://github.com/mttk/takepod/tree/master/takepod/examples)
+For detailed usage examples see [podium/examples](https://github.com/mttk/podium/tree/master/podium/examples)
 
 ### Loading datasets
 
 Use some of our pre-defined datasets:
 
 ```python
->>> from takepod.datasets import SST
+>>> from podium.datasets import SST
 >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits()
 >>> print(sst_train)
 SST[Size: 6920, Fields: ['text', 'label']]
@@ -61,8 +61,8 @@ Example[label: ('positive', None); text: (None, ['A', 'slick', ',', 'engrossing'
 Load your own dataset from a standardized format (`csv`, `tsv` or `jsonl`):
 
 ```python
->>> from takepod.datasets import TabularDataset
->>> from takepod.storage import Vocab, Field, LabelField
+>>> from podium.datasets import TabularDataset
+>>> from podium.storage import Vocab, Field, LabelField
 >>> fields = {'premise':   Field('premise', vocab=Vocab()),
               'hypothesis':Field('hypothesis', vocab=Vocab()),
               'label':     LabelField('label')}
@@ -78,7 +78,7 @@ Or define your own `Dataset` subclass (tutorial coming soon)
 We wrap dataset pre-processing in customizable `Field` classes. Each `Field` has an optional `Vocab` instance which automatically handles token-to-index conversion.
 
 ```python
->>> from takepod.storage import Vocab, Field, LabelField
+>>> from podium.storage import Vocab, Field, LabelField
 >>> vocab = Vocab(max_size=5000, min_freq=2)
 >>> text = Field(name='text', vocab=vocab)
 >>> label = LabelField(name='label')
@@ -92,6 +92,7 @@ Each `Field` allows the user full flexibility modify the data in multiple stages
 - Prior to tokenization (by using pre-tokenization `hooks`)
 - During tokenization (by using your own `tokenizer`)
 - Post tokenization (by using post-tokenization `hooks`)
+
 You can also completely disregard our preprocessing and define your own:
 - Set your `custom_numericalize`
 
@@ -143,7 +144,7 @@ In this repository we use [numpydoc](https://numpydoc.readthedocs.io/en/latest/)
 
 Commands to check flake8 compliance for written code and tests.
 ```
-flake8 takepod
+flake8 podium
 flake8 test
 ```
 
@@ -159,7 +160,7 @@ Commands to setup virtual environment and run tests.
 virtualenv -p python3.6 env
 source env/bin/activate
 python setup.py install
-py.test --cov-report=term-missing --cov=takepod
+py.test --cov-report=term-missing --cov=podium
 ```
 
 If you intend to develop part of podium you should use following command to install podium.
@@ -185,15 +186,14 @@ why.
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/mttk/takepod/tags). 
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/mttk/podium/tags). 
 
 ## Authors
 
 * Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Silvije Skudar](https://github.com/sskudar), [Filip Boltužić](https://github.com/FilipBolt) and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list of collaborators needs to mention: [Domagoj Pluščec](https://github.com/domi385), [Marin Kačan](https://github.com/mkacan), [Dunja Vesinger](https://github.com/dunja-v), [Mate Mijolović](https://github.com/matemijolovic).
-* Project made as part of TakeLab at Faculty of Electrical Engineering and Computing, University of Zagreb
-* Laboratory url: http://takelab.fer.hr
+* Project made as part of [TakeLab](http://takelab.fer.hr) at Faculty of Electrical Engineering and Computing, University of Zagreb
 
-See also the list of [contributors](https://github.com/mttk/takepod/graphs/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/mttk/podium/graphs/contributors) who participated in this project.
 
 ## License
 

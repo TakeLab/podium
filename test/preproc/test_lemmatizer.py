@@ -1,7 +1,7 @@
 import os
 import pytest
 import mock
-from takepod.preproc.lemmatizer.croatian_lemmatizer import (
+from podium.preproc.lemmatizer.croatian_lemmatizer import (
     CroatianLemmatizer, _lemmatizer_posttokenized_hook)
 
 
@@ -131,7 +131,7 @@ def molexdir(tmpdir):
 @pytest.fixture
 def mock_lemmatizer(molex14_lemma2word, molex14_word2lemma):
     with mock.patch(
-            'takepod.storage.resources.large_resource.SCPLargeResource.__init__'
+            'podium.storage.resources.large_resource.SCPLargeResource.__init__'
     ) as mock_scp:
         mock_scp.return_value = None
         mock_scp.SCP_HOST_KEY = "scp_host"

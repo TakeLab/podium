@@ -1,13 +1,13 @@
 import numpy as np
 from unittest.mock import Mock
 
-from takepod.pipeline import Pipeline
-from takepod.storage import (
+from podium.pipeline import Pipeline
+from podium.storage import (
     Field, ExampleFormat,
     MultioutputField,
     LabelField, TokenizedField
 )
-from takepod.models import AbstractSupervisedModel, FeatureTransformer
+from podium.models import AbstractSupervisedModel, FeatureTransformer
 
 
 name_dict = {

@@ -4,7 +4,7 @@ import tempfile
 import dill
 import pytest
 
-from takepod.datasets import CatacxDataset
+from podium.datasets import CatacxDataset
 
 
 @pytest.fixture(scope="module")

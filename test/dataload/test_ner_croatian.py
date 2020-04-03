@@ -6,12 +6,12 @@ import shutil
 import pytest
 
 from mock import patch
-from takepod.dataload.ner_croatian import (
+from podium.dataload.ner_croatian import (
     NERCroatianXMLLoader,
     convert_sequence_to_entities
 )
-from takepod.storage.resources.large_resource import LargeResource
-from takepod.storage.resources.downloader import SCPDownloader
+from podium.storage.resources.large_resource import LargeResource
+from podium.storage.resources.downloader import SCPDownloader
 
 
 def create_ner_file(filepath, title_element, body_element):

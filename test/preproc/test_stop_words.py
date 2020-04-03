@@ -1,5 +1,5 @@
 import pytest
-import takepod.preproc.stop_words as stop_words
+import podium.preproc.stop_words as stop_words
 
 
 @pytest.mark.parametrize(

@@ -6,11 +6,11 @@ import dill
 
 from mock import patch
 
-from takepod.dataload.eurovoc import EuroVocLoader, Label, LabelRank, dill_dataset
-from takepod.storage.resources.large_resource import LargeResource, SCPLargeResource
-from takepod.storage import Field, MultilabelField
-from takepod.storage import Vocab
-from takepod.datasets.impl.eurovoc_dataset import EuroVocDataset
+from podium.dataload.eurovoc import EuroVocLoader, Label, LabelRank, dill_dataset
+from podium.storage.resources.large_resource import LargeResource, SCPLargeResource
+from podium.storage import Field, MultilabelField
+from podium.storage import Vocab
+from podium.datasets.impl.eurovoc_dataset import EuroVocDataset
 
 from test.datasets.test_eurovoc_dataset import (eurovoc_label_hierarchy,
                                                 crovoc_label_hierarchy,

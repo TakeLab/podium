@@ -4,7 +4,7 @@ from collections import namedtuple
 
 from numpy.testing import assert_array_equal
 
-from takepod.models.impl.eurovoc_models import multilabel_svm as ms
+from podium.models.impl.eurovoc_models import multilabel_svm as ms
 
 import warnings
 from sklearn.exceptions import FitFailedWarning, ConvergenceWarning
