@@ -8,9 +8,9 @@ with open('requirements.txt') as fp:
     install_requires = fp.read()
 
 setup(
-    name='takepod',
+    name='podium',
     version='0.0.1',
-    description='TakeLab podium (takepod) project',
+    description='TakeLab podium (podium) project',
     author='TakeLab',
     author_email='takelab@fer.hr',
     license='MIT',
@@ -21,6 +21,6 @@ setup(
     # tests need to be rewritten
     tests_require=["pytest==3.7.4", "pandas", "mock", "pytest_mock", "nltk"],
     install_requires=install_requires,
-    package_data={'takepod': ['preproc/stemmer/data/*.txt']},
+    package_data={'podium': ['preproc/stemmer/data/*.txt']},
     zip_safe=False
 )

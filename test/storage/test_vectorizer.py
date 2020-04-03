@@ -4,8 +4,8 @@ import tempfile
 import numpy as np
 import pytest
 
-from takepod.storage.vectorizers import vectorizer
-from takepod.storage.vectorizers.impl import GloVe
+from podium.storage.vectorizers import vectorizer
+from podium.storage.vectorizers.impl import GloVe
 
 BASIC_VECT_HEADING = b"251518 300"
 BASIC_VECT_DATA = [b". 0.001134 -0.000058 -0.000668\n",

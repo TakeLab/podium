@@ -1,6 +1,6 @@
 import pytest
-from takepod.datasets import CornellMovieDialogsConversationalDataset
-from takepod.dataload.cornell_movie_dialogs import CornellMovieDialogsNamedTuple
+from podium.datasets import CornellMovieDialogsConversationalDataset
+from podium.dataload.cornell_movie_dialogs import CornellMovieDialogsNamedTuple
 
 EXPECTED_EXAMPLES = [
     {"statement": "They do not!".split(), "reply": "They do to!".split()},

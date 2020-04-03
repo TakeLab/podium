@@ -2,9 +2,9 @@ from test.storage.conftest import TABULAR_TEXT
 import numpy as np
 import pytest
 from sklearn.feature_extraction import text
-from takepod.storage.vocab import Vocab, SpecialVocabSymbols
-from takepod.storage.vectorizers.tfidf import TfIdfVectorizer, CountVectorizer
-from takepod.storage.field import Field
+from podium.storage.vocab import Vocab, SpecialVocabSymbols
+from podium.storage.vectorizers.tfidf import TfIdfVectorizer, CountVectorizer
+from podium.storage.field import Field
 
 
 DATA = [

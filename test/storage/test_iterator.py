@@ -4,11 +4,11 @@ from test.storage.conftest import (
     create_tabular_dataset_from_json, tabular_dataset_fields, TABULAR_TEXT)
 import pytest
 import numpy as np
-from takepod.datasets.iterator import (Iterator, BucketIterator,
-                                       HierarchicalDatasetIterator)
-from takepod.datasets.hierarhical_dataset import HierarchicalDataset
-from takepod.storage.field import Field
-from takepod.storage.vocab import Vocab
+from podium.datasets.iterator import (Iterator, BucketIterator,
+                                      HierarchicalDatasetIterator)
+from podium.datasets.hierarhical_dataset import HierarchicalDataset
+from podium.storage.field import Field
+from podium.storage.vocab import Vocab
 
 
 @pytest.mark.parametrize(

@@ -1,5 +1,5 @@
 import pytest
-from takepod.preproc.stemmer.croatian_stemmer import (
+from podium.preproc.stemmer.croatian_stemmer import (
     CroatianStemmer,
     get_croatian_stemmer_hook)
 

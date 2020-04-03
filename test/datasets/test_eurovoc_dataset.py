@@ -1,8 +1,8 @@
 import pytest
 from mock import patch
-from takepod.datasets.impl.eurovoc_dataset import EuroVocDataset
-from takepod.dataload.eurovoc import Label, LabelRank, Document
-from takepod.preproc.lemmatizer.croatian_lemmatizer import CroatianLemmatizer
+from podium.datasets.impl.eurovoc_dataset import EuroVocDataset
+from podium.dataload.eurovoc import Label, LabelRank, Document
+from podium.preproc.lemmatizer.croatian_lemmatizer import CroatianLemmatizer
 
 
 EXPECTED_EXAMPLES = [
@@ -217,7 +217,7 @@ def mock_init_lemmatizer(self, **kwargs):
     return
 
 
-@patch('takepod.preproc.lemmatizer.croatian_lemmatizer._lemmatizer_posttokenized_hook',
+@patch('podium.preproc.lemmatizer.croatian_lemmatizer._lemmatizer_posttokenized_hook',
        side_effect=mock_lemmatizer_posttokenized_hook)
 @patch.object(CroatianLemmatizer, '__init__', mock_init_lemmatizer)
 def test_default_fields(patched_hook):
@@ -228,7 +228,7 @@ def test_default_fields(patched_hook):
 
 
 @pytest.fixture(scope="module")
-@patch('takepod.preproc.lemmatizer.croatian_lemmatizer._lemmatizer_posttokenized_hook',
+@patch('podium.preproc.lemmatizer.croatian_lemmatizer._lemmatizer_posttokenized_hook',
        side_effect=mock_lemmatizer_posttokenized_hook)
 @patch.object(CroatianLemmatizer, '__init__', mock_init_lemmatizer)
 def default_dataset(patched_hook):
@@ -285,7 +285,7 @@ def test_loaded_crovoc_labels(default_dataset):
         assert label_data in EXPECTED_CROVOC_LABELS
 
 
-@patch('takepod.preproc.lemmatizer.croatian_lemmatizer._lemmatizer_posttokenized_hook',
+@patch('podium.preproc.lemmatizer.croatian_lemmatizer._lemmatizer_posttokenized_hook',
        side_effect=mock_lemmatizer_posttokenized_hook)
 @patch.object(CroatianLemmatizer, '__init__', mock_init_lemmatizer)
 def test_missing_document(patched_hook):
@@ -298,7 +298,7 @@ def test_missing_document(patched_hook):
     assert len(dataset.get_crovoc_label_hierarchy()) == 3
 
 
-@patch('takepod.preproc.lemmatizer.croatian_lemmatizer._lemmatizer_posttokenized_hook',
+@patch('podium.preproc.lemmatizer.croatian_lemmatizer._lemmatizer_posttokenized_hook',
        side_effect=mock_lemmatizer_posttokenized_hook)
 @patch.object(CroatianLemmatizer, '__init__', mock_init_lemmatizer)
 def test_missing_document_mapping(patched_hook):
@@ -311,7 +311,7 @@ def test_missing_document_mapping(patched_hook):
     assert len(dataset.get_crovoc_label_hierarchy()) == 3
 
 
-@patch('takepod.preproc.lemmatizer.croatian_lemmatizer._lemmatizer_posttokenized_hook',
+@patch('podium.preproc.lemmatizer.croatian_lemmatizer._lemmatizer_posttokenized_hook',
        side_effect=mock_lemmatizer_posttokenized_hook)
 @patch.object(CroatianLemmatizer, '__init__', mock_init_lemmatizer)
 def test_non_existing_label(patched_hook):

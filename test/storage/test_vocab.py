@@ -2,7 +2,7 @@ import dill
 import os
 import pytest
 
-from takepod.storage import vocab
+from podium.storage import vocab
 
 
 def test_default_vocab_add_set_words():

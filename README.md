@@ -50,7 +50,7 @@ For detailed usage examples see [takepod/examples](https://github.com/mttk/takep
 Use some of our pre-defined datasets:
 
 ```python
->>> from takepod.datasets import SST
+>>> from podium.datasets import SST
 >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits()
 >>> print(sst_train)
 SST[Size: 6920, Fields: ['text', 'label']]
@@ -61,8 +61,8 @@ Example[label: ('positive', None); text: (None, ['A', 'slick', ',', 'engrossing'
 Load your own dataset from a standardized format (`csv`, `tsv` or `jsonl`):
 
 ```python
->>> from takepod.datasets import TabularDataset
->>> from takepod.storage import Vocab, Field, LabelField
+>>> from podium.datasets import TabularDataset
+>>> from podium.storage import Vocab, Field, LabelField
 >>> fields = {'premise':   Field('premise', vocab=Vocab()),
               'hypothesis':Field('hypothesis', vocab=Vocab()),
               'label':     LabelField('label')}
@@ -78,7 +78,7 @@ Or define your own `Dataset` subclass (tutorial coming soon)
 We wrap dataset pre-processing in customizable `Field` classes. Each `Field` has an optional `Vocab` instance which automatically handles token-to-index conversion.
 
 ```python
->>> from takepod.storage import Vocab, Field, LabelField
+>>> from podium.storage import Vocab, Field, LabelField
 >>> vocab = Vocab(max_size=5000, min_freq=2)
 >>> text = Field(name='text', vocab=vocab)
 >>> label = LabelField(name='label')

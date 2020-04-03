@@ -1,9 +1,9 @@
 import os
 import tempfile
 import pytest
-from takepod.datasets.impl.snli_dataset import SNLISimple
-from takepod.datasets.dataset import Dataset
-from takepod.storage.resources.large_resource import LargeResource
+from podium.datasets.impl.snli_dataset import SNLISimple
+from podium.datasets.dataset import Dataset
+from podium.storage.resources.large_resource import LargeResource
 
 
 # TODO: Add full test examples once LabelField is merged to master.

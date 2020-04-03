@@ -3,9 +3,9 @@ import os
 import pandas as pd
 import pytest
 
-from takepod.datasets.tabular_dataset import TabularDataset
-from takepod.storage.field import Field, LabelField
-from takepod.storage.vocab import Vocab
+from podium.datasets.tabular_dataset import TabularDataset
+from podium.storage.field import Field, LabelField
+from podium.storage.vocab import Vocab
 
 
 @pytest.fixture()

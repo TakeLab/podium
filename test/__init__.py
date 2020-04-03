@@ -1,5 +1,5 @@
 import logging
-import takepod
+import podium
 
-LOGGER = logging.getLogger(takepod.__name__)
+LOGGER = logging.getLogger(podium.__name__)
 LOGGER.setLevel(logging.CRITICAL)

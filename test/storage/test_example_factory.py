@@ -1,6 +1,6 @@
 import pytest
 
-from takepod.storage import ExampleFactory, Field, ExampleFormat
+from podium.storage import ExampleFactory, Field, ExampleFormat
 
 name_field = Field("Name",
                    store_as_raw=True,

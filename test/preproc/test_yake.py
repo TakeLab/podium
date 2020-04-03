@@ -1,6 +1,6 @@
 import pytest
 
-from takepod.preproc.yake import YAKE
+from podium.preproc.yake import YAKE
 
 TEXT = """Sources tell us that Google is acquiring Kaggle, a platform that hosts
         data science and machine learning competitions. Details about the

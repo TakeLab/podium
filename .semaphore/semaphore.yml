@@ -1,5 +1,5 @@
 version: v1.0
-name: Unit tests for takepod
+name: Unit tests for podium
 agent:
   machine:
     type: e1-standard-2
@@ -21,6 +21,6 @@ blocks:
             - source env/bin/activate
             - python --version
             - pip install -r requirements.txt
-            - py.test --cov-report=term-missing --cov=takepod
-            - flake8 takepod
+            - py.test --cov-report=term-missing --cov=podium
+            - flake8 podium
             - flake8 test
