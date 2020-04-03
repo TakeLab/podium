@@ -52,6 +52,8 @@ Use some of our pre-defined datasets:
 ```python
 >>> from takepod.datasets import SST
 >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits()
+>>> print(sst_train)
+SST[Size: 6920, Fields: ['text', 'label']]
 >>> print(sst_train[222]) # A short example
 Example[label: ('positive', None); text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])]
 ```
