@@ -9,7 +9,7 @@ with open('requirements.txt') as fp:
 
 setup(
     name='podium',
-    version='1.0.0',
+    version='1.0.1',
     description='TakeLab podium project',
     author='TakeLab',
     author_email='takelab@fer.hr',
