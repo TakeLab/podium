@@ -13,7 +13,6 @@ Our goal is to accelerate users' development of NLP models whichever aspect of t
 - [Contributing](#contributing)
   - [Building and running unit tests](#building-and-running-unit-tests)
   - [Adding new dependencies](#adding-new-dependencies)
-  - [Windows specifics](#windows-specifics)
 - [Versioning](#versioning)
 - [Contributing](#contributing)
 - [Authors](#authors)
@@ -180,38 +179,6 @@ The best thing to do is to manually add dependencies to the
 ```pip freeze > requirements.txt```. 
 See [here](https://medium.com/@tomagee/pip-freeze-requirements-txt-considered-harmful-f0bce66cf895)
 why.
-
-### Windows specifics
-1. install python 3.6 64 bit with pip
-(if needed update pip ``` python3 -m pip install --upgrade pip ```)
-2. install and create virtual environment  
-```
-pip3 install virtualenv
-virtualenv -p python3 env
-```
-3. Activate environment  
-```
-\path\to\env\Scripts\activate.bat -- using CMD
-\path\to\env\Scripts\activate.ps1 -- using PowerShell
-```
-
-Note: To create a virtualenv under a path with spaces in it on Windows, you’ll need the win32api library installed.
-
-3. Install requirements and run tests
-Install pytorch.  
-```
-pip3 install http://download.pytorch.org/whl/cu90/torch-0.4.1-cp36-cp36m-win_amd64.whl
-```
-Install other requirements.  
-```
-pip install -r requirements.txt
-python setup.py install
-```
-
-4. Deactivate environment when needed  
-```
-.\env\Scripts\deactivate.bat
-```
 
 ## Versioning
 
