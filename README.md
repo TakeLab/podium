@@ -43,7 +43,7 @@ To install `podium`, in your terminal
 Coming soon!
 
 ## Usage examples
-For detailed usage examples see examples in [takepod/examples](https://github.com/mttk/takepod/tree/master/takepod/examples)
+For detailed usage examples see [takepod/examples](https://github.com/mttk/takepod/tree/master/takepod/examples)
 
 ### Loading datasets
 
