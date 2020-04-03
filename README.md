@@ -105,6 +105,7 @@ You could decide to lowercase all the characters and filter out all non-alphanum
                            any([char.isalnum() for char in token])]
 >>>     return raw, filtered_tokens
 >>> text.add_pretokenize_hook(lowercase)
+>>> text.add_posttokenize_hook(filter_alnum)
 >>> # ...
 >>> print(sst_train[222])
 Example[label: ('positive', None); text: (None, ['a', 'slick', 'engrossing', 'melodrama'])]
