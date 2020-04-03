@@ -65,8 +65,7 @@ Load your own dataset from a standardized format (`csv`, `tsv` or `jsonl`):
 >>> from takepod.storage import Vocab, Field, LabelField
 >>> fields = {'premise':   Field('premise', vocab=Vocab()),
               'hypothesis':Field('hypothesis', vocab=Vocab()),
-              'label':     LabelField('label')
-             }
+              'label':     LabelField('label')}
 >>> dataset = TabularDataset('my_dataset.csv', format='csv',fields=fields)
 >>> print(dataset)
 TabularDataset[Size: 1, Fields: ['premise', 'hypothesis', 'label']]
