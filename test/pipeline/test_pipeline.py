@@ -25,7 +25,8 @@ mock_data = [
 
 def get_fields():
     name_field = Field("Name", custom_numericalize=name_dict.get, store_as_raw=True)
-    score_field = Field("Score", tokenize=False, custom_numericalize=int, store_as_raw=True)
+    score_field = Field("Score", tokenize=False, custom_numericalize=int,
+                        store_as_raw=True)
     age_field = LabelField("Age", custom_numericalize=int)
 
     name_field.finalize()

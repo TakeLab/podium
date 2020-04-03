@@ -58,9 +58,10 @@ class MockVocab:
         self.numericalized = True
 
 # This is obsolete as the combination no longer raises an error
-#def test_field_store_raw_sequential_exception():
+# def test_field_store_raw_sequential_exception():
 #    with pytest.raises(ValueError):
 #        Field(name="F", store_as_raw=False, tokenize=False)
+
 
 def test_field_preprocess_eager():
     vocab = MockVocab()
@@ -672,8 +673,7 @@ def test_multilabel_too_many_classes_in_data_exception():
                          [[True, True, True],
                           [True, True, False],
                           [False, True, True]])
-                         #[False, False, False] This case autocorrects
-
+# [False, False, False] This case autocorrects
 def test_field_fail_initialization(store_as_raw, store_as_tokenized, tokenize):
     with pytest.raises(ValueError):
         Field("bla",

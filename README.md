@@ -198,7 +198,7 @@ This project is licensed under the (TODO) - see the [LICENSE.md](LICENSE.md) fil
 
 ## Project package TODOs
 
-- The project still needs a to have a license picked. 
+- The project still needs a to have a license picked.
 - OSX instructions on installation and building
 - Add used references
 - Add deployment notes
