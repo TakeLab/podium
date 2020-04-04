@@ -1,4 +1,4 @@
-# TakeLab Podium
+![Takelab logo](https://user-images.githubusercontent.com/7013497/59593633-95218c80-90f2-11e9-8150-34ec11b8b565.png)
 
 Home of the **TakeLab Podium** project. Podium is a framework agnostic Python natural language processing library which standardizes data loading and preprocessing as well as model training and selection, among others.
 Our goal is to accelerate users' development of NLP models whichever aspect of the library they decide to use.
