@@ -31,7 +31,7 @@ class SST(Dataset):
 
     NAME = "sst"
     URL = 'https://nlp.stanford.edu/sentiment/trainDevTestTrees_PTB.zip'
-    DATASET_DIR = "trees"
+    DATASET_DIR = os.path.join("sst", "trees")
     ARCHIVE_TYPE = "zip"
 
     TRAIN_FILE = 'train.txt'
