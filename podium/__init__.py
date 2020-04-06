@@ -7,7 +7,6 @@ import logging
 import logging.config
 from . import dataload
 from . import datasets
-from . import examples
 from . import metrics
 from . import models
 from . import preproc
@@ -20,7 +19,6 @@ __name__ = "podium"
 
 __all__ = ["dataload",
            "datasets",
-           "examples",
            "metrics",
            "models",
            "preproc",
