@@ -9,9 +9,9 @@
 
 ## Intermediate
 
-[TFIDF SVM example](tfidf_svm_example.py): use TfIDFVectorizer to train an SVM model for SST sentiment classification: 
+[TFIDF SVM example](tfidf_svm_example.py): use TfIDFVectorizer to train an SVM model for SST sentiment classification.
 
-[Model example](model_example.py): implement a basic scikit-learn MLP model on Pauza HR dataset: 
+[Model example](model_example.py): implement a basic scikit-learn MLP model on Pauza HR dataset:
 
 [KEX](keywords_example.py): use a built-in keyword extraction model.
 
@@ -21,5 +21,5 @@
 
 [IMDB Example](imdb_example.py): Run a Pytorch NN model on the IMDB sentiment classification dataset.
 
-[NER Example](ner_example.py) Run a NER model on the Croatian NER dataset.
+[NER Example](ner_example.py): Run a NER model on the Croatian NER dataset.
 
