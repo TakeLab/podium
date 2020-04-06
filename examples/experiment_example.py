@@ -25,7 +25,7 @@ def numericalize_pauza_rating(rating):
 def basic_pauza_hr_fields():
     """Function returns pauza-hr fields used for classification."""
     rating = Field(name="Rating", vocab=Vocab(specials=()),
-                   is_target=True, tokenize=False,
+                   is_target=True, tokenize=False, store_as_raw=True,
                    custom_numericalize=numericalize_pauza_rating)
 
     text = Field(name="Text", vocab=Vocab(), tokenizer='split',
@@ -73,7 +73,7 @@ def experiment_example():
     experiment = Experiment(ScikitMLPClassifier,
                             trainer=trainer,
                             feature_transformer=feature_transformer,
-                            label_transform_fun=label_transform_fun)
+                            label_transform_fn=label_transform_fun)
 
     _, model_params, train_params = \
         grid_search(experiment,
@@ -105,10 +105,10 @@ def experiment_example():
         "Text": train_dataset.field_dict["Text"]
     }
 
-    pipeline = Pipeline(dataset_fields,
-                        ExampleFormat.XML,
-                        feature_transformer,
-                        experiment.model)
+    pipeline = Pipeline(fields=dataset_fields,
+                        example_format=ExampleFormat.XML,
+                        model=experiment.model,
+                        feature_transformer=feature_transformer)
 
     example_good = "<Example><Text>Izvrstan, ogroman Zagrebački, " \
                    "dostava na vrijeme, ljubazno osoblje ...</Text></Example>"

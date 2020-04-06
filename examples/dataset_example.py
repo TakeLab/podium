@@ -7,11 +7,11 @@ from podium.datasets.impl.pauza_dataset import PauzaHRDataset
 
 if __name__ == "__main__":
     # for large resource settings see
-    # https://github.com/FilipBolt/takepod/wiki/Large-resources
+    # https://github.com/mtutek/podium/wiki/Large-resources
     LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
 
     # for logging settings see
-    # https://github.com/FilipBolt/takepod/wiki/Logging
+    # https://github.com/mtutek/podium/wiki/Logging
     logging.config.fileConfig(
         fname='logging.ini', disable_existing_loggers=False)
 
