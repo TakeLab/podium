@@ -5,10 +5,11 @@ _LOGGER = logging.getLogger(__name__)
 
 try:
     import yake
-except ImportError:
-    _LOGGER.debug("Problem occured while trying to import yake. "
+except ImportError as e:
+    _LOGGER.error("Problem occured while trying to import yake. "
                   "If the library is not installed visit "
                   "https://github.com/LIAAD/yake for more details.")
+    raise e
 
 
 class YAKE():
