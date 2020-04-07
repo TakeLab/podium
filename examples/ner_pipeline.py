@@ -18,7 +18,7 @@ from podium.datasets.iterator import BucketIterator
 from podium.storage.resources.large_resource import LargeResource
 from podium.storage.vectorizers.vectorizer import BasicVectorStorage
 from podium.pipeline import Pipeline
-from podium.examples.ner_example import (
+from ner_example import (
     feature_extraction_fn,
     label_transform_fun,
     example_word_count,
