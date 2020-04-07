@@ -1,5 +1,4 @@
 """Example how to use simple PauzaHR dataset."""
-import logging
 import dill
 
 from podium.storage.resources.large_resource import LargeResource
@@ -9,11 +8,6 @@ if __name__ == "__main__":
     # for large resource settings see
     # https://github.com/mtutek/podium/wiki/Large-resources
     LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
-
-    # for logging settings see
-    # https://github.com/mtutek/podium/wiki/Logging
-    logging.config.fileConfig(
-        fname='logging.ini', disable_existing_loggers=False)
 
     train_set, test_set = PauzaHRDataset.get_train_test_dataset()
     print("train set {}".format(len(train_set)))
