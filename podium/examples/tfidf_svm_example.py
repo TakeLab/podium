@@ -1,19 +1,19 @@
-"""Example how to use tfidf with svm on simple Imdb dataset."""
+"""Example how to use tfidf with svm on simple SST dataset."""
 from sklearn.metrics import accuracy_score
 
 from podium.storage.vectorizers.tfidf import TfIdfVectorizer
 from podium.models.impl import ScikitLinearSVCModel
 from podium.models import AbstractSupervisedModel, FeatureTransformer
-from podium.datasets import IMDB
+from podium.datasets import SST
 from podium.models.impl.simple_trainers import SimpleTrainer
 from podium.storage import LargeResource
 from podium.datasets.iterator import Iterator, SingleBatchIterator
 
 
 def tfidf_svm_example_main():
-    """Function obtains imdb dataset and then trains scikit svc linear model by using
+    """Function obtains sst dataset and then trains scikit svc linear model by using
     tfidf as input."""
-    train_set, test_set = IMDB.get_dataset_splits()
+    train_set, test_set, _ = SST.get_dataset_splits()
 
     train_iter = Iterator(batch_size=len(train_set))
     test_iter = SingleBatchIterator()
@@ -39,21 +39,20 @@ def tfidf_svm_example_main():
                   label_transform_fun=label_extraction_fn,
                   **{trainer.MAX_EPOCH_KEY: 1})
 
-    x_batch, y_batch = next(test_iter(train_iter).__iter__())
+    x_batch, y_batch = next(iter(test_iter(train_set)))
     x_train = feature_transformer.transform(x_batch)
     y_train = label_extraction_fn(y_batch)
     prediction_train = model.predict(X=x_train)[AbstractSupervisedModel.PREDICTION_KEY]
     print(x_train.shape, y_train.shape, prediction_train.shape)
     print(accuracy_score(y_true=y_train, y_pred=prediction_train))
 
-    x_batch, y_batch = next(test_iter(test_set).__iter__())
+    x_batch, y_batch = next(iter(test_iter(test_set)))
     x_test = feature_transformer.transform(x_batch)
     y_test = label_extraction_fn(y_batch)
     prediction_test = model.predict(X=x_test)[AbstractSupervisedModel.PREDICTION_KEY]
     print(x_test.shape, y_test.shape, prediction_test.shape)
-    print(accuracy_score(y_true=y_test, y_pred=prediction_test))
+    print("Accuracy:", accuracy_score(y_true=y_test, y_pred=prediction_test))
 
 
-if __name__ == "__main__":
-    LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
-    tfidf_svm_example_main()
+LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
+tfidf_svm_example_main()
