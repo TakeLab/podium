@@ -255,7 +255,7 @@ class Iterator:
         input_batch_dict, target_batch_dict = {}, {}
 
         for field in self._dataset.fields:
-            if field.is_numericalizable:
+            if field.is_numericalizable and field.batch_as_matrix:
                 # If this field is numericalizable, generate a possibly padded matrix
 
                 # the length to which all the rows are padded (or truncated)
@@ -368,7 +368,7 @@ class Iterator:
         return xs
 
     def __repr__(self):
-        return "{}[batch_size: {}, batch_to_matrix: {}, sort_key: {}, shuffle: {}]"\
+        return "{}[batch_size: {}, batch_to_matrix: {}, sort_key: {}, shuffle: {}]" \
             .format(self.__class__.__name__, self.batch_size, self.batch_to_matrix,
                     self.sort_key, self.shuffle)
 
@@ -513,7 +513,8 @@ class BucketIterator(Iterator):
 
     def __repr__(self):
         return "{}[batch_size: {}, batch_to_matrix: {}, sort_key: {}, " \
-            "shuffle: {}, look_ahead_multiplier: {}, bucket_sort_key: {}]".format(
+               "shuffle: {}, look_ahead_multiplier: {}, bucket_sort_key: {}]"\
+            .format(
                 self.__class__.__name__, self.batch_size,
                 self.batch_to_matrix, self.sort_key, self.shuffle,
                 self.look_ahead_multiplier, self.bucket_sort_key)
@@ -747,7 +748,8 @@ class HierarchicalDatasetIterator(Iterator):
 
     def __repr__(self):
         return "{}[batch_size: {}, batch_to_matrix: {}, sort_key: {}, " \
-            "shuffle: {}, context_max_length: {}, context_max_depth: {}]".format(
+               "shuffle: {}, context_max_length: {}, context_max_depth: {}]"\
+            .format(
                 self.__class__.__name__, self.batch_size,
                 self.batch_to_matrix, self.sort_key, self.shuffle,
                 self._context_max_size, self._context_max_depth)

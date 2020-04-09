@@ -192,6 +192,7 @@ class Field:
                  eager=True,
                  is_numericalizable=True,
                  custom_numericalize=None,
+                 batch_as_matrix=True,
                  padding_token=-999,
                  is_target=False,
                  fixed_length=None,
@@ -260,6 +261,13 @@ class Field:
             doesn't use a vocabulary. If using custom_numericalize and padding is
             required, please ensure that the `missing_data_token` is of the same type
             as the value returned by custom_numericalize.
+        batch_as_matrix: bool
+            Whether the batch created for this field will be compressed into a matrix.
+            This parameter is ignored if is_numericalizable is set to False.
+            If True, the batch returned by an Iterator or Dataset.batch() will contain
+            a matrix of numericalizations for all examples.
+            If False, a list of unpadded vectors will be returned instead. For missing
+            data, the value in the list will be None.
         padding_token : int
             If custom_numericalize is provided and padding the batch matrix is needed,
             this token is used to pad the end of the matrix row.
@@ -297,6 +305,7 @@ class Field:
         self.language = language
         self._tokenizer_arg = tokenizer
         self.is_numericalizable = is_numericalizable
+        self.batch_as_matrix = batch_as_matrix
 
         if store_as_tokenized and tokenize:
             error_msg = "Store_as_tokenized' and 'tokenize' both set to True." \
@@ -813,8 +822,9 @@ class LabelField(Field):
                  vocab=None,
                  eager=True,
                  custom_numericalize=None,
+                 batch_as_matrix=True,
                  allow_missing_data=False,
-                 missing_data_token=-1
+                 missing_data_token=-1,
                  ):
         if vocab is None and custom_numericalize is None:
             # Default to a vocabulary if custom numericalize is not set
@@ -836,6 +846,7 @@ class LabelField(Field):
                          store_as_tokenized=False,
                          eager=eager,
                          custom_numericalize=custom_numericalize,
+                         batch_as_matrix=batch_as_matrix,
                          is_target=True,
                          fixed_length=1,
                          allow_missing_data=allow_missing_data,
@@ -854,6 +865,7 @@ class TokenizedField(Field):
                  vocab=None,
                  eager=True,
                  custom_numericalize=None,
+                 batch_as_matrix=True,
                  padding_token=-999,
                  is_target=False,
                  fixed_length=None,
@@ -867,6 +879,7 @@ class TokenizedField(Field):
             store_as_tokenized=True,
             eager=eager,
             custom_numericalize=custom_numericalize,
+            batch_as_matrix=batch_as_matrix,
             padding_token=padding_token,
             is_target=is_target,
             fixed_length=fixed_length,
@@ -886,6 +899,7 @@ class MultilabelField(TokenizedField):
                  vocab=None,
                  eager=True,
                  custom_numericalize=None,
+                 batch_as_matrix=True,
                  allow_missing_data=False,
                  missing_data_token=-1):
         """Create a MultilabelField from arguments.
@@ -911,6 +925,19 @@ class MultilabelField(TokenizedField):
                     Whether to build the vocabulary online, each time the field
                     preprocesses raw data.
 
+                custom_numericalize : callable(str) -> int
+                    Callable that takes a string and returns an int.
+                    Used to index classes.
+
+                batch_as_matrix: bool
+                    Whether the batch created for this field will be compressed into a
+                    matrix. This parameter is ignored if is_numericalizable is set to
+                    False.
+                    If True, the batch returned by an Iterator or Dataset.batch() will
+                    contain a matrix of numericalizations for all examples.
+                    If False, a list of unpadded vectors will be returned instead.
+                    For missing data, the value in the list will be None.
+
                 allow_missing_data : bool
                     Whether the field allows missing data.
                     In the case 'allow_missing_data'
@@ -923,9 +950,14 @@ class MultilabelField(TokenizedField):
                     containing a single np.Nan ([np.Nan])
                     Default: False
 
-                custom_numericalize : callable(str) -> int
-                    Callable that takes a string and returns an int.
-                    Used to index classes.
+                missing_data_token : number
+                    Token to use to mark batch rows as missing. If data for a field is
+                    missing, its matrix row will be filled with this value.
+                    For non-numericalizable fields, this parameter is ignored and the
+                    value will be None. If using custom_numericalize and padding is
+                    required, please ensure that the `missing_data_token` is of the same
+                    type as the value returned by custom_numericalize.
+                    Default: -1
 
                 Raises
                 ------
@@ -945,6 +977,7 @@ class MultilabelField(TokenizedField):
                          vocab=vocab,
                          eager=eager,
                          custom_numericalize=custom_numericalize,
+                         batch_as_matrix=batch_as_matrix,
                          is_target=True,
                          fixed_length=num_of_classes,
                          allow_missing_data=allow_missing_data,
