@@ -930,12 +930,13 @@ class MultilabelField(TokenizedField):
                     Used to index classes.
 
                 batch_as_matrix: bool
-                    Whether the batch created for this field will be compressed into a matrix.
-                    This parameter is ignored if is_numericalizable is set to False.
-                    If True, the batch returned by an Iterator or Dataset.batch() will contain
-                    a matrix of numericalizations for all examples.
-                    If False, a list of unpadded vectors will be returned instead. For missing
-                    data, the value in the list will be None.
+                    Whether the batch created for this field will be compressed into a
+                    matrix. This parameter is ignored if is_numericalizable is set to
+                    False.
+                    If True, the batch returned by an Iterator or Dataset.batch() will
+                    contain a matrix of numericalizations for all examples.
+                    If False, a list of unpadded vectors will be returned instead.
+                    For missing data, the value in the list will be None.
 
                 allow_missing_data : bool
                     Whether the field allows missing data.
@@ -950,12 +951,12 @@ class MultilabelField(TokenizedField):
                     Default: False
 
                 missing_data_token : number
-                    Token to use to mark batch rows as missing. If data for a field is missing,
-                    its matrix row will be filled with this value. For non-numericalizable fields,
-                    this parameter is ignored and the value will be None.
-                    If using custom_numericalize and padding is required, please ensure that
-                    the `missing_data_token` is of the same type as the value returned by
-                    custom_numericalize.
+                    Token to use to mark batch rows as missing. If data for a field is
+                    missing, its matrix row will be filled with this value.
+                    For non-numericalizable fields, this parameter is ignored and the
+                    value will be None. If using custom_numericalize and padding is
+                    required, please ensure that the `missing_data_token` is of the same
+                    type as the value returned by custom_numericalize.
                     Default: -1
 
                 Raises
