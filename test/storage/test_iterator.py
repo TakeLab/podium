@@ -7,8 +7,8 @@ import numpy as np
 from podium.datasets.iterator import (Iterator, BucketIterator,
                                       HierarchicalDatasetIterator)
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
-from podium.storage.field import Field
-from podium.storage.vocab import Vocab
+from podium.storage import Field, ExampleFactory, Vocab
+from podium.datasets import Dataset
 
 
 @pytest.mark.parametrize(
@@ -395,6 +395,28 @@ def test_bucket_iterator_set_dataset_on_init(tabular_dataset):
     for x_batch, y_batch in bi:
         # asserting to iterate
         assert True
+
+
+def test_iterator_batch_as_list(tabular_dataset):
+    raw_dataset = [("1 2 3 4",), ("2 3 4",), ("3 4",)]
+    field = Field("test_field", custom_numericalize=int,
+                  tokenizer='split', batch_as_matrix=False)
+    fields = (field,)
+    ef = ExampleFactory(fields)
+    examples = list(map(ef.from_list, raw_dataset))
+    ds = Dataset(examples, fields)
+
+    for i, (input_batch, _) in enumerate(Iterator(ds, batch_size=2, shuffle=False)):
+        assert isinstance(input_batch.test_field, list)
+        batch = input_batch.test_field
+        if i == 0:
+            assert len(batch) == 2
+            assert np.all(batch[0] == [1, 2, 3, 4])
+            assert np.all(batch[1] == [2, 3, 4])
+
+        if i == 2:
+            assert len(batch) == 1
+            assert np.all(batch[0] == [3, 4])
 
 
 def iterators_behave_identically(iterator_1, iterator_2):
