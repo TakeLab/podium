@@ -192,6 +192,7 @@ class Field:
                  eager=True,
                  is_numericalizable=True,
                  custom_numericalize=None,
+                 batch_as_matrix=True,
                  padding_token=-999,
                  is_target=False,
                  fixed_length=None,
@@ -297,6 +298,7 @@ class Field:
         self.language = language
         self._tokenizer_arg = tokenizer
         self.is_numericalizable = is_numericalizable
+        self.batch_as_matrix = batch_as_matrix
 
         if store_as_tokenized and tokenize:
             error_msg = "Store_as_tokenized' and 'tokenize' both set to True." \
