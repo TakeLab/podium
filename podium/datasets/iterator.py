@@ -513,10 +513,11 @@ class BucketIterator(Iterator):
 
     def __repr__(self):
         return "{}[batch_size: {}, batch_to_matrix: {}, sort_key: {}, " \
-               "shuffle: {}, look_ahead_multiplier: {}, bucket_sort_key: {}]".format(
-            self.__class__.__name__, self.batch_size,
-            self.batch_to_matrix, self.sort_key, self.shuffle,
-            self.look_ahead_multiplier, self.bucket_sort_key)
+               "shuffle: {}, look_ahead_multiplier: {}, bucket_sort_key: {}]"\
+            .format(
+                self.__class__.__name__, self.batch_size,
+                self.batch_to_matrix, self.sort_key, self.shuffle,
+                self.look_ahead_multiplier, self.bucket_sort_key)
 
     def __str__(self):
         return self.__repr__()
@@ -747,10 +748,11 @@ class HierarchicalDatasetIterator(Iterator):
 
     def __repr__(self):
         return "{}[batch_size: {}, batch_to_matrix: {}, sort_key: {}, " \
-               "shuffle: {}, context_max_length: {}, context_max_depth: {}]".format(
-            self.__class__.__name__, self.batch_size,
-            self.batch_to_matrix, self.sort_key, self.shuffle,
-            self._context_max_size, self._context_max_depth)
+               "shuffle: {}, context_max_length: {}, context_max_depth: {}]"\
+            .format(
+                self.__class__.__name__, self.batch_size,
+                self.batch_to_matrix, self.sort_key, self.shuffle,
+                self._context_max_size, self._context_max_depth)
 
     def __str__(self):
         return self.__repr__()

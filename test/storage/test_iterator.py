@@ -10,6 +10,7 @@ from podium.datasets.hierarhical_dataset import HierarchicalDataset
 from podium.storage import Field, ExampleFactory, Vocab
 from podium.datasets import Dataset
 
+
 @pytest.mark.parametrize(
     "batch_size, expected_len",
     [
@@ -398,7 +399,8 @@ def test_bucket_iterator_set_dataset_on_init(tabular_dataset):
 
 def test_iterator_batch_as_list(tabular_dataset):
     raw_dataset = [("1 2 3 4",), ("2 3 4",), ("3 4",)]
-    field = Field("test_field", custom_numericalize=int, tokenizer='split', batch_as_matrix=False)
+    field = Field("test_field", custom_numericalize=int,
+                  tokenizer='split', batch_as_matrix=False)
     fields = (field,)
     ef = ExampleFactory(fields)
     examples = list(map(ef.from_list, raw_dataset))
