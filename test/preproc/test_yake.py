@@ -43,8 +43,6 @@ KEYWORD_DATA = {
 }
 
 
-
-
 def test_yake_en_wrapper_output():
     yake = pytest.importorskip('yake')
     yake_original = yake.KeywordExtractor(
