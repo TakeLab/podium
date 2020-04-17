@@ -976,7 +976,11 @@ class SentenceEmbeddingField(Field):
     def __init__(self,
                  name: str,
                  embedding_fn: Callable[[str], np.array],
-                 embedding_size: int):
+                 embedding_size: int,
+                 vocab=None,
+                 is_target=False,
+                 language='en',
+                 allow_missing_data=False):
         """
         Field used for sentence-level multidimensional embeddings.
 
@@ -986,20 +990,28 @@ class SentenceEmbeddingField(Field):
             Field name, used for referencing data in the dataset.
         embedding_fn: Callable[[str], np.array]
             Callable that takes a string and returns a fixed-width embedding.
+            In case of missing data, this callable will be passed a None.
         embedding_size: int
             Width of the embedding.
+        vocab: Vocab
+            Vocab that will be updated with the sentences passed to this field.
+            Keep in mind that whole sentences will be passed to the vocab.
+        language: str
+            Langage of the data. Not used in this field.
+        allow_missing_data: bool
+            Whether this field will allow the processing of missing data.
         """
         super().__init__(name,
                          custom_numericalize=embedding_fn,
                          tokenizer=None,
-                         language=None,
-                         vocab=None,
+                         language=language,
+                         vocab=vocab,
                          tokenize=False,
                          store_as_raw=True,
                          store_as_tokenized=False,
-                         is_target=False,
+                         is_target=is_target,
                          fixed_length=embedding_size,
-                         allow_missing_data=True)
+                         allow_missing_data=allow_missing_data)
 
 
 def numericalize_multihot(tokens, token_indexer, num_of_classes):

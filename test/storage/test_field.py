@@ -865,7 +865,8 @@ def test_sentence_embedding_field():
 
     field = SentenceEmbeddingField("test_field",
                                    embedding_fn=mock_embedding_fn,
-                                   embedding_size=4)
+                                   embedding_size=4,
+                                   allow_missing_data=True)
 
     (_, data), = field.preprocess("test_sentence")
     numericalization_1 = field.numericalize(data)
