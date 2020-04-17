@@ -1,6 +1,9 @@
 import pytest
 
+pytest.importorskip("podium.preproc.yake")
 from podium.preproc.yake import YAKE
+import yake
+
 
 TEXT = """Sources tell us that Google is acquiring Kaggle, a platform that hosts
         data science and machine learning competitions. Details about the
@@ -34,16 +37,13 @@ KEYWORDS = ['machine learning competitions',
             'kaggle co-founder ceo']
 
 
-@pytest.fixture()
-def keyword_data():
-    return {
-        "text": TEXT,
-        "keywords": KEYWORDS
-    }
+KEYWORD_DATA = {
+    "text": TEXT,
+    "keywords": KEYWORDS
+}
 
 
-@pytest.mark.usefixtures("keyword_data")
-def test_yake_en_wrapper_output(keyword_data):
+def test_yake_en_wrapper_output():
     yake = pytest.importorskip('yake')
     yake_original = yake.KeywordExtractor(
         lan="en",
@@ -63,28 +63,18 @@ def test_yake_en_wrapper_output(keyword_data):
     )
 
     output_original = [kw for kw, _ in
-                       yake_original.extract_keywords(keyword_data["text"])]
-    output_podium = yake_podium(keyword_data["text"])
+                       yake_original.extract_keywords(KEYWORD_DATA["text"])]
+    output_podium = yake_podium(KEYWORD_DATA["text"])
 
     assert output_podium == output_original
 
 
-# @pytest.mark.usefixtures("keyword_data")
-# def test_yake_en_nondefault_wrapper_output(keyword_data):
-#     yake = pytest.importorskip('yake')
-#     yake_original = yake.KeywordExtractor(n=2)
-#     yake_podium = YAKE(n=2)
-#
-#     output_original = [kw for kw, _ in
-#                        yake_original.extract_keywords(keyword_data["text"])]
-#     output_podium = yake_podium(keyword_data["text"])
-#
-#     assert output_podium == output_original
+def test_yake_en_nondefault_wrapper_output():
+    yake_original = yake.KeywordExtractor(n=2)
+    yake_podium = YAKE(n=2)
 
-# @pytest.mark.usefixtures("keyword_data")
-# def test_yake_en_default_output(keyword_data):
-#     pytest.importorskip('yake')
-#     yake = YAKE()
-#     output_kws = yake(keyword_data["text"])
-#
-#     assert output_kws == keyword_data["keywords"]
+    output_original = [kw for kw, _ in
+                       yake_original.extract_keywords(KEYWORD_DATA["text"])]
+    output_podium = yake_podium(KEYWORD_DATA["text"])
+
+    assert output_podium == output_original
