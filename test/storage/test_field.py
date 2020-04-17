@@ -5,7 +5,7 @@ import pytest
 from mock import patch
 
 from podium.storage import Field, TokenizedField, MultilabelField, \
-    Vocab, SpecialVocabSymbols, MultioutputField, LabelField
+    Vocab, SpecialVocabSymbols, MultioutputField, LabelField, SentenceEmbeddingField
 
 ONE_TO_FIVE = [1, 2, 3, 4, 5]
 
