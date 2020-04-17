@@ -3,9 +3,9 @@ import os
 import pandas as pd
 import pytest
 
-from takepod.datasets.tabular_dataset import TabularDataset
-from takepod.storage.field import Field
-from takepod.storage.vocab import Vocab
+from podium.datasets.tabular_dataset import TabularDataset
+from podium.storage.field import Field, LabelField
+from podium.storage.vocab import Vocab
 
 
 @pytest.fixture()
@@ -64,8 +64,7 @@ def tabular_dataset_fields(fixed_length=None):
                  fixed_length=fixed_length, allow_missing_data=False)
     text_missing = Field('text_with_missing_data', eager=True, vocab=Vocab(),
                          fixed_length=fixed_length, allow_missing_data=True)
-    rating = Field('rating', tokenize=False, eager=False, is_target=True,
-                   custom_numericalize=float)
+    rating = LabelField('rating', eager=False, custom_numericalize=float)
 
     fields = {"text": text, "text_with_missing_data": text_missing, "rating": rating}
 

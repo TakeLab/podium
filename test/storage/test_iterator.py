@@ -4,11 +4,11 @@ from test.storage.conftest import (
     create_tabular_dataset_from_json, tabular_dataset_fields, TABULAR_TEXT)
 import pytest
 import numpy as np
-from takepod.datasets.iterator import (Iterator, BucketIterator,
-                                       HierarchicalDatasetIterator)
-from takepod.datasets.hierarhical_dataset import HierarchicalDataset
-from takepod.storage.field import Field
-from takepod.storage.vocab import Vocab
+from podium.datasets.iterator import (Iterator, BucketIterator,
+                                      HierarchicalDatasetIterator)
+from podium.datasets.hierarhical_dataset import HierarchicalDataset
+from podium.storage import Field, ExampleFactory, Vocab
+from podium.datasets import Dataset
 
 
 @pytest.mark.parametrize(
@@ -133,7 +133,8 @@ def test_not_numericalizable_field(json_file_path):
     non_numericalizable_field = Field("non_numericalizable_field",
                                       tokenizer=custom_datatype_tokenizer,
                                       is_numericalizable=False,
-                                      allow_missing_data=True)
+                                      allow_missing_data=True,
+                                      store_as_raw=True)
 
     fields['text_with_missing_data'] = (text_field, non_numericalizable_field)
 
@@ -310,6 +311,7 @@ def test_iterator_missing_data_in_batch(json_file_path):
                                 tokenizer="split",
                                 vocab=Vocab(),
                                 allow_missing_data=True,
+                                store_as_raw=True,
                                 missing_data_token=missing_data_default_value)
     fields['text_with_missing_data'] = missing_value_field
     ds = create_tabular_dataset_from_json(fields, json_file_path)
@@ -393,6 +395,28 @@ def test_bucket_iterator_set_dataset_on_init(tabular_dataset):
     for x_batch, y_batch in bi:
         # asserting to iterate
         assert True
+
+
+def test_iterator_batch_as_list(tabular_dataset):
+    raw_dataset = [("1 2 3 4",), ("2 3 4",), ("3 4",)]
+    field = Field("test_field", custom_numericalize=int,
+                  tokenizer='split', batch_as_matrix=False)
+    fields = (field,)
+    ef = ExampleFactory(fields)
+    examples = list(map(ef.from_list, raw_dataset))
+    ds = Dataset(examples, fields)
+
+    for i, (input_batch, _) in enumerate(Iterator(ds, batch_size=2, shuffle=False)):
+        assert isinstance(input_batch.test_field, list)
+        batch = input_batch.test_field
+        if i == 0:
+            assert len(batch) == 2
+            assert np.all(batch[0] == [1, 2, 3, 4])
+            assert np.all(batch[1] == [2, 3, 4])
+
+        if i == 2:
+            assert len(batch) == 1
+            assert np.all(batch[0] == [3, 4])
 
 
 def iterators_behave_identically(iterator_1, iterator_2):

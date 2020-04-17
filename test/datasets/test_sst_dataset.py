@@ -1,9 +1,9 @@
 import os
 import tempfile
 import pytest
-from takepod.datasets.impl.sst_sentiment_dataset import SST
-from takepod.datasets.dataset import Dataset
-from takepod.storage.resources.large_resource import LargeResource
+from podium.datasets.impl.sst_sentiment_dataset import SST
+from podium.datasets.dataset import Dataset
+from podium.storage.resources.large_resource import LargeResource
 
 
 EXPECTED_TRAIN_EXAMPLES = [

@@ -3,8 +3,8 @@ import tempfile
 import zipfile
 import pytest
 import paramiko
-from takepod.storage.resources.large_resource import LargeResource, SCPLargeResource
-from takepod.storage.resources.downloader import SimpleHttpDownloader, SCPDownloader
+from podium.storage.resources.large_resource import LargeResource, SCPLargeResource
+from podium.storage.resources.downloader import SimpleHttpDownloader, SCPDownloader
 
 MOCK_RESOURCE_NAME = "res"
 MOCK_FILE_NAME = "test_file.txt"

@@ -1,5 +1,5 @@
 import pytest
-from takepod.metrics.metrics import f1_metric
+from podium.metrics.metrics import f1_metric
 
 
 def test_f1():

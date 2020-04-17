@@ -3,7 +3,7 @@ import pytest
 
 def test_iris_dataset():
     sklearn_datasets = pytest.importorskip("sklearn.datasets")
-    from takepod.datasets.iris_dataset import IrisDataset
+    from podium.datasets.iris_dataset import IrisDataset
 
     iris_ds = IrisDataset()
 

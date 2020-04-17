@@ -1,17 +1,152 @@
 # TakeLab Podium
 
-Home of the **TakeLab Podium** project. Podium is a Python machine learning library that helps users to accelerate use of natural language processing models. 
+Home of the **TakeLab Podium** project. Podium is a framework agnostic Python natural language processing library which standardizes data loading and preprocessing as well as model training and selection, among others.
+Our goal is to accelerate users' development of NLP models whichever aspect of the library they decide to use.
+
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [Usage examples](#usage-examples)
+  - [Loading datasets](#loading-datasets)
+  - [Define your preprocessing](#define-your-preprocessing)
+  - [Use preprocessing from other libraries](#use-preprocessing-from-other-libraries)
+- [Contributing](#contributing)
+  - [Building and running unit tests](#building-and-running-unit-tests)
+  - [Adding new dependencies](#adding-new-dependencies)
+- [Versioning](#versioning)
+- [Contributing](#contributing)
+- [Authors](#authors)
+- [License](#license)
 
 ## Getting Started
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
-Special notes for Windows systems are at the end of this chapter.
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
 ### Prerequisites
+
 For building this project system needs to have installed the following:
 - [```git```](https://git-scm.com/)
-- [```virtualenv```](https://virtualenv.pypa.io/en/latest/installation/)
-- [```python3.6```](https://www.python.org/downloads/release/python-360/)
+- [```python3.6```](https://www.python.org/downloads/release/python-360/) and higher
 - [```pip```](https://pypi.org/project/pip/)
+
+We also recommend usage of a virtual environment:
+- [```conda```](https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/environments.html#virtual-environments)
+- [```virtualenv```](https://virtualenv.pypa.io/en/latest/installation/)
+
+### Installing from source
+
+To install `podium`, in your terminal
+1. Clone the repository: `git clone git@github.com:mttk/podium.git && cd podium`
+2. Install requirements: `pip install -r requirements.txt`
+3. Install podium: `python setup.py install`
+
+### Installing package from pip/wheel
+Coming soon!
+
+## Usage examples
+For detailed usage examples see [podium/examples](https://github.com/mttk/podium/tree/master/podium/examples)
+
+### Loading datasets
+
+Use some of our pre-defined datasets:
+
+```python
+>>> from podium.datasets import SST
+>>> sst_train, sst_test, sst_dev = SST.get_dataset_splits()
+>>> print(sst_train)
+SST[Size: 6920, Fields: ['text', 'label']]
+>>> print(sst_train[222]) # A short example
+Example[label: ('positive', None); text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])]
+```
+
+Load your own dataset from a standardized format (`csv`, `tsv` or `jsonl`):
+
+```python
+>>> from podium.datasets import TabularDataset
+>>> from podium.storage import Vocab, Field, LabelField
+>>> fields = {'premise':   Field('premise', vocab=Vocab()),
+              'hypothesis':Field('hypothesis', vocab=Vocab()),
+              'label':     LabelField('label')}
+>>> dataset = TabularDataset('my_dataset.csv', format='csv', fields=fields)
+>>> print(dataset)
+TabularDataset[Size: 1, Fields: ['premise', 'hypothesis', 'label']]
+```
+
+Or define your own `Dataset` subclass (tutorial coming soon)
+
+### Define your preprocessing
+
+We wrap dataset pre-processing in customizable `Field` classes. Each `Field` has an optional `Vocab` instance which automatically handles token-to-index conversion.
+
+```python
+>>> from podium.storage import Vocab, Field, LabelField
+>>> vocab = Vocab(max_size=5000, min_freq=2)
+>>> text = Field(name='text', vocab=vocab)
+>>> label = LabelField(name='label')
+>>> fields = {'text': text, 'label':label}
+>>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+>>> print(vocab)
+Vocab[finalized: True, size: 5000]
+```
+
+Each `Field` allows the user full flexibility modify the data in multiple stages:
+- Prior to tokenization (by using pre-tokenization `hooks`)
+- During tokenization (by using your own `tokenizer`)
+- Post tokenization (by using post-tokenization `hooks`)
+
+You can also completely disregard our preprocessing and define your own:
+- Set your `custom_numericalize`
+
+You could decide to lowercase all the characters and filter out all non-alphanumeric tokens:
+
+```python
+>>> def lowercase(raw):
+>>>     return raw.lower()
+>>> def filter_alnum(raw, tokenized):
+>>>     filtered_tokens = [token for token in tokenized if
+                           any([char.isalnum() for char in token])]
+>>>     return raw, filtered_tokens
+>>> text.add_pretokenize_hook(lowercase)
+>>> text.add_posttokenize_hook(filter_alnum)
+>>> # ...
+>>> print(sst_train[222])
+Example[label: ('positive', None); text: (None, ['a', 'slick', 'engrossing', 'melodrama'])]
+```
+**Pre-tokenization** hooks do not see the tokenized data and are applied (and modify) only `raw` data. 
+**Post-tokenization** hooks have access to tokenized data, and can be applied to either `raw` or `tokenized` data.
+
+
+### Use preprocessing from other libraries
+
+A common use-case is to incorporate existing components of pretrained language models, such as BERT. This is extremely simple to incorporate as part of our `Field`s. This snippet requires installation of the `transformers` (`pip install transformers`) library.
+
+```python
+>>> from transformers import BertTokenizer
+>>> # Load the tokenizer and fetch pad index
+>>> tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+>>> pad_index = tokenizer.convert_tokens_to_ids(tokenizer.pad_token)
+>>> # Define a BERT subword Field
+>>> bert_field = Field("subword",
+                       vocab=None,
+                       padding_token=pad_index,
+                       tokenizer=tokenizer.tokenize,
+                       custom_numericalize=tokenizer.convert_tokens_to_ids)
+>>> # ...
+>>> print(sst_train[222])
+Example[label: ('positive', None); subword: (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.'])]
+```
+
+## Contributing
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+
+### Code style standards
+In this repository we use [numpydoc](https://numpydoc.readthedocs.io/en/latest/) as a standard for documentation and Flake8 for code sytle. Code style references are [Flake8](http://flake8.pycqa.org/en/latest/) and [PEP8](https://www.python.org/dev/peps/pep-0008/).
+
+Commands to check flake8 compliance for written code and tests.
+```
+flake8 podium
+flake8 test
+```
 
 ### Building and running unit tests
 
@@ -25,7 +160,7 @@ Commands to setup virtual environment and run tests.
 virtualenv -p python3.6 env
 source env/bin/activate
 python setup.py install
-py.test --cov-report=term-missing --cov=takepod
+py.test --cov-report=term-missing --cov=podium
 ```
 
 If you intend to develop part of podium you should use following command to install podium.
@@ -49,79 +184,17 @@ The best thing to do is to manually add dependencies to the
 See [here](https://medium.com/@tomagee/pip-freeze-requirements-txt-considered-harmful-f0bce66cf895)
 why.
 
-### Windows specifics
-1. install python 3.6 64 bit with pip
-(if needed update pip ``` python3 -m pip install --upgrade pip ```)
-2. install and create virtual environment  
-```
-pip3 install virtualenv
-virtualenv -p python3 env
-```
-3. Activate environment  
-```
-\path\to\env\Scripts\activate.bat -- using CMD
-\path\to\env\Scripts\activate.ps1 -- using PowerShell
-```
-
-Note: To create a virtualenv under a path with spaces in it on Windows, you’ll need the win32api library installed.
-
-3. Install requirements and run tests
-Install pytorch.  
-```
-pip3 install http://download.pytorch.org/whl/cu90/torch-0.4.1-cp36-cp36m-win_amd64.whl
-```
-Install other requirements.  
-```
-pip install -r requirements.txt
-python setup.py install
-```
-
-4. Deactivate environment when needed  
-```
-.\env\Scripts\deactivate.bat
-```
-
-## Usage examples
-For usage examples see examples in [takepod/examples](https://github.com/FilipBolt/takepod/tree/master/takepod/examples)
-
-## Code style standards
-In this repository we use [numpydoc](https://numpydoc.readthedocs.io/en/latest/) as a standard for documentation and Flake8 for code sytle. Code style references are [Flake8](http://flake8.pycqa.org/en/latest/) and [PEP8](https://www.python.org/dev/peps/pep-0008/).
-
-Commands to check flake8 compliance for written code and tests.
-```
-flake8 takepod
-flake8 test
-```
-
-## Contributing
-
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
-
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/FilipBolt/takepod/tags). 
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/mttk/podium/tags). 
 
 ## Authors
 
-* Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Domagoj Pluščec](https://github.com/domi385), [Filip Boltužić](https://github.com/FilipBolt) and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list of collaborators needs to mention: [Marin Kačan](https://github.com/mkacan), [Mate Mijolović](https://github.com/matemijolovic).
-* Project made as part of TakeLab at Faculty of Electrical Engineering and Computing, University of Zagreb
-* Laboratory url: http://takelab.fer.hr
+* Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Silvije Skudar](https://github.com/sskudar), [Filip Boltužić](https://github.com/FilipBolt) and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list of collaborators needs to mention: [Domagoj Pluščec](https://github.com/domi385), [Marin Kačan](https://github.com/mkacan), [Dunja Vesinger](https://github.com/dunja-v), [Mate Mijolović](https://github.com/matemijolovic).
+* Project made as part of [TakeLab](http://takelab.fer.hr) at Faculty of Electrical Engineering and Computing, University of Zagreb
 
-See also the list of [contributors](https://github.com/FilipBolt/takepod/graphs/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/mttk/podium/graphs/contributors) who participated in this project.
 
 ## License
 
-This project is licensed under the (TODO) - see the [LICENSE.md](LICENSE.md) file for details
-
-## List of References
-
-
-## Project package TODOs
-
-- The project still needs a to have a license picked. 
-- OSX instructions on installation and building
-- Add used references
-- Add deployment notes
-- Add small examples
-- For automatic flake8 compliance we currently don't recommend use of [Black](https://github.com/ambv/black).
-
+This project is licensed under the BSD 3-Clause - see the [LICENSE](LICENSE) file for details.

@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from takepod.models.impl.svm_model import ScikitSVCModel
+from podium.models.impl.svm_model import ScikitSVCModel
 
 X = np.array([[1, 0, 1], [1, 1, 1], [0, 0, 1]])
 Y = np.array([0, 1, 0])

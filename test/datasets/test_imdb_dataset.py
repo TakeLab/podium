@@ -1,9 +1,9 @@
 import os
 import tempfile
 import pytest
-from takepod.datasets.impl.imdb_sentiment_dataset import IMDB
-from takepod.datasets.dataset import Dataset
-from takepod.storage.resources.large_resource import LargeResource
+from podium.datasets.impl.imdb_sentiment_dataset import IMDB
+from podium.datasets.dataset import Dataset
+from podium.storage.resources.large_resource import LargeResource
 
 TRAIN_EXAMPLES = {
     "pos": ["If you like comedy cartoons then this is nearly a similar format",

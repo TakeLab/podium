@@ -1,8 +1,8 @@
 import pytest
 
-from takepod.models import Experiment, FeatureTransformer
-from takepod.datasets import Dataset
-from takepod.storage import Field, ExampleFactory, Vocab
+from podium.models import Experiment, FeatureTransformer
+from podium.datasets import Dataset
+from podium.storage import Field, ExampleFactory, Vocab
 
 
 def get_dataset():
@@ -20,6 +20,7 @@ def get_dataset():
 
     score_field = Field("Score",
                         custom_numericalize=int,
+                        store_as_raw=True,
                         tokenize=False,
                         is_target=True)
 
