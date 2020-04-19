@@ -264,7 +264,7 @@ def remove_nonalpha_and_stopwords(raw, tokenized, stop_words):
     tuple(str, list(str))
     """
     tokens = []
-    pattern = re.compile('[\W_]+')  # noqa
+    pattern = re.compile(r'[\W_]+')
     for token in tokenized:
         pattern.sub('', token)
         if len(token) > 1 and token not in stop_words:

@@ -43,7 +43,7 @@ To install `podium`, in your terminal
 Coming soon!
 
 ## Usage examples
-For detailed usage examples see [podium/examples](https://github.com/mttk/podium/tree/master/podium/examples)
+For detailed usage examples see [examples](https://github.com/mttk/podium/tree/master/examples)
 
 ### Loading datasets
 
@@ -145,6 +145,7 @@ In this repository we use [numpydoc](https://numpydoc.readthedocs.io/en/latest/)
 Commands to check flake8 compliance for written code and tests.
 ```
 flake8 podium
+flake8 examples
 flake8 test
 ```
 
