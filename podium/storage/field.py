@@ -308,7 +308,7 @@ class Field:
         if not store_as_raw and not tokenize and not store_as_tokenized:
             error_msg = "At least one of 'store_as_raw', 'tokenize'" \
                         " or 'store_as_tokenized' must be True." \
-                        f" Storing as raw by default for field {name}."
+                        " Storing as raw by default for field {}.".format(name)
             _LOGGER.error(error_msg)
             # @mttk: This logic seems better as if the latter two are False,
             #        there is no way that you can store data as tokenized.

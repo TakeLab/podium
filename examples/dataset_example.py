@@ -6,7 +6,7 @@ from podium.datasets.impl.pauza_dataset import PauzaHRDataset
 
 if __name__ == "__main__":
     # for large resource settings see
-    # https://github.com/mtutek/podium/wiki/Large-resources
+    # https://github.com/mttk/podium/wiki/Large-resources
     LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
 
     train_set, test_set = PauzaHRDataset.get_train_test_dataset()
