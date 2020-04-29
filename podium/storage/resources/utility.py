@@ -1,6 +1,8 @@
 """Module contains storage utility methods."""
+import gzip
 import os
 import logging
+import shutil
 import zipfile
 import tarfile
 from tqdm import tqdm
@@ -80,3 +82,29 @@ def extract_tar_file(archive_file, destination_dir, encoding='uft-8'):
         raise ValueError(error_msg)
     with tarfile.open(name=archive_file, mode='r') as tar_ref:
         tar_ref.extractall(path=destination_dir)
+
+
+def decompress_gzip_file(compressed_file, destination_file):
+    """Method decompresses gzip file to destination.
+
+    Parameters
+    ----------
+    compressed_file : str
+        path to the file that needs to be decompressed
+    destination_file : str
+        path where file needs to be decompressed
+
+    Raises
+    ------
+    ValueError
+        if given archive file doesn't exists
+    """
+
+    if not os.path.exists(compressed_file):
+        error_msg = "Given archive file doesn't exists. Given {}.".format(compressed_file)
+        _LOGGER.error(error_msg)
+        raise ValueError(error_msg)
+
+    with gzip.open(filename=compressed_file, mode='r') as gzip_ref:
+        with open(file=destination_file, mode='wb') as output:
+            shutil.copyfileobj(gzip_ref, output)

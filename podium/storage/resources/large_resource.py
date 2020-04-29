@@ -27,12 +27,18 @@ class LargeResource:
         key for defining archiving method paramter
     SUPPORTED_ARCHIVE : list(str)
         list of supported archive file types
+    COMPRESSION : str
+        key for defining compression method paramter
+    SUPPORTED_COMPRESSION : list(str)
+        list of supported compression types
     """
     BASE_RESOURCE_DIR = "."
     RESOURCE_NAME = "resource"
     URI = "uri"
     ARCHIVE = "archive"
     SUPPORTED_ARCHIVE = ["zip", "tar", "bz2", "lzma"]
+    COMPRESSION = "compression"
+    SUPPORTED_COMPRESSION = ["gz"]
 
     def __init__(self, **kwargs):
         """Creates large resource file. If the file is not in resource_location
@@ -62,9 +68,13 @@ class LargeResource:
             _LOGGER.debug("Large resource alreadys exists, skipping download.")
             return
         _LOGGER.debug("Large resource doesn't exist, starting download.")
-        if LargeResource.ARCHIVE in self.config\
+        if LargeResource.ARCHIVE in self.config \
                 and self.config[LargeResource.ARCHIVE]:
             self._download_unarchive()
+            return
+        if LargeResource.COMPRESSION in self.config \
+                and self.config[LargeResource.COMPRESSION]:
+            self._download_decompress()
             return
         self._download(download_destination=self.resource_location)
 
@@ -110,6 +120,33 @@ class LargeResource:
         utility.extract_tar_file(archive_file=archive_file,
                                  destination_dir=self.resource_location)
 
+    def _decompress(self, compressed_file):
+        """Method decompresses given file if decompression of given file
+        is supported.
+
+        Parameters
+        ----------
+        compressed_file : str
+            path to compressed file that needs to be decompressed
+
+        Raises
+        ------
+        ValueError
+            if configured archiving method is not supported
+        """
+        if self.config[LargeResource.COMPRESSION] \
+                not in LargeResource.SUPPORTED_COMPRESSION:
+            _LOGGER.error("Unsupported compression method. Given %s, expected one"
+                          " from %s", self.config[LargeResource.COMPRESSION],
+                          str(LargeResource.SUPPORTED_COMPRESSION))
+            raise ValueError("Unsupported archive method. Given {}, expected"
+                             "one from {}".format(
+                                 self.config[LargeResource.ARCHIVE],
+                                 LargeResource.SUPPORTED_ARCHIVE))
+        if self.config[LargeResource.COMPRESSION] == "gz":
+            utility.decompress_gzip_file(compressed_file=compressed_file,
+                                         destination_file=self.resource_location)
+
     def _download_unarchive(self):
         """Method downloades resource and decompresses it to resource location.
         """
@@ -118,6 +155,14 @@ class LargeResource:
                                     self.config[LargeResource.RESOURCE_NAME])
         self._download(download_destination=download_dir)
         self._unarchive(archive_file=download_dir)
+
+    def _download_decompress(self):
+        """Method downloads resource and decompresses it to resource location.
+        """
+        download_dir = os.path.join(tempfile.mkdtemp(),
+                                    self.config[LargeResource.RESOURCE_NAME])
+        self._download(download_destination=download_dir)
+        self._decompress(compressed_file=download_dir)
 
     def _check_args(self, arguments):
         """Method checks if the large resource configuration has all essential
