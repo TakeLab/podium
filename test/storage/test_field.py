@@ -5,7 +5,7 @@ import pytest
 from mock import patch
 
 from podium.storage import Field, TokenizedField, MultilabelField, \
-    Vocab, SpecialVocabSymbols, MultioutputField, LabelField
+    Vocab, SpecialVocabSymbols, MultioutputField, LabelField, SentenceEmbeddingField
 
 ONE_TO_FIVE = [1, 2, 3, 4, 5]
 
@@ -689,34 +689,12 @@ def test_missing_values_default_sequential():
                 custom_numericalize=lambda x: hash(x),
                 allow_missing_data=True)
 
-    _, data_missing = fld.preprocess(None)[0]
     _, data_exists = fld.preprocess("data_string")[0]
 
-    assert data_missing == (None, None)
     assert data_exists == (None, ["data_string"])
     fld.finalize()
 
-    assert fld.numericalize(data_missing) is None
     assert np.all(fld.numericalize(data_exists) == np.array([hash("data_string")]))
-
-
-def test_missing_values_custom_numericalize():
-    fld = Field(name="test_field",
-                store_as_raw=True,
-                tokenize=False,
-                custom_numericalize=int,
-                allow_missing_data=True)
-
-    _, data_missing = fld.preprocess(None)[0]
-    _, data_exists = fld.preprocess("404")[0]
-
-    assert data_missing == (None, None)
-    assert data_exists == ("404", None)
-
-    fld.finalize()
-
-    assert fld.numericalize(data_missing) is None
-    assert np.all(fld.numericalize(data_exists) == np.array([404]))
 
 
 def test_missing_symbol_index_vocab():
@@ -874,3 +852,25 @@ def test_label_field():
         _, example = x[0]
         raw, _ = example
         assert label_field.numericalize(example) == vocab.stoi[raw]
+
+
+def test_sentence_embedding_field():
+    def mock_embedding_fn(sentence):
+        if sentence == "test_sentence":
+            return np.array([1, 2, 3, 4])
+
+        if sentence is None:
+            return np.zeros(4)
+
+    field = SentenceEmbeddingField("test_field",
+                                   embedding_fn=mock_embedding_fn,
+                                   embedding_size=4,
+                                   allow_missing_data=True)
+
+    (_, data), = field.preprocess("test_sentence")
+    numericalization_1 = field.numericalize(data)
+    assert np.all(numericalization_1 == np.array([1, 2, 3, 4]))
+
+    (_, data), = field.preprocess(None)
+    numericalization_2 = field.numericalize(data)
+    assert np.all(numericalization_2 == np.zeros(4))

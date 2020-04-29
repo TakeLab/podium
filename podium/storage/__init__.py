@@ -2,7 +2,7 @@
 
 from .example_factory import ExampleFactory, ExampleFormat
 from .field import Field, TokenizedField, MultilabelField, MultioutputField, \
-    unpack_fields, LabelField
+    unpack_fields, LabelField, SentenceEmbeddingField
 from .resources.downloader import (BaseDownloader, SCPDownloader, HttpDownloader,
                                    SimpleHttpDownloader)
 from .resources.large_resource import LargeResource, SCPLargeResource
@@ -21,6 +21,6 @@ from .vocab import SpecialVocabSymbols, Vocab
 
 __all__ = ["BaseDownloader", "SCPDownloader", "HttpDownloader", "SimpleHttpDownloader",
            "Field", "TokenizedField", "LabelField", "MultilabelField", "MultioutputField",
-           "unpack_fields", "LargeResource", "SCPLargeResource",
+           "unpack_fields", "LargeResource", "SCPLargeResource", "SentenceEmbeddingField",
            "VectorStorage", "BasicVectorStorage", "SpecialVocabSymbols", "Vocab",
            "ExampleFactory", "ExampleFormat", "TfIdfVectorizer"]

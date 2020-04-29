@@ -2,6 +2,7 @@
 import logging
 import itertools
 from collections import deque
+from typing import Callable
 
 import numpy as np
 
@@ -249,13 +250,13 @@ class Field:
             If true, the output of the tokenizer is presumed to be a list of tokens and
             will be numericalized using the provided Vocab or custom_numericalize.
             For numericalizable fields, Iterator will generate batch fields containing
-             numpy matrices.
+            numpy matrices.
 
-             If false, the out of the tokenizer is presumed to be a custom datatype.
-             Posttokenization hooks aren't allowed to be added as they can't be called
-             on custom datatypes. For non-numericalizable fields, Iterator will generate
-             batch fields containing lists of these custom data type instances returned
-             by the tokenizer.
+            If false, the out of the tokenizer is presumed to be a custom datatype.
+            Posttokenization hooks aren't allowed to be added as they can't be called
+            on custom datatypes. For non-numericalizable fields, Iterator will generate
+            batch fields containing lists of these custom data type instances returned
+            by the tokenizer.
         custom_numericalize : callable
             The numericalization function that will be called if the field
             doesn't use a vocabulary. If using custom_numericalize and padding is
@@ -666,7 +667,7 @@ class Field:
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
-            else:
+            elif not self.custom_numericalize:
                 return None
 
         # raw data is just a string, so we need to wrap it into an iterable
@@ -1003,6 +1004,50 @@ class MultilabelField(TokenizedField):
             token_numericalize = self.custom_numericalize
 
         return numericalize_multihot(tokens, token_numericalize, self.num_of_classes)
+
+
+class SentenceEmbeddingField(Field):
+    """Field used for sentence-level multidimensional embeddings."""
+
+    def __init__(self,
+                 name: str,
+                 embedding_fn: Callable[[str], np.array],
+                 embedding_size: int,
+                 vocab=None,
+                 is_target=False,
+                 language='en',
+                 allow_missing_data=False):
+        """
+        Field used for sentence-level multidimensional embeddings.
+
+        Parameters
+        ----------
+        name: str
+            Field name, used for referencing data in the dataset.
+        embedding_fn: Callable[[str], np.array]
+            Callable that takes a string and returns a fixed-width embedding.
+            In case of missing data, this callable will be passed a None.
+        embedding_size: int
+            Width of the embedding.
+        vocab: Vocab
+            Vocab that will be updated with the sentences passed to this field.
+            Keep in mind that whole sentences will be passed to the vocab.
+        language: str
+            Langage of the data. Not used in this field.
+        allow_missing_data: bool
+            Whether this field will allow the processing of missing data.
+        """
+        super().__init__(name,
+                         custom_numericalize=embedding_fn,
+                         tokenizer=None,
+                         language=language,
+                         vocab=vocab,
+                         tokenize=False,
+                         store_as_raw=True,
+                         store_as_tokenized=False,
+                         is_target=is_target,
+                         fixed_length=embedding_size,
+                         allow_missing_data=allow_missing_data)
 
 
 def numericalize_multihot(tokens, token_indexer, num_of_classes):

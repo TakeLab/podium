@@ -257,7 +257,6 @@ class Iterator:
         for field in self._dataset.fields:
             if field.is_numericalizable and field.batch_as_matrix:
                 # If this field is numericalizable, generate a possibly padded matrix
-
                 # the length to which all the rows are padded (or truncated)
                 pad_length = Iterator._get_pad_length(field, examples)
 
@@ -268,7 +267,7 @@ class Iterator:
                 matrix = None  # np.empty(shape=(n_rows, pad_length))
 
                 # non-sequential fields all have length = 1, no padding necessary
-                should_pad = True if field.is_sequential else False
+                should_pad = field.is_sequential
 
                 for i, example in enumerate(examples):
 
@@ -321,13 +320,13 @@ class Iterator:
 
     @staticmethod
     def _get_pad_length(field, examples):
-        if not field.is_sequential:
-            return 1
-
         # the fixed_length attribute of Field has priority over the max length
         # of all the examples in the batch
         if field.fixed_length is not None:
             return field.fixed_length
+
+        if not field.is_sequential:
+            return 1
 
         # if fixed_length is None, then return the maximum length of all the
         # examples in the batch
