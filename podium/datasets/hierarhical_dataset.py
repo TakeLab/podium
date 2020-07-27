@@ -69,6 +69,13 @@ class HierarchicalDataset:
         self._max_depth = 0
 
     @staticmethod
+    def from_dicts(dataset, fields, children_key):
+        # TODO documentation
+        parser = HierarchicalDataset.get_default_dict_parser(children_key)
+        ds = HierarchicalDataset(parser, fields)
+        ds._load(dataset)
+
+    @staticmethod
     def from_json(dataset, fields, parser):
         """
         Makes an HierarchicalDataset from a JSON formatted string.

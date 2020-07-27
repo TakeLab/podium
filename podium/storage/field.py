@@ -251,7 +251,7 @@ class Field:
             For numericalizable fields, Iterator will generate batch fields containing
              numpy matrices.
 
-             If false, the out of the tokenizer is presumed to be a custom datatype.
+             If false, the output of the tokenizer is presumed to be a custom datatype.
              Posttokenization hooks aren't allowed to be added as they can't be called
              on custom datatypes. For non-numericalizable fields, Iterator will generate
              batch fields containing lists of these custom data type instances returned
