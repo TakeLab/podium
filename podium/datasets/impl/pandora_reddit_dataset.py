@@ -42,7 +42,7 @@ class PandoraDataset(HierarchicalDataset):
             comment['children'] = comments_children
 
         assert loaded_comments == len(top_level_comments) + children_attached, \
-            "Parent missing"
+            "Not all comments have parents, can't build treeah "
 
         return PandoraDataset.from_dicts(top_level_comments, fields, 'children')
 
