@@ -43,14 +43,15 @@ class ArrowDataset(Dataset):
         first_group = chunks_iter.__next__()
         record_batch = self._examples_to_recordbatch(first_group)
 
-        with pa.OSFile(self.cache_file_path) as f:
+        with pa.OSFile(self.cache_file_path, 'wb') as f:
             with pa.RecordBatchFileWriter(f, schema=record_batch.schema) as writer:
                 writer.write(record_batch)  # write first chunk
-                for record_batch in chunks_iter:  # write rest of chunks
+                for examples_chunk in chunks_iter:  # write rest of chunks
+                    record_batch = self._examples_to_recordbatch(examples_chunk)
                     writer.write(record_batch)
 
         self.mmapped_file = pa.memory_map(self.cache_file_path)
-        self.table = pa.RecordBatchFileReader(self.mmapped_file).read_all()
+        self.table: pa.Table = pa.RecordBatchFileReader(self.mmapped_file).read_all()
 
     def _examples_to_recordbatch(self, examples):
         #  transpose examples
@@ -72,24 +73,51 @@ class ArrowDataset(Dataset):
             arrays.append(pa.array(field_tokenized_column))
             array_names.append(field.name + "_tokenized")
 
-        return pa.RecordBatch.from_arrays(list_arrays=arrays, names=array_names)
+        return pa.RecordBatch.from_arrays(arrays, names=array_names)
 
     def _recordbatch_to_examples(self, record_batch):
-        fieldnames = (field.name for field in self.fields)
+        fieldnames = tuple(field.name for field in self.fields)
         examples = [Example(fieldnames) for _ in range(len(record_batch))]
 
         for fieldname in fieldnames:
-            fieldname_raw = fieldname + "_raw"
-            raw_column = record_batch[fieldname_raw]
+            columnname_raw = fieldname + "_raw"
+            raw_column = record_batch[columnname_raw]
 
-            fieldname_tokenized = fieldname + "_tokenized"
-            tokenized_column = record_batch[fieldname_tokenized]
+            columnname_tokenized = fieldname + "_tokenized"
+            tokenized_column = record_batch[columnname_tokenized]
 
             for example, raw, tokenized in zip(examples, raw_column, tokenized_column):
                 data = (raw.as_py(), tokenized.as_py())  # (raw, tokenized)
                 setattr(example, fieldname, data)
 
+        return examples
+
+    def __getitem__(self, item, deep_copy=False):
+
+        if isinstance(item, int):
+            record_batch = self.table[item:item + 1]  # indexing with int extracts column
+            return self._recordbatch_to_examples(record_batch)[0]
+
+        if isinstance(item, slice):
+            record_batch = self.table[item]
+
+        else:
+            record_batch = self.table.take(item)
+
+        examples = self._recordbatch_to_examples(record_batch)
+        return Dataset(examples, self.fields)
+
+    def __len__(self):
+        return self.table.num_rows
+
+    def __iter__(self):
+        for i in len(self):
+            yield self[i]
+
+    # TODO __getattr__
+
     def close(self):
+        self.mmapped_file.close()
         if self.temp_dir is not None:
             self.temp_dir.close()
             self.temp_dir = None
