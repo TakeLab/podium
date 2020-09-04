@@ -22,10 +22,11 @@ def group(iterable, n):
         yield chunk
 
 
-class ArrowDataset(Dataset):
+class ArrowDataset:
     TEMP_CACHE_FILENAME_PREFIX = 'podium_arrow_cache_'
     CACHE_TABLE_FILENAME = 'podium_arrow_cache.arrow'
     CACHE_FIELDS_FILENAME = 'podium_fields.pkl'
+
     CHUNK_MAX_SIZE = 1000
 
     def __init__(self, table, fields, cache_path, mmapped_file):
@@ -56,7 +57,18 @@ class ArrowDataset(Dataset):
         return ArrowDataset.from_examples(dataset.fields, dataset.examples, cache_path, data_types)
 
     @staticmethod
-    def from_examples(fields, examples, cache_path=None, data_types=None):
+    def from_examples(fields, examples, cache_path=None, data_types: dict = None):
+
+        data_types_override = {}
+        if data_types is not None:
+            for field_name, (raw_dtype, tokenized_dtype) in data_types.items():
+                if raw_dtype is not None:
+                    raw_field_name = field_name + "_raw"
+                    data_types_override[raw_field_name] = raw_dtype
+
+                if tokenized_dtype is not None:
+                    tokenized_field_name = field_name + "_tokenized"
+                    data_types_override[tokenized_field_name] = tokenized_dtype
 
         if cache_path is None:
             cache_path = tempfile.mkdtemp(prefix=ArrowDataset.TEMP_CACHE_FILENAME_PREFIX)
@@ -75,21 +87,22 @@ class ArrowDataset(Dataset):
 
         # get first group to infer schema
         first_group = chunks_iter.__next__()
-        record_batch = ArrowDataset._examples_to_recordbatch(first_group, fields)
+        record_batch = ArrowDataset._examples_to_recordbatch(first_group, fields, data_types_override)
 
         with pa.OSFile(cache_table_path, 'wb') as f:
             with pa.RecordBatchFileWriter(f, schema=record_batch.schema) as writer:
                 writer.write(record_batch)  # write first chunk
                 for examples_chunk in chunks_iter:  # write rest of chunks
-                    record_batch = ArrowDataset._examples_to_recordbatch(examples_chunk, fields)
+                    record_batch = ArrowDataset._examples_to_recordbatch(examples_chunk, fields, data_types_override)
                     writer.write(record_batch)
 
         return ArrowDataset._load_from_cache_path(cache_path)
 
     @staticmethod
-    def _examples_to_recordbatch(examples, fields):
+    def _examples_to_recordbatch(examples, fields, data_types=None):
         #  transpose examples
         #  TODO add explicit typing
+        data_types = {} if data_types is None else data_types
         arrays = []
         array_names = []
         for field in fields:
@@ -101,11 +114,17 @@ class ArrowDataset(Dataset):
                 field_raw_column.append(raw)
                 field_tokenized_column.append(tokenized)
 
-            arrays.append(pa.array(field_raw_column))
-            array_names.append(field.name + "_raw")
+            raw_fieldname = field.name + "_raw"
+            dtype = data_types.get(raw_fieldname)  # None if not overridden
+            array = pa.array(field_raw_column, type=dtype)
+            arrays.append(array)
+            array_names.append(raw_fieldname)
 
-            arrays.append(pa.array(field_tokenized_column))
-            array_names.append(field.name + "_tokenized")
+            tokenized_fieldname = field.name + "_tokenized"
+            dtype = data_types.get(tokenized_fieldname)  # None if not overridden
+            array = pa.array(field_tokenized_column, type=dtype)
+            arrays.append(array)
+            array_names.append(tokenized_fieldname)
 
         return pa.RecordBatch.from_arrays(arrays, names=array_names)
 
