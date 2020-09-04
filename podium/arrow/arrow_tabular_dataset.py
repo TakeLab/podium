@@ -123,13 +123,18 @@ class ArrowDataset(Dataset):
 
         return examples
 
-    def _slice(self, slice: slice) -> 'ArrowDataset':
-        table_slice = self.table[slice]
+    def dump_cache(self, cache_path):
 
-        return ArrowDataset(table=table_slice,
-                            fields=self.fields,
-                            cache_path=self.cache_path,
-                            mmapped_file=self.mmapped_file)
+        # pickle fields
+        cache_fields_path = path.join(cache_path, ArrowDataset.CACHE_FIELDS_FILENAME)
+        with open(cache_fields_path, 'wb') as fields_cache_file:
+            pickle.dump(self.fields, fields_cache_file)
+
+        # dump table
+        cache_table_path = path.join(cache_path, ArrowDataset.CACHE_TABLE_FILENAME)
+        with pa.OSFile(cache_table_path, 'wb') as f:
+            with pa.RecordBatchFileWriter(f, schema=self.table.schema) as writer:
+                writer.write(self.table)
 
     def __getitem__(self, item, deep_copy=False):
 
