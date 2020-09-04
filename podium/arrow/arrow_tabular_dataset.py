@@ -1,7 +1,7 @@
 import pyarrow as pa
 import tempfile
 import itertools
-from os import path
+from os import path, mkdir
 import shutil
 import logging
 import pickle
@@ -23,7 +23,7 @@ def group(iterable, n):
 
 
 class ArrowDataset(Dataset):
-    TEMP_CACHE_FILENAME_PREFIX = 'podium_arrow_cache'
+    TEMP_CACHE_FILENAME_PREFIX = 'podium_arrow_cache_'
     CACHE_TABLE_FILENAME = 'podium_arrow_cache.arrow'
     CACHE_FIELDS_FILENAME = 'podium_fields.pkl'
     CHUNK_MAX_SIZE = 1000
@@ -50,6 +50,10 @@ class ArrowDataset(Dataset):
         mmapped_file = pa.memory_map(table_file_path)
         table = pa.RecordBatchFileReader(mmapped_file).read_all()
         return ArrowDataset(table, fields, cache_path, mmapped_file)
+
+    @staticmethod
+    def from_dataset(dataset, cache_path=None, data_types=None):
+        return ArrowDataset.from_examples(dataset.fields, dataset.examples, cache_path, data_types)
 
     @staticmethod
     def from_examples(fields, examples, cache_path=None, data_types=None):
@@ -80,7 +84,7 @@ class ArrowDataset(Dataset):
                     record_batch = ArrowDataset._examples_to_recordbatch(examples_chunk, fields)
                     writer.write(record_batch)
 
-        return ArrowDataset(cache_path, fields)
+        return ArrowDataset._load_from_cache_path(cache_path)
 
     @staticmethod
     def _examples_to_recordbatch(examples, fields):
@@ -125,6 +129,9 @@ class ArrowDataset(Dataset):
 
     def dump_cache(self, cache_path):
 
+        if not path.isdir(cache_path):
+            mkdir(cache_path)
+
         # pickle fields
         cache_fields_path = path.join(cache_path, ArrowDataset.CACHE_FIELDS_FILENAME)
         with open(cache_fields_path, 'wb') as fields_cache_file:
@@ -136,6 +143,13 @@ class ArrowDataset(Dataset):
             with pa.RecordBatchFileWriter(f, schema=self.table.schema) as writer:
                 writer.write(self.table)
 
+    def as_dataset(self):
+        examples = ArrowDataset._recordbatch_to_examples(self.table, self.fields)
+        return Dataset(examples, self.fields)
+
+    def batch(self):
+        return self.as_dataset().batch()  # TODO custom batch method?
+
     def __getitem__(self, item, deep_copy=False):
 
         if isinstance(item, int):
@@ -143,9 +157,11 @@ class ArrowDataset(Dataset):
             return ArrowDataset._recordbatch_to_examples(record_batch, self.fields)[0]
 
         if isinstance(item, slice):
+            # TODO doesn't work if step !=1 , causes SIGSEGV on dump
             table_slice = self.table[item]
 
         else:
+            # TODO doesn't work, doesn't select rows, causes SIGSEGV on dump
             table_slice = self.table.take(item)
 
         return ArrowDataset(table=table_slice,
@@ -157,7 +173,7 @@ class ArrowDataset(Dataset):
         return self.table.num_rows
 
     def __iter__(self):
-        for i in len(self):
+        for i in range(len(self)):
             yield self[i]
 
     # TODO __getattr__

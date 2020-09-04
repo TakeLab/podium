@@ -25,7 +25,8 @@ __all__ = ["dataload",
            "storage",
            "validation",
            "model_selection",
-           "pipeline"]
+           "pipeline",
+           "arrow"]
 
 
 # Reference for initialization of logging scikit-learn
