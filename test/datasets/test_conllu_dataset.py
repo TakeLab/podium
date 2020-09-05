@@ -67,15 +67,3 @@ def test_default_fields():
     field_names = ['id', 'form', 'lemma', 'upos', 'xpos',
                    'feats', 'head', 'deprel', 'deps', 'misc']
     assert all([name in fields for name in field_names])
-
-    assert not fields['id'].is_target
-    assert not fields['form'].is_target
-    assert not fields['lemma'].is_target
-    assert not fields['feats'].is_target
-    assert not fields['deps'].is_target
-    assert not fields['misc'].is_target
-
-    assert fields['upos'].is_target
-    assert fields['xpos'].is_target
-    assert fields['head'].is_target
-    assert fields['deprel'].is_target

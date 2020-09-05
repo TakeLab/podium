@@ -3,7 +3,7 @@ import csv
 import functools
 
 from podium.datasets import Dataset
-from podium.storage import Field, LabelField, ExampleFactory, Vocab
+from podium.storage import Field, ExampleFactory, Vocab
 
 
 class CoNLLUDataset(Dataset):
@@ -100,32 +100,40 @@ class CoNLLUDataset(Dataset):
         form = Field(name='form',
                      vocab=Vocab(specials=()),
                      tokenize=False,
-                     store_as_raw=True,
-                     allow_missing_data=True)
+                     store_as_raw=True)
 
         lemma = Field(name='lemma',
                       vocab=Vocab(specials=()),
                       tokenize=False,
-                      store_as_raw=True,
-                      allow_missing_data=True)
+                      store_as_raw=True)
 
-        upos = LabelField(name='upos',
-                          allow_missing_data=True)
+        upos = Field(name='upos',
+                     vocab=Vocab(specials=()),
+                     tokenize=False,
+                     store_as_raw=True,
+                     allow_missing_data=True)
 
-        xpos = LabelField(name='xpos',
-                          allow_missing_data=True)
+        xpos = Field(name='xpos',
+                     vocab=Vocab(specials=()),
+                     tokenize=False,
+                     store_as_raw=True,
+                     allow_missing_data=True)
 
         feats = Field(name='feats',
                       tokenizer=feats_tokenizer,
                       is_numericalizable=False,
                       allow_missing_data=True)
 
-        head = LabelField(name='head',
-                          custom_numericalize=int,
-                          allow_missing_data=True)
+        head = Field(name='head',
+                     tokenize=False,
+                     store_as_raw=True,
+                     custom_numericalize=int,
+                     allow_missing_data=True)
 
-        deprel = LabelField(name='deprel',
-                            allow_missing_data=True)
+        deprel = Field(name='deprel',
+                       tokenize=False,
+                       store_as_raw=True,
+                       allow_missing_data=True)
 
         deps = Field(name='deps',
                      tokenizer=deps_tokenizer,
