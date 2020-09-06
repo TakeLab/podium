@@ -40,19 +40,6 @@ class ArrowDataset:
         self.table = table
 
     @staticmethod
-    def _load_from_cache_path(cache_path):
-        # load fields
-        fields_file_path = path.join(cache_path, ArrowDataset.CACHE_FIELDS_FILENAME)
-        with open(fields_file_path, 'rb') as fields_cache_file:
-            fields = pickle.load(fields_cache_file)
-
-        # load dataset as memory mapped arrow table
-        table_file_path = path.join(cache_path, ArrowDataset.CACHE_TABLE_FILENAME)
-        mmapped_file = pa.memory_map(table_file_path)
-        table = pa.RecordBatchFileReader(mmapped_file).read_all()
-        return ArrowDataset(table, fields, cache_path, mmapped_file)
-
-    @staticmethod
     def from_dataset(dataset, cache_path=None, data_types=None):
         return ArrowDataset.from_examples(dataset.fields, dataset.examples, cache_path, data_types)
 
@@ -74,9 +61,9 @@ class ArrowDataset:
             cache_path = tempfile.mkdtemp(prefix=ArrowDataset.TEMP_CACHE_FILENAME_PREFIX)
 
         # pickle fields
-        cache_fields_path = path.join(cache_path, ArrowDataset.CACHE_FIELDS_FILENAME)
-        with open(cache_fields_path, 'wb') as fields_cache_file:
-            pickle.dump(fields, fields_cache_file)
+        # cache_fields_path = path.join(cache_path, ArrowDataset.CACHE_FIELDS_FILENAME)
+        # with open(cache_fields_path, 'wb') as fields_cache_file:
+        #     pickle.dump(fields, fields_cache_file)
 
         # dump dataset table
         cache_table_path = path.join(cache_path, ArrowDataset.CACHE_TABLE_FILENAME)
@@ -96,7 +83,7 @@ class ArrowDataset:
                     record_batch = ArrowDataset._examples_to_recordbatch(examples_chunk, fields, data_types_override)
                     writer.write(record_batch)
 
-        return ArrowDataset._load_from_cache_path(cache_path)
+        return ArrowDataset.load_cache(cache_path)
 
     @staticmethod
     def _examples_to_recordbatch(examples, fields, data_types=None):
@@ -146,6 +133,19 @@ class ArrowDataset:
 
         return examples
 
+    @staticmethod
+    def load_cache(cache_path):
+        # load fields
+        fields_file_path = path.join(cache_path, ArrowDataset.CACHE_FIELDS_FILENAME)
+        with open(fields_file_path, 'rb') as fields_cache_file:
+            fields = pickle.load(fields_cache_file)
+
+        # load dataset as memory mapped arrow table
+        table_file_path = path.join(cache_path, ArrowDataset.CACHE_TABLE_FILENAME)
+        mmapped_file = pa.memory_map(table_file_path)
+        table = pa.RecordBatchFileReader(mmapped_file).read_all()
+        return ArrowDataset(table, fields, cache_path, mmapped_file)
+
     def dump_cache(self, cache_path):
 
         if not path.isdir(cache_path):
@@ -177,6 +177,7 @@ class ArrowDataset:
 
         if isinstance(item, slice):
             # TODO doesn't work if step !=1 , causes SIGSEGV on dump
+            # write
             table_slice = self.table[item]
 
         else:
