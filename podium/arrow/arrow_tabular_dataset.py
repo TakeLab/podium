@@ -33,7 +33,7 @@ class ArrowDataset:
         self.cache_path = cache_path
 
         self.fields = fields
-        self.fields_dict = {field.name: field for field in fields}
+        self.field_dict = {field.name: field for field in fields}
 
         self.mmapped_file = mmapped_file
 
@@ -196,7 +196,25 @@ class ArrowDataset:
         for i in range(len(self)):
             yield self[i]
 
-    # TODO __getattr__
+    def __getattr__(self, attr):
+        fieldname = attr
+        if fieldname in self.field_dict:
+
+            def attr_generator(dataset, fieldname):
+                columnname_raw = fieldname + "_raw"
+                raw_column = dataset.table[columnname_raw]
+
+                columnname_tokenized = fieldname + "_tokenized"
+                tokenized_column = dataset.table[columnname_tokenized]
+
+                for raw, tokenized in zip(raw_column, tokenized_column):
+                    yield raw.as_py(), tokenized.as_py()  # (raw, tokenized)
+
+            return attr_generator(self, fieldname)
+        else:
+            error_msg = "Dataset has no field {}.".format(attr)
+            _LOGGER.error(error_msg)
+            raise AttributeError(error_msg)
 
     def close(self):
         if self.mmapped_file is not None:
@@ -213,3 +231,23 @@ class ArrowDataset:
         if self.mmapped_file is not None:
             self.close()
         shutil.rmtree(self.cache_path)
+
+    def finalize_fields(self, *args):
+        # if there are non-eager fields, we need to build their vocabularies
+        fields_to_build = [f for f in self.fields if
+                           not f.eager and f.use_vocab]
+        if fields_to_build:
+            # there can be multiple datasets we want to iterate over
+            data_sources = list(
+                filter(lambda arg: isinstance(arg, Dataset), args))
+
+            # use self as a data source if no other given
+            if not data_sources:
+                data_sources.append(self)
+
+            # for each example in each dataset,
+            # update _all_ non-eager fields
+            for dataset in data_sources:
+                for example in dataset:
+                    for field in fields_to_build:
+                        field.update_vocab(*getattr(example, field.name))
