@@ -167,7 +167,8 @@ class ArrowDataset:
         return Dataset(examples, self.fields)
 
     def batch(self):
-        return self.as_dataset().batch()  # TODO custom batch method?
+        # TODO custom batch method?
+        return self.as_dataset().batch()
 
     def __getitem__(self, item, deep_copy=False):
 
@@ -176,12 +177,12 @@ class ArrowDataset:
             return ArrowDataset._recordbatch_to_examples(record_batch, self.fields)[0]
 
         if isinstance(item, slice):
-            # TODO doesn't work if step !=1 , causes SIGSEGV on dump
+            # TODO causes SIGSEGV on dump if step !=1
             # write
             table_slice = self.table[item]
 
         else:
-            # TODO doesn't work, doesn't select rows, causes SIGSEGV on dump
+            # TODO causes SIGSEGV on dump
             table_slice = self.table.take(item)
 
         return ArrowDataset(table=table_slice,
@@ -190,6 +191,7 @@ class ArrowDataset:
                             mmapped_file=self.mmapped_file)
 
     def __len__(self):
+        # TODO __len__ doesn't work on sliced datasets (if step != 1)
         return self.table.num_rows
 
     def __iter__(self):
@@ -224,8 +226,6 @@ class ArrowDataset:
         else:  # Do nothing
             msg = "Attempted closing an already closed ArrowDataset."
             _LOGGER.debug(msg)
-
-        # TODO close file handles
 
     def delete_cache(self):
         if self.mmapped_file is not None:
