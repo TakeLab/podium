@@ -1,22 +1,14 @@
 """Module contains the CoNLL-U dataset."""
-import csv
-import functools
+import logging
 
 from podium.datasets import Dataset
 from podium.storage import Field, ExampleFactory, Vocab
 
+_LOGGER = logging.getLogger(__name__)
+
 
 class CoNLLUDataset(Dataset):
-    """CoNLL-U dataset.
-
-    Attributes
-    ----------
-    FIELD_NAMES : list(str)
-        tuple of all default CoNLL-U field names
-    """
-
-    FIELDS_NAMES = ('id', 'form', 'lemma', 'upos', 'xpos',
-                    'feats', 'head', 'deprel', 'deps', 'misc')
+    """A CoNLL-U dataset class. This class uses all default CoNLL-U fields."""
 
     def __init__(self, file_path, fields=None):
         """Dataset constructor.
@@ -24,10 +16,10 @@ class CoNLLUDataset(Dataset):
         Parameters
         ----------
         file_path : str
-            path to the file containing the dataset.
+            Path to the file containing the dataset.
 
         fields : dict(str, Field)
-            dictionary that maps the CoNLL-U field name to the field.
+            Dictionary that maps the CoNLL-U field name to the field.
             If passed None the default set of fields will be used.
         """
 
@@ -45,29 +37,54 @@ class CoNLLUDataset(Dataset):
             Path to the file wich contains the dataset.
 
         fields : dict(str, Field)
-            dictionary that maps the CoNLL-U field name to the field.
+            Dictionary that maps the CoNLL-U field name to the field.
 
         Returns
         -------
         list(Example)
             A list of examples from the CoNLL-U dataset.
+
+        Raises
+        ------
+        ImportError
+            If the conllu library is not installed.
+
+        ValueError
+            If there is an error during parsing the file.
         """
+
+        try:
+            import conllu
+        except ImportError:
+            error_msg = 'Problem occurred while trying to import conllu. ' \
+                        'If the library is not installed visit ' \
+                        'https://pypi.org/project/conllu/ for more details.'
+            _LOGGER.error(error_msg)
+            raise ImportError(error_msg)
+
+        # we define a nested function that will catch parse exceptions,
+        # but we don't let them point directly to the library code
+        # so we raise `ValueError` and specify the original exception as a cause
+        def safe_conllu_parse(in_file):
+            try:
+                yield from conllu.parse_incr(in_file)
+            except Exception as e:
+                error_msg = 'Error occured during parsing the file'
+                _LOGGER.error(error_msg)
+                raise ValueError(error_msg) from e
 
         example_factory = ExampleFactory(fields)
 
         examples = []
-        with open(file_path, encoding='utf-8') as f:
-            reader = csv.reader((line for line in f
-                                if not (line.startswith('#') or line.isspace())),
-                                delimiter='\t')
+        with open(file_path, encoding='utf-8') as in_file:
 
-            for row in reader:
-                # columns with '_' are marked as empty
-                # and replaced with `None`
-                # so the fields can process them as missing data
-                row = {field_name: col if col != '_' else None
-                       for field_name, col in zip(CoNLLUDataset.FIELDS_NAMES, row)}
-                examples.append(example_factory.from_dict(row))
+            for tokenlist in safe_conllu_parse(in_file):
+                for token in tokenlist:
+                    token = {field_name: tuple(field_value.items())
+                             if isinstance(field_value, dict) else field_value
+                             for field_name, field_value in token.items()}
+
+                    examples.append(example_factory.from_dict(token))
 
         return examples
 
@@ -79,16 +96,8 @@ class CoNLLUDataset(Dataset):
         Returns
         -------
         fields : dict(str, Field)
-            dict containing all default CoNLL-U fields.
+            Dict containing all default CoNLL-U fields.
         """
-
-        def feats_tokenizer(string):
-            return [feature.split('=') for feature in string.split('|')]
-
-        def deps_tokenizer(string):
-            return [dep.split(':') for dep in string.split('|')]
-
-        misc_tokenizer = functools.partial(str.split, sep='|')
 
         # numericalization of id is not allowed because
         # numericalization of integer ranges is undefined
@@ -120,7 +129,8 @@ class CoNLLUDataset(Dataset):
                      allow_missing_data=True)
 
         feats = Field(name='feats',
-                      tokenizer=feats_tokenizer,
+                      tokenize=False,
+                      store_as_tokenized=True,
                       is_numericalizable=False,
                       allow_missing_data=True)
 
@@ -136,13 +146,14 @@ class CoNLLUDataset(Dataset):
                        allow_missing_data=True)
 
         deps = Field(name='deps',
-                     tokenizer=deps_tokenizer,
+                     tokenize=False,
+                     store_as_tokenized=True,
                      is_numericalizable=False,
                      allow_missing_data=True)
 
-        # misc can be formatted as a list that is split on '|'
         misc = Field(name='misc',
-                     tokenizer=misc_tokenizer,
+                     tokenize=False,
+                     store_as_tokenized=True,
                      is_numericalizable=False,
                      allow_missing_data=True)
 
