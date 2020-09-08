@@ -158,8 +158,8 @@ Code coverage should be kept as high as possible (preferably >95%).
 
 Commands to setup virtual environment and run tests.
 ```
-virtualenv -p python3.6 env
-source env/bin/activate
+conda create --name env python=3.6
+conda activate env
 python setup.py install
 py.test --cov-report=term-missing --cov=podium
 ```
