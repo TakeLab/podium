@@ -20,6 +20,14 @@ takepod.datasets.impl.catacx\_dataset module
    :undoc-members:
    :show-inheritance:
 
+takepod.datasets.impl.conllu\_dataset module
+--------------------------------------------
+
+.. automodule:: takepod.datasets.impl.conllu_dataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 takepod.datasets.impl.cornell\_movie\_dialogs\_dataset module
 -------------------------------------------------------------
 

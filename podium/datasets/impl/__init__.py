@@ -2,6 +2,7 @@
 
 from .pauza_dataset import PauzaHRDataset
 from .catacx_dataset import CatacxDataset
+from .conllu_dataset import CoNLLUDataset
 from .imdb_sentiment_dataset import IMDB
 from .eurovoc_dataset import EuroVocDataset
 from .cornell_movie_dialogs_dataset import CornellMovieDialogsConversationalDataset
@@ -9,6 +10,6 @@ from .sst_sentiment_dataset import SST
 from .snli_dataset import SNLIDataset, SNLISimple
 
 
-__all__ = ["IMDB", "CatacxDataset",
+__all__ = ["IMDB", "CatacxDataset", "CoNLLUDataset",
            "CornellMovieDialogsConversationalDataset", "EuroVocDataset",
            "PauzaHRDataset", "SNLIDataset", "SNLISimple", "SST"]
