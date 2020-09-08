@@ -34,6 +34,7 @@ def sample_dataset_raw_faulty():
 
 
 def test_load_dataset(sample_dataset_raw):
+    pytest.importorskip('conllu')
     tmpfile = tempfile.NamedTemporaryFile(mode='w', delete=False)
     tmpfile.write(sample_dataset_raw)
     tmpfile.close()
@@ -67,6 +68,7 @@ def test_load_dataset(sample_dataset_raw):
 
 
 def test_load_faulty_dataset(sample_dataset_raw_faulty):
+    pytest.importorskip('conllu')
     tmpfile = tempfile.NamedTemporaryFile(mode='w', delete=False)
     tmpfile.write(sample_dataset_raw_faulty)
     tmpfile.close()
