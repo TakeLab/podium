@@ -13,7 +13,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def group(iterable, n):
-    # groups an iterable into tuples of size n
+    """ groups an iterable into tuples of size n"""
     it = iter(iterable)
     while True:
         chunk = tuple(itertools.islice(it, n))
@@ -29,7 +29,7 @@ class ArrowDataset:
 
     CHUNK_MAX_SIZE = 1000
 
-    def __init__(self, table, fields, cache_path, mmapped_file):
+    def __init__(self, table, fields, cache_path, mmapped_file, data_types=None):
         self.cache_path = cache_path
 
         self.fields = fields
@@ -39,6 +39,8 @@ class ArrowDataset:
 
         self.table = table
 
+        self.data_types = data_types
+
     @staticmethod
     def from_dataset(dataset, cache_path=None, data_types=None):
         return ArrowDataset.from_examples(dataset.fields, dataset.examples, cache_path, data_types)
@@ -46,24 +48,8 @@ class ArrowDataset:
     @staticmethod
     def from_examples(fields, examples, cache_path=None, data_types: dict = None):
 
-        data_types_override = {}
-        if data_types is not None:
-            for field_name, (raw_dtype, tokenized_dtype) in data_types.items():
-                if raw_dtype is not None:
-                    raw_field_name = field_name + "_raw"
-                    data_types_override[raw_field_name] = raw_dtype
-
-                if tokenized_dtype is not None:
-                    tokenized_field_name = field_name + "_tokenized"
-                    data_types_override[tokenized_field_name] = tokenized_dtype
-
         if cache_path is None:
             cache_path = tempfile.mkdtemp(prefix=ArrowDataset.TEMP_CACHE_FILENAME_PREFIX)
-
-        # pickle fields
-        # cache_fields_path = path.join(cache_path, ArrowDataset.CACHE_FIELDS_FILENAME)
-        # with open(cache_fields_path, 'wb') as fields_cache_file:
-        #     pickle.dump(fields, fields_cache_file)
 
         # dump dataset table
         cache_table_path = path.join(cache_path, ArrowDataset.CACHE_TABLE_FILENAME)
@@ -74,22 +60,33 @@ class ArrowDataset:
 
         # get first group to infer schema
         first_group = chunks_iter.__next__()
-        record_batch = ArrowDataset._examples_to_recordbatch(first_group, fields, data_types_override)
+        record_batch = ArrowDataset._examples_to_recordbatch(first_group, fields, data_types)
 
         with pa.OSFile(cache_table_path, 'wb') as f:
             with pa.RecordBatchFileWriter(f, schema=record_batch.schema) as writer:
                 writer.write(record_batch)  # write first chunk
                 for examples_chunk in chunks_iter:  # write rest of chunks
-                    record_batch = ArrowDataset._examples_to_recordbatch(examples_chunk, fields, data_types_override)
+                    record_batch = ArrowDataset._examples_to_recordbatch(examples_chunk, fields, data_types)
                     writer.write(record_batch)
 
-        return ArrowDataset.load_cache(cache_path)
+        mmapped_file = pa.memory_map(cache_table_path)
+        table = pa.RecordBatchFileReader(mmapped_file).read_all()
+
+        return ArrowDataset(table, fields, cache_path, mmapped_file, data_types)
 
     @staticmethod
     def _examples_to_recordbatch(examples, fields, data_types=None):
-        #  transpose examples
-        #  TODO add explicit typing
-        data_types = {} if data_types is None else data_types
+        data_type_override = {} if data_types is None else data_types
+        if data_types is not None:
+            for field_name, (raw_dtype, tokenized_dtype) in data_types.items():
+                if raw_dtype is not None:
+                    raw_field_name = field_name + "_raw"
+                    data_type_override[raw_field_name] = raw_dtype
+
+                if tokenized_dtype is not None:
+                    tokenized_field_name = field_name + "_tokenized"
+                    data_type_override[tokenized_field_name] = tokenized_dtype
+
         arrays = []
         array_names = []
         for field in fields:
@@ -102,13 +99,13 @@ class ArrowDataset:
                 field_tokenized_column.append(tokenized)
 
             raw_fieldname = field.name + "_raw"
-            dtype = data_types.get(raw_fieldname)  # None if not overridden
+            dtype = data_type_override.get(raw_fieldname)  # None if not overridden
             array = pa.array(field_raw_column, type=dtype)
             arrays.append(array)
             array_names.append(raw_fieldname)
 
             tokenized_fieldname = field.name + "_tokenized"
-            dtype = data_types.get(tokenized_fieldname)  # None if not overridden
+            dtype = data_type_override.get(tokenized_fieldname)  # None if not overridden
             array = pa.array(field_tokenized_column, type=dtype)
             arrays.append(array)
             array_names.append(tokenized_fieldname)
@@ -146,10 +143,20 @@ class ArrowDataset:
         table = pa.RecordBatchFileReader(mmapped_file).read_all()
         return ArrowDataset(table, fields, cache_path, mmapped_file)
 
-    def dump_cache(self, cache_path):
+    def dump_cache(self, cache_path=None):
+
+        if cache_path == self.cache_path:
+            msg = "Cache path same as datasets cache path. " \
+                  "Dataset can't overwrite its own cache. Cache path: {}".format(cache_path)
+            _LOGGER.error(msg)
+            raise Exception(msg)
+
+        if cache_path is None:
+            cache_path = tempfile.mkdtemp(prefix=ArrowDataset.TEMP_CACHE_FILENAME_PREFIX)
 
         if not path.isdir(cache_path):
             mkdir(cache_path)
+
 
         # pickle fields
         cache_fields_path = path.join(cache_path, ArrowDataset.CACHE_FIELDS_FILENAME)
@@ -157,10 +164,28 @@ class ArrowDataset:
             pickle.dump(self.fields, fields_cache_file)
 
         # dump table
-        cache_table_path = path.join(cache_path, ArrowDataset.CACHE_TABLE_FILENAME)
-        with pa.OSFile(cache_table_path, 'wb') as f:
-            with pa.RecordBatchFileWriter(f, schema=self.table.schema) as writer:
-                writer.write(self.table)
+        examples = iter(self)
+        db = ArrowDataset.from_examples(self.fields, examples, cache_path, self.data_types)  # creates the table file
+        db.close()
+
+        return cache_path
+
+    # Old dump_cache method, caused segmentation errors in arrow native code
+    # def dump_cache(self, cache_path):
+    #
+    #     if not path.isdir(cache_path):
+    #         mkdir(cache_path)
+    #
+    #     # pickle fields
+    #     cache_fields_path = path.join(cache_path, ArrowDataset.CACHE_FIELDS_FILENAME)
+    #     with open(cache_fields_path, 'wb') as fields_cache_file:
+    #         pickle.dump(self.fields, fields_cache_file)
+    #
+    #     # dump table
+    #     cache_table_path = path.join(cache_path, ArrowDataset.CACHE_TABLE_FILENAME)
+    #     with pa.OSFile(cache_table_path, 'wb') as f:
+    #         with pa.RecordBatchFileWriter(f, schema=self.table.schema) as writer:
+    #             writer.write(self.table)
 
     def as_dataset(self):
         examples = ArrowDataset._recordbatch_to_examples(self.table, self.fields)
@@ -195,8 +220,22 @@ class ArrowDataset:
         return self.table.num_rows
 
     def __iter__(self):
-        for i in range(len(self)):
-            yield self[i]
+        fieldnames = tuple(field.name for field in self.fields)
+        column_names = []
+        for fieldname in fieldnames:
+            raw_column_name = fieldname + '_raw'
+            tokenized_column_name = fieldname + '_tokenized'
+            column_names.append(raw_column_name)
+            column_names.append(tokenized_column_name)
+
+        columns = tuple(self.table[column_name] for column_name in column_names)
+        for row in zip(*columns):
+            example = Example(fieldnames)
+            for field_index, field_name in enumerate(fieldnames):
+                raw = row[field_index*2].as_py()
+                tokenized = row[field_index*2 + 1].as_py()
+                setattr(example, field_name, (raw, tokenized))
+            yield example
 
     def __getattr__(self, attr):
         fieldname = attr
@@ -217,6 +256,10 @@ class ArrowDataset:
             error_msg = "Dataset has no field {}.".format(attr)
             _LOGGER.error(error_msg)
             raise AttributeError(error_msg)
+
+    def filter(self, predicate):
+        indices = [i for i, example in enumerate(self) if predicate(example)]
+        return self[indices]
 
     def close(self):
         if self.mmapped_file is not None:
