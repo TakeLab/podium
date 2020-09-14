@@ -27,7 +27,7 @@ class ArrowDataset:
     CACHE_TABLE_FILENAME = 'podium_arrow_cache.arrow'
     CACHE_FIELDS_FILENAME = 'podium_fields.pkl'
 
-    CHUNK_MAX_SIZE = 1000
+    CHUNK_MAX_SIZE = 10000
 
     def __init__(self, table, fields, cache_path, mmapped_file, data_types=None):
         self.cache_path = cache_path
@@ -43,7 +43,7 @@ class ArrowDataset:
 
     @staticmethod
     def from_dataset(dataset, cache_path=None, data_types=None):
-        return ArrowDataset.from_examples(dataset.fields, dataset.examples, cache_path, data_types)
+        return ArrowDataset.from_examples(dataset.fields, iter(dataset), cache_path, data_types)
 
     @staticmethod
     def from_examples(fields, examples, cache_path=None, data_types: dict = None):
@@ -59,7 +59,7 @@ class ArrowDataset:
         chunks_iter = group(examples, ArrowDataset.CHUNK_MAX_SIZE)
 
         # get first group to infer schema
-        first_group = chunks_iter.__next__()
+        first_group = next(chunks_iter)
         record_batch = ArrowDataset._examples_to_recordbatch(first_group, fields, data_types)
 
         with pa.OSFile(cache_table_path, 'wb') as f:
@@ -101,34 +101,48 @@ class ArrowDataset:
             raw_fieldname = field.name + "_raw"
             dtype = data_type_override.get(raw_fieldname)  # None if not overridden
             array = pa.array(field_raw_column, type=dtype)
-            arrays.append(array)
-            array_names.append(raw_fieldname)
+            if array.type != pa.null():
+                arrays.append(array)
+                array_names.append(raw_fieldname)
 
             tokenized_fieldname = field.name + "_tokenized"
             dtype = data_type_override.get(tokenized_fieldname)  # None if not overridden
             array = pa.array(field_tokenized_column, type=dtype)
-            arrays.append(array)
-            array_names.append(tokenized_fieldname)
+            if array.type != pa.null():
+                arrays.append(array)
+                array_names.append(tokenized_fieldname)
 
         return pa.RecordBatch.from_arrays(arrays, names=array_names)
 
     @staticmethod
     def _recordbatch_to_examples(record_batch, fields):
         fieldnames = tuple(field.name for field in fields)
-        examples = [Example(fieldnames) for _ in range(len(record_batch))]
+        field_value_iterators = tuple(ArrowDataset._field_values(record_batch, fieldname) for fieldname in fieldnames)
 
-        for fieldname in fieldnames:
-            columnname_raw = fieldname + "_raw"
-            raw_column = record_batch[columnname_raw]
+        for row in zip(*field_value_iterators):
+            example = Example(fieldnames)
+            for fieldname, values in zip(fieldnames, row):
+                setattr(example, fieldname, values)
+            yield example
 
-            columnname_tokenized = fieldname + "_tokenized"
-            tokenized_column = record_batch[columnname_tokenized]
-
-            for example, raw, tokenized in zip(examples, raw_column, tokenized_column):
-                data = (raw.as_py(), tokenized.as_py())  # (raw, tokenized)
-                setattr(example, fieldname, data)
-
-        return examples
+        # for fieldname in fieldnames:
+        #     columnname_raw = fieldname + "_raw"
+        #     if columnname_raw in record_batch_fieldnames:
+        #         raw_values = (value.as_py() for value in record_batch[columnname_raw])
+        #     else:
+        #         raw_values = infinite_generator(None)
+        #
+        #     columnname_tokenized = fieldname + "_tokenized"
+        #     if columnname_tokenized in record_batch_fieldnames:
+        #         tokenized_values = (value.as_py() for value in record_batch[columnname_tokenized])
+        #     else:
+        #         tokenized_values = infinite_generator(None)
+        #
+        #     for example, raw, tokenized in zip(examples, raw_values, tokenized_values):
+        #         data = (raw, tokenized)  # (raw, tokenized)
+        #         setattr(example, fieldname, data)
+        #
+        # return examples
 
     @staticmethod
     def load_cache(cache_path):
@@ -157,16 +171,16 @@ class ArrowDataset:
         if not path.isdir(cache_path):
             mkdir(cache_path)
 
-
         # pickle fields
         cache_fields_path = path.join(cache_path, ArrowDataset.CACHE_FIELDS_FILENAME)
         with open(cache_fields_path, 'wb') as fields_cache_file:
             pickle.dump(self.fields, fields_cache_file)
 
         # dump table
-        examples = iter(self)
-        db = ArrowDataset.from_examples(self.fields, examples, cache_path, self.data_types)  # creates the table file
-        db.close()
+        cache_table_path = path.join(cache_path, ArrowDataset.CACHE_TABLE_FILENAME)
+        with pa.OSFile(cache_table_path, 'wb') as f:
+            with pa.RecordBatchFileWriter(f, self.table.schema) as writer:
+                writer.write(self.table)
 
         return cache_path
 
@@ -188,26 +202,47 @@ class ArrowDataset:
     #             writer.write(self.table)
 
     def as_dataset(self):
-        examples = ArrowDataset._recordbatch_to_examples(self.table, self.fields)
+        examples = list(ArrowDataset._recordbatch_to_examples(self.table, self.fields))
         return Dataset(examples, self.fields)
 
     def batch(self):
         # TODO custom batch method?
         return self.as_dataset().batch()
 
+    @staticmethod
+    def _field_values(record_batch, fieldname):
+
+        def infinite_generator(value):
+            while True:
+                yield value
+
+        record_batch_fieldnames = tuple(field.name for field in record_batch.schema)
+
+        columnname_raw = fieldname + "_raw"
+        if columnname_raw in record_batch_fieldnames:
+            raw_values = (value.as_py() for value in record_batch[columnname_raw])
+        else:
+            raw_values = infinite_generator(None)
+
+        columnname_tokenized = fieldname + "_tokenized"
+        if columnname_tokenized in record_batch_fieldnames:
+            tokenized_values = (value.as_py() for value in record_batch[columnname_tokenized])
+        else:
+            tokenized_values = infinite_generator(None)
+
+        return zip(raw_values, tokenized_values)
+
     def __getitem__(self, item, deep_copy=False):
 
         if isinstance(item, int):
             record_batch = self.table[item:item + 1]  # slices extract row, indexing with int extracts column
-            return ArrowDataset._recordbatch_to_examples(record_batch, self.fields)[0]
+            example_iter = ArrowDataset._recordbatch_to_examples(record_batch, self.fields)
+            return next(example_iter)  # returns the one example
 
         if isinstance(item, slice):
-            # TODO causes SIGSEGV on dump if step !=1
-            # write
             table_slice = self.table[item]
 
         else:
-            # TODO causes SIGSEGV on dump
             table_slice = self.table.take(item)
 
         return ArrowDataset(table=table_slice,
@@ -216,44 +251,17 @@ class ArrowDataset:
                             mmapped_file=self.mmapped_file)
 
     def __len__(self):
-        # TODO __len__ doesn't work on sliced datasets (if step != 1)
-        return self.table.num_rows
+        return len(self.table)
 
     def __iter__(self):
-        fieldnames = tuple(field.name for field in self.fields)
-        column_names = []
-        for fieldname in fieldnames:
-            raw_column_name = fieldname + '_raw'
-            tokenized_column_name = fieldname + '_tokenized'
-            column_names.append(raw_column_name)
-            column_names.append(tokenized_column_name)
+        yield from self._recordbatch_to_examples(self.table, self.fields)
 
-        columns = tuple(self.table[column_name] for column_name in column_names)
-        for row in zip(*columns):
-            example = Example(fieldnames)
-            for field_index, field_name in enumerate(fieldnames):
-                raw = row[field_index*2].as_py()
-                tokenized = row[field_index*2 + 1].as_py()
-                setattr(example, field_name, (raw, tokenized))
-            yield example
-
-    def __getattr__(self, attr):
-        fieldname = attr
+    def __getattr__(self, fieldname):
         if fieldname in self.field_dict:
+            return ArrowDataset._field_values(self.table, fieldname)
 
-            def attr_generator(dataset, fieldname):
-                columnname_raw = fieldname + "_raw"
-                raw_column = dataset.table[columnname_raw]
-
-                columnname_tokenized = fieldname + "_tokenized"
-                tokenized_column = dataset.table[columnname_tokenized]
-
-                for raw, tokenized in zip(raw_column, tokenized_column):
-                    yield raw.as_py(), tokenized.as_py()  # (raw, tokenized)
-
-            return attr_generator(self, fieldname)
         else:
-            error_msg = "Dataset has no field {}.".format(attr)
+            error_msg = "Dataset has no field {}.".format(fieldname)
             _LOGGER.error(error_msg)
             raise AttributeError(error_msg)
 
