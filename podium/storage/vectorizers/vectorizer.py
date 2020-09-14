@@ -211,7 +211,7 @@ class VectorStorage(ABC):
             vocab = list(self._vectors.keys())
         return np.vstack([self.token_to_vector(token) for token in vocab])
 
-    def __str__(self):
+    def __repr__(self):
         return "{}[size: {}]".format(self.__class__.__name__, len(self))
 
 

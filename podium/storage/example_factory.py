@@ -49,7 +49,7 @@ class Example:
         for fieldname in fieldnames:
             setattr(self, fieldname, None)
 
-    def __str__(self):
+    def __repr__(self):
         attribute = [att for att in dir(self) if not att.startswith("__")
                      and not att.endswith("_")]
         att_values = ["{}: {}".format(att, getattr(self, att, None)) for att in attribute]

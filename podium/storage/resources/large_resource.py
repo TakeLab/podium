@@ -140,7 +140,7 @@ class LargeResource:
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
-    def __str__(self):
+    def __repr__(self):
         return "{}[name: {}, uri: {}]".format(
             self.__class__.__name__, self.config[LargeResource.RESOURCE_NAME],
             self.config[LargeResource.URI])

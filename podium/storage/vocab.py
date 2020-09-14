@@ -488,6 +488,6 @@ class Vocab:
             return iter(self._freqs.keys())
         return iter(self.itos)
 
-    def __str__(self):
+    def __repr__(self):
         return "{}[finalized: {}, size: {}]".format(
             self.__class__.__name__, self.finalized, len(self))

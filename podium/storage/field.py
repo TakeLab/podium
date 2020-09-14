@@ -801,7 +801,7 @@ class Field:
         self.__dict__.update(state)
         self.tokenizer = get_tokenizer(self._tokenizer_arg, self.language)
 
-    def __str__(self):
+    def __repr__(self):
         return "{}[name: {}, is_sequential: {}, is_target: {}]".format(
             self.__class__.__name__, self.name, self.is_sequential, self.is_target)
 
