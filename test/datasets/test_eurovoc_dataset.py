@@ -1,5 +1,5 @@
 import pytest
-from mock import patch
+from unittest.mock import patch
 from podium.datasets.impl.eurovoc_dataset import EuroVocDataset
 from podium.dataload.eurovoc import Label, LabelRank, Document
 from podium.preproc.lemmatizer.croatian_lemmatizer import CroatianLemmatizer
@@ -9,7 +9,7 @@ EXPECTED_EXAMPLES = [
     {"title": "title 1".split(),
      "text": "body text".split(),
      "eurovoc_labels": [3],
-     "crovoc_labels": list()},
+     "crovoc_labels": []},
     {"title": "title 2".split(),
      "text": "body text".split(),
      "eurovoc_labels": [4],
@@ -17,7 +17,7 @@ EXPECTED_EXAMPLES = [
     {"title": "title 3".split(),
      "text": "body text".split(),
      "eurovoc_labels": [3, 4],
-     "crovoc_labels": list()},
+     "crovoc_labels": []},
 ]
 
 EXPECTED_EUROVOC_LABELS = [
@@ -84,7 +84,7 @@ EXPECTED_CROVOC_LABELS = [
 
 
 def eurovoc_label_hierarchy():
-    eurovoc_label_hierarchy = dict()
+    eurovoc_label_hierarchy = {}
     label_1 = Label(name="thesaurus 1",
                     id=1,
                     rank=LabelRank.THESAURUS,
@@ -125,7 +125,7 @@ def eurovoc_label_hierarchy():
 
 
 def crovoc_label_hierarchy():
-    crovoc_label_hierarchy = dict()
+    crovoc_label_hierarchy = {}
     label_1 = Label(name="thesaurus 11",
                     id=11,
                     rank=LabelRank.THESAURUS,
@@ -157,7 +157,7 @@ def crovoc_label_hierarchy():
 
 
 def documents():
-    documents = list()
+    documents = []
     document_1 = Document("NN00100.xml",
                           "title 1",
                           "body text 1")
@@ -174,7 +174,7 @@ def documents():
 
 
 def missing_document():
-    documents = list()
+    documents = []
     document_1 = Document("NN00100.xml",
                           "title 1",
                           "body text 1")
@@ -187,7 +187,7 @@ def missing_document():
 
 
 def mappings():
-    mappings = dict()
+    mappings = {}
     mappings[100] = [3]
     mappings[200] = [4, 13]
     mappings[300] = [3, 4]
@@ -195,14 +195,14 @@ def mappings():
 
 
 def mappings_missing_document():
-    mappings = dict()
+    mappings = {}
     mappings[100] = [3]
     mappings[200] = [4, 13]
     return mappings
 
 
 def mappings_non_existing_label():
-    mappings = dict()
+    mappings = {}
     mappings[100] = [3, 5]
     mappings[200] = [4, 13]
     mappings[300] = [3, 4]

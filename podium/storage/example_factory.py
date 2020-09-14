@@ -184,7 +184,7 @@ class ExampleFactory:
         return example
 
     def from_json(self, data):
-        """ Creates an Example from a JSON object and the
+        """Creates an Example from a JSON object and the
         corresponding fields.
 
 
@@ -209,26 +209,26 @@ class ExampleFactory:
         return self.from_dict(json.loads(data))
 
     def from_csv(self, data, field_to_index=None, delimiter=","):
-        """ Creates an Example from a CSV line and a corresponding
-            list or dict of Fields.
+        """Creates an Example from a CSV line and a corresponding
+        list or dict of Fields.
 
-            Parameters
-            ----------
-            data : str
-                A string containing a single row of values separated by the
-                given delimiter.
-            field_to_index : dict
-                A dict that maps column names to their indices in the line of data.
-                Only needed if fields is a dict, otherwise ignored.
-            delimiter : str
-                The delimiter that separates the values in the line of data.
+        Parameters
+        ----------
+        data : str
+            A string containing a single row of values separated by the
+            given delimiter.
+        field_to_index : dict
+            A dict that maps column names to their indices in the line of data.
+            Only needed if fields is a dict, otherwise ignored.
+        delimiter : str
+            The delimiter that separates the values in the line of data.
 
-            Returns
-            -------
-            Example
-                An Example whose attributes are the given Fields created with the
-                given column values. These Fields can be accessed by their names.
-            """
+        Returns
+        -------
+        Example
+            An Example whose attributes are the given Fields created with the
+            given column values. These Fields can be accessed by their names.
+        """
         elements = next(csv.reader([data], delimiter=delimiter))
 
         if isinstance(self.fields, list):
@@ -269,7 +269,7 @@ class ExampleFactory:
 
         tree = Tree.fromstring(data)
         if subtrees:
-            subtree_lists = list(map(tree_to_list, tree.subtrees()))
+            subtree_lists = [tree_to_list(subtree) for subtree in tree.subtrees()]
             if label_transform is not None:
                 # This is perhaps inefficient but probably the best place to insert this
                 subtree_lists = [[text, label_transform(label)]

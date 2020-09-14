@@ -77,7 +77,6 @@ class CatacxCommentsDataset(Dataset):
         Yields
         ------
             The next comment in the dataset.
-
         """
 
         for post in ds:
@@ -100,13 +99,12 @@ class CatacxCommentsDataset(Dataset):
         -------
         list(Example)
             A list of examples containing comments from the Catacx dataset.
-
         """
         example_factory = ExampleFactory(fields)
-        with open(dir_path, encoding="utf8", mode="r") as f:
+        with open(dir_path, encoding="utf8") as f:
             ds = json.load(f)
 
-        examples = list()
+        examples = []
 
         for comment in CatacxCommentsDataset._get_comments(ds):
             examples.append(example_factory.from_dict(comment))
@@ -145,7 +143,7 @@ class CatacxCommentsDataset(Dataset):
                           custom_numericalize=int)
 
         message = Field(name='message', tokenize=True,
-                        tokenizer='split', language='hr')
+                        tokenizer='split')
 
         author_id = Field(name='author_id', tokenize=False,
                           store_as_raw=True)

@@ -75,7 +75,7 @@ class IMDB(Dataset):
     def __init__(self, dir_path, fields):
         """
         Dataset constructor. User should use static method
-        get_train_test_dataset rather than using directly constructor.
+        get_dataset_splits rather than using directly constructor.
 
         Parameters
         ----------
@@ -103,7 +103,7 @@ class IMDB(Dataset):
         Parameters
         ----------
         dir_path : str
-            file where files with examples are positioned
+            directory where files with examples are positioned
         fields : dict(str, Field)
             dictionary mapping field names to fields
 
@@ -146,12 +146,12 @@ class IMDB(Dataset):
             list of examples from given dir_path
         """
         example_factory = ExampleFactory(fields)
-        files_list = [f for f in os.listdir(dir_path) if os.path.isfile(
-            os.path.join(dir_path, f))]
+        files_list = [f for f in os.listdir(dir_path)
+                      if os.path.isfile(os.path.join(dir_path, f))]
         examples = []
         for file_path in files_list:
             with open(file=os.path.join(dir_path, file_path),
-                      mode='r', encoding='utf8') as fpr:
+                      encoding='utf8') as fpr:
                 data = {IMDB.TEXT_FIELD_NAME: fpr.read(),
                         IMDB.LABEL_FIELD_NAME: label}
                 examples.append(example_factory.from_dict(data))

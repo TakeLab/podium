@@ -30,7 +30,7 @@ class Pipeline(Experiment):
         Parameters
         ----------
         fields : dict or list of fields
-            Fields used to process raw data.  Can be either a dict mapping column names
+            Fields used to process raw data. Can be either a dict mapping column names
             to Fields (or tuples of Fields), or a list of Fields (or tuples of Fields).
             A Field value of None means the corresponding column will
             be ignored.
@@ -44,7 +44,7 @@ class Pipeline(Experiment):
             data.
 
         model : class or model instance
-            Class of the Model to be fitted or a pre-trained model.
+            Class of the model to be fitted or a pre-trained model.
             If pre-trained model is passed and `fit` is called a new model instance will
             be created. For fine-tuning of the passed model instance call
             `partial_fit`.

@@ -4,9 +4,9 @@ import os
 import tempfile
 import getpass
 import logging
-from podium.storage.resources.downloader import SimpleHttpDownloader, SCPDownloader
-from podium.storage.resources import utility
 
+from podium.storage.resources.downloader import SimpleHttpDownloader, SCPDownloader
+from podium.storage.resources import util
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -104,11 +104,11 @@ class LargeResource:
                                  self.config[LargeResource.ARCHIVE],
                                  LargeResource.SUPPORTED_ARCHIVE))
         if self.config[LargeResource.ARCHIVE] == "zip":
-            utility.extract_zip_file(archive_file=archive_file,
-                                     destination_dir=self.resource_location)
+            util.extract_zip_file(archive_file=archive_file,
+                                  destination_dir=self.resource_location)
             return
-        utility.extract_tar_file(archive_file=archive_file,
-                                 destination_dir=self.resource_location)
+        util.extract_tar_file(archive_file=archive_file,
+                              destination_dir=self.resource_location)
 
     def _download_unarchive(self):
         """Method downloades resource and decompresses it to resource location.

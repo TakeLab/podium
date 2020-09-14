@@ -648,7 +648,7 @@ def field_list():
             for field_name, eager in FIELD_DATA]
 
 
-@pytest.fixture()
+@pytest.fixture
 def data():
     labels = range(1, len(TEXT) + 1)
     data = list(zip(TEXT, labels))
@@ -656,7 +656,7 @@ def data():
     return data
 
 
-@pytest.fixture()
+@pytest.fixture
 def data_for_stratified():
     labels = [1] * 3 + [0] * 9
 
@@ -665,7 +665,7 @@ def data_for_stratified():
     return data
 
 
-@pytest.fixture()
+@pytest.fixture
 def tabular_dataset_fields(use_dict):
     TEXT = MockField('text', eager=True)
     CHARS = MockField('chars', eager=True)
@@ -680,7 +680,7 @@ def tabular_dataset_fields(use_dict):
     return fields
 
 
-@pytest.fixture()
+@pytest.fixture
 def tabular_data():
     return {"text": TABULAR_TEXT, "rating": TABULAR_RATINGS,
             "source": TABULAR_SOURCES}
@@ -781,7 +781,7 @@ def test_eager_tokenization():
         assert all(example_eager.source_ == example_lazy.source_)
 
 
-@pytest.fixture()
+@pytest.fixture
 def hierarchical_dataset_fields():
     name_field = Field("name", store_as_raw=True, tokenize=False)
     number_field = Field("number", store_as_raw=True, tokenize=False)
@@ -793,12 +793,12 @@ def hierarchical_dataset_fields():
     return fields
 
 
-@pytest.fixture()
+@pytest.fixture
 def hierarchical_dataset_parser():
     return HierarchicalDataset.get_default_dict_parser("children")
 
 
-@pytest.fixture()
+@pytest.fixture
 def hierarchical_dataset(hierarchical_dataset_fields, hierarchical_dataset_parser):
     return HierarchicalDataset.from_json(dataset=HIERARCHIAL_DATASET_JSON_EXAMPLE,
                                          fields=hierarchical_dataset_fields,

@@ -1,6 +1,7 @@
 import os
 import pytest
-import mock
+import unittest.mock as mock
+
 from podium.preproc.lemmatizer.croatian_lemmatizer import (
     CroatianLemmatizer, _lemmatizer_posttokenized_hook)
 
@@ -104,7 +105,7 @@ def create_molex_file(filepath, content):
         f.write(content)
 
 
-@pytest.fixture()
+@pytest.fixture
 def molex14_lemma2word(molexdir):
     content = ("mama#mame,mami,mamama,mamu,mamo,mamom,mama\n"
                "tata#tate,tati,tatata,tatu")
@@ -113,7 +114,7 @@ def molex14_lemma2word(molexdir):
     return path
 
 
-@pytest.fixture()
+@pytest.fixture
 def molex14_word2lemma(molexdir):
     content = ("mamama mama\n"
                "mami mama\n"
@@ -123,7 +124,7 @@ def molex14_word2lemma(molexdir):
     return path
 
 
-@pytest.fixture()
+@pytest.fixture
 def molexdir(tmpdir):
     yield tmpdir
 

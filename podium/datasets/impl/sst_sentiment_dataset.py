@@ -116,7 +116,7 @@ class SST(Dataset):
             return label_to_string_map[label]
 
         examples = []
-        with open(file=file_path, mode='r', encoding='utf8') as fpr:
+        with open(file=file_path, encoding='utf8') as fpr:
             for line in fpr:
 
                 example = example_factory.from_fields_tree(line, subtrees=subtrees,

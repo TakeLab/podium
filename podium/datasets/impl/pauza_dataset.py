@@ -76,7 +76,7 @@ class PauzaHRDataset(Dataset):
         examples = []
         for file_path in files_list:
             with open(file=os.path.join(dir_path, file_path),
-                      mode='r', encoding='utf8') as fpr:
+                      encoding='utf8') as fpr:
                 examples.append(example_factory.from_xml_str(fpr.read()))
         return examples
 
@@ -122,7 +122,7 @@ class PauzaHRDataset(Dataset):
         source = Field(name="Source", vocab=Vocab(specials=()),
                        tokenize=False, store_as_raw=True)
         text = Field(name="Text", vocab=Vocab(), tokenizer='split',
-                     language="hr", tokenize=True, store_as_raw=False)
+                     tokenize=True, store_as_raw=False)
 
         fields = {"Text": text, "Rating": rating, "Source": source}
         return fields

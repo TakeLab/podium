@@ -18,44 +18,44 @@ def kfold_scores(
         score_fun: Callable[[np.ndarray, np.ndarray], Union[np.ndarray, int, float]],
         shuffle: Optional[bool] = False,
         random_state: int = None) -> List[Union[np.ndarray, int, float]]:
-    """ Calculates a score for each train/test fold. The score for a fold is calculated by
-        first fitting the experiment to the train split and then using the test split to
-        calculate predictions and evaluate the score. This is repeated for every fold.
+    """Calculates a score for each train/test fold. The score for a fold is calculated by
+    first fitting the experiment to the train split and then using the test split to
+    calculate predictions and evaluate the score. This is repeated for every fold.
 
-        Parameters
-        ----------
-        experiment : Experiment
-            Experiment defining the training and prediction procedure to be evaluated.
+    Parameters
+    ----------
+    experiment : Experiment
+        Experiment defining the training and prediction procedure to be evaluated.
 
-        dataset : Dataset
-            Dataset to be used for experiment evaluation.
+    dataset : Dataset
+        Dataset to be used for experiment evaluation.
 
-        n_splits : int
-            Number of folds.
+    n_splits : int
+        Number of folds.
 
-        score_fun : Callable (y_true, y_predicted) -> score
-            Callable used to evaluate the score for a fold. This callable should take
-            two numpy array arguments: y_true and y_predicted. y_true is the ground
-            truth while y_predicted are the model's predictions. This callable should
-            return a score that can be either a numpy array, a int or a float.
+    score_fun : Callable (y_true, y_predicted) -> score
+        Callable used to evaluate the score for a fold. This callable should take
+        two numpy array arguments: y_true and y_predicted. y_true is the ground
+        truth while y_predicted are the model's predictions. This callable should
+        return a score that can be either a numpy array, a int or a float.
 
-        shuffle : boolean, optional
-            Whether to shuffle the data before splitting into batches.
+    shuffle : boolean, optional
+        Whether to shuffle the data before splitting into batches.
 
-        random_state : int, RandomState instance or None
-            If int, random_state is the seed used by the random number generator;
-            If RandomState instance, random_state is the random number generator;
-            If None, the random number generator is the RandomState instance used
-            by `np.random`. Used when ``shuffle`` == True.
+    random_state : int, RandomState instance or None
+        If int, random_state is the seed used by the random number generator;
+        If RandomState instance, random_state is the random number generator;
+        If None, the random number generator is the RandomState instance used
+        by `np.random`. Used when ``shuffle`` == True.
 
-        Returns
-        -------
-            a List of scores provided by score_fun for every fold.
-     """
+    Returns
+    -------
+        a List of scores provided by score_fun for every fold.
+    """
     kfold = KFold(n_splits=n_splits,
                   shuffle=shuffle,
                   random_state=random_state)
-    results = list()
+    results = []
     for train_split, test_split in kfold.split(dataset):
         experiment.fit(train_split)
         y_pred = experiment.predict(test_split)

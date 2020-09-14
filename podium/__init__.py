@@ -35,4 +35,4 @@ LOGGER.addHandler(logging.StreamHandler())
 LOGGER.setLevel(logging.WARNING)
 
 # More information about logging can be found on project github
-#  https://github.com/FilipBolt/takepod/wiki/Logging
+# https://github.com/FilipBolt/takepod/wiki/Logging

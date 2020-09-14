@@ -4,7 +4,7 @@ import shutil
 import pytest
 import dill
 
-from mock import patch
+from unittest.mock import patch
 
 from podium.dataload.eurovoc import EuroVocLoader, Label, LabelRank, dill_dataset
 from podium.storage.resources.large_resource import LargeResource, SCPLargeResource

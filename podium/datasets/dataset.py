@@ -49,6 +49,7 @@ class Dataset(ABC):
 
     def __getitem__(self, i):
         """Returns an example or a new dataset containing the indexed examples.
+
         If indexed with an int, only the example at that position will be returned.
         If Indexed with a slice or iterable, all examples indexed by the object
         will be collected and a new dataset containing only those examples will be
@@ -64,7 +65,7 @@ class Dataset(ABC):
 
             example = dataset[1] # Indexing by single integer returns a single example
 
-            new_dataset = dataset[1:10] # Multiindexing returns a new dataset containing
+            new_dataset = dataset[1:10] # Multi-indexing returns a new dataset containing
                                         # the indexed examples.
 
         Parameters
@@ -102,7 +103,7 @@ class Dataset(ABC):
             # Same as the first example, but returns a deep_copy of the example
             example_copy = dataset.get(1, deep_copy=True)
 
-            # Multiindexing returns a new dataset containing the indexed examples
+            # Multi-indexing returns a new dataset containing the indexed examples
             s = slice(1, 10)
             new_dataset = dataset.get(s)
 
@@ -260,38 +261,38 @@ class Dataset(ABC):
 
         Parameters
         ----------
-            split_ratio : (float | list[float] | tuple[float])
-                If type is float, a number in the interval (0.0, 1.0) denoting
-                the amount of data to be used for the train split (the rest
-                is used for test).
-                If type is list or tuple, it should be of length 2 (or 3) and
-                the numbers should denote the relative sizes of train, (valid)
-                and test splits respectively.
-                If the relative size for valid is missing (length is 2), only
-                the train-test split is returned (valid is taken to be 0.0).
-                Also, the relative sizes don't have to sum up to 1.0 (they are
-                normalized automatically).
-                The ratio must not be so unbalanced that it would result in
-                either of the splits being empty (having zero elements).
-                Default is 0.7 (for the train set).
-            stratified : bool
-                Whether the split should be stratified. A stratified split
-                means that for each concrete value of the strata field, the
-                given train-val-test ratio is preserved. Usually used on
-                fields representing labels / classes, so that every class is
-                present in each of our splits with the same percentage as in
-                the entire dataset.
-                Default is False.
-            strata_field_name : str
-                Name of the field that is to be used to do the stratified
-                split. Only relevant when 'stratified' is true.
-                If the name of the strata field is not provided (the default
-                behaviour), the stratified split will be done over the first
-                field that is a target (its 'is_target' attribute is True).
-                Note that the values of the strata field have to be hashable.
-                Default is None.
-            random_state : int
-                The random seed used for shuffling.
+        split_ratio : (float | list[float] | tuple[float])
+            If type is float, a number in the interval (0.0, 1.0) denoting
+            the amount of data to be used for the train split (the rest
+            is used for test).
+            If type is list or tuple, it should be of length 2 (or 3) and
+            the numbers should denote the relative sizes of train, (valid)
+            and test splits respectively.
+            If the relative size for valid is missing (length is 2), only
+            the train-test split is returned (valid is taken to be 0.0).
+            Also, the relative sizes don't have to sum up to 1.0 (they are
+            normalized automatically).
+            The ratio must not be so unbalanced that it would result in
+            either of the splits being empty (having zero elements).
+            Default is 0.7 (for the train set).
+        stratified : bool
+            Whether the split should be stratified. A stratified split
+            means that for each concrete value of the strata field, the
+            given train-val-test ratio is preserved. Usually used on
+            fields representing labels / classes, so that every class is
+            present in each of our splits with the same percentage as in
+            the entire dataset.
+            Default is False.
+        strata_field_name : str
+            Name of the field that is to be used to do the stratified
+            split. Only relevant when 'stratified' is true.
+            If the name of the strata field is not provided (the default
+            behaviour), the stratified split will be done over the first
+            field that is a target (its 'is_target' attribute is True).
+            Note that the values of the strata field have to be hashable.
+            Default is None.
+        random_state : int
+            The random seed used for shuffling.
 
         Returns
         -------
@@ -454,9 +455,6 @@ class Dataset(ABC):
         fields = [field.name for field in self.fields]
         return "{}[Size: {}, Fields: {}]".format(
             self.__class__.__name__, len(self.examples), fields)
-
-    def __str__(self):
-        return self.__repr__()
 
 
 def check_split_ratio(split_ratio):

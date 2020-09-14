@@ -2,7 +2,7 @@ import os
 import dill
 import numpy as np
 import pytest
-from mock import patch
+from unittest.mock import patch
 
 from podium.storage import Field, TokenizedField, MultilabelField, \
     Vocab, SpecialVocabSymbols, MultioutputField, LabelField
