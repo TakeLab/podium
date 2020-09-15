@@ -1,11 +1,14 @@
 import pyarrow as pa
 import tempfile
 import itertools
-from os import path, mkdir
+import os
 import shutil
 import logging
 import pickle
+import io
+import csv
 
+from podium.storage import ExampleFactory
 from podium.datasets import Dataset
 from podium.storage.example_factory import Example
 
@@ -52,7 +55,7 @@ class ArrowDataset:
             cache_path = tempfile.mkdtemp(prefix=ArrowDataset.TEMP_CACHE_FILENAME_PREFIX)
 
         # dump dataset table
-        cache_table_path = path.join(cache_path, ArrowDataset.CACHE_TABLE_FILENAME)
+        cache_table_path = os.path.join(cache_path, ArrowDataset.CACHE_TABLE_FILENAME)
 
         # TODO hande cache case when cache is present
 
@@ -73,6 +76,64 @@ class ArrowDataset:
         table = pa.RecordBatchFileReader(mmapped_file).read_all()
 
         return ArrowDataset(table, fields, cache_path, mmapped_file, data_types)
+
+    @staticmethod
+    def from_tabular_file(path, format, fields, cache_path=None, data_types=None, skip_header=False,
+                 csv_reader_params=None):
+
+        format = format.lower()
+        csv_reader_params = {} if csv_reader_params is None else csv_reader_params
+
+        with io.open(os.path.expanduser(path), encoding="utf8") as f:
+            if format in {'csv', 'tsv'}:
+                delimiter = ',' if format == "csv" else '\t'
+                reader = csv.reader(f, delimiter=delimiter,
+                                    **csv_reader_params)
+            elif format == "json":
+                reader = f
+            else:
+                error_msg = "Invalid format: {}".format(format)
+                _LOGGER.error(error_msg)
+                raise ValueError(error_msg)
+
+        if skip_header:
+            if format == "json":
+                error_msg = "When using a {} file, skip_header must be False.".format(format)
+                _LOGGER.error(error_msg)
+                raise ValueError(error_msg)
+            elif format in {"csv", "tsv"} and isinstance(fields, dict):
+                error_msg = "When using a dict to specify fields with a {}" \
+                            " file, skip_header must be False and the file must " \
+                            "have a header.".format(format)
+                _LOGGER.error(error_msg)
+                raise ValueError(error_msg)
+
+            # skipping the header
+            next(reader)
+
+        # if format is CSV/TSV and fields is a dict, transform it to a list
+        if format in {"csv", "tsv"} and isinstance(fields, dict):
+            # we need a header to know the column names
+            header = next(reader)
+
+            # columns not present in the fields dict are ignored (None)
+            fields = [fields.get(column, None) for column in header]
+
+            # fields argument is the same for all examples
+            # fromlist is used for CSV/TSV because csv_reader yields data rows as
+            # lists, not strings
+            example_factory = ExampleFactory(fields)
+            make_example_function = {
+                "json": example_factory.from_json,
+                "csv": example_factory.from_list,
+                "tsv": example_factory.from_list
+            }
+
+            make_example = make_example_function[format]
+
+            # map each line from the reader to an example
+            examples = map(make_example, reader)
+            return ArrowDataset.from_examples(fields, examples, cache_path=cache_path, data_types=data_types)
 
     @staticmethod
     def _examples_to_recordbatch(examples, fields, data_types=None):
@@ -125,34 +186,15 @@ class ArrowDataset:
                 setattr(example, fieldname, values)
             yield example
 
-        # for fieldname in fieldnames:
-        #     columnname_raw = fieldname + "_raw"
-        #     if columnname_raw in record_batch_fieldnames:
-        #         raw_values = (value.as_py() for value in record_batch[columnname_raw])
-        #     else:
-        #         raw_values = infinite_generator(None)
-        #
-        #     columnname_tokenized = fieldname + "_tokenized"
-        #     if columnname_tokenized in record_batch_fieldnames:
-        #         tokenized_values = (value.as_py() for value in record_batch[columnname_tokenized])
-        #     else:
-        #         tokenized_values = infinite_generator(None)
-        #
-        #     for example, raw, tokenized in zip(examples, raw_values, tokenized_values):
-        #         data = (raw, tokenized)  # (raw, tokenized)
-        #         setattr(example, fieldname, data)
-        #
-        # return examples
-
     @staticmethod
     def load_cache(cache_path):
         # load fields
-        fields_file_path = path.join(cache_path, ArrowDataset.CACHE_FIELDS_FILENAME)
+        fields_file_path = os.path.join(cache_path, ArrowDataset.CACHE_FIELDS_FILENAME)
         with open(fields_file_path, 'rb') as fields_cache_file:
             fields = pickle.load(fields_cache_file)
 
         # load dataset as memory mapped arrow table
-        table_file_path = path.join(cache_path, ArrowDataset.CACHE_TABLE_FILENAME)
+        table_file_path = os.path.join(cache_path, ArrowDataset.CACHE_TABLE_FILENAME)
         mmapped_file = pa.memory_map(table_file_path)
         table = pa.RecordBatchFileReader(mmapped_file).read_all()
         return ArrowDataset(table, fields, cache_path, mmapped_file)
@@ -168,16 +210,16 @@ class ArrowDataset:
         if cache_path is None:
             cache_path = tempfile.mkdtemp(prefix=ArrowDataset.TEMP_CACHE_FILENAME_PREFIX)
 
-        if not path.isdir(cache_path):
-            mkdir(cache_path)
+        if not os.path.isdir(cache_path):
+            os.mkdir(cache_path)
 
         # pickle fields
-        cache_fields_path = path.join(cache_path, ArrowDataset.CACHE_FIELDS_FILENAME)
+        cache_fields_path = os.path.join(cache_path, ArrowDataset.CACHE_FIELDS_FILENAME)
         with open(cache_fields_path, 'wb') as fields_cache_file:
             pickle.dump(self.fields, fields_cache_file)
 
         # dump table
-        cache_table_path = path.join(cache_path, ArrowDataset.CACHE_TABLE_FILENAME)
+        cache_table_path = os.path.join(cache_path, ArrowDataset.CACHE_TABLE_FILENAME)
         with pa.OSFile(cache_table_path, 'wb') as f:
             with pa.RecordBatchFileWriter(f, self.table.schema) as writer:
                 writer.write(self.table)
