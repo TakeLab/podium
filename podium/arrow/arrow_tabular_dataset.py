@@ -184,23 +184,6 @@ class ArrowDataset:
 
         return cache_path
 
-    # Old dump_cache method, caused segmentation errors in arrow native code
-    # def dump_cache(self, cache_path):
-    #
-    #     if not path.isdir(cache_path):
-    #         mkdir(cache_path)
-    #
-    #     # pickle fields
-    #     cache_fields_path = path.join(cache_path, ArrowDataset.CACHE_FIELDS_FILENAME)
-    #     with open(cache_fields_path, 'wb') as fields_cache_file:
-    #         pickle.dump(self.fields, fields_cache_file)
-    #
-    #     # dump table
-    #     cache_table_path = path.join(cache_path, ArrowDataset.CACHE_TABLE_FILENAME)
-    #     with pa.OSFile(cache_table_path, 'wb') as f:
-    #         with pa.RecordBatchFileWriter(f, schema=self.table.schema) as writer:
-    #             writer.write(self.table)
-
     def as_dataset(self):
         examples = list(ArrowDataset._recordbatch_to_examples(self.table, self.fields))
         return Dataset(examples, self.fields)
