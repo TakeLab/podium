@@ -1,8 +1,10 @@
 """Module contains classes related to the vocabulary."""
 import logging
-from typing import Union, Iterable
-from itertools import chain
 from collections import Counter
+from enum import Enum
+from itertools import chain
+from typing import Union, Iterable
+
 import numpy as np
 
 _LOGGER = logging.getLogger(__name__)
@@ -46,7 +48,7 @@ class VocabDict(dict):
         return self._default_factory()
 
 
-class SpecialVocabSymbols:
+class SpecialVocabSymbols(Enum):
     """Class for special vocabular symbols
 
     Attributes
