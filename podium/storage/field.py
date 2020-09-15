@@ -558,8 +558,7 @@ class Field:
             self.vocab.finalize()
 
     def _process_tokens(self, data, tokens):
-        """
-        Runs posttokenization processing on the provided data and tokens and updates
+        """Runs posttokenization processing on the provided data and tokens and updates
         the vocab if needed. Used by Multioutput field.
 
         Parameters
@@ -855,8 +854,7 @@ class LabelField(Field):
 
 
 class TokenizedField(Field):
-    """
-    Tokenized version of the Field. Holds the preprocessing and
+    """Tokenized version of the Field. Holds the preprocessing and
     numericalization logic for the pre-tokenized dataset fields.
     """
 

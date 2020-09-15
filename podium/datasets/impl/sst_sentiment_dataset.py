@@ -1,4 +1,5 @@
 import os
+
 from podium.datasets.dataset import Dataset
 from podium.storage.field import Field, LabelField
 from podium.storage.example_factory import ExampleFactory
@@ -42,8 +43,7 @@ class SST(Dataset):
     LABEL_FIELD_NAME = "label"
 
     def __init__(self, file_path, fields, fine_grained=False, subtrees=False):
-        """
-        Dataset constructor. User should use static method
+        """Dataset constructor. User should use static method
         get_dataset_splits rather than using the constructor directly.
 
         Parameters
@@ -82,8 +82,7 @@ class SST(Dataset):
 
     @staticmethod
     def _create_examples(file_path, fields, fine_grained, subtrees):
-        """
-        Method creates examples for the sst dataset. Examples are arranged in two
+        """Method creates examples for the sst dataset. Examples are arranged in two
         folders, one for examples with positive sentiment and other with negative
         sentiment. One file in each folder represents one example.
 

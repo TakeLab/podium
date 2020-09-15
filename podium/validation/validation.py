@@ -1,11 +1,11 @@
+import logging
 from typing import Callable, Optional, Union, List, Tuple
-import numpy as np
 
 from podium.datasets import Dataset
 from podium.validation import KFold
 from podium.models.experiment import Experiment
 
-import logging
+import numpy as np
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 _LOGGER = logging.getLogger(__name__)
@@ -76,7 +76,7 @@ def k_fold_validation(experiment: Experiment,
                       shuffle: Optional[bool] = False,
                       random_state: int = None) -> Union[np.ndarray, int, float]:
     # TODO add option to calculate statistical values (variance, p-value...)?
-    """ Convenience function for kfold_scores. Calculates scores for every fold and
+    """Convenience function for kfold_scores. Calculates scores for every fold and
     returns the mean of all scores.
 
     Parameters
@@ -129,7 +129,7 @@ def k_fold_classification_metrics(experiment: Experiment,
                                   shuffle: Optional[bool] = False,
                                   random_state: int = None) \
         -> Tuple[float, float, float, float]:
-    """ Calculates the most often used classification metrics : accuracy, precision,
+    """Calculates the most often used classification metrics : accuracy, precision,
     recall and the F1 score. All scores are calculated for every fold and the mean
     of every score over all folds is returned.
 

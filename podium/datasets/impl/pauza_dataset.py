@@ -1,5 +1,6 @@
 """Module contains PauzaHR datasets."""
 import os
+
 from podium.datasets.dataset import Dataset
 from podium.storage.field import Field
 from podium.storage.vocab import Vocab

@@ -6,8 +6,8 @@ import json
 import csv
 from enum import Enum
 from typing import Union
-
 import xml.etree.ElementTree as ET
+
 from podium.storage.field import unpack_fields
 
 _LOGGER = logging.getLogger(__name__)
@@ -62,8 +62,7 @@ class ExampleFactory:
     its own example class definition optimised for the fields provided in __init__."""
 
     def __init__(self, fields):
-        """
-        Creates a new ExampleFactory instance.
+        """Creates a new ExampleFactory instance.
 
         Parameters
         ----------

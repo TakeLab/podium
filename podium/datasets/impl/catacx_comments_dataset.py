@@ -3,8 +3,8 @@ import json
 import os
 
 from podium.datasets.dataset import Dataset
-from podium.storage.field import Field
 from podium.storage import ExampleFactory
+from podium.storage.field import Field
 from podium.storage.resources.large_resource import LargeResource
 
 
@@ -67,7 +67,7 @@ class CatacxCommentsDataset(Dataset):
 
     @staticmethod
     def _get_comments(ds):
-        """ Generator iterating trough the comments in the Catacx dataset.
+        """Generator iterating trough the comments in the Catacx dataset.
 
         Parameters
         ----------
@@ -113,8 +113,7 @@ class CatacxCommentsDataset(Dataset):
 
     @staticmethod
     def get_default_fields():
-        """
-        Method returns a dict of default Catacx comment fields.
+        """Method returns a dict of default Catacx comment fields.
         fields : author_name, author_id, id, likes_cnt, message
 
 

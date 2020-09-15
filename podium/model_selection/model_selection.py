@@ -1,8 +1,8 @@
+import logging
 from typing import Callable, Iterable, Tuple, Dict, Any, Union
 
 import numpy as np
 from sklearn.model_selection import ParameterGrid
-import logging
 from tqdm import tqdm
 
 from podium.datasets import Dataset

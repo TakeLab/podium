@@ -2,9 +2,9 @@
 lemmatizer dictionaries. It can return all possible word
 inflections for a lemma, or return the lemma of any
 word inflexion for the Croatian language."""
-import os
-import logging
 import functools
+import logging
+import os
 
 from podium.preproc.util import (capitalize_target_like_source,
                                  uppercase_target_like_source)

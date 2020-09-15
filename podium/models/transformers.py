@@ -40,7 +40,8 @@ class TensorTransformer(ABC):
         Returns
         -------
         np.array
-            Transformed features."""
+            Transformed features.
+        """
         pass
 
     @abstractmethod
@@ -135,8 +136,8 @@ class FeatureTransformer:
 
     def transform(self,
                   x: NamedTuple) -> np.ndarray:
-        """
-        Trasforms the provided podium feature batch into a numpy array.
+        """Trasforms the provided podium feature batch into a numpy array.
+
         Parameters
         ----------
         x: NamedTuple
@@ -155,8 +156,7 @@ class FeatureTransformer:
             return self.tensor_transformer.transform(x_tensor)
 
     def __call__(self, x: NamedTuple):
-        """
-        Trasforms the provided podium feature batch into a numpy array.
+        """Trasforms the provided podium feature batch into a numpy array.
         Parameters
         ----------
         x: NamedTuple
@@ -170,15 +170,14 @@ class FeatureTransformer:
         return self.transform(x)
 
     def requires_fitting(self):
-        """
-        Returns True if the contained TensorTransformer exists and requires fitting,
+        """Returns True if the contained TensorTransformer exists and requires fitting,
         else returns None.
 
         Returns
         -------
-        True if the contained TensorTransformer exists and requires fitting,
-        else returns False.
-        -------
+        bool
+            True if the contained TensorTransformer exists and requires fitting,
+            else returns False.
 
         """
         return self.tensor_transformer is not None \

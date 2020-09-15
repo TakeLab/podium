@@ -5,8 +5,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def get_tokenizer(tokenizer, language='en'):
-    """
-    Returns a tokenizer according to the parameters given.
+    """Returns a tokenizer according to the parameters given.
 
     Parameters
     ----------

@@ -1,5 +1,4 @@
-"""
-Module contains IMDB Large Movie Review Dataset
+"""Module contains IMDB Large Movie Review Dataset
 Dataset webpage: http://ai.stanford.edu/~amaas/data/sentiment/
 
 When using this dataset, please cite:
@@ -19,6 +18,7 @@ When using this dataset, please cite:
 """
 
 import os
+
 from podium.datasets.dataset import Dataset
 from podium.storage.field import LabelField, Field
 from podium.storage.example_factory import ExampleFactory
@@ -73,8 +73,7 @@ class IMDB(Dataset):
     NEGATIVE_LABEL = 'negative'
 
     def __init__(self, dir_path, fields):
-        """
-        Dataset constructor. User should use static method
+        """Dataset constructor. User should use static method
         get_dataset_splits rather than using directly constructor.
 
         Parameters
@@ -95,8 +94,7 @@ class IMDB(Dataset):
 
     @staticmethod
     def _create_examples(dir_path, fields):
-        """
-        Method creates examples for imdb dataset. Examples are arranged in two
+        """Method creates examples for imdb dataset. Examples are arranged in two
         folders, one for examples with positive sentiment and other with negative
         sentiment. One file in each folder represents one example.
 
@@ -127,8 +125,7 @@ class IMDB(Dataset):
 
     @staticmethod
     def _create_labeled_examples(dir_path, label, fields):
-        """
-        Method creates examples for imdb dataset with given label. Examples are
+        """Method creates examples for imdb dataset with given label. Examples are
         positioned in multiple files that are in one folder.
 
         Parameters

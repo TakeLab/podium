@@ -23,8 +23,9 @@ Example
     with open(model_path, "wb") as output_file:
         dill.dump(obj=clf, file=output_file)
 """
-import dill
 import logging
+
+import dill
 import numpy as np
 
 from sklearn import svm

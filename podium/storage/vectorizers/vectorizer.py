@@ -2,9 +2,10 @@
  Interface of implemented concrete vectorizers is given in Vectorizer class.
 
 """
-import os
 import logging
+import os
 from abc import ABC, abstractmethod
+
 import six
 
 import numpy as np
@@ -68,7 +69,7 @@ class VectorStorage(ABC):
 
     def __init__(self, path, default_vector_function=None,
                  cache_path=None, max_vectors=None):
-        """ Vectorizer base class constructor.
+        """Vectorizer base class constructor.
 
         Parameters
             ----------
@@ -216,7 +217,7 @@ class VectorStorage(ABC):
 
 
 class BasicVectorStorage(VectorStorage):
-    """ Basic implementation of VectorStorage that handles loading vectors from
+    """Basic implementation of VectorStorage that handles loading vectors from
     system storage.
 
     Attributes

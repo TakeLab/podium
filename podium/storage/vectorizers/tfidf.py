@@ -3,6 +3,7 @@ import array
 from collections import Counter
 import logging
 from functools import partial
+
 import numpy as np
 import scipy.sparse as sp
 from sklearn.feature_extraction.text import TfidfTransformer
@@ -23,7 +24,8 @@ class CountVectorizer:
             from other source. If None, it will be initialized during fit from field.
         specials : list(str), optional
             list of tokens for which tfidf is not calculated,
-            if None vocab specials are used"""
+            if None vocab specials are used
+        """
         self._vocab = vocab
         self._specials = specials
         self._special_indexes = None

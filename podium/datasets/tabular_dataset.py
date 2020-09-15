@@ -9,8 +9,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class TabularDataset(Dataset):
-    """
-    A dataset type for data stored in a single CSV, TSV or JSON file, where
+    """A dataset type for data stored in a single CSV, TSV or JSON file, where
     each row of the file is a single example.
     """
 

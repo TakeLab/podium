@@ -7,8 +7,9 @@ is SimpleHttpDownloader.
 """
 from abc import ABC, abstractclassmethod
 import os
-import requests
+
 import paramiko
+import requests
 
 from podium.storage.resources.util import copyfileobj_with_tqdm
 

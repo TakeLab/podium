@@ -7,24 +7,22 @@ from podium.models import AbstractSupervisedModel
 from podium.models.impl.blcc.chain_crf import (
     ChainCRF, create_custom_objects
 )
-from keras.models import load_model
 
 _LOGGER = logging.getLogger(__name__)
 try:
     from keras import backend as K
     from keras.layers import Bidirectional, concatenate, Dense, Dropout, Embedding
     from keras.layers import Input, LSTM, TimeDistributed
-    from keras.models import Model
+    from keras.models import load_model, Model
     from keras.optimizers import Adadelta, Adagrad, Adam, Nadam, RMSprop, SGD
 except ImportError:
     _LOGGER.debug("Problem occured while trying to import keras. If the "
-                  "library is not installed visit https://keras.io/"
-                  " for more details.")
+                  "library is not installed visit https://keras.io/ "
+                  "for more details.")
 
 
 class BLCCModel(AbstractSupervisedModel):
-    """
-    Deeo learning model for sequence labelling tasks.
+    """Deep learning model for sequence labelling tasks.
 
     Originally proposed in the following paper:
     https://arxiv.org/pdf/1603.01354.pdf
@@ -235,8 +233,7 @@ class BLCCModel(AbstractSupervisedModel):
         return model
 
     def fit(self, X, y, **kwargs):
-        """
-        Method calls fit on BLCC model with the given batch.
+        """Method calls fit on BLCC model with the given batch.
         It is supposed to be used as online learning.
         """
         self.model.train_on_batch(X, np.expand_dims(y, -1))

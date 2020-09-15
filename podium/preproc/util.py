@@ -77,7 +77,7 @@ def make_trie(words):
     trie : dict
         Nested dict trie data structure
     """
-    trie = dict()
+    trie = {}
 
     for word in words:
         # sub-dict to process a word

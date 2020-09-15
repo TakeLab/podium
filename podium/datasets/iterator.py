@@ -1,4 +1,4 @@
-""""Module contains classes for iterating over datasets."""
+"""Module contains classes for iterating over datasets."""
 import math
 import logging
 
@@ -193,7 +193,7 @@ class Iterator:
         self.epoch += 1
 
     def get_internal_random_state(self):
-        """ Returns the internal random state of the iterator.
+        """Returns the internal random state of the iterator.
 
         Useful when we want to stop iteration and later continue where we left
         off. We can store the random state obtained with this method and later
@@ -223,7 +223,7 @@ class Iterator:
         return self.shuffler.getstate()
 
     def set_internal_random_state(self, state):
-        """ Sets the internal random state of the iterator.
+        """Sets the internal random state of the iterator.
 
         Useful when we want to stop iteration and later continue where we left
         off. We can take the random state previously obtained from another
@@ -373,7 +373,7 @@ class Iterator:
 
 
 class SingleBatchIterator(Iterator):
-    """ Iterator that creates one batch per epoch
+    """Iterator that creates one batch per epoch
     containing all examples in the dataset."""
 
     def __init__(

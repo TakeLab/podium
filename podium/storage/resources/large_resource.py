@@ -1,12 +1,12 @@
 """Module contains class for defining large resource. Classes that contain
 large resources that should be downloaded should use this module."""
-import os
-import tempfile
 import getpass
 import logging
+import os
+import tempfile
 
-from podium.storage.resources.downloader import SimpleHttpDownloader, SCPDownloader
 from podium.storage.resources import util
+from podium.storage.resources.downloader import SimpleHttpDownloader, SCPDownloader
 
 _LOGGER = logging.getLogger(__name__)
 

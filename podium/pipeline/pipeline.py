@@ -1,12 +1,13 @@
 from typing import Union, Dict, List, Callable, NamedTuple, Any, Type, Iterable
 import logging
 
+import numpy as np
+
 from podium.storage import ExampleFactory, ExampleFormat
 from podium.storage.field import Field, MultioutputField
 from podium.datasets import Dataset
 from podium.models import AbstractSupervisedModel, FeatureTransformer, Experiment, \
     AbstractTrainer
-import numpy as np
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -153,8 +154,7 @@ class Pipeline(Experiment):
                         examples: Iterable[Union[Dict, List]],
                         trainer_kwargs: Dict = None,
                         trainer: AbstractTrainer = None):
-        """
-        Fits the model to the data without resetting the model.
+        """Fits the model to the data without resetting the model.
         Each example must be of the format provided in the constructor as the
         `example_format` parameter.
 

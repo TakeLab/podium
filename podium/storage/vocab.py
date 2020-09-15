@@ -11,7 +11,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def unique(values: Iterable):
-    """ Generator that iterates over the first occurrence of every value in values,
+    """Generator that iterates over the first occurrence of every value in values,
     preserving original order.
 
     Parameters
@@ -398,7 +398,7 @@ class Vocab:
         return np.array([self.stoi[token] for token in data])
 
     def reverse_numericalize(self, numericalized_data: Iterable):
-        """ Transforms an iterable containing numericalized data into a list of tokens.
+        """Transforms an iterable containing numericalized data into a list of tokens.
         The tokens are read from this Vocab's itos and no additional processing is done.
 
         Parameters
@@ -427,8 +427,7 @@ class Vocab:
 
     @property
     def has_specials(self):
-        """
-        Method checks if the vocabulary contains special symbols.
+        """Method checks if the vocabulary contains special symbols.
 
         Returns
         -------
