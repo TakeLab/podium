@@ -72,19 +72,19 @@ class VectorStorage(ABC):
         """Vectorizer base class constructor.
 
         Parameters
-            ----------
-            path : str
-                path to stored vectors
-            default_vector_function : callable, optional
-                which vector should be returned if vectorizer doesn't have
-                representation for given token. If None and token doesn't
-                exists an error is raised while obtaining a vector
-            cache_path : str, optional
-                path to cached vectors. Caching vectors should be used when
-                using vocab for loading vectors or when limiting number of
-                vectors to load
-            max_vectors : int, optional
-                maximum number of vectors to load in memory
+        ----------
+        path : str
+            path to stored vectors
+        default_vector_function : callable, optional
+            which vector should be returned if vectorizer doesn't have
+            representation for given token. If None and token doesn't
+            exists an error is raised while obtaining a vector
+        cache_path : str, optional
+            path to cached vectors. Caching vectors should be used when
+            using vocab for loading vectors or when limiting number of
+            vectors to load
+        max_vectors : int, optional
+            maximum number of vectors to load in memory
 
         """
         self._path = path

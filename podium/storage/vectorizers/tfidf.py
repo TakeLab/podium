@@ -19,6 +19,8 @@ class CountVectorizer:
     def __init__(self, vocab=None, specials=None):
         """Method initializes count vectorizer.
 
+        Parameters
+        ----------
         vocab : Vocab, optional
             vocabulary instance that can be given as field.vocab or as vocab
             from other source. If None, it will be initialized during fit from field.
