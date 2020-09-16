@@ -77,6 +77,13 @@ class Pipeline(Experiment):
 
         output_transform_fn: Callable[[np.ndarray], Any]
             Callable used to transform the prediction result of the model.
+
+        Raises
+        ------
+        TypeError
+            If `example format` is LIST, CSV or NLTK and `fields` is not either
+            a list or tuple.
+            If `example format` is DICT, XML or JSON and `fields` is not a dict.
         """
         if isinstance(example_format, ExampleFormat):
             example_format = example_format.value
@@ -84,13 +91,13 @@ class Pipeline(Experiment):
         if example_format in (ExampleFormat.LIST.value, ExampleFormat.CSV.value,
                               ExampleFormat.NLTK.value):
             if not isinstance(fields, (list, tuple)):
-                error_msg = "If example format is LIST, CSV or NLTK, `fields`" \
+                error_msg = "If `example format` is LIST, CSV or NLTK, `fields`" \
                             "must be either a list or tuple. " \
                             "Type of `fields`: {}".format(type(fields))
                 _LOGGER.error(error_msg)
                 raise TypeError(error_msg)
         elif not isinstance(fields, dict):
-            error_msg = "If example format is DICT, XML or JSON, `fields`" \
+            error_msg = "If `example format` is DICT, XML or JSON, `fields`" \
                         "must be a dict. " \
                         "Type of `fields`: {}".format(type(fields))
             _LOGGER.error(error_msg)

@@ -26,7 +26,7 @@ class CornellMovieDialogsConversationalDataset(Dataset):
         Raises
         ------
         ValueError
-            if given data is None
+            If given data is None.
         """
         if data is None:
             error_msg = "Specified data is None, dataset expects "\

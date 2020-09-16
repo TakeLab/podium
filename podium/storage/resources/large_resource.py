@@ -92,7 +92,7 @@ class LargeResource:
         Raises
         ------
         ValueError
-            if configured archiving method is not supported
+            If configured archiving method is not supported.
         """
         if self.config[LargeResource.ARCHIVE] \
                 not in LargeResource.SUPPORTED_ARCHIVE:
@@ -131,7 +131,7 @@ class LargeResource:
         Raises
         ------
         ValueError
-            if resource name or url are not defined
+            If resource name or url are not defined.
         """
         essential_arguments = [LargeResource.RESOURCE_NAME, LargeResource.URI]
         for arg in essential_arguments:

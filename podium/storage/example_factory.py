@@ -1,12 +1,12 @@
 """Module containing the Example Factory method used to dynamically create example
 classes used for storage in Dataset classes"""
 
-import logging
-import json
 import csv
+import json
+import logging
+import xml.etree.ElementTree as ET
 from enum import Enum
 from typing import Union
-import xml.etree.ElementTree as ET
 
 from podium.storage.field import unpack_fields
 
@@ -155,9 +155,9 @@ class ExampleFactory:
         Raises
         ------
         ValueError
-            if the name is not contained in the xml string
+            If the name is not contained in the xml string.
         ParseError
-            if there was a problem while parsing xml sting, invalid xml
+            If there was a problem while parsing xml sting, invalid xml.
         """
         example = self.create_empty_example()
 
@@ -202,7 +202,7 @@ class ExampleFactory:
         Raises
         ------
         ValueError
-            if JSON doesn't contain key name
+            If JSON doesn't contain key name.
         """
 
         return self.from_dict(json.loads(data))

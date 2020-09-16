@@ -161,6 +161,12 @@ class Experiment:
             Callable used to instantiate new instances of the Iterator used in fitting the
             model. If None, the training_iterator_callable provided in the
             constructor will be used.
+
+        Raises
+        ------
+        RuntimeError
+            If trainer is not provided either in the constructor or as an argument
+            to the method.
         """
 
         model_kwargs = {} if model_kwargs is None else model_kwargs
@@ -200,7 +206,7 @@ class Experiment:
 
         Parameters
         ----------
-         dataset : Dataset
+        dataset : Dataset
             Dataset to fit the model to.
 
         trainer_kwargs : dict
@@ -212,9 +218,11 @@ class Experiment:
             Trainer used to fit the model. If None, the trainer provided in the
             constructor will be used.
 
-        Returns
-        -------
-
+        Raises
+        ------
+        RuntimeError
+            If trainer is not provided either in the constructor or as an argument
+            to the method.
         """
         self._check_if_model_exists()
 

@@ -92,6 +92,9 @@ class HierarchicalDataset:
             HierarchicalDataset
                 dataset containing the data
 
+        Raises
+        ------
+            If the base element in the JSON string is not a list of root elements.
         """
         ds = HierarchicalDataset(parser, fields)
 
@@ -240,7 +243,7 @@ class HierarchicalDataset:
         Raises
         ------
         IndexError
-            if the index is out of bounds.
+            If the index is out of bounds.
 
         """
         if index < 0 or index >= len(self):
@@ -357,6 +360,9 @@ class HierarchicalDataset:
             an Iterator iterating through the context of the Example with the passed
             index.
 
+        Raises
+        ------
+            If levels is less than 0.
         """
         node = self._get_node_by_index(index)
         return HierarchicalDataset._get_node_context(node, levels)

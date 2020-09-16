@@ -121,7 +121,14 @@ class BLCCModel(AbstractSupervisedModel):
         self.model = self._build_model()
 
     def _build_model(self):
-        """Method initializes and compiles the model."""
+        """Method initializes and compiles the model.
+
+        Raises
+        ------
+        ValueError
+            If the given classifier is not supported.
+            If the given optimizer is not supported.
+        """
         embedding_size = self.params.get(self.EMBEDDING_SIZE)
 
         output_size = self.params.get(self.OUTPUT_SIZE)

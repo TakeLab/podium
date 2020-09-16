@@ -47,7 +47,7 @@ def extract_zip_file(archive_file, destination_dir):
     Raises
     ------
     ValueError
-        if given archive file doesn't exists
+        If given archive file doesn't exists.
     """
     if not os.path.exists(archive_file):
         error_msg = "Given archive file doesn't exists. Given {}.".format(archive_file)
@@ -72,7 +72,7 @@ def extract_tar_file(archive_file, destination_dir, encoding='uft-8'):
     Raises
     ------
     ValueError
-        if given archive file doesn't exists
+        If given archive file doesn't exists.
     """
     if not os.path.exists(archive_file):
         error_msg = "Given archive file doesn't exists. Given {}.".format(archive_file)

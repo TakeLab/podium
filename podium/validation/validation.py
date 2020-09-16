@@ -200,10 +200,14 @@ def k_fold_classification_metrics(experiment: Experiment,
         A tuple containing four classification metrics: accuracy, precision, recall, f1
         Each score returned is a mean of that score over all folds.
 
+    Raises
+    ------
+    ValueError
+        If `average` is not one of: `micro`, `macro`, `weighted`, `binary`
     """
     if average not in ('micro', 'macro', 'weighted', 'binary'):
-        error_msg = "'average' parameter must be either 'micro', 'macro', 'weighted'" \
-                    " or 'binary'. Provided value: '{}'".format(average)
+        error_msg = "`average` parameter must be either `micro`, `macro`, `weighted`" \
+                    " or `binary`. Provided value: '{}'".format(average)
         _LOGGER.error(error_msg)
         raise ValueError(error_msg)
 

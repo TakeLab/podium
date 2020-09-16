@@ -16,8 +16,8 @@ try:
     import xlrd
 except ImportError:
     _LOGGER.debug("Problem occured while trying to import xlrd. If the "
-                  "library is not installed visit http://www.python-excel.org/"
-                  " for more details.")
+                  "library is not installed visit http://www.python-excel.org/ "
+                  "for more details.")
 
 Document = namedtuple('Document', 'filename title text')
 

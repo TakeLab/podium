@@ -146,7 +146,7 @@ class Vocab:
         Raises
         ------
         ValueError
-            if unknown symbol is not present in the vocab
+            If unknown symbol is not present in the vocab.
         """
         if self._default_unk_index is None:
             error_msg = "Unknown symbol is not present in the vocab but " \
@@ -166,8 +166,8 @@ class Vocab:
         Raises
         ------
         RuntimeError
-            if the user stated that he doesn't want to keep frequencies
-            and the vocab is finalized
+            If the user stated that he doesn't want to keep frequencies
+            and the vocab is finalized.
         """
         if self.finalized and not self._keep_freqs:
             error_msg = "User specified that frequencies aren't kept in " \
@@ -187,7 +187,7 @@ class Vocab:
         Raises
         ------
         ValueError
-            if the padding symbol is not present in the vocabulary.
+            If the padding symbol is not present in the vocabulary.
         """
         if SpecialVocabSymbols.PAD not in self.stoi:
             error_msg = "Padding symbol is not in the vocabulary."
@@ -275,7 +275,7 @@ class Vocab:
 
         Parameters
         ----------
-        values : iterable or Vocab
+        values : Iterable or Vocab
             If Vocab, a new Vocab will be created containing all of the special symbols
             and tokens from both Vocabs.
             If Iterable, a new Vocab will be returned containing a copy of this Vocab
@@ -289,7 +289,7 @@ class Vocab:
         Raises
         ------
         RuntimeError
-            If this vocab is Finalized and values are tried to be added, or
+            If this vocab is finalized and values are tried to be added, or
             if both Vocabs are not either both finalized or not finalized.
         """
         if isinstance(values, Vocab):
@@ -347,7 +347,7 @@ class Vocab:
         Raises
         ------
         RuntimeError
-            If the vocab is already finalized
+            If the vocab is already finalized.
         """
         if self.finalized:
             _LOGGER.warning("Vocabulary is finalized already. "
@@ -388,7 +388,7 @@ class Vocab:
         Raises
         ------
         RuntimeError
-            if the vocabulary is not finalized
+            If the vocabulary is not finalized.
         """
         if not self.finalized:
             error_msg = "Cannot numericalize if the vocabulary has not been " \
@@ -414,9 +414,7 @@ class Vocab:
         Raises
         ------
         RuntimeError
-            if the vocabulary is not finalized
-
-
+            If the vocabulary is not finalized.
         """
         if not self.finalized:
             error_msg = "Cannot reverse numericalize if the vocabulary has not been " \

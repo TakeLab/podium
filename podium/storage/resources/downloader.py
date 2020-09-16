@@ -73,8 +73,8 @@ class SCPDownloader(BaseDownloader):
 
     @classmethod
     def download(cls, uri, path, overwrite=False, **kwargs):
-        """Method downloades
-        If the overwrite variable is true and given path already
+        """Method downloads a file from the remote machine and saves it to the local
+        path. If the overwrite variable is true and given path already
         exists it will be overwriten with new file.
 
         Parameters
@@ -84,11 +84,12 @@ class SCPDownloader(BaseDownloader):
         path : str
             path of the file on local machine
         overwrite : bool
-                        if true and given path exists downloaded file
-                        will overwrite existing files
+            if true and given path exists downloaded file
+            will overwrite existing files
         kwargs : dict(str, str)
             key word arguments that are described in class attributes
             used for connecting to the remote machine
+
         Returns
         -------
         rewrite_status: bool
@@ -98,9 +99,9 @@ class SCPDownloader(BaseDownloader):
         Raises
         ------
         ValueError
-            if given uri or path are None, or if the host is not defined
+            If given uri or path are None, or if the host is not defined.
         RuntimeError
-            if there was an error while obtaining resource from uri
+            If there was an error while obtaining resource from uri.
         """
         if path is None or uri is None:
             raise ValueError(
@@ -155,10 +156,9 @@ class HttpDownloader(BaseDownloader):
         Raises
         ------
         ValueError
-            if given response or output_file are None
+            If given response or output_file are None.
         RuntimeError
-            if given HTTP response wasn't successful (response code >= 300)
-
+            If given HTTP response wasn't successful (response code >= 300).
         """
         if response is None or output_file is None:
             raise ValueError("Response object and output file object mustn't"

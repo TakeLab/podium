@@ -427,6 +427,10 @@ class Field:
         ----------
         hook : callable
             The post-tokenization hook that we want to add to the field.
+
+        Raises
+        ------
+            If field is declared as non numericalizable.
         """
         if not self.is_numericalizable:
             error_msg = "Field is declared as non numericalizable. Posttokenization " \
@@ -503,6 +507,10 @@ class Field:
             attributes are False then 'tokenized' will be None.
             The attributes 'store_as_raw', 'store_as_tokenized' and 'tokenize'
             will never all be False, so the function will never return (None, None).
+
+        Raises
+        ------
+            If data is None and missing data is not allowed.
         """
 
         if data is None:
@@ -571,7 +579,7 @@ class Field:
 
         Returns
         -------
-        name , (data, tokens)
+        name, (data, tokens)
             Returns and tuple containing this both field's name and a tuple containing
             the data and tokens processed by posttokenization hooks.
         """

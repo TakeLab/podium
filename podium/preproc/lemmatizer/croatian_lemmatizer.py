@@ -104,7 +104,7 @@ class CroatianLemmatizer():
         Raises
         ------
         ValueError
-            If no words for the provided lemma are found
+            If no words for the provided lemma are found.
         """
         try:
             words = self._lemma2word[lemma.lower()]

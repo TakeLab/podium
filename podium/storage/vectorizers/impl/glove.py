@@ -79,7 +79,7 @@ class GloVe(BasicVectorStorage):
         Raises
         ------
         ValueError
-            if given name is not in NAME_URL_MAPPING keys or if the given vectors
+            If given name is not in NAME_URL_MAPPING keys or if the given vectors
             dimension is not available. Supported dimensions are available in
             NAME_DIM_MAPPING dictionary.
         """
