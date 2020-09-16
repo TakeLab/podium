@@ -4,12 +4,12 @@ import pickle
 import torch
 import torch.nn as nn
 
-from podium.models import Experiment
-from podium.storage import LabelField, Field, Vocab
-from podium.pipeline import Pipeline
 from podium.datasets import IMDB, Iterator
-from podium.storage.vectorizers.impl import GloVe
+from podium.models import Experiment
 from podium.models.impl.pytorch import TorchTrainer, TorchModel, AttentionRNN
+from podium.pipeline import Pipeline
+from podium.storage import LabelField, Field, Vocab
+from podium.storage.vectorizers.impl import GloVe
 
 
 def lowercase(raw, tokenized):

@@ -1,11 +1,11 @@
 """Example how to use model on simple PauzaHR dataset."""
 
-from podium.storage import Field, LargeResource, Vocab
 from podium.datasets.iterator import Iterator
 from podium.datasets.impl.pauza_dataset import PauzaHRDataset
+from podium.models import FeatureTransformer
 from podium.models.impl.fc_model import ScikitMLPClassifier
 from podium.models.impl.simple_trainers import SimpleTrainer
-from podium.models import FeatureTransformer
+from podium.storage import Field, LargeResource, Vocab
 
 
 def numericalize_pauza_rating(rating):
@@ -67,7 +67,7 @@ def pauza_mlp_example():
                   label_transform_fun=label_extraction_fun,
                   **{trainer.MAX_EPOCH_KEY: 10})
 
-    test_batch_x, test_batch_y = next(train_iter(train_set).__iter__())
+    test_batch_x, test_batch_y = next(iter(train_iter(train_set)))
     x_test = feature_transformer.transform(test_batch_x)
     y_test = label_extraction_fun(test_batch_y)
     prediction = model.predict(X=x_test)

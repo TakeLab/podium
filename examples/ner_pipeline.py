@@ -1,23 +1,23 @@
 """Example how to use BLCC model on Croatian NER dataset for NER task."""
 
-import sys
-import os
 import logging
-from functools import partial
+import os
 import pickle
+import sys
 import time
+from functools import partial
 
 from podium.dataload.ner_croatian import (
     convert_sequence_to_entities
 )
 from podium.datasets.impl.croatian_ner_dataset import CroatianNERDataset
+from podium.datasets.iterator import BucketIterator
 from podium.models.impl.blcc_model import BLCCModel
 from podium.models.impl.simple_trainers import SimpleTrainer
+from podium.pipeline import Pipeline
 from podium.storage import ExampleFormat
-from podium.datasets.iterator import BucketIterator
 from podium.storage.resources.large_resource import LargeResource
 from podium.storage.vectorizers.vectorizer import BasicVectorStorage
-from podium.pipeline import Pipeline
 from ner_example import (
     feature_extraction_fn,
     label_transform_fun,
@@ -25,8 +25,7 @@ from ner_example import (
     ner_dataset_classification_fields
 )
 
-
-_LOGGER = logging.getLogger()
+_LOGGER = logging.getLogger(__name__)
 
 
 class CroatianNER(Pipeline):
