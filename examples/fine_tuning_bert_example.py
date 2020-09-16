@@ -7,6 +7,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
 
 from podium.datasets import IMDB, Iterator
@@ -29,12 +31,9 @@ def create_fields():
 
         return tokenizer.convert_ids_to_tokens(input_ids)
 
-    def token_to_input_id(token):
-        return tokenizer.convert_tokens_to_ids(token)
-
     text = Field(name='text',
                  tokenizer=text_to_tokens,
-                 custom_numericalize=token_to_input_id,
+                 custom_numericalize=tokenizer.convert_tokens_to_ids,
                  padding_token=0)
 
     label = LabelField(name='label', vocab=Vocab(specials=()))
@@ -44,14 +43,23 @@ def create_fields():
         'label': label
     }
 
+def bert_initializer():
+    model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased', 
+                                                                return_dict=True)
+    def get_bert_model():
+        return model
+    
+    return get_bert_model
+
+get_bert_model = bert_initializer()
+
 
 class BertModelWrapper(nn.Module):
 
     def __init__(self, **kwargs):
         super().__init__()
-        self.model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased',
-                                                                         return_dict=True)
-
+        self.model = get_bert_model()
+    
     def forward(self, x):
         attention_mask = (x != 0).long()
         return_dict = self.model(x, attention_mask)
@@ -116,22 +124,47 @@ def main():
     # this is how you can use the model that is already fine-tuned
     cast_to_torch_transformer = lambda t: torch.from_numpy(t[0].astype(np.int64)).to(device)
 
-    def make_predictions(raw_model, dataset):
+    @torch.no_grad()
+    def make_predictions(raw_model, dataset, batch_size=64):
         raw_model.eval()
-
-        # we call `.batch()` on the dataset to get numericalized examples
-        X, _ = dataset.batch()
-        with torch.no_grad():
-            predictions = raw_model(cast_to_torch_transformer(X))['pred']
+        
+        def predict(batch):
+            predictions = raw_model(cast_to_torch_transformer(batch))['pred']
             return predictions.cpu().numpy()
 
-    raw_model = loaded_model.model
-    predictions = make_predictions(raw_model, imdb_test[:4])
+        iterator = Iterator(batch_size=batch_size, 
+                            shuffle=False)
+        
+        predictions = []
+        for x_batch, _ in iterator(dataset):
+            batch_prediction = predict(x_batch)
+            predictions.append(batch_prediction)
+        
+        return np.concatenate(predictions)
+    
+    # model comparison: pretrained BERT vs pretrained + fine-tuned BERT
+    _, y_true = imdb_test.batch()
+    y_true = y_true[0].ravel()
 
-    _, y = imdb_test[:4].batch()
+    predictions = make_predictions(BertModelWrapper(), imdb_test)
     y_pred = predictions.argmax(axis=1)
-    print('y_pred == y_true:', (y_pred == y[0].ravel()).all())
 
+    print('pretrained model')
+    print('accuracy score:', accuracy_score(y_true, y_pred))
+    print('precision score:', precision_score(y_true, y_pred))
+    print('recall score:', recall_score(y_true, y_pred))
+    print('f1 score:', f1_score(y_true, y_pred))
+    
+    loaded_model_raw = loaded_model.model
+    predictions = make_predictions(loaded_model_raw, imdb_test)
+    y_pred = predictions.argmax(axis=1)
+
+    print('pretrained + fine-tuned model')
+    print('accuracy score:', accuracy_score(y_true, y_pred))
+    print('precision score:', precision_score(y_true, y_pred))
+    print('recall score:', recall_score(y_true, y_pred))
+    print('f1 score:', f1_score(y_true, y_pred))
+    
     # we use `Pipeline` to make predictions on raw data
     pipe = Pipeline(fields=list(fields.values()),
                     example_format='list',
