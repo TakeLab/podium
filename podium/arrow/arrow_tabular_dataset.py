@@ -343,14 +343,14 @@ class ArrowDataset:
             self.close()
         shutil.rmtree(self.cache_path)
 
-    def finalize_fields(self, *args):
+    def finalize_fields(self, *datasets):
         # if there are non-eager fields, we need to build their vocabularies
         fields_to_build = [f for f in self.fields if
                            not f.eager and f.use_vocab]
         if fields_to_build:
             # there can be multiple datasets we want to iterate over
             data_sources = list(
-                filter(lambda arg: isinstance(arg, Dataset), args))
+                filter(lambda arg: isinstance(arg, Dataset), datasets))
 
             # use self as a data source if no other given
             if not data_sources:

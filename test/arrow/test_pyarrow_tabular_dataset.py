@@ -32,8 +32,23 @@ def fields():
     return [number_field, token_field]
 
 
-def test_from_examples(data, fields):
+@pytest.fixture()
+def arrow_dataset(data, fields):
     example_factory = ExampleFactory(fields)
     examples = map(example_factory.from_list, data)
+    return ArrowDataset.from_examples(fields, examples)
 
-    ads = ArrowDataset.from_examples(fields, examples)
+
+def test_from_examples(data, fields):
+    data = list(data)
+    example_factory = ExampleFactory(fields)
+    examples = map(example_factory.from_list, data)
+    ad = ArrowDataset.from_examples(fields, examples)
+
+    for (raw, tokenized), (num, _) in zip(ad.number, data):
+        assert raw == num
+        assert tokenized == num
+
+    for (raw, tokenized), (_, tok) in zip(ad.tokens, data):
+        assert raw == tok
+        assert tokenized == tok.split(' ')
