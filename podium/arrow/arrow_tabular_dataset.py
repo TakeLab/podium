@@ -88,7 +88,7 @@ class ArrowDataset:
             if error_part is not None:
                 msg = "Data type of the {} part of field '{}' cannot be inferred. Please provide the explicit " \
                       "pyarrow datatype trough the 'data_type' argument. The data_type format is " \
-                      "{field_name: (raw_dtype, tokenized_dtype)}.".format(error_part, field.name)
+                      "{{field_name: (raw_dtype, tokenized_dtype)}}.".format(error_part, field.name)
                 _LOGGER.error(msg)
                 raise Exception(msg)
 
@@ -104,7 +104,6 @@ class ArrowDataset:
         table = pa.RecordBatchFileReader(mmapped_file).read_all()
 
         return ArrowDataset(table, fields, cache_path, mmapped_file, inferred_data_types)
-
 
     @staticmethod
     def from_tabular_file(path, format, fields, cache_path=None, data_types=None, skip_header=False,
@@ -163,7 +162,6 @@ class ArrowDataset:
             examples = map(make_example, reader)
             return ArrowDataset.from_examples(fields, examples, cache_path=cache_path, data_types=data_types)
 
-
     @staticmethod
     def _schema_to_data_types(inferred_schema):
         dtypes = defaultdict(dict)
@@ -174,7 +172,6 @@ class ArrowDataset:
 
         return {field_name: (field_dtypes.get('raw'), field_dtypes.get('tokenized'))
                 for field_name, field_dtypes in dtypes.items()}
-
 
     @staticmethod
     def _examples_to_recordbatch(examples, fields, data_types=None):
@@ -216,7 +213,6 @@ class ArrowDataset:
 
         return pa.RecordBatch.from_arrays(arrays, names=array_names)
 
-
     @staticmethod
     def _recordbatch_to_examples(record_batch, fields):
         fieldnames = tuple(field.name for field in fields)
@@ -227,7 +223,6 @@ class ArrowDataset:
             for fieldname, values in zip(fieldnames, row):
                 setattr(example, fieldname, values)
             yield example
-
 
     @staticmethod
     def load_cache(cache_path):
@@ -241,7 +236,6 @@ class ArrowDataset:
         mmapped_file = pa.memory_map(table_file_path)
         table = pa.RecordBatchFileReader(mmapped_file).read_all()
         return ArrowDataset(table, fields, cache_path, mmapped_file)
-
 
     def dump_cache(self, cache_path=None):
         if cache_path == self.cache_path:
@@ -269,16 +263,13 @@ class ArrowDataset:
 
         return cache_path
 
-
     def as_dataset(self):
         examples = list(ArrowDataset._recordbatch_to_examples(self.table, self.fields))
         return Dataset(examples, self.fields)
 
-
     def batch(self):
         # TODO custom batch method?
         return self.as_dataset().batch()
-
 
     @staticmethod
     def _field_values(record_batch, fieldname):
@@ -302,7 +293,6 @@ class ArrowDataset:
 
         return zip(raw_values, tokenized_values)
 
-
     def __getitem__(self, item, deep_copy=False):
         if isinstance(item, int):
             record_batch = self.table[item:item + 1]  # slices extract row, indexing with int extracts column
@@ -320,14 +310,11 @@ class ArrowDataset:
                             cache_path=self.cache_path,
                             mmapped_file=self.mmapped_file)
 
-
     def __len__(self):
         return len(self.table)
 
-
     def __iter__(self):
         yield from self._recordbatch_to_examples(self.table, self.fields)
-
 
     def __getattr__(self, fieldname):
         if fieldname in self.field_dict:
@@ -338,11 +325,9 @@ class ArrowDataset:
             _LOGGER.error(error_msg)
             raise AttributeError(error_msg)
 
-
     def filter(self, predicate):
         indices = [i for i, example in enumerate(self) if predicate(example)]
         return self[indices]
-
 
     def close(self):
         if self.mmapped_file is not None:
@@ -353,12 +338,10 @@ class ArrowDataset:
             msg = "Attempted closing an already closed ArrowDataset."
             _LOGGER.debug(msg)
 
-
     def delete_cache(self):
         if self.mmapped_file is not None:
             self.close()
         shutil.rmtree(self.cache_path)
-
 
     def finalize_fields(self, *args):
         # if there are non-eager fields, we need to build their vocabularies
