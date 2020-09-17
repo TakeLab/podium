@@ -1,4 +1,5 @@
 import logging
+
 _LOGGER = logging.getLogger(__name__)
 
 try:
@@ -9,7 +10,6 @@ except ImportError as ie:
     _LOGGER.error(msg)
     raise ie
 
-
 import tempfile
 import itertools
 import os
@@ -17,6 +17,7 @@ import shutil
 import pickle
 import io
 import csv
+from collections import defaultdict
 
 from podium.storage import ExampleFactory
 from podium.datasets import Dataset
@@ -73,21 +74,38 @@ class ArrowDataset:
         first_group = next(chunks_iter)
         record_batch = ArrowDataset._examples_to_recordbatch(first_group, fields, data_types)
 
+        # check for possible erroneous null datatypes in inferred schema
+        field_dict = {field.name: field for field in fields}
+        for pa_field in record_batch.schema:
+            field_name, part = pa_field.name.rsplit('_', 1)
+
+            if pa_field.type == pa.null():
+                field = field_dict[field_name]
+                if part == 'raw' and field.store_as_raw \
+                        or part == 'tokenized' and (field.store_as_tokenized or field.tokenize):
+                    msg = "Data type of the {} part of field '{}' cannot be inferred. Please provide the explicit " \
+                          "pyarrow datatype trough the 'data_type' argument. The data_type format is " \
+                          "{field_name: (raw_dtype, tokenized_dtype)}."
+                    _LOGGER.error(msg)
+                    raise Exception(msg)
+
+        inferred_data_types = ArrowDataset._schema_to_data_types(record_batch.schema)
+        # write cache file to disk
         with pa.OSFile(cache_table_path, 'wb') as f:
             with pa.RecordBatchFileWriter(f, schema=record_batch.schema) as writer:
                 writer.write(record_batch)  # write first chunk
                 for examples_chunk in chunks_iter:  # write rest of chunks
-                    record_batch = ArrowDataset._examples_to_recordbatch(examples_chunk, fields, data_types)
+                    record_batch = ArrowDataset._examples_to_recordbatch(examples_chunk, fields, inferred_data_types)
                     writer.write(record_batch)
 
         mmapped_file = pa.memory_map(cache_table_path)
         table = pa.RecordBatchFileReader(mmapped_file).read_all()
 
-        return ArrowDataset(table, fields, cache_path, mmapped_file, data_types)
+        return ArrowDataset(table, fields, cache_path, mmapped_file, inferred_data_types)
 
     @staticmethod
     def from_tabular_file(path, format, fields, cache_path=None, data_types=None, skip_header=False,
-                 csv_reader_params=None):
+                          csv_reader_params=None):
 
         format = format.lower()
         csv_reader_params = {} if csv_reader_params is None else csv_reader_params
@@ -142,6 +160,19 @@ class ArrowDataset:
             # map each line from the reader to an example
             examples = map(make_example, reader)
             return ArrowDataset.from_examples(fields, examples, cache_path=cache_path, data_types=data_types)
+
+    @staticmethod
+    def _schema_to_data_types(inferred_schema):
+        dtypes = defaultdict(dict)
+
+        for dtype_field in inferred_schema:
+            field_name, part = dtype_field.name.rsplit('_', 1)
+            dtypes[field_name][part] = dtype_field.type
+
+        return {field_name: (field_dtypes.get('raw'), field_dtypes.get('tokenized'))
+                for field_name, field_dtypes in dtypes.items()}
+
+
 
     @staticmethod
     def _examples_to_recordbatch(examples, fields, data_types=None):
