@@ -12,7 +12,7 @@ except ImportError as e:
     raise e
 
 
-class YAKE():
+class YAKE:
     """Yet Another Keyword Extractor is an unsupervised, corpus-independent, and
        domain and language independent keyword extraction algorithm for extraction from
        single documents. This class is a wrapper of the official implementation available

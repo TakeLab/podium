@@ -6,6 +6,7 @@ import logging
 from enum import Enum
 from collections import namedtuple
 import dill
+
 from podium.storage.resources.large_resource import (init_scp_large_resource_from_kwargs,
                                                      LargeResource)
 from podium.datasets.impl.eurovoc_dataset import EuroVocDataset
@@ -15,8 +16,8 @@ try:
     import xlrd
 except ImportError:
     _LOGGER.debug("Problem occured while trying to import xlrd. If the "
-                  "library is not installed visit http://www.python-excel.org/"
-                  " for more details.")
+                  "library is not installed visit http://www.python-excel.org/ "
+                  "for more details.")
 
 Document = namedtuple('Document', 'filename title text')
 
@@ -333,7 +334,7 @@ class EuroVocLoader():
             Dictionary of (key, value) = (label_id, Label)
         """
 
-        new_label_hierarchy = dict()
+        new_label_hierarchy = {}
 
         for label_id in label_hierarchy:
             ancestors = EuroVocLoader._get_all_ancestors(label_id, label_hierarchy)

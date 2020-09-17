@@ -1,4 +1,3 @@
-import io
 import os
 import csv
 import logging
@@ -10,8 +9,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class TabularDataset(Dataset):
-    """
-    A dataset type for data stored in a single CSV, TSV or JSON file, where
+    """A dataset type for data stored in a single CSV, TSV or JSON file, where
     each row of the file is a single example.
     """
 
@@ -22,41 +20,41 @@ class TabularDataset(Dataset):
 
         Parameters
         ----------
-            path : str
-                Path to the data file.
-            format : str
-                The format of the data file. Has to be either "CSV", "TSV", or
-                "JSON" (case-insensitive).
-            fields : (list | dict)
-                A mapping from data columns to example fields.
-                This allows the user to rename columns from the data file,
-                to create multiple fields from the same column and also to
-                select only a subset of columns to load.
+        path : str
+            Path to the data file.
+        format : str
+            The format of the data file. Has to be either "CSV", "TSV", or
+            "JSON" (case-insensitive).
+        fields : (list | dict)
+            A mapping from data columns to example fields.
+            This allows the user to rename columns from the data file,
+            to create multiple fields from the same column and also to
+            select only a subset of columns to load.
 
-                A value stored in the list/dict can be either a Field
-                (1-to-1 mapping), a tuple of Fields (1-to-n mapping) or
-                None (ignore column).
+            A value stored in the list/dict can be either a Field
+            (1-to-1 mapping), a tuple of Fields (1-to-n mapping) or
+            None (ignore column).
 
-                If type is list, then it should map from the column index to
-                the corresponding field/s (i.e. the fields in the list should
-                be in the  same order as the columns in the file). Also, the
-                format must be CSV or TSV.
+            If type is list, then it should map from the column index to
+            the corresponding field/s (i.e. the fields in the list should
+            be in the same order as the columns in the file). Also, the
+            format must be CSV or TSV.
 
-                If type is dict, then it should be a map from the column name
-                to the corresponding field/s. Column names not present in
-                the dict's keys are ignored. If the format is CSV/TSV,
-                then the data file must have a header
-                (column names need to be known).
-            skip_header : bool
-                Whether to skip the first line of the input file.
-                If format is CSV/TSV and 'fields' is a dict, then skip_header
-                must be False and the data file must have a header.
-                Default is False.
-            csv_reader_params : dict
-                Parameters to pass to the csv reader. Only relevant when
-                format is csv or tsv.
-                See https://docs.python.org/3/library/csv.html#csv.reader
-                for more details.
+            If type is dict, then it should be a map from the column name
+            to the corresponding field/s. Column names not present in
+            the dict's keys are ignored. If the format is CSV/TSV,
+            then the data file must have a header
+            (column names need to be known).
+        skip_header : bool
+            Whether to skip the first line of the input file.
+            If format is CSV/TSV and 'fields' is a dict, then skip_header
+            must be False and the data file must have a header.
+            Default is False.
+        csv_reader_params : dict
+            Parameters to pass to the csv reader. Only relevant when
+            format is csv or tsv.
+            See https://docs.python.org/3/library/csv.html#csv.reader
+            for more details.
 
         Raises
         ------
@@ -68,7 +66,7 @@ class TabularDataset(Dataset):
 
         format = format.lower()
 
-        with io.open(os.path.expanduser(path), encoding="utf8") as f:
+        with open(os.path.expanduser(path), encoding="utf8") as f:
             if format in {'csv', 'tsv'}:
                 delimiter = ',' if format == "csv" else '\t'
                 reader = csv.reader(f, delimiter=delimiter,
@@ -144,7 +142,7 @@ def create_examples(reader, format, fields, skip_header):
         fields = [fields.get(column, None) for column in header]
 
     # fields argument is the same for all examples
-    # fromlist is used for CSV/TSV because csv_reader yields data rows as
+    # from_list is used for CSV/TSV because csv_reader yields data rows as
     # lists, not strings
     example_factory = ExampleFactory(fields)
     make_example_function = {

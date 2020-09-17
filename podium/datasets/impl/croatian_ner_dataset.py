@@ -15,8 +15,7 @@ class CroatianNERDataset(Dataset):
     """
 
     def __init__(self, tokenized_documents, fields):
-        """
-        Dataset constructor.
+        """Dataset constructor.
         Users should use the static method get_dataset rather than invoking
         the constructor directly.
 
@@ -53,8 +52,7 @@ class CroatianNERDataset(Dataset):
 
     @classmethod
     def get_dataset(cls, tokenizer='split', tag_schema='IOB', fields=None, **kwargs):
-        """
-        Method downloads (if necessary) and loads the dataset.
+        """Method downloads (if necessary) and loads the dataset.
 
         Parameters
         ----------
@@ -125,8 +123,7 @@ class CroatianNERDataset(Dataset):
 
 
 def _is_delimiter_line(line):
-    """
-    Checks if the line is delimiter line. Delimiter line is a tuple with
+    """Checks if the line is delimiter line. Delimiter line is a tuple with
     all elements set to None.
 
     Parameters

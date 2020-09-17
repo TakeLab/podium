@@ -1,6 +1,5 @@
 flake8
 mccabe
-mock
 msgpack-numpy
 numpy
 pandas

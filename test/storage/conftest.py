@@ -8,7 +8,7 @@ from podium.storage.field import Field, LabelField
 from podium.storage.vocab import Vocab
 
 
-@pytest.fixture()
+@pytest.fixture
 @pytest.mark.usefixtures("tabular_data")
 def file_path(tmpdir, file_format, tabular_data):
     # tmpdir is a default pytest fixture
@@ -24,7 +24,7 @@ def file_path(tmpdir, file_format, tabular_data):
     yield path
 
 
-@pytest.fixture()
+@pytest.fixture
 def json_file_path(tmpdir):
     # tmpdir is a default pytest fixture
     path = os.path.join(tmpdir, "sample.json")
@@ -46,19 +46,19 @@ def create_temp_csv(path, delimiter, data):
     df.to_csv(path, sep=delimiter, index=False)
 
 
-@pytest.fixture()
+@pytest.fixture
 def vocab(tabular_dataset_fields):
     return tabular_dataset_fields["text"].vocab
 
 
-@pytest.fixture()
+@pytest.fixture
 @pytest.mark.usefixtures("json_file_path")
 def tabular_dataset(json_file_path):
     return create_tabular_dataset_from_json(tabular_dataset_fields(),
                                             json_file_path)
 
 
-@pytest.fixture()
+@pytest.fixture
 def tabular_dataset_fields(fixed_length=None):
     text = Field('text', eager=True, vocab=Vocab(),
                  fixed_length=fixed_length, allow_missing_data=False)
@@ -94,7 +94,7 @@ TABULAR_TEXT = (
 TABULAR_RATINGS = (2.5, 3.2, 1.1, 2.1, 5.4, 2.8, 1.9)
 
 
-@pytest.fixture()
+@pytest.fixture
 def tabular_data():
     return {
         "text": TABULAR_TEXT,

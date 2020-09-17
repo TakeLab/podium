@@ -1,12 +1,12 @@
 """Module contains class for defining large resource. Classes that contain
 large resources that should be downloaded should use this module."""
-import os
-import tempfile
 import getpass
 import logging
-from podium.storage.resources.downloader import SimpleHttpDownloader, SCPDownloader
-from podium.storage.resources import utility
+import os
+import tempfile
 
+from podium.storage.resources import util
+from podium.storage.resources.downloader import SimpleHttpDownloader, SCPDownloader
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -92,7 +92,7 @@ class LargeResource:
         Raises
         ------
         ValueError
-            if configured archiving method is not supported
+            If configured archiving method is not supported.
         """
         if self.config[LargeResource.ARCHIVE] \
                 not in LargeResource.SUPPORTED_ARCHIVE:
@@ -104,11 +104,11 @@ class LargeResource:
                                  self.config[LargeResource.ARCHIVE],
                                  LargeResource.SUPPORTED_ARCHIVE))
         if self.config[LargeResource.ARCHIVE] == "zip":
-            utility.extract_zip_file(archive_file=archive_file,
-                                     destination_dir=self.resource_location)
+            util.extract_zip_file(archive_file=archive_file,
+                                  destination_dir=self.resource_location)
             return
-        utility.extract_tar_file(archive_file=archive_file,
-                                 destination_dir=self.resource_location)
+        util.extract_tar_file(archive_file=archive_file,
+                              destination_dir=self.resource_location)
 
     def _download_unarchive(self):
         """Method downloades resource and decompresses it to resource location.
@@ -131,7 +131,7 @@ class LargeResource:
         Raises
         ------
         ValueError
-            if resource name or url are not defined
+            If resource name or url are not defined.
         """
         essential_arguments = [LargeResource.RESOURCE_NAME, LargeResource.URI]
         for arg in essential_arguments:
@@ -140,7 +140,7 @@ class LargeResource:
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
-    def __str__(self):
+    def __repr__(self):
         return "{}[name: {}, uri: {}]".format(
             self.__class__.__name__, self.config[LargeResource.RESOURCE_NAME],
             self.config[LargeResource.URI])

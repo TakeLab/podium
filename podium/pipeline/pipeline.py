@@ -1,12 +1,13 @@
 from typing import Union, Dict, List, Callable, NamedTuple, Any, Type, Iterable
 import logging
 
+import numpy as np
+
 from podium.storage import ExampleFactory, ExampleFormat
 from podium.storage.field import Field, MultioutputField
 from podium.datasets import Dataset
 from podium.models import AbstractSupervisedModel, FeatureTransformer, Experiment, \
     AbstractTrainer
-import numpy as np
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,7 +31,7 @@ class Pipeline(Experiment):
         Parameters
         ----------
         fields : dict or list of fields
-            Fields used to process raw data.  Can be either a dict mapping column names
+            Fields used to process raw data. Can be either a dict mapping column names
             to Fields (or tuples of Fields), or a list of Fields (or tuples of Fields).
             A Field value of None means the corresponding column will
             be ignored.
@@ -44,7 +45,7 @@ class Pipeline(Experiment):
             data.
 
         model : class or model instance
-            Class of the Model to be fitted or a pre-trained model.
+            Class of the model to be fitted or a pre-trained model.
             If pre-trained model is passed and `fit` is called a new model instance will
             be created. For fine-tuning of the passed model instance call
             `partial_fit`.
@@ -76,6 +77,13 @@ class Pipeline(Experiment):
 
         output_transform_fn: Callable[[np.ndarray], Any]
             Callable used to transform the prediction result of the model.
+
+        Raises
+        ------
+        TypeError
+            If `example format` is LIST, CSV or NLTK and `fields` is not either
+            a list or tuple.
+            If `example format` is DICT, XML or JSON and `fields` is not a dict.
         """
         if isinstance(example_format, ExampleFormat):
             example_format = example_format.value
@@ -83,13 +91,13 @@ class Pipeline(Experiment):
         if example_format in (ExampleFormat.LIST.value, ExampleFormat.CSV.value,
                               ExampleFormat.NLTK.value):
             if not isinstance(fields, (list, tuple)):
-                error_msg = "If example format is LIST, CSV or NLTK, `fields`" \
+                error_msg = "If `example format` is LIST, CSV or NLTK, `fields`" \
                             "must be either a list or tuple. " \
                             "Type of `fields`: {}".format(type(fields))
                 _LOGGER.error(error_msg)
                 raise TypeError(error_msg)
         elif not isinstance(fields, dict):
-            error_msg = "If example format is DICT, XML or JSON, `fields`" \
+            error_msg = "If `example format` is DICT, XML or JSON, `fields`" \
                         "must be a dict. " \
                         "Type of `fields`: {}".format(type(fields))
             _LOGGER.error(error_msg)
@@ -153,8 +161,7 @@ class Pipeline(Experiment):
                         examples: Iterable[Union[Dict, List]],
                         trainer_kwargs: Dict = None,
                         trainer: AbstractTrainer = None):
-        """
-        Fits the model to the data without resetting the model.
+        """Fits the model to the data without resetting the model.
         Each example must be of the format provided in the constructor as the
         `example_format` parameter.
 

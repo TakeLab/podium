@@ -1,5 +1,6 @@
 """Module contains svm models."""
 import logging
+
 from podium.models.model import AbstractSupervisedModel
 
 _LOGGER = logging.getLogger(__name__)

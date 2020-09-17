@@ -1,5 +1,4 @@
-"""
-Module contains IMDB Large Movie Review Dataset
+"""Module contains IMDB Large Movie Review Dataset
 Dataset webpage: http://ai.stanford.edu/~amaas/data/sentiment/
 
 When using this dataset, please cite:
@@ -19,6 +18,7 @@ When using this dataset, please cite:
 """
 
 import os
+
 from podium.datasets.dataset import Dataset
 from podium.storage.field import LabelField, Field
 from podium.storage.example_factory import ExampleFactory
@@ -73,9 +73,8 @@ class IMDB(Dataset):
     NEGATIVE_LABEL = 'negative'
 
     def __init__(self, dir_path, fields):
-        """
-        Dataset constructor. User should use static method
-        get_train_test_dataset rather than using directly constructor.
+        """Dataset constructor. User should use static method
+        get_dataset_splits rather than using directly constructor.
 
         Parameters
         ----------
@@ -95,15 +94,14 @@ class IMDB(Dataset):
 
     @staticmethod
     def _create_examples(dir_path, fields):
-        """
-        Method creates examples for imdb dataset. Examples are arranged in two
+        """Method creates examples for imdb dataset. Examples are arranged in two
         folders, one for examples with positive sentiment and other with negative
         sentiment. One file in each folder represents one example.
 
         Parameters
         ----------
         dir_path : str
-            file where files with examples are positioned
+            directory where files with examples are positioned
         fields : dict(str, Field)
             dictionary mapping field names to fields
 
@@ -127,8 +125,7 @@ class IMDB(Dataset):
 
     @staticmethod
     def _create_labeled_examples(dir_path, label, fields):
-        """
-        Method creates examples for imdb dataset with given label. Examples are
+        """Method creates examples for imdb dataset with given label. Examples are
         positioned in multiple files that are in one folder.
 
         Parameters
@@ -146,12 +143,12 @@ class IMDB(Dataset):
             list of examples from given dir_path
         """
         example_factory = ExampleFactory(fields)
-        files_list = [f for f in os.listdir(dir_path) if os.path.isfile(
-            os.path.join(dir_path, f))]
+        files_list = [f for f in os.listdir(dir_path)
+                      if os.path.isfile(os.path.join(dir_path, f))]
         examples = []
         for file_path in files_list:
             with open(file=os.path.join(dir_path, file_path),
-                      mode='r', encoding='utf8') as fpr:
+                      encoding='utf8') as fpr:
                 data = {IMDB.TEXT_FIELD_NAME: fpr.read(),
                         IMDB.LABEL_FIELD_NAME: label}
                 examples.append(example_factory.from_dict(data))

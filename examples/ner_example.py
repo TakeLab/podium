@@ -1,10 +1,10 @@
 """Example how to use BLCC model on Croatian NER dataset for NER task."""
 
-import sys
 import logging
+import pickle
+import sys
 from collections import namedtuple
 from functools import partial
-import pickle
 
 import numpy as np
 
@@ -44,12 +44,12 @@ label_mapping = {
 def label_mapper_hook(data, tokens):
     """Function maps the labels to a reduced set."""
     new_tokens = []
-    for i in range(len(tokens)):
-        if tokens[i] == 'O':
+    for token in tokens:
+        if token == 'O':
             new_tokens.append('O')
             continue
 
-        prefix, value = tokens[i].split('-')
+        prefix, value = token.split('-')
 
         mapped_token = label_mapping[value]
         if not mapped_token:
@@ -167,7 +167,7 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
 
 def filter_out_padding(pad_symbol, prediction, y_test):
     """Filters out padding from the predictiopytn and test arrays. The
-     resulting arrays are flattened."""
+    resulting arrays are flattened."""
     indices_to_leave = np.where(np.ravel(y_test) != pad_symbol)
     y_test_filtered = np.ravel(y_test)[indices_to_leave]
     prediction_filtered = np.ravel(prediction)[indices_to_leave]

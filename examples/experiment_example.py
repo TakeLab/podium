@@ -1,19 +1,21 @@
 """Example how to use model on simple PauzaHR dataset using the Experiment class."""
 import os
+
 import numpy as np
 
-from podium.storage import Field, LargeResource, Vocab, ExampleFormat
-from podium.datasets.impl.pauza_dataset import PauzaHRDataset
+from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import StandardScaler
+
 from podium.datasets import Iterator
+from podium.datasets.impl.pauza_dataset import PauzaHRDataset
 from podium.models.impl.fc_model import ScikitMLPClassifier
 from podium.models.impl.simple_trainers import SimpleTrainer
 from podium.models import Experiment, FeatureTransformer, SklearnTensorTransformerWrapper
-from podium.validation import k_fold_classification_metrics
 from podium.model_selection import grid_search
-from podium.storage.vectorizers.impl import NlplVectorizer
-from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import StandardScaler
 from podium.pipeline import Pipeline
+from podium.storage import Field, LargeResource, Vocab, ExampleFormat
+from podium.storage.vectorizers.impl import NlplVectorizer
+from podium.validation import k_fold_classification_metrics
 
 
 def numericalize_pauza_rating(rating):
@@ -40,8 +42,7 @@ def label_transform_fun(y_batch):
 
 
 def experiment_example():
-    """Example of setting up and using the Experiment class.
-    """
+    """Example of setting up and using the Experiment class."""
 
     LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
 
@@ -49,8 +50,6 @@ def experiment_example():
     train_dataset, test_dataset = PauzaHRDataset.get_train_test_dataset(fields)
 
     num_of_classes = len(train_dataset.field_dict["Rating"].vocab.itos)
-
-    trainer = SimpleTrainer()
 
     vector_cache_path = os.path.join(LargeResource.BASE_RESOURCE_DIR,
                                      "experimet_example_nlpl_cache.txt")
@@ -62,10 +61,12 @@ def experiment_example():
 
     def feature_transform_fn(x_batch):
         """Batch transform function that returns a mean of embedding vectors for every
-            token in an Example"""
+        token in an Example"""
         x_tensor = np.take(embedding_matrix, x_batch.Text.astype(int), axis=0)
         x = np.mean(x_tensor, axis=1)
         return x
+
+    trainer = SimpleTrainer()
 
     tensor_transformer = SklearnTensorTransformerWrapper(StandardScaler())
     feature_transformer = FeatureTransformer(feature_transform_fn, tensor_transformer)

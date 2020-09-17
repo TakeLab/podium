@@ -2,9 +2,10 @@
  Interface of implemented concrete vectorizers is given in Vectorizer class.
 
 """
-import os
 import logging
+import os
 from abc import ABC, abstractmethod
+
 import six
 
 import numpy as np
@@ -27,6 +28,10 @@ def zeros_default_vector(token, dim):
     -------
     vector : array-like
         zeros vector with given dimension
+
+    Raises
+    ------
+        If dim is None.
     """
     if dim is None:
         error_msg = "Can't create zeros default vector with dimension "\
@@ -68,22 +73,22 @@ class VectorStorage(ABC):
 
     def __init__(self, path, default_vector_function=None,
                  cache_path=None, max_vectors=None):
-        """ Vectorizer base class constructor.
+        """Vectorizer base class constructor.
 
         Parameters
-            ----------
-            path : str
-                path to stored vectors
-            default_vector_function : callable, optional
-                which vector should be returned if vectorizer doesn't have
-                representation for given token. If None and token doesn't
-                exists an error is raised while obtaining a vector
-            cache_path : str, optional
-                path to cached vectors. Caching vectors should be used when
-                using vocab for loading vectors or when limiting number of
-                vectors to load
-            max_vectors : int, optional
-                maximum number of vectors to load in memory
+        ----------
+        path : str
+            path to stored vectors
+        default_vector_function : callable, optional
+            which vector should be returned if vectorizer doesn't have
+            representation for given token. If None and token doesn't
+            exists an error is raised while obtaining a vector
+        cache_path : str, optional
+            path to cached vectors. Caching vectors should be used when
+            using vocab for loading vectors or when limiting number of
+            vectors to load
+        max_vectors : int, optional
+            maximum number of vectors to load in memory
 
         """
         self._path = path
@@ -98,12 +103,11 @@ class VectorStorage(ABC):
         Raises
         ------
         IOError
-            if there was a problem while reading vectors from instance path
+            If there was a problem while reading vectors from instance path.
         ValueError
-            if instance path is not a valid path
+            If instance path is not a valid path.
         RuntimeError
-            if different vector size is detected while loading vectors
-
+            If different vector size is detected while loading vectors.
         """
         pass
 
@@ -120,13 +124,12 @@ class VectorStorage(ABC):
         Raises
         ------
         IOError
-            if there was a problem while reading vectors from instance path
+            If there was a problem while reading vectors from instance path.
         ValueError
-            if given path is not a valid path or given vocab is none
-            or if the vector values in vector storage cannot be casted to float
+            If given path is not a valid path or given vocab is none
+            or if the vector values in vector storage cannot be casted to float.
         RuntimeError
-            if different vector size is detected while loading vectors
-
+            If different vector size is detected while loading vectors.
         """
         pass
 
@@ -147,12 +150,12 @@ class VectorStorage(ABC):
         Raises
         ------
         KeyError
-            if given token doesn't have vector representation and default
-            vector function is not defined (None)
+            If given token doesn't have vector representation and default
+            vector function is not defined (None).
         ValueError
-            if given token is None
+            If given token is None.
         RuntimeError
-            if vector storage is not initialized
+            If vector storage is not initialized.
         """
         pass
 
@@ -204,19 +207,19 @@ class VectorStorage(ABC):
         Raises
         ------
         RuntimeError
-            if vector storage is not initialized
+            If vector storage is not initialized.
         """
         if vocab is None:
             # Retrieve all loaded vectors
             vocab = list(self._vectors.keys())
         return np.vstack([self.token_to_vector(token) for token in vocab])
 
-    def __str__(self):
+    def __repr__(self):
         return "{}[size: {}]".format(self.__class__.__name__, len(self))
 
 
 class BasicVectorStorage(VectorStorage):
-    """ Basic implementation of VectorStorage that handles loading vectors from
+    """Basic implementation of VectorStorage that handles loading vectors from
     system storage.
 
     Attributes
@@ -305,7 +308,7 @@ class BasicVectorStorage(VectorStorage):
         Raises
         ------
         UnicodeDecodeError
-            if given word cannot be decoded in unicode
+            If given word cannot be decoded in unicode.
         """
         if isinstance(word, six.binary_type):
             decoded = word.decode('utf-8')
@@ -323,13 +326,13 @@ class BasicVectorStorage(VectorStorage):
         Raises
         ------
         UnicodeDecodeError
-            if given word cannot be decoded in unicode
+            If given word cannot be decoded in unicode.
         RuntimeError
-            if file contains empty line or if it contains more that
-            one header line
+            If file contains empty line or if it contains more that
+            one header line.
         ValueError
-            if given path is not a valid path or if the line in vector storage
-            cannot be casted to float
+            If given path is not a valid path or if the line in vector storage
+            cannot be casted to float.
         """
         self._check_path()
         curr_path = self._path if self._cache_path is None \

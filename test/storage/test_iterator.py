@@ -454,7 +454,7 @@ def np_arrays_equal(arr_1, arr_2):
     return arrs_equal
 
 
-@pytest.fixture()
+@pytest.fixture
 def hierarchical_dataset_fields():
     name_field = Field(name="name", store_as_raw=True, tokenize=False, vocab=Vocab())
     number_field = Field(name="number", store_as_raw=True, tokenize=False,
@@ -467,12 +467,12 @@ def hierarchical_dataset_fields():
     return fields
 
 
-@pytest.fixture()
+@pytest.fixture
 def hierarchical_dataset_parser():
     return HierarchicalDataset.get_default_dict_parser("children")
 
 
-@pytest.fixture()
+@pytest.fixture
 def hierarchical_dataset(hierarchical_dataset_fields, hierarchical_dataset_parser):
     dataset = HierarchicalDataset.from_json(HIERARCHIAL_DATASET_JSON_EXAMPLE,
                                             hierarchical_dataset_fields,

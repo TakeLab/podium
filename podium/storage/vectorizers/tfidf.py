@@ -3,6 +3,7 @@ import array
 from collections import Counter
 import logging
 from functools import partial
+
 import numpy as np
 import scipy.sparse as sp
 from sklearn.feature_extraction.text import TfidfTransformer
@@ -18,12 +19,15 @@ class CountVectorizer:
     def __init__(self, vocab=None, specials=None):
         """Method initializes count vectorizer.
 
+        Parameters
+        ----------
         vocab : Vocab, optional
             vocabulary instance that can be given as field.vocab or as vocab
             from other source. If None, it will be initialized during fit from field.
         specials : list(str), optional
             list of tokens for which tfidf is not calculated,
-            if None vocab specials are used"""
+            if None vocab specials are used
+        """
         self._vocab = vocab
         self._specials = specials
         self._special_indexes = None
@@ -121,7 +125,7 @@ class CountVectorizer:
         Raises
         ------
         RuntimeError
-            if the vectorizer is not fitted before transforming
+            If the vectorizer is not fitted before transforming.
         """
         if not self._fitted:
             error_msg = "Vectorizer has not been fitted."
@@ -146,7 +150,7 @@ class CountVectorizer:
         Raises
         ------
         ValueError
-            if the vocab or fields vocab are None
+            If the vocab or fields vocab are None
         """
         if self._vocab is None and (field is None or field.vocab is None):
             error_msg = "Vocab is not defined. User should define vocab in constructor "\
@@ -184,8 +188,8 @@ class CountVectorizer:
         Raises
         ------
         ValueError
-            if user has given invalid arguments - if examples are None or the field is not
-            provided and given examples are not in token tensor format
+            If user has given invalid arguments - if examples are None or the field is not
+            provided and given examples are not in token tensor format.
         """
         self._check_fitted()
         is_tokens_tensor = kwargs['is_tokens_tensor'] if 'is_tokens_tensor' in kwargs\
@@ -262,7 +266,7 @@ class TfIdfVectorizer(CountVectorizer):
         Raises
         ------
         ValueError
-            if dataset or field are None and if name of given field is not in dataset
+            If dataset or field are None and if name of given field is not in dataset.
 
         """
         super(TfIdfVectorizer, self).fit(dataset=dataset, field=field)
@@ -298,9 +302,9 @@ class TfIdfVectorizer(CountVectorizer):
         Raises
         ------
         ValueError
-            if examples are None
+            If examples are None.
         RuntimeError
-            if vectorizer is not fitted yet
+            If vectorizer is not fitted yet.
         """
         self._check_fitted()
         if examples is None:

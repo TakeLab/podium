@@ -5,7 +5,8 @@ import os
 import shutil
 import pytest
 
-from mock import patch
+from unittest.mock import patch
+
 from podium.dataload.ner_croatian import (
     NERCroatianXMLLoader,
     convert_sequence_to_entities

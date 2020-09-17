@@ -23,8 +23,9 @@ Example
     with open(model_path, "wb") as output_file:
         dill.dump(obj=clf, file=output_file)
 """
-import dill
 import logging
+
+import dill
 import numpy as np
 
 from sklearn import svm
@@ -96,6 +97,14 @@ class MultilabelSVM(AbstractSupervisedModel):
             https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html
         n_jobs : int
             Number of threads to be used.
+
+        Raises
+        ------
+        ValueError
+            If cutoff is not a positive integer >= 1.
+            If n_jobs is not a positive integer or -1.
+            If n_jobs is not a positive integer >= 1.
+            If max_iter is not a positive integer >= 1.
         """
         if cutoff < 1:
             raise ValueError("cutoff must be a positive integer >= 1, but"
@@ -159,6 +168,11 @@ class MultilabelSVM(AbstractSupervisedModel):
         -------
         result : 2D np.array (number of examples, number of classes)
             Predictions of the model for the given examples.
+
+        Raises
+        ------
+        RuntimeError
+            If the model instance is not fitted.
         """
         if not self._models:
             raise RuntimeError("Trying to predict using an unfitted model instance.")
@@ -182,9 +196,14 @@ class MultilabelSVM(AbstractSupervisedModel):
         -------
         result : list(int)
             Indexes of models that were not trained.
+
+        Raises
+        ------
+        RuntimeError
+            If the model instance is not fitted.
         """
         if self._models is None:
-            raise RuntimeError("Trying to get missing model indexes on an unfitted model"
+            raise RuntimeError("Trying to get missing model indices on an unfitted model"
                                "instance.")
         return self._missing_indexes
 

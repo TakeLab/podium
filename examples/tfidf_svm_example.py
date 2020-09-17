@@ -1,13 +1,13 @@
 """Example how to use tfidf with svm on simple SST dataset."""
 from sklearn.metrics import accuracy_score
 
-from podium.storage.vectorizers.tfidf import TfIdfVectorizer
-from podium.models.impl import ScikitLinearSVCModel
-from podium.models import AbstractSupervisedModel, FeatureTransformer
 from podium.datasets import SST
+from podium.datasets.iterator import Iterator, SingleBatchIterator
+from podium.models import AbstractSupervisedModel, FeatureTransformer
+from podium.models.impl import ScikitLinearSVCModel
 from podium.models.impl.simple_trainers import SimpleTrainer
 from podium.storage import LargeResource
-from podium.datasets.iterator import Iterator, SingleBatchIterator
+from podium.storage.vectorizers.tfidf import TfIdfVectorizer
 
 
 def tfidf_svm_example_main():

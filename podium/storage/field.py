@@ -249,13 +249,13 @@ class Field:
             If true, the output of the tokenizer is presumed to be a list of tokens and
             will be numericalized using the provided Vocab or custom_numericalize.
             For numericalizable fields, Iterator will generate batch fields containing
-             numpy matrices.
+            numpy matrices.
 
-             If false, the out of the tokenizer is presumed to be a custom datatype.
-             Posttokenization hooks aren't allowed to be added as they can't be called
-             on custom datatypes. For non-numericalizable fields, Iterator will generate
-             batch fields containing lists of these custom data type instances returned
-             by the tokenizer.
+            If false, the output of the tokenizer is presumed to be a custom datatype.
+            Posttokenization hooks aren't allowed to be added as they can't be called
+            on custom datatypes. For non-numericalizable fields, Iterator will generate
+            batch fields containing lists of these custom data type instances returned
+            by the tokenizer.
         custom_numericalize : callable
             The numericalization function that will be called if the field
             doesn't use a vocabulary. If using custom_numericalize and padding is
@@ -427,6 +427,10 @@ class Field:
         ----------
         hook : callable
             The post-tokenization hook that we want to add to the field.
+
+        Raises
+        ------
+            If field is declared as non numericalizable.
         """
         if not self.is_numericalizable:
             error_msg = "Field is declared as non numericalizable. Posttokenization " \
@@ -503,6 +507,10 @@ class Field:
             attributes are False then 'tokenized' will be None.
             The attributes 'store_as_raw', 'store_as_tokenized' and 'tokenize'
             will never all be False, so the function will never return (None, None).
+
+        Raises
+        ------
+            If data is None and missing data is not allowed.
         """
 
         if data is None:
@@ -558,8 +566,7 @@ class Field:
             self.vocab.finalize()
 
     def _process_tokens(self, data, tokens):
-        """
-        Runs posttokenization processing on the provided data and tokens and updates
+        """Runs posttokenization processing on the provided data and tokens and updates
         the vocab if needed. Used by Multioutput field.
 
         Parameters
@@ -572,7 +579,7 @@ class Field:
 
         Returns
         -------
-        name , (data, tokens)
+        name, (data, tokens)
             Returns and tuple containing this both field's name and a tuple containing
             the data and tokens processed by posttokenization hooks.
         """
@@ -615,9 +622,9 @@ class Field:
 
         Returns
         -------
-            missing_symbol index or None
-                The index of the missing data token, if this field is numericalizable.
-                None value otherwise.
+        missing_symbol index or None
+            The index of the missing data token, if this field is numericalizable.
+            None value otherwise.
 
         Raises
         ------
@@ -801,7 +808,7 @@ class Field:
         self.__dict__.update(state)
         self.tokenizer = get_tokenizer(self._tokenizer_arg, self.language)
 
-    def __str__(self):
+    def __repr__(self):
         return "{}[name: {}, is_sequential: {}, is_target: {}]".format(
             self.__class__.__name__, self.name, self.is_sequential, self.is_target)
 
@@ -855,8 +862,7 @@ class LabelField(Field):
 
 
 class TokenizedField(Field):
-    """
-    Tokenized version of the Field. Holds the preprocessing and
+    """Tokenized version of the Field. Holds the preprocessing and
     numericalization logic for the pre-tokenized dataset fields.
     """
 
@@ -904,66 +910,66 @@ class MultilabelField(TokenizedField):
                  missing_data_token=-1):
         """Create a MultilabelField from arguments.
 
-                Parameters
-                ----------
-                name : str
-                    Field name, used for referencing data in the dataset.
+        Parameters
+        ----------
+        name : str
+            Field name, used for referencing data in the dataset.
 
-                num_of_classes : int, optional
-                    Number of valid classes.
-                    Also defines size of the numericalized vector.
-                    If none, size of the vocabulary is used.
+        num_of_classes : int, optional
+            Number of valid classes.
+            Also defines size of the numericalized vector.
+            If none, size of the vocabulary is used.
 
-                vocab : Vocab
-                    A vocab that this field will update after preprocessing and
-                    use to numericalize data.
-                    If None, the field won't use a vocab, in which case a custom
-                    numericalization function has to be given.
-                    Default is None.
+        vocab : Vocab
+            A vocab that this field will update after preprocessing and
+            use to numericalize data.
+            If None, the field won't use a vocab, in which case a custom
+            numericalization function has to be given.
+            Default is None.
 
-                eager : bool
-                    Whether to build the vocabulary online, each time the field
-                    preprocesses raw data.
+        eager : bool
+            Whether to build the vocabulary online, each time the field
+            preprocesses raw data.
 
-                custom_numericalize : callable(str) -> int
-                    Callable that takes a string and returns an int.
-                    Used to index classes.
+        custom_numericalize : callable(str) -> int
+            Callable that takes a string and returns an int.
+            Used to index classes.
 
-                batch_as_matrix: bool
-                    Whether the batch created for this field will be compressed into a
-                    matrix. This parameter is ignored if is_numericalizable is set to
-                    False.
-                    If True, the batch returned by an Iterator or Dataset.batch() will
-                    contain a matrix of numericalizations for all examples.
-                    If False, a list of unpadded vectors will be returned instead.
-                    For missing data, the value in the list will be None.
+        batch_as_matrix: bool
+            Whether the batch created for this field will be compressed into a
+            matrix. This parameter is ignored if is_numericalizable is set to
+            False.
+            If True, the batch returned by an Iterator or Dataset.batch() will
+            contain a matrix of numericalizations for all examples.
+            If False, a list of unpadded vectors will be returned instead.
+            For missing data, the value in the list will be None.
 
-                allow_missing_data : bool
-                    Whether the field allows missing data.
-                    In the case 'allow_missing_data'
-                    is false and None is sent to be preprocessed, an ValueError
-                    will be raised. If 'allow_missing_data' is True, if a None is sent to
-                    be preprocessed, it will be stored and later numericalized properly.
-                    If the field is sequential the numericalization
-                    of a missing data field will be an empty numpy Array,
-                    else the numericalization will be a numpy Array
-                    containing a single np.Nan ([np.Nan])
-                    Default: False
+        allow_missing_data : bool
+            Whether the field allows missing data.
+            In the case 'allow_missing_data'
+            is false and None is sent to be preprocessed, an ValueError
+            will be raised. If 'allow_missing_data' is True, if a None is sent to
+            be preprocessed, it will be stored and later numericalized properly.
+            If the field is sequential the numericalization
+            of a missing data field will be an empty numpy Array,
+            else the numericalization will be a numpy Array
+            containing a single np.Nan ([np.Nan])
+            Default: False
 
-                missing_data_token : number
-                    Token to use to mark batch rows as missing. If data for a field is
-                    missing, its matrix row will be filled with this value.
-                    For non-numericalizable fields, this parameter is ignored and the
-                    value will be None. If using custom_numericalize and padding is
-                    required, please ensure that the `missing_data_token` is of the same
-                    type as the value returned by custom_numericalize.
-                    Default: -1
+        missing_data_token : number
+            Token to use to mark batch rows as missing. If data for a field is
+            missing, its matrix row will be filled with this value.
+            For non-numericalizable fields, this parameter is ignored and the
+            value will be None. If using custom_numericalize and padding is
+            required, please ensure that the `missing_data_token` is of the same
+            type as the value returned by custom_numericalize.
+            Default: -1
 
-                Raises
-                ------
-                ValueError
-                    If the provided Vocab contains special symbols.
-                """
+        Raises
+        ------
+        ValueError
+            If the provided Vocab contains special symbols.
+        """
 
         if vocab is not None and vocab.has_specials:
             error_msg = "Vocab contains special symbols." \
@@ -1027,7 +1033,7 @@ def unpack_fields(fields):
         A flat list of Fields found in the given 'fields' object.
     """
 
-    unpacked_fields = list()
+    unpacked_fields = []
 
     fields = fields.values() if isinstance(fields, dict) else fields
 

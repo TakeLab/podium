@@ -1,13 +1,13 @@
 """Module containing the Example Factory method used to dynamically create example
 classes used for storage in Dataset classes"""
 
-import logging
-import json
 import csv
+import json
+import logging
+import xml.etree.ElementTree as ET
 from enum import Enum
 from typing import Union
 
-import xml.etree.ElementTree as ET
 from podium.storage.field import unpack_fields
 
 _LOGGER = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ class Example:
         for fieldname in fieldnames:
             setattr(self, fieldname, None)
 
-    def __str__(self):
+    def __repr__(self):
         attribute = [att for att in dir(self) if not att.startswith("__")
                      and not att.endswith("_")]
         att_values = ["{}: {}".format(att, getattr(self, att, None)) for att in attribute]
@@ -62,8 +62,7 @@ class ExampleFactory:
     its own example class definition optimised for the fields provided in __init__."""
 
     def __init__(self, fields):
-        """
-        Creates a new ExampleFactory instance.
+        """Creates a new ExampleFactory instance.
 
         Parameters
         ----------
@@ -156,9 +155,9 @@ class ExampleFactory:
         Raises
         ------
         ValueError
-            if the name is not contained in the xml string
+            If the name is not contained in the xml string.
         ParseError
-            if there was a problem while parsing xml sting, invalid xml
+            If there was a problem while parsing xml sting, invalid xml.
         """
         example = self.create_empty_example()
 
@@ -184,7 +183,7 @@ class ExampleFactory:
         return example
 
     def from_json(self, data):
-        """ Creates an Example from a JSON object and the
+        """Creates an Example from a JSON object and the
         corresponding fields.
 
 
@@ -203,32 +202,32 @@ class ExampleFactory:
         Raises
         ------
         ValueError
-            if JSON doesn't contain key name
+            If JSON doesn't contain key name.
         """
 
         return self.from_dict(json.loads(data))
 
     def from_csv(self, data, field_to_index=None, delimiter=","):
-        """ Creates an Example from a CSV line and a corresponding
-            list or dict of Fields.
+        """Creates an Example from a CSV line and a corresponding
+        list or dict of Fields.
 
-            Parameters
-            ----------
-            data : str
-                A string containing a single row of values separated by the
-                given delimiter.
-            field_to_index : dict
-                A dict that maps column names to their indices in the line of data.
-                Only needed if fields is a dict, otherwise ignored.
-            delimiter : str
-                The delimiter that separates the values in the line of data.
+        Parameters
+        ----------
+        data : str
+            A string containing a single row of values separated by the
+            given delimiter.
+        field_to_index : dict
+            A dict that maps column names to their indices in the line of data.
+            Only needed if fields is a dict, otherwise ignored.
+        delimiter : str
+            The delimiter that separates the values in the line of data.
 
-            Returns
-            -------
-            Example
-                An Example whose attributes are the given Fields created with the
-                given column values. These Fields can be accessed by their names.
-            """
+        Returns
+        -------
+        Example
+            An Example whose attributes are the given Fields created with the
+            given column values. These Fields can be accessed by their names.
+        """
         elements = next(csv.reader([data], delimiter=delimiter))
 
         if isinstance(self.fields, list):
@@ -269,7 +268,7 @@ class ExampleFactory:
 
         tree = Tree.fromstring(data)
         if subtrees:
-            subtree_lists = list(map(tree_to_list, tree.subtrees()))
+            subtree_lists = [tree_to_list(subtree) for subtree in tree.subtrees()]
             if label_transform is not None:
                 # This is perhaps inefficient but probably the best place to insert this
                 subtree_lists = [[text, label_transform(label)]

@@ -1,15 +1,17 @@
 """Module contains classes related to the vocabulary."""
 import logging
-from typing import Union, Iterable
-from itertools import chain
 from collections import Counter
+from enum import Enum
+from itertools import chain
+from typing import Union, Iterable
+
 import numpy as np
 
 _LOGGER = logging.getLogger(__name__)
 
 
 def unique(values: Iterable):
-    """ Generator that iterates over the first occurrence of every value in values,
+    """Generator that iterates over the first occurrence of every value in values,
     preserving original order.
 
     Parameters
@@ -46,7 +48,7 @@ class VocabDict(dict):
         return self._default_factory()
 
 
-class SpecialVocabSymbols:
+class SpecialVocabSymbols(Enum):
     """Class for special vocabular symbols
 
     Attributes
@@ -144,7 +146,7 @@ class Vocab:
         Raises
         ------
         ValueError
-            if unknown symbol is not present in the vocab
+            If unknown symbol is not present in the vocab.
         """
         if self._default_unk_index is None:
             error_msg = "Unknown symbol is not present in the vocab but " \
@@ -164,8 +166,8 @@ class Vocab:
         Raises
         ------
         RuntimeError
-            if the user stated that he doesn't want to keep frequencies
-            and the vocab is finalized
+            If the user stated that he doesn't want to keep frequencies
+            and the vocab is finalized.
         """
         if self.finalized and not self._keep_freqs:
             error_msg = "User specified that frequencies aren't kept in " \
@@ -185,7 +187,7 @@ class Vocab:
         Raises
         ------
         ValueError
-            if the padding symbol is not present in the vocabulary.
+            If the padding symbol is not present in the vocabulary.
         """
         if SpecialVocabSymbols.PAD not in self.stoi:
             error_msg = "Padding symbol is not in the vocabulary."
@@ -273,7 +275,7 @@ class Vocab:
 
         Parameters
         ----------
-        values : iterable or Vocab
+        values : Iterable or Vocab
             If Vocab, a new Vocab will be created containing all of the special symbols
             and tokens from both Vocabs.
             If Iterable, a new Vocab will be returned containing a copy of this Vocab
@@ -287,7 +289,7 @@ class Vocab:
         Raises
         ------
         RuntimeError
-            If this vocab is Finalized and values are tried to be added, or
+            If this vocab is finalized and values are tried to be added, or
             if both Vocabs are not either both finalized or not finalized.
         """
         if isinstance(values, Vocab):
@@ -345,7 +347,7 @@ class Vocab:
         Raises
         ------
         RuntimeError
-            If the vocab is already finalized
+            If the vocab is already finalized.
         """
         if self.finalized:
             _LOGGER.warning("Vocabulary is finalized already. "
@@ -386,7 +388,7 @@ class Vocab:
         Raises
         ------
         RuntimeError
-            if the vocabulary is not finalized
+            If the vocabulary is not finalized.
         """
         if not self.finalized:
             error_msg = "Cannot numericalize if the vocabulary has not been " \
@@ -396,7 +398,7 @@ class Vocab:
         return np.array([self.stoi[token] for token in data])
 
     def reverse_numericalize(self, numericalized_data: Iterable):
-        """ Transforms an iterable containing numericalized data into a list of tokens.
+        """Transforms an iterable containing numericalized data into a list of tokens.
         The tokens are read from this Vocab's itos and no additional processing is done.
 
         Parameters
@@ -412,9 +414,7 @@ class Vocab:
         Raises
         ------
         RuntimeError
-            if the vocabulary is not finalized
-
-
+            If the vocabulary is not finalized.
         """
         if not self.finalized:
             error_msg = "Cannot reverse numericalize if the vocabulary has not been " \
@@ -425,8 +425,7 @@ class Vocab:
 
     @property
     def has_specials(self):
-        """
-        Method checks if the vocabulary contains special symbols.
+        """Method checks if the vocabulary contains special symbols.
 
         Returns
         -------
@@ -488,6 +487,6 @@ class Vocab:
             return iter(self._freqs.keys())
         return iter(self.itos)
 
-    def __str__(self):
+    def __repr__(self):
         return "{}[finalized: {}, size: {}]".format(
             self.__class__.__name__, self.finalized, len(self))

@@ -148,8 +148,8 @@ def test_size_after_final_with_specials():
 
 
 def test_enum_special_vocab_symbols():
-    assert vocab.SpecialVocabSymbols.PAD == "<pad>"
-    assert vocab.SpecialVocabSymbols.UNK == "<unk>"
+    assert vocab.SpecialVocabSymbols.PAD.value == "<pad>"
+    assert vocab.SpecialVocabSymbols.UNK.value == "<unk>"
 
 
 def test_get_stoi_for_unknown_word_default_unk():

@@ -1,4 +1,4 @@
-""""Module contains classes for iterating over datasets."""
+"""Module contains classes for iterating over datasets."""
 import math
 import logging
 
@@ -133,8 +133,7 @@ class Iterator:
 
     def __call__(self, dataset: Dataset):
         """ Sets the dataset for this Iterator and returns an iterable over the batches of
-        that Dataset. Same as calling iterator.set_dataset() followed by
-        iterator.__iter__()
+        that Dataset. Same as calling iterator.set_dataset() followed by iter(iterator)
 
         Parameters
         ----------
@@ -147,7 +146,7 @@ class Iterator:
 
         """
         self.set_dataset(dataset)
-        return self.__iter__()
+        return iter(self)
 
     def __len__(self):
         """ Returns the number of batches this iterator provides in one epoch.
@@ -194,7 +193,7 @@ class Iterator:
         self.epoch += 1
 
     def get_internal_random_state(self):
-        """ Returns the internal random state of the iterator.
+        """Returns the internal random state of the iterator.
 
         Useful when we want to stop iteration and later continue where we left
         off. We can store the random state obtained with this method and later
@@ -224,7 +223,7 @@ class Iterator:
         return self.shuffler.getstate()
 
     def set_internal_random_state(self, state):
-        """ Sets the internal random state of the iterator.
+        """Sets the internal random state of the iterator.
 
         Useful when we want to stop iteration and later continue where we left
         off. We can take the random state previously obtained from another
@@ -372,12 +371,9 @@ class Iterator:
             .format(self.__class__.__name__, self.batch_size, self.batch_to_matrix,
                     self.sort_key, self.shuffle)
 
-    def __str__(self):
-        return self.__repr__()
-
 
 class SingleBatchIterator(Iterator):
-    """ Iterator that creates one batch per epoch
+    """Iterator that creates one batch per epoch
     containing all examples in the dataset."""
 
     def __init__(
@@ -420,7 +416,7 @@ class SingleBatchIterator(Iterator):
 
 
 class BucketIterator(Iterator):
-    """ Creates a bucket iterator that uses a look-ahead heuristic to try and
+    """Creates a bucket iterator that uses a look-ahead heuristic to try and
     batch examples in a way that minimizes the amount of necessary padding.
 
     It creates a bucket of size N x batch_size, and sorts that bucket before
@@ -519,13 +515,9 @@ class BucketIterator(Iterator):
                 self.batch_to_matrix, self.sort_key, self.shuffle,
                 self.look_ahead_multiplier, self.bucket_sort_key)
 
-    def __str__(self):
-        return self.__repr__()
-
 
 class HierarchicalDatasetIterator(Iterator):
-    """
-    Iterator used to create batches for Hierarchical Datasets.
+    """Iterator used to create batches for Hierarchical Datasets.
 
     It creates batches in the form of lists of matrices. In the batch namedtuple that gets
     returned, every attribute corresponds to a field in the dataset. For every field in
@@ -548,7 +540,7 @@ class HierarchicalDatasetIterator(Iterator):
             context_max_length=None,
             context_max_depth=None,
     ):
-        """ Creates an iterator for the given dataset and batch size.
+        """Creates an iterator for the given dataset and batch size.
 
         Parameters
         ----------
@@ -753,6 +745,3 @@ class HierarchicalDatasetIterator(Iterator):
                 self.__class__.__name__, self.batch_size,
                 self.batch_to_matrix, self.sort_key, self.shuffle,
                 self._context_max_size, self._context_max_depth)
-
-    def __str__(self):
-        return self.__repr__()

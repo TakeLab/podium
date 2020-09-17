@@ -3,8 +3,7 @@ import functools
 
 
 def _remove_stopwords_hook(raw, tokenized, stop_words_set):
-    """
-    Remove stopwords postokenized hook that can be used in field processing.
+    """Remove stopwords postokenized hook that can be used in field processing.
     It is intented for the user to use `get_croatian_stop_words_removal_hook`
     instead of this function as it ensures that the stop_words_set argument
     is given by a wrapper function.

@@ -1,7 +1,7 @@
 """Example shows how to add keyword extraction features to a dataset."""
-from podium.storage import ExampleFactory, Field
 from podium.datasets import Dataset
 from podium.preproc.yake import YAKE
+from podium.storage import ExampleFactory, Field
 
 
 class DummyDataset(Dataset):

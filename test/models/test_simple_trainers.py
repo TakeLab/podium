@@ -8,7 +8,7 @@ from podium.datasets.iterator import Iterator
 from test.storage.conftest import (tabular_dataset, json_file_path)  # noqa
 
 
-@pytest.fixture()
+@pytest.fixture
 @pytest.mark.usefixtures("mocker")
 def model(mocker):
     model = mocker.MagicMock(spec=AbstractSupervisedModel)

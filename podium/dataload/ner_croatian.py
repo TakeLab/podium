@@ -25,8 +25,7 @@ class NERCroatianXMLLoader:
                  tokenizer='split',
                  tag_schema='IOB',
                  **kwargs):
-        """
-        Constructor for Croatian NER dataset.
+        """Constructor for Croatian NER dataset.
         Downloads and extracts the dataset.
 
         Parameters
@@ -65,8 +64,7 @@ class NERCroatianXMLLoader:
         )
 
     def load_dataset(self):
-        """
-        Method loads the dataset and returns tokenized NER documents.
+        """Method loads the dataset and returns tokenized NER documents.
 
         Returns
         -------
@@ -87,8 +85,7 @@ class NERCroatianXMLLoader:
         return tokenized_documents
 
     def _xml_to_token_label_pairs(self, xml_file_path):
-        """
-        Converts the xml file located at the given path to the list of tuples
+        """Converts the xml file located at the given path to the list of tuples
         (token, label)
 
         Parameters
@@ -123,8 +120,7 @@ class NERCroatianXMLLoader:
         return token_label_pairs
 
     def _tokenize(self, text, element=None):
-        """
-        Method tokenizes the text and assigns the labels to the tokens
+        """Method tokenizes the text and assigns the labels to the tokens
         according to the element's 'type' attribute.
 
         Parameters
@@ -156,8 +152,7 @@ class NERCroatianXMLLoader:
         return token_label_pairs
 
     def _get_label_resolver(self, tag_schema):
-        """
-        Gets the label resolver associated with the given tag schema
+        """Gets the label resolver associated with the given tag schema
 
         Parameters
         ----------
@@ -179,8 +174,7 @@ class NERCroatianXMLLoader:
 
     @staticmethod
     def _iob_label_resolver(index, label):
-        """
-        A resolver that prefixes the label according to the IOB tag schema.
+        """A resolver that prefixes the label according to the IOB tag schema.
 
         Parameters
         ----------
@@ -202,8 +196,7 @@ class NERCroatianXMLLoader:
 
 
 def convert_sequence_to_entities(sequence, text, delimiter='-'):
-    """
-    Converts sequences of the BIO tagging schema to entities
+    """Converts sequences of the BIO tagging schema to entities
 
     Parameters
     ----------
@@ -229,6 +222,11 @@ def convert_sequence_to_entities(sequence, text, delimiter='-'):
             'start': int,
             'end': int
         }
+
+    Raises
+    ------
+    ValueError
+        If the given sequence and text are not of the same length.
     """
     entities = []
     state = "start"

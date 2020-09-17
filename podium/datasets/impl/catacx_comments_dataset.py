@@ -3,8 +3,8 @@ import json
 import os
 
 from podium.datasets.dataset import Dataset
-from podium.storage.field import Field
 from podium.storage import ExampleFactory
+from podium.storage.field import Field
 from podium.storage.resources.large_resource import LargeResource
 
 
@@ -67,7 +67,7 @@ class CatacxCommentsDataset(Dataset):
 
     @staticmethod
     def _get_comments(ds):
-        """ Generator iterating trough the comments in the Catacx dataset.
+        """Generator iterating trough the comments in the Catacx dataset.
 
         Parameters
         ----------
@@ -77,7 +77,6 @@ class CatacxCommentsDataset(Dataset):
         Yields
         ------
             The next comment in the dataset.
-
         """
 
         for post in ds:
@@ -100,13 +99,12 @@ class CatacxCommentsDataset(Dataset):
         -------
         list(Example)
             A list of examples containing comments from the Catacx dataset.
-
         """
         example_factory = ExampleFactory(fields)
-        with open(dir_path, encoding="utf8", mode="r") as f:
+        with open(dir_path, encoding="utf8") as f:
             ds = json.load(f)
 
-        examples = list()
+        examples = []
 
         for comment in CatacxCommentsDataset._get_comments(ds):
             examples.append(example_factory.from_dict(comment))
@@ -115,8 +113,7 @@ class CatacxCommentsDataset(Dataset):
 
     @staticmethod
     def get_default_fields():
-        """
-        Method returns a dict of default Catacx comment fields.
+        """Method returns a dict of default Catacx comment fields.
         fields : author_name, author_id, id, likes_cnt, message
 
 
@@ -145,7 +142,7 @@ class CatacxCommentsDataset(Dataset):
                           custom_numericalize=int)
 
         message = Field(name='message', tokenize=True,
-                        tokenizer='split', language='hr')
+                        tokenizer='split')
 
         author_id = Field(name='author_id', tokenize=False,
                           store_as_raw=True)
