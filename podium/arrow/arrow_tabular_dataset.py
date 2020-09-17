@@ -1,9 +1,19 @@
-import pyarrow as pa
+import logging
+_LOGGER = logging.getLogger(__name__)
+
+try:
+    import pyarrow as pa
+except ImportError as ie:
+    msg = "Error encountered while importing Pyarrow. If Pyarrow is not installed, please visit " \
+          "https://pypi.org/project/pyarrow/ for more information."
+    _LOGGER.error(msg)
+    raise ie
+
+
 import tempfile
 import itertools
 import os
 import shutil
-import logging
 import pickle
 import io
 import csv
@@ -11,8 +21,6 @@ import csv
 from podium.storage import ExampleFactory
 from podium.datasets import Dataset
 from podium.storage.example_factory import Example
-
-_LOGGER = logging.getLogger(__name__)
 
 
 def group(iterable, n):
