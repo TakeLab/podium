@@ -274,7 +274,8 @@ class Experiment:
             prediction_tensor = batch_prediction[prediction_key]
             return prediction_tensor
         else:
-            prediction_iterator = Iterator(batch_size=batch_size)
+            prediction_iterator = Iterator(batch_size=batch_size,
+                                           shuffle=False)
 
             for x_batch, _ in prediction_iterator(dataset):
                 x_batch_tensor = self.feature_transformer.transform(x_batch)
