@@ -90,7 +90,7 @@ class TorchModel(AbstractSupervisedModel):
         # Deserialize model
         model = self.model_class(**self.model_config)
         model.load_state_dict(state['model_state'])
-        self._model = model
+        self._model = model.to(self.device)
 
         # Deserialize optimizer
         self.optimizer_class = state['optimizer_class']
