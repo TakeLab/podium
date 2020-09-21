@@ -1,13 +1,10 @@
-import os
-import dill
-import pytest
 import tempfile
-import numpy as np
-import pytest
 from functools import partial
 
+import numpy as np
+import pytest
+
 from podium.arrow import ArrowDataset
-from podium.datasets import Dataset
 from podium.storage import Field, Vocab, ExampleFactory
 
 # Try to import pyarrow
@@ -149,3 +146,21 @@ def test_filter(pyarrow_data, pyarrow_dataset):
 def test_indexing(pyarrow_dataset, pyarrow_data):
     for i in range(len(pyarrow_data)):
         assert pyarrow_dataset[i].number[0] == pyarrow_data[i][0]
+
+
+def test_batching(pyarrow_data, pyarrow_dataset):
+    pyarrow_dataset.finalize_fields()
+    input_batch, target_batch = pyarrow_dataset.batch()
+    assert hasattr(target_batch, 'number')
+    assert hasattr(input_batch, 'tokens')
+
+    assert isinstance(target_batch.number, np.ndarray)
+    assert len(target_batch.number) == len(pyarrow_dataset)
+    for (raw, _), b in zip(pyarrow_dataset.number, target_batch.number):
+        assert raw == b
+
+    tokens_vocab = pyarrow_dataset.field_dict['tokens'].vocab
+    for (_, tokenized), batch_row in zip(pyarrow_dataset.tokens, input_batch.tokens):
+        assert len(tokenized) == len(batch_row)
+        for token, index in zip(tokenized, batch_row):
+            assert index == tokens_vocab[token]

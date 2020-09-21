@@ -364,3 +364,6 @@ class ArrowDataset:
                 for example in dataset:
                     for field in fields_to_build:
                         field.update_vocab(*getattr(example, field.name))
+
+        for field in self.fields:
+            field.finalize()

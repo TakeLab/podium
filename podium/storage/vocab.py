@@ -491,3 +491,31 @@ class Vocab:
     def __str__(self):
         return "{}[finalized: {}, size: {}]".format(
             self.__class__.__name__, self.finalized, len(self))
+
+    def __getitem__(self, token):
+        """Returns the token index of the passed token. If the passed token has no index, UNK token index is returned.
+        Otherwise, an exception is raised.
+
+        Parameters
+        ----------
+        token: str
+            token whose index is to be returned.
+
+        Returns
+        -------
+        int
+            stoi index of the token.
+
+        Raises
+        ------
+        KeyError
+            If the passed token has no index and vocab has no UNK special token.
+        """
+
+        if not self.finalized:
+            error_msg = "Cannot numericalize if the vocabulary has not been " \
+                        "finalized because itos and stoi are not yet built."
+            _LOGGER.error(error_msg)
+            raise RuntimeError(error_msg)
+
+        return self.stoi[token]
