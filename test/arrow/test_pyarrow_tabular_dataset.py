@@ -91,7 +91,8 @@ def test_dump_and_load(pyarrow_dataset):
 
     assert len(loaded_dataset) == len(pyarrow_dataset)
     for ex_original, ex_loaded in zip(pyarrow_dataset, loaded_dataset):
-        assert ex_original == ex_loaded
+        assert ex_original.number == ex_loaded.number
+        assert ex_original.tokens == ex_loaded.tokens
 
     dataset_sliced = pyarrow_dataset[8:2:-2]
     cache_dir_sliced = dataset_sliced.dump_cache(cache_path=None)
@@ -99,7 +100,8 @@ def test_dump_and_load(pyarrow_dataset):
 
     assert len(loaded_dataset_sliced) == len(dataset_sliced)
     for ex_original, ex_loaded in zip(dataset_sliced, loaded_dataset_sliced):
-        assert ex_original == ex_loaded
+        assert ex_original.number == ex_loaded.number
+        assert ex_original.tokens == ex_loaded.tokens
 
     cache_dir = tempfile.mkdtemp()
     pyarrow_dataset.dump_cache(cache_path=cache_dir)
@@ -107,7 +109,8 @@ def test_dump_and_load(pyarrow_dataset):
 
     assert len(loaded_dataset) == len(pyarrow_dataset)
     for ex_original, ex_loaded in zip(pyarrow_dataset, loaded_dataset):
-        assert ex_original == ex_loaded
+        assert ex_original.number == ex_loaded.number
+        assert ex_original.tokens == ex_loaded.tokens
 
 
 def test_finalize_fields(data, fields, mocker):
@@ -174,7 +177,8 @@ def test_to_dataset(pyarrow_dataset):
     assert isinstance(dataset, Dataset)
     assert len(dataset) == len(pyarrow_dataset)
     for arrow_ex, dataset_ex in zip(pyarrow_dataset, dataset):
-        assert arrow_ex == dataset_ex
+        assert arrow_ex.number == dataset_ex.number
+        assert arrow_ex.tokens == dataset_ex.tokens
 
 
 def test_from_dataset(data, fields):
