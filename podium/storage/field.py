@@ -558,6 +558,19 @@ class Field:
         data = tokenized if self.tokenize or self.store_as_tokenized else [raw]
         self.vocab += data
 
+    @property
+    def finalized(self) -> bool:
+        """Returns whether the field's Vocab vas finalized. If the field has no
+        vocab, returns True.
+
+        Returns
+        -------
+        bool
+            Whether the field's Vocab vas finalized. If the field has no
+            vocab, returns True.
+        """
+        return True if self.vocab is None else self.vocab.finalized
+
     def finalize(self):
         """Signals that this field's vocab can be built.
         """
