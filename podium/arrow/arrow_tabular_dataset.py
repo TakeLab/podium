@@ -303,6 +303,8 @@ class ArrowDataset:
             table_slice = self.table[item]
 
         else:
+            if isinstance(item, tuple):
+                item = list(item)
             table_slice = self.table.take(item)
 
         return ArrowDataset(table=table_slice,
