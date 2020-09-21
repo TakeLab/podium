@@ -1,4 +1,5 @@
 # flake8: noqa
+import copy
 import pickle
 
 import numpy as np
@@ -43,12 +44,13 @@ def create_fields():
         'label': label
     }
 
+
 def bert_initializer():
-    model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased', 
+    model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased',
                                                                 return_dict=True)
     def get_bert_model():
-        return model
-    
+        return copy.deepcopy(model)
+
     return get_bert_model
 
 get_bert_model = bert_initializer()
@@ -59,7 +61,7 @@ class BertModelWrapper(nn.Module):
     def __init__(self, **kwargs):
         super().__init__()
         self.model = get_bert_model()
-    
+
     def forward(self, x):
         attention_mask = (x != 0).long()
         return_dict = self.model(x, attention_mask)
@@ -76,7 +78,7 @@ def main():
     model_config = {
         'lr': 1e-5,
         'clip': float('inf'),  # disable gradient clipping
-        'num_epochs': 3,
+        'num_epochs': 5,
     }
     model_config['num_classes'] = len(fields['label'].vocab)
 
@@ -107,7 +109,7 @@ def main():
     # utilities for saving/loading the model
     def save_model(model, file_path):
         with open(file_path, 'wb') as f:
-            pickle.dump(fitted_model, f)
+            pickle.dump(model, f)
 
     def load_model(file_path):
         with open(file_path, 'rb') as f:
@@ -127,34 +129,34 @@ def main():
     @torch.no_grad()
     def make_predictions(raw_model, dataset, batch_size=64):
         raw_model.eval()
-        
+
         def predict(batch):
             predictions = raw_model(cast_to_torch_transformer(batch))['pred']
             return predictions.cpu().numpy()
 
-        iterator = Iterator(batch_size=batch_size, 
+        iterator = Iterator(batch_size=batch_size,
                             shuffle=False)
-        
+
         predictions = []
         for x_batch, _ in iterator(dataset):
             batch_prediction = predict(x_batch)
             predictions.append(batch_prediction)
-        
+
         return np.concatenate(predictions)
-    
+
     # model comparison: pretrained BERT vs pretrained + fine-tuned BERT
     _, y_true = imdb_test.batch()
     y_true = y_true[0].ravel()
 
-    predictions = make_predictions(BertModelWrapper(), imdb_test)
+    predictions = make_predictions(BertModelWrapper().to(device), imdb_test)
     y_pred = predictions.argmax(axis=1)
 
     print('pretrained model')
     print('accuracy score:', accuracy_score(y_true, y_pred))
-    print('precision score:', precision_score(y_true, y_pred))
-    print('recall score:', recall_score(y_true, y_pred))
-    print('f1 score:', f1_score(y_true, y_pred))
-    
+    print('precision score:', precision_score(y_true, y_pred, zero_division=0))
+    print('recall score:', recall_score(y_true, y_pred, zero_division=0))
+    print('f1 score:', f1_score(y_true, y_pred, zero_division=0))
+
     loaded_model_raw = loaded_model.model
     predictions = make_predictions(loaded_model_raw, imdb_test)
     y_pred = predictions.argmax(axis=1)
@@ -164,7 +166,7 @@ def main():
     print('precision score:', precision_score(y_true, y_pred))
     print('recall score:', recall_score(y_true, y_pred))
     print('f1 score:', f1_score(y_true, y_pred))
-    
+
     # we use `Pipeline` to make predictions on raw data
     pipe = Pipeline(fields=list(fields.values()),
                     example_format='list',
