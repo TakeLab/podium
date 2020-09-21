@@ -123,28 +123,28 @@ class ArrowDataset:
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
-        if skip_header:
-            if format == "json":
-                error_msg = "When using a {} file, skip_header must be False.".format(format)
-                _LOGGER.error(error_msg)
-                raise ValueError(error_msg)
-            elif format in {"csv", "tsv"} and isinstance(fields, dict):
-                error_msg = "When using a dict to specify fields with a {}" \
-                            " file, skip_header must be False and the file must " \
-                            "have a header.".format(format)
-                _LOGGER.error(error_msg)
-                raise ValueError(error_msg)
+            if skip_header:
+                if format == "json":
+                    error_msg = "When using a {} file, skip_header must be False.".format(format)
+                    _LOGGER.error(error_msg)
+                    raise ValueError(error_msg)
+                elif format in {"csv", "tsv"} and isinstance(fields, dict):
+                    error_msg = "When using a dict to specify fields with a {}" \
+                                " file, skip_header must be False and the file must " \
+                                "have a header.".format(format)
+                    _LOGGER.error(error_msg)
+                    raise ValueError(error_msg)
 
-            # skipping the header
-            next(reader)
+                # skipping the header
+                next(reader)
 
-        # if format is CSV/TSV and fields is a dict, transform it to a list
-        if format in {"csv", "tsv"} and isinstance(fields, dict):
-            # we need a header to know the column names
-            header = next(reader)
+            # if format is CSV/TSV and fields is a dict, transform it to a list
+            if format in {"csv", "tsv"} and isinstance(fields, dict):
+                # we need a header to know the column names
+                header = next(reader)
 
-            # columns not present in the fields dict are ignored (None)
-            fields = [fields.get(column, None) for column in header]
+                # columns not present in the fields dict are ignored (None)
+                fields = [fields.get(column, None) for column in header]
 
             # fields argument is the same for all examples
             # fromlist is used for CSV/TSV because csv_reader yields data rows as
@@ -175,7 +175,7 @@ class ArrowDataset:
 
     @staticmethod
     def _examples_to_recordbatch(examples, fields, data_types=None):
-        data_type_override = {} if data_types is None else data_types
+        data_type_override = {}
         if data_types is not None:
             for field_name, (raw_dtype, tokenized_dtype) in data_types.items():
                 if raw_dtype is not None:
