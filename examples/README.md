@@ -21,5 +21,6 @@
 
 [IMDB Example](imdb_example.py): Run a Pytorch NN model on the IMDB sentiment classification dataset.
 
-[NER Example](ner_example.py): Run a NER model on the Croatian NER dataset.
+[IMDB Example with BERT](notebooks/Fine-tuning%20BERT%20from%20HuggingFace%20Transformers%20on%20the%20IMDB%20Dataset.ipynb): Fine-tune a BERT model from HuggingFace Transformers on the IMDB sentiment classification dataset
 
+[NER Example](ner_example.py): Run a NER model on the Croatian NER dataset.
