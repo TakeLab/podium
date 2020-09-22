@@ -63,7 +63,7 @@ class _FeatureConverter:
                           'custom_numericalize': _identity}
 
             elif dtype in {'string', 'utf8'}:
-                kwargs = {'vocab': Vocab}
+                kwargs = {'vocab': Vocab()}
 
             else:
                 kwargs = {'tokenize': False,
