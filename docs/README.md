@@ -5,7 +5,7 @@ First, make sure that your environment is set up as described in the [Getting st
 ```
 pip install -U Sphinx
 ```
-Finally, make sure you are positioned in the documentation root directory, i.e. `takepod/doc`.
+Finally, make sure you are positioned in the documentation root directory, i.e. `takepod/docs`.
 
 ### Building the HTML docs
 Run

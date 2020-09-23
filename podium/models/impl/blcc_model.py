@@ -1,4 +1,4 @@
-"""Module contains deep learning based sequence labelling model.."""
+"""Module contains deep learning based sequence labelling model."""
 import logging
 import numpy as np
 import tempfile
