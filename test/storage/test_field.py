@@ -282,7 +282,8 @@ def test_field_get_tokenizer_callable(vocab):
     assert data == (None, ["a", "sd dsa"])
 
 
-# This is obsolete as the combination no longer raises an error
+# This is obsolete as the combination no longer raises an error,
+# for more information see https://github.com/mttk/podium/pull/180
 # def test_field_get_tokenizer_spacy_exception():
 #     vocab = MockVocab()
 
