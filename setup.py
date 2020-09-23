@@ -4,15 +4,15 @@ from setuptools import setup, find_packages
 
 INSTALL_REQUIRES = [
     'dill',
-    'numpy',
     'nltk>=3.0',
+    'numpy',
     'pandas',
     'paramiko',
     'requests',
-    'spacy',
     'scikit-learn',
     'scipy',
     'six',
+    'spacy',
     'tqdm',
 ]
 
@@ -22,8 +22,6 @@ TESTS_REQUIRE = [
     'pytest-cov',
     'pytest-mock',
     'urllib3',
-    'conllu',
-    'xlrd',
     'yake',
 ]
 
@@ -35,21 +33,27 @@ QUALITY_REQUIRE = [
 ]
 
 
+DATASETS_REQUIRE = [
+    'conllu',
+    'datasets',
+    'xlrd'
+]
+
+
 EXTRAS_REQUIRE = {
-    'conllu': ['conllu'],
     # for blcc model
     'keras': ['keras==2.2.4'],
-    'tensorflow': ['tensorflow=1.15'],
-    'tensorflow_gpu': ['tensorflow-gpu=1.15'],
     'torch': ['torch'],
-    'xlrd': ['xlrd'],
+    # for preprocessing
     'yake': ['https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz'],
 
-    'ner': ['keras==2.2.4', 'tensorflow-gpu==1.15'],
+    # dependencies for all dataset implementations (including the ones in dataload)
+    'datasets': DATASETS_REQUIRE,
 
-    'tests': TESTS_REQUIRE,
-    'dev': TESTS_REQUIRE + QUALITY_REQUIRE,
     'docs': ['sphinx'],
+    'dev': TESTS_REQUIRE + QUALITY_REQUIRE,
+    'quality': QUALITY_REQUIRE,
+    'tests': TESTS_REQUIRE,
 }
 
 
@@ -87,4 +91,4 @@ setup(
 # before release:
 # 1. add setup.py args: long description (via __doc__), download_url (point to tag),
 #    keywords, classifiers
-# 2. add dependency descriptions
+# 2. add dependency comments (so it's more clear why we use them)
