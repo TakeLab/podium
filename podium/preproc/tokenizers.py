@@ -1,5 +1,6 @@
 """Module contains text tokenizers."""
 import logging
+import spacy
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,24 +44,26 @@ def get_tokenizer(tokenizer, language='en'):
         # if arg is already a function, just return it
         return tokenizer
 
-    elif tokenizer == 'spacy':
+    elif tokenizer == "spacy":
+        disable = ["parser", "ner"]
         try:
-            import spacy
-            spacy_tokenizer = spacy.load(language, disable=['parser', 'ner'])
+            spacy_tokenizer = spacy.load(language, disable=disable)
+        except OSError:
+            _LOGGER.warning("SpaCy model {} not found."
+                            "Trying to download and install."
+                            .format(language))
 
-            # closures instead of lambdas because they are serializable
-            def spacy_tokenize(string):
-                # need to wrap in a function to access .text
-                return [token.text for token in
-                        spacy_tokenizer.tokenizer(string)]
+            from spacy.cli.download import download
+            download(language)
+            spacy_tokenizer = spacy.load(language, disable=disable)
 
-            return spacy_tokenize
-        except (ImportError, OSError) as ex:
-            error_msg = "Please install SpaCy and the SpaCy {} "\
-                        "tokenizer. See the docs at https://spacy.io for "\
-                        "more information.".format(language)
-            _LOGGER.error(error_msg)
-            raise ex
+        # closures instead of lambdas because they are serializable
+        def spacy_tokenize(string):
+            # need to wrap in a function to access .text
+            return [token.text for token in
+                    spacy_tokenizer.tokenizer(string)]
+
+        return spacy_tokenize
 
     elif tokenizer == "split":
         return str.split
