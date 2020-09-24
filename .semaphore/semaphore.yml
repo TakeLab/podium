@@ -10,10 +10,10 @@ agent:
         image: semaphoreci/python:3.6.0
 
 blocks:
-  - name: run tests
+  - name: setup environment and run tests
     task:
       jobs:
-        - name: pytest
+        - name: setup env and run pytest
           commands:
             - checkout
             - python -m venv venv
@@ -24,12 +24,12 @@ blocks:
   - name: check code quality
     task:
       jobs:
-        - name: black isort flake8
+        - name: black isort flake8 compliance
           commands:
             - checkout
             - sudo pip install .[quality]
             - black --check --line-length 90 --target-version py36 podium tests examples
-            - isort --check-only podium test examples
-            - flake8 podium test examples
+            - isort --check-only podium tests examples
+            - flake8 podium tests examples
 
-# add build/deploy docs on stable relase
+# add `build/deploy docs` block on stable relase
