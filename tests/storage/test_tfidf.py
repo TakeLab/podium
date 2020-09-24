@@ -1,10 +1,13 @@
-from test.storage.conftest import TABULAR_TEXT
 import numpy as np
-import pytest
 from sklearn.feature_extraction import text
+
+import pytest
+
 from podium.storage.vocab import Vocab, SpecialVocabSymbols
 from podium.storage.vectorizers.tfidf import TfIdfVectorizer, CountVectorizer
 from podium.storage.field import Field
+
+from .conftest import TABULAR_TEXT
 
 
 DATA = [

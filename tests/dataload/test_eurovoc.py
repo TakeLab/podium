@@ -12,9 +12,9 @@ from podium.storage import Field, MultilabelField
 from podium.storage import Vocab
 from podium.datasets.impl.eurovoc_dataset import EuroVocDataset
 
-from test.datasets.test_eurovoc_dataset import (eurovoc_label_hierarchy,
-                                                crovoc_label_hierarchy,
-                                                mappings, documents)
+from ..datasets.test_eurovoc_dataset import (eurovoc_label_hierarchy,
+                                             crovoc_label_hierarchy,
+                                             mappings, documents)
 
 EUROVOC_LABELS = r"""
 <DATABASE_THS>
@@ -268,7 +268,7 @@ def create_mock_dataset(load_missing_doc=False,
                                  EuroVocLoader.MAPPING_FILENAME)
 
     mappings_content = ""
-    with open("test/dataload/mock_mapping.xlsx", mode='rb') as input_file:
+    with open("tests/dataload/mock_mapping.xlsx", mode='rb') as input_file:
         mappings_content = input_file.read()
     with open(file=mappings_path, mode='wb') as fp:
         fp.write(mappings_content)

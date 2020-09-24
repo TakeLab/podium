@@ -1,4 +1,3 @@
-import itertools
 from setuptools import setup, find_packages
 
 
@@ -18,16 +17,16 @@ INSTALL_REQUIRES = [
 
 
 TESTS_REQUIRE = [
-    'pytest',
-    'pytest-cov',
-    'pytest-mock',
+    'pytest==3.10.1',
+    'pytest-cov==2.6.0',
+    'pytest-mock==1.10.1',
     'urllib3',
-    'yake',
+    'yake @ https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz',
 ]
 
 
 QUALITY_REQUIRE = [
-    'black'
+    'black',
     'flake8',
     'isort',
 ]
@@ -36,7 +35,7 @@ QUALITY_REQUIRE = [
 DATASETS_REQUIRE = [
     'conllu',
     'datasets',
-    'xlrd'
+    'xlrd',
 ]
 
 
@@ -45,7 +44,7 @@ EXTRAS_REQUIRE = {
     'keras': ['keras==2.2.4'],
     'torch': ['torch'],
     # for preprocessing
-    'yake': ['https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz'],
+    'yake': ['yake @ git+https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz'],
 
     # dependencies for all dataset implementations (including the ones in dataload)
     'datasets': DATASETS_REQUIRE,
@@ -53,11 +52,8 @@ EXTRAS_REQUIRE = {
     'docs': ['sphinx'],
     'dev': TESTS_REQUIRE + QUALITY_REQUIRE,
     'quality': QUALITY_REQUIRE,
-    'tests': TESTS_REQUIRE,
+    'tests': TESTS_REQUIRE + DATASETS_REQUIRE,
 }
-
-
-EXTRAS_REQUIRE['all'] = list(set(itertools.chain.from_iterable(EXTRAS_REQUIRE.values())))
 
 
 setup(

@@ -5,7 +5,8 @@ from podium.models.impl.simple_trainers import SimpleTrainer
 from podium.models.model import AbstractSupervisedModel
 from podium.models import FeatureTransformer
 from podium.datasets.iterator import Iterator
-from test.storage.conftest import (tabular_dataset, json_file_path)  # noqa
+
+from ..storage.conftest import (tabular_dataset, json_file_path)  # noqa
 
 
 @pytest.fixture
@@ -43,10 +44,10 @@ def test_simple_trainer_batch_transform_call(tabular_dataset, mocker, model):  #
     iterator = Iterator(tabular_dataset, batch_size=len(tabular_dataset))
 
     with mocker.patch(
-            "test.models.test_simple_trainers.mock_feature_transform_fun",
+            "tests.models.test_simple_trainers.mock_feature_transform_fun",
             return_value=next(iterator.__iter__())[0]):
         with mocker.patch(
-                "test.models.test_simple_trainers.mock_label_transform_fun",
+                "tests.models.test_simple_trainers.mock_label_transform_fun",
                 return_value=next(iterator.__iter__())[1]):
             feature_transformer = FeatureTransformer(mock_feature_transform_fun)
             trainer = SimpleTrainer()

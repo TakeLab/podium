@@ -1,14 +1,17 @@
 import random
 
-from test.storage.conftest import (
-    create_tabular_dataset_from_json, tabular_dataset_fields, TABULAR_TEXT)
-import pytest
 import numpy as np
+
+import pytest
+
 from podium.datasets.iterator import (Iterator, BucketIterator,
                                       HierarchicalDatasetIterator)
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
 from podium.storage import Field, ExampleFactory, Vocab
 from podium.datasets import Dataset
+
+from .conftest import (
+    create_tabular_dataset_from_json, tabular_dataset_fields, TABULAR_TEXT)
 
 
 @pytest.mark.parametrize(

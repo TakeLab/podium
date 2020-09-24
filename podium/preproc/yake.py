@@ -21,9 +21,9 @@ class YAKE:
     def __init__(self,
                  lan: str = "en",
                  n: int = 3,
-                 dedupLim: float = 0.8,
-                 dedupFunc: str = 'levenshtein',
-                 windowsSize: int = 2,
+                 dedupLim: float = 0.9,
+                 dedupFunc: str = 'seqm',
+                 windowsSize: int = 1,
                  top: int = 20):
         """Constructor that initializes YAKE.
 

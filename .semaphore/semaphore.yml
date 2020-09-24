@@ -24,7 +24,7 @@ blocks:
   - name: check code quality
     task:
       jobs:
-        - name: black isort flake8 compliance
+        - name: check black isort flake8 compliance
           commands:
             - checkout
             - sudo pip install .[quality]
