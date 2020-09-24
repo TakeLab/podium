@@ -25,7 +25,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 For building this project system needs to have installed the following:
 - [```git```](https://git-scm.com/)
-- [```python3.6```](https://www.python.org/downloads/release/python-360/) and higher
+- [```python3.6```](https://www.python.org/downloads/release/python-360/) or higher
 - [```pip```](https://pypi.org/project/pip/)
 
 We also recommend usage of a virtual environment:
@@ -36,8 +36,7 @@ We also recommend usage of a virtual environment:
 
 To install `podium`, in your terminal
 1. Clone the repository: `git clone git@github.com:mttk/podium.git && cd podium`
-2. Install requirements: `pip install -r requirements.txt`
-3. Install podium: `python setup.py install`
+2. Install podium: `pip install .`
 
 ### Installing package from pip/wheel
 Coming soon!
@@ -140,13 +139,13 @@ Example[label: ('positive', None); subword: (None, ['a', 'slick', ',', 'eng', '#
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ### Code style standards
-In this repository we use [numpydoc](https://numpydoc.readthedocs.io/en/latest/) as a standard for documentation and Flake8 for code sytle. Code style references are [Flake8](http://flake8.pycqa.org/en/latest/) and [PEP8](https://www.python.org/dev/peps/pep-0008/).
+In this repository we use [numpydoc](https://numpydoc.readthedocs.io/en/latest/) as a standard for documentation and Black, Flake8 and isort for code sytle. Code style references are [Black](https://black.readthedocs.io/en/stable/), [Flake8](http://flake8.pycqa.org/en/latest/), [isort](https://pycqa.github.io/isort/) and [PEP8](https://www.python.org/dev/peps/pep-0008/).
 
-Commands to check flake8 compliance for written code and tests.
+Commands to check black, isort and flake8 compliance for written code and tests.
 ```
-flake8 podium
-flake8 examples
-flake8 test
+black --check --line-length 90 --target-version py36 podium tests examples
+isort --check-only podium tests examples
+flake8 podium tests examples
 ```
 
 ### Building and running unit tests
@@ -160,15 +159,15 @@ Commands to setup virtual environment and run tests.
 ```
 conda create --name env python=3.6
 conda activate env
-python setup.py install
-py.test --cov-report=term-missing --cov=podium
+pip install .[tests]
+pytest tests
 ```
 
 If you intend to develop part of podium you should use following command to install podium.
 ```
-python setup.py develop
+pip install -e .[dev]
 ```
-In other cases it should be enough to run ```python setup.py``` for podium to be added to python environment.
+In other cases it should be enough to run ```pip install .``` for podium to be added to python environment.
 
 
 The project is packaged according to official Python packaging [guidelines](https://packaging.python.org/tutorials/packaging-projects/).
@@ -191,7 +190,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Authors
 
-* Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Silvije Skudar](https://github.com/sskudar), [Filip Boltužić](https://github.com/FilipBolt) and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list of collaborators needs to mention: [Domagoj Pluščec](https://github.com/domi385), [Marin Kačan](https://github.com/mkacan), [Dunja Vesinger](https://github.com/dunja-v), [Mate Mijolović](https://github.com/matemijolovic).
+* Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Silvije Skudar](https://github.com/sskudar), [Mario Šaško](https://github.com/mariosasko), [Filip Boltužić](https://github.com/FilipBolt) and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list of collaborators needs to mention: [Domagoj Pluščec](https://github.com/domi385), [Marin Kačan](https://github.com/mkacan), [Dunja Vesinger](https://github.com/dunja-v), [Mate Mijolović](https://github.com/matemijolovic).
 * Project made as part of [TakeLab](http://takelab.fer.hr) at Faculty of Electrical Engineering and Computing, University of Zagreb
 
 See also the list of [contributors](https://github.com/mttk/podium/graphs/contributors) who participated in this project.

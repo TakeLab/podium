@@ -10,8 +10,8 @@ Please note we have a code of conduct, please follow it in all your interactions
 1. Ensure any install or build dependencies are added to requirements.txt.
 2. Update the README.md if neccessary.
 3. Increase the version numbers in setup.py to the new version that this Pull Request would represent. The versioning scheme we use is [SemVer](http://semver.org/).
-4. Check if the changes are consistent with the [Coding Style](https://github.com/FilipBolt/takepod#code-style-standards).
-5. Run [Unit Tests](https://github.com/FilipBolt/takepod#building-and-running-unit-tests)
+4. Check if the changes are consistent with the [Coding Style](https://github.com/mttk/podium#code-style-standards).
+5. Run [Unit Tests](https://github.com/mttk/podium#building-and-running-unit-tests)
 6. You may merge the Pull Request in once you have the sign-off of one of the other developers, or if you do not have permission to do that, you may request the reviewer to merge it for you.
 
 ## Code of Conduct
