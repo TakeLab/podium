@@ -7,8 +7,9 @@ import pickle
 import io
 import csv
 from collections import defaultdict
+from typing import List, Dict, Union, Tuple, Iterable
 
-from podium.storage import ExampleFactory
+from podium.storage import ExampleFactory, Field, unpack_fields
 from podium.datasets import Dataset
 from podium.storage.example_factory import Example
 
@@ -34,16 +35,48 @@ def group(iterable, n):
 
 
 class ArrowDataset:
+    """Podium dataset implementation which uses PyArrow as its data storage backend. Examples are stored in a file
+    which is then memory mapped for fast random access.
+    """
+
     TEMP_CACHE_FILENAME_PREFIX = 'podium_arrow_cache_'
     CACHE_TABLE_FILENAME = 'podium_arrow_cache.arrow'
     CACHE_FIELDS_FILENAME = 'podium_fields.pkl'
 
     CHUNK_MAX_SIZE = 10000
 
-    def __init__(self, table, fields, cache_path, mmapped_file, data_types=None):
+    def __init__(self,
+                 table: pa.Table,
+                 fields: Union[Dict[str, Field], List[Field]],
+                 cache_path: str,
+                 mmapped_file: pa.MemoryMappedFile,
+                 data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None):
+        """Creates a new ArrowDataset instance. Users should use static constructor functions like 'from_dataset' to
+        construct new ArrowDataset instances.
+
+        Parameters
+        ----------
+        table: pyarrow.Table
+            Table object that contains example data.
+
+        fields: Union[Dict[str, Field], List[Field]]
+            Dict or List of Fields used to create the examples in 'table'.
+
+        cache_path: str
+            Path to the directory where the cache file is saved.
+
+        mmapped_file: pyarrow.MemoryMappedFile
+            Open MemoryMappedFile descriptor of the cache file.
+
+        data_types: Dict[str, Tuple[pyarrow.DataType, pyarrow.DataType]]
+            Dictionary mapping field names to pyarrow data types. This is required when a field can have missing
+            data and the data type can't be inferred. The data type tuple has two values, corresponding to the raw and
+            tokenized data types in an example. None can be used as a wildcard data type and will be overridden by an
+            inferred data type if possible.
+        """
         self.cache_path = cache_path
 
-        self.fields = fields
+        self.fields = unpack_fields(fields)
         self.field_dict = {field.name: field for field in fields}
 
         self.mmapped_file = mmapped_file
@@ -53,11 +86,64 @@ class ArrowDataset:
         self.data_types = data_types
 
     @staticmethod
-    def from_dataset(dataset, cache_path=None, data_types=None):
+    def from_dataset(dataset: Dataset,
+                     cache_path: str = None,
+                     data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None):
+        """Creates an ArrowDataset instance from a regular podium Dataset.
+
+        Parameters
+        ----------
+        dataset: Dataset
+            Dataset to be used to create an ArrowDataset.
+
+        cache_path: str
+            Path to the directory where the cache file will saved.
+
+        data_types: Dict[str, Tuple[pyarrow.DataType, pyarrow.DataType]]
+            Dictionary mapping field names to pyarrow data types. This is required when a field can have missing
+            data and the data type can't be inferred. The data type tuple has two values, corresponding to the raw and
+            tokenized data types in an example. None can be used as a wildcard data type and will be overridden by an
+            inferred data type if possible.
+
+        Returns
+        -------
+        ArrowDataset
+            ArrowDataset instance created from the passed Dataset.
+
+        """
         return ArrowDataset.from_examples(dataset.fields, iter(dataset), cache_path, data_types)
 
     @staticmethod
-    def from_examples(fields, examples, cache_path=None, data_types: dict = None):
+    def from_examples(fields: Union[Dict[str, Field], List[Field]],
+                      examples: Iterable[Example],
+                      cache_path: str = None,
+                      data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None):
+        """ Creates an ArrowDataset from the provided Examples.
+
+        Parameters
+        ----------
+        fields: Union[Dict[str, Field], List[Field]]
+            Dict or List of Fields used to create the Examples.
+
+        examples: Iterable[Example]
+            Iterable of examples.
+
+        cache_path: str
+            Path to the directory where the cache file will saved.
+
+        data_types: Dict[str, Tuple[pyarrow.DataType, pyarrow.DataType]]
+            Dictionary mapping field names to pyarrow data types. This is required when a field can have missing
+            data and the data type can't be inferred. The data type tuple has two values, corresponding to the raw and
+            tokenized data types in an example. None can be used as a wildcard data type and will be overridden by an
+            inferred data type if possible.
+
+        Returns
+        -------
+        ArrowDataset
+            ArrowDataset instance created from the passed Examples.
+        """
+
+        fields = unpack_fields(fields)
 
         if cache_path is None:
             cache_path = tempfile.mkdtemp(prefix=ArrowDataset.TEMP_CACHE_FILENAME_PREFIX)
@@ -106,8 +192,71 @@ class ArrowDataset:
         return ArrowDataset(table, fields, cache_path, mmapped_file, inferred_data_types)
 
     @staticmethod
-    def from_tabular_file(path, format, fields, cache_path=None, data_types=None, skip_header=False,
+    def from_tabular_file(path: str,
+                          format: str,
+                          fields, cache_path=None,
+                          data_types=None,
+                          skip_header=False,
                           csv_reader_params=None):
+        """Loads a tabular file format (csv, tsv, json) as an ArrowDataset.
+
+        Parameters
+        ----------
+        path : str
+                Path to the data file.
+
+        format : str
+                The format of the data file. Has to be either "CSV", "TSV", or
+                "JSON" (case-insensitive).
+
+        fields : Union[Dict[str, Field], List[Field]]
+                A mapping from data columns to example fields.
+                This allows the user to rename columns from the data file,
+                to create multiple fields from the same column and also to
+                select only a subset of columns to load.
+
+                A value stored in the list/dict can be either a Field
+                (1-to-1 mapping), a tuple of Fields (1-to-n mapping) or
+                None (ignore column).
+
+                If type is list, then it should map from the column index to
+                the corresponding field/s (i.e. the fields in the list should
+                be in the  same order as the columns in the file). Also, the
+                format must be CSV or TSV.
+
+                If type is dict, then it should be a map from the column name
+                to the corresponding field/s. Column names not present in
+                the dict's keys are ignored. If the format is CSV/TSV,
+                then the data file must have a header
+                (column names need to be known).
+
+        cache_path: str
+            Path to the directory where the cache file will saved.
+
+        data_types: Dict[str, Tuple[pyarrow.DataType, pyarrow.DataType]]
+            Dictionary mapping field names to pyarrow data types. This is required when a field can have missing
+            data and the data type can't be inferred. The data type tuple has two values, corresponding to the raw and
+            tokenized data types in an example. None can be used as a wildcard data type and will be overridden by an
+            inferred data type if possible.
+
+        skip_header : bool
+                Whether to skip the first line of the input file.
+                If format is CSV/TSV and 'fields' is a dict, then skip_header
+                must be False and the data file must have a header.
+                Default is False.
+
+        csv_reader_params : Dict
+                Parameters to pass to the csv reader. Only relevant when
+                format is csv or tsv.
+                See https://docs.python.org/3/library/csv.html#csv.reader
+                for more details.
+
+        Returns
+        -------
+        ArrowDataset
+            ArrowDataset instance containing the examples from the tabular file.
+
+        """
         format = format.lower()
         csv_reader_params = {} if csv_reader_params is None else csv_reader_params
 
@@ -163,7 +312,19 @@ class ArrowDataset:
             return ArrowDataset.from_examples(fields, examples, cache_path=cache_path, data_types=data_types)
 
     @staticmethod
-    def _schema_to_data_types(inferred_schema):
+    def _schema_to_data_types(inferred_schema: pa.Schema):
+        """Converts a pyarrow Schema instance into the ArrowDataset data_types format.
+
+        Parameters
+        ----------
+        inferred_schema: pyarrow.Schema
+            Schema to be converted into the ArrowDataset data_type format.
+
+        Returns
+        -------
+        Dict[str, Tuple[pyarrow.DataType, pyarrow.DataType]]
+            ArrowDataset data_types extracted from the passed Schema instance.
+        """
         dtypes = defaultdict(dict)
 
         for dtype_field in inferred_schema:
