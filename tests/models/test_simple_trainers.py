@@ -6,7 +6,7 @@ from podium.models.model import AbstractSupervisedModel
 from podium.models import FeatureTransformer
 from podium.datasets.iterator import Iterator
 
-from ..storage.conftest import (tabular_dataset, json_file_path)  # noqa
+from ..storage.conftest import (tabular_dataset, json_file_path) # noqa
 
 
 @pytest.fixture

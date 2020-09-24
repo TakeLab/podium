@@ -7,7 +7,7 @@ def test_iris_dataset():
 
     iris_ds = IrisDataset()
 
-    x, y = sklearn_datasets.load_iris(True)
+    x, y = sklearn_datasets.load_iris(return_X_y=True)
 
     assert len(iris_ds) == len(x)
     for i in range(0, len(x), 30):

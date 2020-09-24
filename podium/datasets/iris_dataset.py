@@ -19,7 +19,7 @@ class IrisDataset(Dataset):
     def __init__(self):
         """Loads the Iris dataset.
         """
-        x, y = load_iris(True)
+        x, y = load_iris(return_X_y=True)
 
         fields = IrisDataset._get_default_fields()
         example_factory = ExampleFactory(fields)

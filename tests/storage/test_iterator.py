@@ -400,7 +400,7 @@ def test_bucket_iterator_set_dataset_on_init(tabular_dataset):
         assert True
 
 
-def test_iterator_batch_as_list(tabular_dataset):
+def test_iterator_batch_as_list():
     raw_dataset = [("1 2 3 4",), ("2 3 4",), ("3 4",)]
     field = Field("test_field", custom_numericalize=int,
                   tokenizer='split', batch_as_matrix=False)
@@ -428,8 +428,8 @@ def iterators_behave_identically(iterator_1, iterator_2):
     for (x_batch_1, y_batch_1), (x_batch_2, y_batch_2) in zip(iterator_1,
                                                               iterator_2):
 
-        x_equal = np_arrays_equal(x_batch_1.text, x_batch_2.text)
-        y_equal = np_arrays_equal(y_batch_1.rating, y_batch_2.rating)
+        x_equal = np.array_equal(x_batch_1.text, x_batch_2.text)
+        y_equal = np.array_equal(y_batch_1.rating, y_batch_2.rating)
 
         equal = x_equal and y_equal
 
@@ -446,15 +446,6 @@ def run_n_epochs(iterator, num_epochs):
     for _ in range(num_epochs):
         for _ in iterator:
             pass
-
-
-def np_arrays_equal(arr_1, arr_2):
-    arrs_equal = (arr_1 == arr_2)
-
-    if isinstance(arrs_equal, np.ndarray):
-        arrs_equal = arrs_equal.all()
-
-    return arrs_equal
 
 
 @pytest.fixture

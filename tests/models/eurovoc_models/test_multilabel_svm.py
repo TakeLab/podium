@@ -6,19 +6,6 @@ from numpy.testing import assert_array_equal
 
 from podium.models.impl.eurovoc_models import multilabel_svm as ms
 
-import warnings
-from sklearn.exceptions import FitFailedWarning, ConvergenceWarning
-from sklearn.exceptions import UndefinedMetricWarning
-# Happens when model predicts all zeros and the F1 score can't be calcualted.
-warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
-# Due to small sample dataset, it often happens that some folds of GridSearchCV end up
-# with no positive or no negative training examples for some label. In this case,
-# FitFailedWarinig occurs.
-warnings.filterwarnings("ignore", category=FitFailedWarning)
-# The maximum number of iterations in test is set to 1. The model fails to converge in
-# 1 iteration and issues a warning.
-warnings.filterwarnings("ignore", category=ConvergenceWarning)
-
 
 X = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 0, 0]])
 Y = np.array([[1, 0, 1], [1, 1, 0], [0, 1, 1], [1, 0, 1]])
@@ -34,6 +21,11 @@ def test_get_label_matrix():
     np.testing.assert_array_equal(Y, target.eurovoc_labels)
 
 
+@pytest.mark.filterwarnings("ignore:Liblinear failed to converge, "
+                            "increase the number of iterations.")
+@pytest.mark.filterwarnings("ignore:Estimator fit failed. "
+                            "The score on this train-test partition "
+                            "for these parameters will be set to 0.000000.")
 def test_fitting_multilable_svm():
     clf = ms.MultilabelSVM()
     parameter_grid = {"C": [1]}
@@ -106,6 +98,8 @@ def test_invalid_max_iter():
                 max_iter=max_iter, cutoff=cutoff, scoring=scoring, n_jobs=n_jobs)
 
 
+@pytest.mark.filterwarnings("ignore:Liblinear failed to converge, "
+                            "increase the number of iterations.")
 def test_missing_indexes():
     clf = ms.MultilabelSVM()
     parameter_grid = {"C": [1]}
@@ -122,6 +116,8 @@ def test_missing_indexes():
     assert missing_indexes == set([2])
 
 
+@pytest.mark.filterwarnings("ignore:Liblinear failed to converge, "
+                            "increase the number of iterations.")
 def test_prediction_with_missing_indexes():
     clf = ms.MultilabelSVM()
     parameter_grid = {"C": [1]}
