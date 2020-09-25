@@ -1,4 +1,4 @@
-"""Module contains the converter classes for processing the HuggingFace Datasets."""
+"""Module contains the converter class for processing the HuggingFace Datasets."""
 import logging
 
 from podium.datasets import Dataset
@@ -108,11 +108,11 @@ def convert_features_to_fields(features):
     }
 
 
-class NLPDatasetConverter:
+class HuggingFaceDatasetConverter:
     """Class for converting rows from the HuggingFace Datasets to Podium Examples."""
 
     def __init__(self, dataset, fields=None):
-        """NLPDatasetConverter constructor.
+        """HuggingFaceDatasetConverter constructor.
 
         Parameters
         ----------
@@ -129,8 +129,8 @@ class NLPDatasetConverter:
             If dataset type is incorrect.
         """
         if not isinstance(dataset, datasets.Dataset):
-            error_msg = 'Incorrect dataset type. Expected {}, but got {}' \
-                        .format(datasets.Dataset.__name__, type(dataset).__name__)
+            error_msg = 'Incorrect dataset type. Expected datasets.Dataset, but got {}' \
+                        .format(type(dataset).__name__)
             _LOGGER.error(error_msg)
             raise TypeError(error_msg)
 
