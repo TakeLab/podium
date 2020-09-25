@@ -21,11 +21,8 @@ def test_get_label_matrix():
     np.testing.assert_array_equal(Y, target.eurovoc_labels)
 
 
-@pytest.mark.filterwarnings("ignore:Liblinear failed to converge, "
-                            "increase the number of iterations.")
-@pytest.mark.filterwarnings("ignore:Estimator fit failed. "
-                            "The score on this train-test partition "
-                            "for these parameters will be set to 0.000000.")
+@pytest.mark.filterwarnings("ignore::sklearn.exceptions.ConvergenceWarning")
+@pytest.mark.filterwarnings("ignore::sklearn.exceptions.FitFailedWarning")
 def test_fitting_multilable_svm():
     clf = ms.MultilabelSVM()
     parameter_grid = {"C": [1]}
@@ -98,8 +95,7 @@ def test_invalid_max_iter():
                 max_iter=max_iter, cutoff=cutoff, scoring=scoring, n_jobs=n_jobs)
 
 
-@pytest.mark.filterwarnings("ignore:Liblinear failed to converge, "
-                            "increase the number of iterations.")
+@pytest.mark.filterwarnings("ignore::sklearn.exceptions.ConvergenceWarning")
 def test_missing_indexes():
     clf = ms.MultilabelSVM()
     parameter_grid = {"C": [1]}
@@ -116,8 +112,7 @@ def test_missing_indexes():
     assert missing_indexes == set([2])
 
 
-@pytest.mark.filterwarnings("ignore:Liblinear failed to converge, "
-                            "increase the number of iterations.")
+@pytest.mark.filterwarnings("ignore::sklearn.exceptions.ConvergenceWarning")
 def test_prediction_with_missing_indexes():
     clf = ms.MultilabelSVM()
     parameter_grid = {"C": [1]}

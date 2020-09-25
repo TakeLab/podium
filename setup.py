@@ -17,9 +17,9 @@ INSTALL_REQUIRES = [
 
 
 TESTS_REQUIRE = [
-    'pytest==3.10.1',
-    'pytest-cov==2.6.0',
-    'pytest-mock==1.10.1',
+    'pytest',
+    'pytest-cov',
+    'pytest-mock',
     'urllib3',
     'yake @ https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz',
 ]
