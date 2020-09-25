@@ -24,8 +24,8 @@ class _FeatureConverter:
 
     Notes
     -----
-    This class should not be used directly. Instead, for conversion
-    use the `convert_features_to_fields` function.
+    This class should not be used directly. Instead, use
+    the `convert_features_to_fields` function for conversion.
     """
 
     @staticmethod
@@ -73,6 +73,7 @@ class _FeatureConverter:
         elif isinstance(feature,
                         (list, datasets.Sequence, datasets.Translation,
                          datasets.TranslationVariableLanguages)):
+            # don't process
             kwargs = {'tokenize': False,
                       'store_as_raw': True,
                       'is_numericalizable': False}
