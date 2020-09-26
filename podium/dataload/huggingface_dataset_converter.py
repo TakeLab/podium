@@ -56,7 +56,7 @@ class _FeatureConverter:
         elif isinstance(feature, datasets.Value):
             dtype = feature.dtype
 
-            if dtype in {'bool_', 'uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16',
+            if dtype in {'bool', 'uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16',
                          'int32', 'int64', 'float16', 'float32', 'float64'}:
                 kwargs = {'tokenize': False,
                           'store_as_raw': True,
@@ -71,9 +71,9 @@ class _FeatureConverter:
                           'is_numericalizable': False}
 
         elif isinstance(feature,
-                        (list, datasets.Sequence, datasets.Translation,
+                        (dict, list, datasets.Sequence,
+                         datasets.Translation,
                          datasets.TranslationVariableLanguages)):
-            # don't process
             kwargs = {'tokenize': False,
                       'store_as_raw': True,
                       'is_numericalizable': False}
@@ -84,6 +84,9 @@ class _FeatureConverter:
             _LOGGER.error(error_msg)
             raise TypeError(error_msg)
 
+        # allow missing data for all fields except
+        # the ones corresponding to the datasets.ClassLabel
+        kwargs.update({'allow_missing_data': True})
         field = Field(name=name, **kwargs)
 
         return field
