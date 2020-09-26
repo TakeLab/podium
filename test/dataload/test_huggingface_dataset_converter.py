@@ -5,7 +5,6 @@ from datasets import ClassLabel, Dataset, Features, Translation
 
 from podium.dataload.huggingface_dataset_converter import (convert_features_to_fields,
                                                            HuggingFaceDatasetConverter)
-from podium.storage import LabelField
 
 
 SIMPLE_DATA = {
@@ -72,7 +71,7 @@ def test_complex_feature_conversion(complex_dataset):
     fields = convert_features_to_fields(complex_dataset.features)
 
     assert fields['translation'].store_as_raw
-    assert isinstance(fields['sentiment'], LabelField)
+    assert fields['sentiment'].is_target
 
 
 def test_complex_data(complex_dataset):
