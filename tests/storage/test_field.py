@@ -57,10 +57,11 @@ class MockVocab:
     def numericalize(self, data):
         self.numericalized = True
 
-# This is obsolete as the combination no longer raises an error
-# def test_field_store_raw_sequential_exception():
-#    with pytest.raises(ValueError):
-#        Field(name="F", store_as_raw=False, tokenize=False)
+
+@pytest.mark.skip(reason="obsolete as the combination no longer raises an error")
+def test_field_store_raw_sequential_exception():
+    with pytest.raises(ValueError):
+        Field(name="F", store_as_raw=False, tokenize=False)
 
 
 def test_field_preprocess_eager():
@@ -282,19 +283,19 @@ def test_field_get_tokenizer_callable(vocab):
     assert data == (None, ["a", "sd dsa"])
 
 
-# This is obsolete as the combination no longer raises an error,
-# for more information see https://github.com/mttk/podium/pull/180
-# def test_field_get_tokenizer_spacy_exception():
-#     vocab = MockVocab()
+@pytest.mark.skip("obsolete as the combination no longer raises an error, "
+                  "see https://github.com/mttk/podium/pull/180 for more information")
+def test_field_get_tokenizer_spacy_exception():
+    vocab = MockVocab()
 
-#     class MockSpacy:
-#         def load(self, x, **kwargs):
-#             raise OSError
+    class MockSpacy:
+        def load(self, x, **kwargs):
+            raise OSError
 
-#     patch.dict("sys.modules", spacy=MockSpacy()).start()
+    patch.dict("sys.modules", spacy=MockSpacy()).start()
 
-#     with pytest.raises(OSError):
-#         Field(name="F", vocab=vocab, tokenizer="spacy", tokenize=True)
+    with pytest.raises(OSError):
+        Field(name="F", vocab=vocab, tokenizer="spacy", tokenize=True)
 
 
 def test_field_get_tokenizer_default():
