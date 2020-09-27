@@ -81,7 +81,7 @@ We wrap dataset pre-processing in customizable `Field` classes. Each `Field` has
 >>> vocab = Vocab(max_size=5000, min_freq=2)
 >>> text = Field(name='text', vocab=vocab)
 >>> label = LabelField(name='label')
->>> fields = {'text': text, 'label':label}
+>>> fields = {'text': text, 'label': label}
 >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
 >>> print(vocab)
 Vocab[finalized: True, size: 5000]
@@ -150,10 +150,7 @@ flake8 podium tests examples
 
 ### Building and running unit tests
 
-You will work in a virtual environment and keep a list of required
-dependencies in a ```requirements.txt``` file. The master branch of the 
-project **must** be buildable with passing tests **all the time**. 
-Code coverage should be kept as high as possible (preferably >95%). 
+If you are installing from source, you will need Python 3.6 or later. We highly recommend installing an [Anaconda](https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/environments.html#virtual-environments) environment.
 
 Commands to setup virtual environment and run tests.
 ```
@@ -173,16 +170,6 @@ In other cases it should be enough to run ```pip install .``` for podium to be a
 The project is packaged according to official Python packaging [guidelines](https://packaging.python.org/tutorials/packaging-projects/).
 
 We recommend use of [pytest](https://docs.pytest.org/en/latest/) and [pytest-mock](https://pypi.org/project/pytest-mock/) library for testing when developing new parts of the library.
-
-### Adding new dependencies
-
-Adding a new library to a project should be done via ```pip install <new_framework>```. **Don't forget to add it to requirements.txt** 
-
-The best thing to do is to manually add dependencies to the
-```requirements.txt``` file instead of using 
-```pip freeze > requirements.txt```. 
-See [here](https://medium.com/@tomagee/pip-freeze-requirements-txt-considered-harmful-f0bce66cf895)
-why.
 
 ## Versioning
 
