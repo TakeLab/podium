@@ -20,7 +20,7 @@ def _identity(x):
 
 
 class _FeatureConverter:
-    """Class for converting features to the Podium fields.
+    """Class for converting features of the HuggingFace Dataset to the Podium fields.
 
     Notes
     -----
@@ -93,8 +93,8 @@ class _FeatureConverter:
 
 
 def convert_features_to_fields(features):
-    """Convert a dictionary that maps column names to the features
-    into a dictionary that maps column names to the Podium fields.
+    """Convert a dictionary that maps column names of the HuggingFace Dataset
+    to the features into a dictionary that maps column names to the Podium fields.
 
     Parameters
     ----------
