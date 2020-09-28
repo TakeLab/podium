@@ -19,7 +19,7 @@ blocks:
             - python -m venv venv
             - source venv/bin/activate
             - pip install .[tests]
-            - pytest tests
+            - pytest -sv tests
 
   - name: check code quality
     task:
