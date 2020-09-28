@@ -1,0 +1,8 @@
+# If the commit contains formatting/style changes, add the
+# commit hash here, so git blame can ignore the change.
+# Use as needed with:
+#     git blame --ignore-revs-file .git-blame-ignore-revs
+# Or automatically with:
+#     git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+2147c086ff4ac5c5d5752ccd6de3c7b61da6b768  # Add black and isort code changes
