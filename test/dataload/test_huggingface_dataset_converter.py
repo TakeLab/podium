@@ -86,5 +86,10 @@ def test_complex_data(complex_dataset):
     assert example2.sentiment[0] == COMPLEX_DATA['sentiment'][1]
 
 
+def test_invalid_dataset():
+    with pytest.raises(TypeError):
+        HuggingFaceDatasetConverter({'data': [1, 2, 3]})
+
+
 def test_as_dataset(simple_dataset):
     assert len(HuggingFaceDatasetConverter(simple_dataset).as_dataset()) == 2
