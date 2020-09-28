@@ -492,7 +492,8 @@ class Vocab:
             self.__class__.__name__, self.finalized, len(self))
 
     def __getitem__(self, token):
-        """Returns the token index of the passed token. If the passed token has no index, UNK token index is returned.
+        """Returns the token index of the passed token. If the passed token has no index,
+        UNK token index is returned.
         Otherwise, an exception is raised.
 
         Parameters

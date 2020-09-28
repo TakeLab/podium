@@ -17,7 +17,9 @@ pa = pytest.importorskip('pyarrow')
 def data():
     num_examples = 10
     numbers = range(num_examples)
-    tokens = ((" ".join(map(lambda x: str(x) + "abc", range(i - 1, i + 2))) for i in range(num_examples)))
+    tokens = ((" ".join(map(lambda x: str(x) + "abc", range(i - 1, i + 2)))
+               for i in range(num_examples))
+              )
     return list(zip(numbers, tokens))
 
 
@@ -207,7 +209,10 @@ def test_from_tabular(data, fields):
 
 def test_missing_datatype_exception(data, fields):
     data_null = [(*d, None) for d in data]
-    null_field = Field('null_field', store_as_raw=True, allow_missing_data=True, vocab=Vocab())
+    null_field = Field('null_field',
+                       store_as_raw=True,
+                       allow_missing_data=True,
+                       vocab=Vocab())
     fields_null = [*fields, null_field]
 
     exf = ExampleFactory(fields_null)
@@ -219,7 +224,10 @@ def test_missing_datatype_exception(data, fields):
 
 def test_datatype_definition(data, fields):
     data_null = [(*d, None) for d in data]
-    null_field = Field('null_field', store_as_raw=True, allow_missing_data=True, vocab=Vocab())
+    null_field = Field('null_field',
+                       store_as_raw=True,
+                       allow_missing_data=True,
+                       vocab=Vocab())
     fields_null = [*fields, null_field]
 
     exf = ExampleFactory(fields_null)
