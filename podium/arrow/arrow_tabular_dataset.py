@@ -662,16 +662,19 @@ class ArrowDataset:
         Parameters
         ----------
         predicate : Callable[[Example], bool]
-
+            Callable used as a filtering predicate. It takes an Example as a parameter and returns True if the Example
+            is to be accepted, and False otherwise.
 
         Returns
         -------
-
+        ArrowDataset
+            New ArrowDataset containing Filtered Examples.
         """
         indices = [i for i, example in enumerate(self) if predicate(example)]
         return self[indices]
 
     def close(self):
+        """ Closes resources held by the ArrowDataset."""
         if self.mmapped_file is not None:
             self.mmapped_file.close()
             self.mmapped_file = None
@@ -681,11 +684,23 @@ class ArrowDataset:
             _LOGGER.debug(msg)
 
     def delete_cache(self):
+        """ Deletes the cache directory."""
         if self.mmapped_file is not None:
             self.close()
         shutil.rmtree(self.cache_path)
 
     def finalize_fields(self, *datasets):
+        """ Builds vocabularies of all the non-eager fields in the dataset,
+        from the Dataset objects given as \\*args and then finalizes all the
+        fields.
+
+        Parameters
+        ----------
+        \\*args
+            A variable number of Dataset objects from which to build the
+            vocabularies for non-eager fields. If none provided, the
+            vocabularies are built from this Dataset (self).
+        """
         # if there are non-eager fields, we need to build their vocabularies
         fields_to_build = [f for f in self.fields if
                            not f.eager and f.use_vocab]
