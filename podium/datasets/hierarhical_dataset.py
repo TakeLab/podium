@@ -1,8 +1,10 @@
 import json
 import logging
+
 from podium.datasets.dataset import Dataset
-from podium.storage.field import unpack_fields
 from podium.storage.example_factory import ExampleFactory
+from podium.storage.field import unpack_fields
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,7 +28,8 @@ class HierarchicalDataset:
         children : tuple(Node)
             children nodes
         """
-        __slots__ = 'example', 'index', 'parent', 'children'
+
+        __slots__ = "example", "index", "parent", "children"
 
         def __init__(self, example, index, parent):
             self.example = example
@@ -100,8 +103,9 @@ class HierarchicalDataset:
 
         root_examples = json.loads(dataset)
         if not isinstance(root_examples, list):
-            error_msg = "The base element in the JSON string must be a list " \
-                        "of root elements."
+            error_msg = (
+                "The base element in the JSON string must be a list " "of root elements."
+            )
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
@@ -182,7 +186,6 @@ class HierarchicalDataset:
         return current_node
 
     def _node_iterator(self):
-
         def flat_node_iterator(node):
             yield node
             for subnode in node.children:
@@ -247,8 +250,10 @@ class HierarchicalDataset:
 
         """
         if index < 0 or index >= len(self):
-            error_msg = "Index {} out of bounds. Must be within " \
+            error_msg = (
+                "Index {} out of bounds. Must be within "
                 "[0, len(dataset) - 1]".format(index)
+            )
             _LOGGER.error(error_msg)
             raise IndexError(error_msg)
 
@@ -308,10 +313,12 @@ class HierarchicalDataset:
             an Iterator iterating through the context of the passed node
 
         """
-        levels = float('Inf') if levels is None else levels
+        levels = float("Inf") if levels is None else levels
         if levels < 0:
-            error_msg = "Number of context levels must be greater or equal to 0." \
+            error_msg = (
+                "Number of context levels must be greater or equal to 0."
                 " Passed value: {}".format(levels)
+            )
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 

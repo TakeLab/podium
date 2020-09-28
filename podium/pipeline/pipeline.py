@@ -1,13 +1,18 @@
-from typing import Union, Dict, List, Callable, NamedTuple, Any, Type, Iterable
 import logging
+from typing import Any, Callable, Dict, Iterable, List, NamedTuple, Type, Union
 
 import numpy as np
 
+from podium.datasets import Dataset
+from podium.models import (
+    AbstractSupervisedModel,
+    AbstractTrainer,
+    Experiment,
+    FeatureTransformer,
+)
 from podium.storage import ExampleFactory, ExampleFormat
 from podium.storage.field import Field, MultioutputField
-from podium.datasets import Dataset
-from podium.models import AbstractSupervisedModel, FeatureTransformer, Experiment, \
-    AbstractTrainer
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -16,16 +21,18 @@ class Pipeline(Experiment):
     """Class used to streamline the use of Podium. It contains all components needed to
     train or fine-tune a pre-configured model and make predictions on new data."""
 
-    def __init__(self,
-                 fields: Union[Dict, List],
-                 example_format: Union[ExampleFormat, str],
-                 model: Union[AbstractSupervisedModel, Type[AbstractSupervisedModel]],
-                 trainer: AbstractTrainer = None,
-                 feature_transformer:
-                 Union[FeatureTransformer, Callable[[NamedTuple], np.array]] = None,
-                 label_transform_fn: Callable[[NamedTuple], np.ndarray] = None,
-                 output_transform_fn: Callable[[np.ndarray], Any] = None
-                 ):
+    def __init__(
+        self,
+        fields: Union[Dict, List],
+        example_format: Union[ExampleFormat, str],
+        model: Union[AbstractSupervisedModel, Type[AbstractSupervisedModel]],
+        trainer: AbstractTrainer = None,
+        feature_transformer: Union[
+            FeatureTransformer, Callable[[NamedTuple], np.array]
+        ] = None,
+        label_transform_fn: Callable[[NamedTuple], np.ndarray] = None,
+        output_transform_fn: Callable[[np.ndarray], Any] = None,
+    ):
         """Creates a new pipeline instance.
 
         Parameters
@@ -88,18 +95,25 @@ class Pipeline(Experiment):
         if isinstance(example_format, ExampleFormat):
             example_format = example_format.value
 
-        if example_format in (ExampleFormat.LIST.value, ExampleFormat.CSV.value,
-                              ExampleFormat.NLTK.value):
+        if example_format in (
+            ExampleFormat.LIST.value,
+            ExampleFormat.CSV.value,
+            ExampleFormat.NLTK.value,
+        ):
             if not isinstance(fields, (list, tuple)):
-                error_msg = "If `example format` is LIST, CSV or NLTK, `fields`" \
-                            "must be either a list or tuple. " \
-                            "Type of `fields`: {}".format(type(fields))
+                error_msg = (
+                    "If `example format` is LIST, CSV or NLTK, `fields`"
+                    "must be either a list or tuple. "
+                    "Type of `fields`: {}".format(type(fields))
+                )
                 _LOGGER.error(error_msg)
                 raise TypeError(error_msg)
         elif not isinstance(fields, dict):
-            error_msg = "If `example format` is DICT, XML or JSON, `fields`" \
-                        "must be a dict. " \
-                        "Type of `fields`: {}".format(type(fields))
+            error_msg = (
+                "If `example format` is DICT, XML or JSON, `fields`"
+                "must be a dict. "
+                "Type of `fields`: {}".format(type(fields))
+            )
             _LOGGER.error(error_msg)
             raise TypeError(error_msg)
 
@@ -120,14 +134,14 @@ class Pipeline(Experiment):
 
         self.output_transform_fn = output_transform_fn
 
-        super().__init__(model,
-                         feature_transformer=feature_transformer,
-                         trainer=trainer,
-                         label_transform_fn=label_transform_fn)
+        super().__init__(
+            model,
+            feature_transformer=feature_transformer,
+            trainer=trainer,
+            label_transform_fn=label_transform_fn,
+        )
 
-    def predict_raw(self,
-                    raw_example: Any,
-                    **kwargs) -> np.ndarray:
+    def predict_raw(self, raw_example: Any, **kwargs) -> np.ndarray:
         """Computes the prediction of the model for the one example.
         The example must be of the format provided in the constructor as the
         `example_format` parameter.
@@ -144,9 +158,9 @@ class Pipeline(Experiment):
         -------
         ndarray
             Tensor containing the prediction for the example."""
-        processed_example = \
-            self.prediction_example_factory.from_format(raw_example,
-                                                        self.example_format)
+        processed_example = self.prediction_example_factory.from_format(
+            raw_example, self.example_format
+        )
         ds = Dataset([processed_example], self.feature_fields)
         prediction = self.predict(ds, **kwargs)
         # Indexed with 0 to extract the single prediction from the prediction batch
@@ -157,10 +171,12 @@ class Pipeline(Experiment):
         else:
             return prediction
 
-    def partial_fit_raw(self,
-                        examples: Iterable[Union[Dict, List]],
-                        trainer_kwargs: Dict = None,
-                        trainer: AbstractTrainer = None):
+    def partial_fit_raw(
+        self,
+        examples: Iterable[Union[Dict, List]],
+        trainer_kwargs: Dict = None,
+        trainer: AbstractTrainer = None,
+    ):
         """Fits the model to the data without resetting the model.
         Each example must be of the format provided in the constructor as the
         `example_format` parameter.
@@ -185,21 +201,21 @@ class Pipeline(Experiment):
             constructor will be used.
         """
 
-        processed_examples = \
-            [self.training_example_factory.from_format(ex, self.example_format)
-             for ex in examples]
+        processed_examples = [
+            self.training_example_factory.from_format(ex, self.example_format)
+            for ex in examples
+        ]
         ds = Dataset(processed_examples, self.all_fields)
-        self.partial_fit(dataset=ds,
-                         trainer_kwargs=trainer_kwargs,
-                         trainer=trainer)
+        self.partial_fit(dataset=ds, trainer_kwargs=trainer_kwargs, trainer=trainer)
 
-    def fit_raw(self,
-                examples: Iterable[Union[Dict, List]],
-                model_kwargs: Dict = None,
-                trainer_kwargs: Dict = None,
-                feature_transformer: FeatureTransformer = None,
-                trainer: AbstractTrainer = None
-                ):
+    def fit_raw(
+        self,
+        examples: Iterable[Union[Dict, List]],
+        model_kwargs: Dict = None,
+        trainer_kwargs: Dict = None,
+        feature_transformer: FeatureTransformer = None,
+        trainer: AbstractTrainer = None,
+    ):
         """Fits the model to the provided examples.
         During fitting, the provided Iterator and Trainer are used.
         Each example must be of the format provided in the constructor as the
@@ -235,15 +251,18 @@ class Pipeline(Experiment):
             model. If None, the training_iterator_callable provided in the
             constructor will be used.
         """
-        processed_examples = \
-            [self.training_example_factory.from_format(ex, self.example_format)
-             for ex in examples]
+        processed_examples = [
+            self.training_example_factory.from_format(ex, self.example_format)
+            for ex in examples
+        ]
         ds = Dataset(processed_examples, self.all_fields)
-        self.fit(ds,
-                 model_kwargs=model_kwargs,
-                 trainer_kwargs=trainer_kwargs,
-                 feature_transformer=feature_transformer,
-                 trainer=trainer)
+        self.fit(
+            ds,
+            model_kwargs=model_kwargs,
+            trainer_kwargs=trainer_kwargs,
+            feature_transformer=feature_transformer,
+            trainer=trainer,
+        )
 
 
 def _filter_feature_fields(fields):
@@ -258,8 +277,9 @@ def _filter_feature_fields(fields):
 
         # if at least one Field of the MultioutputField is
         # not a target, add the entire MultioutputField
-        if isinstance(field, MultioutputField) and \
-           not(all(map(is_target, field.get_output_fields()))):
+        if isinstance(field, MultioutputField) and not (
+            all(map(is_target, field.get_output_fields()))
+        ):
             feature_fields[field_key] = field
         # equivalent to MultioutputField for Fields
         # in tuples such as ((f1, f2))

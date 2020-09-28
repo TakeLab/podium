@@ -28,12 +28,12 @@ def test_dataset_loading():
 
     ex = dataset[0]
 
-    assert not hasattr(ex, 'replies')
-    assert not hasattr(ex, 'smileys')
-    assert not hasattr(ex, 'likes')
-    assert not hasattr(ex, 'sentences')
-    assert not hasattr(ex, 'created_time')
-    assert not hasattr(ex, 'cs')
+    assert not hasattr(ex, "replies")
+    assert not hasattr(ex, "smileys")
+    assert not hasattr(ex, "likes")
+    assert not hasattr(ex, "sentences")
+    assert not hasattr(ex, "created_time")
+    assert not hasattr(ex, "cs")
 
 
 SAMPLE_DATASET_RAW_JSON = """[

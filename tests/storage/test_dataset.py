@@ -1,44 +1,51 @@
 import os
-import dill
-import pytest
 import tempfile
-import numpy as np
-
 from collections import Counter
 from json import JSONDecodeError
+
+import dill
+import numpy as np
+import pytest
+
 from podium.datasets.dataset import Dataset
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
-from podium.datasets.tabular_dataset import TabularDataset
-from podium.storage.field import Field, MultioutputField, unpack_fields
-from podium.storage.example_factory import ExampleFactory
-from podium.storage.vocab import Vocab
 from podium.datasets.iterator import Iterator
+from podium.datasets.tabular_dataset import TabularDataset
+from podium.storage.example_factory import ExampleFactory
+from podium.storage.field import Field, MultioutputField, unpack_fields
+from podium.storage.vocab import Vocab
+
 
 FORMAT_USE_DICT_COMBINATIONS = (
     ("csv", True),
     ("csv", False),
     ("tsv", True),
     ("tsv", False),
-    ("json", True)
+    ("json", True),
 )
 
 TEXT = (
-    "ovaj text", "ovaj isto", "bla bla",
-    "komentar", "---", "pls",
-    "help", "im", "trapped",
-    "in", "takelab", "...."
+    "ovaj text",
+    "ovaj isto",
+    "bla bla",
+    "komentar",
+    "---",
+    "pls",
+    "help",
+    "im",
+    "trapped",
+    "in",
+    "takelab",
+    "....",
 )
 
-FIELD_DATA = (
-    ("text", True),
-    ("label", False)
-)
+FIELD_DATA = (("text", True), ("label", False))
 
 TABULAR_TEXT = (
     "odlicni cevapi",
-    "ma ful, \"odlicni\" cevapi ..",
+    'ma ful, "odlicni" cevapi ..',
     "mozd malo prepikantni cevapi, al inace ok",
-    "nema veganskih cevapa..u kojem stoljecu zivimo?"
+    "nema veganskih cevapa..u kojem stoljecu zivimo?",
 )
 
 TABULAR_RATINGS = (1, 0, 1, 0)
@@ -47,7 +54,7 @@ TABULAR_SOURCES = (
     "www.volimljuto.hr",
     "www.mrzimljuto.hr",
     "www.nekadminepaseljuto.hr",
-    "www.neamideje.hr"
+    "www.neamideje.hr",
 )
 
 
@@ -65,8 +72,11 @@ class MockField:
         self.is_target = is_target
 
     def preprocess(self, data):
-        return ((self.name, (data, [data])),) if self.sequential \
+        return (
+            ((self.name, (data, [data])),)
+            if self.sequential
             else ((self.name, (data, None)),)
+        )
 
     def update_vocab(self, raw, tokenized):
         assert not self.eager
@@ -76,7 +86,7 @@ class MockField:
         self.finalized = True
 
     def get_output_fields(self):
-        return self,
+        return (self,)
 
     def __repr__(self):
         return self.name
@@ -176,8 +186,7 @@ def test_filter_dataset_inplace(data, field_list):
 def test_filter_dataset_copy(data, field_list):
     dataset = create_dataset(data, field_list)
     assert len(dataset) == 12
-    filtered_dataset = dataset.filter(
-        lambda ex: ex.label[0] > 7, inplace=False)
+    filtered_dataset = dataset.filter(lambda ex: ex.label[0] > 7, inplace=False)
     assert len(dataset) == 12
     assert len(filtered_dataset) == 5
     for ex in filtered_dataset:
@@ -210,10 +219,11 @@ def test_filtered_inplace_dataset_pickling(data, field_list, tmpdir):
         (0.35, 4, 8),
         (0.1, 1, 11),
         (0.9, 11, 1),
-    ]
+    ],
 )
-def test_split_float_ratio(float_ratio, expected_train_len, expected_test_len,
-                           data, field_list):
+def test_split_float_ratio(
+    float_ratio, expected_train_len, expected_test_len, data, field_list
+):
     expected_total_len = expected_train_len + expected_test_len
 
     dataset = create_dataset(data, field_list)
@@ -235,10 +245,11 @@ def test_split_float_ratio(float_ratio, expected_train_len, expected_test_len,
         ((0.5, 0.5), 6, 6),
         ([0.41, 0.59], 5, 7),
         ([0.49, 0.51], 6, 6),
-    ]
+    ],
 )
-def test_split_train_test_ratio(train_test_ratio, expected_train_len,
-                                expected_test_len, data, field_list):
+def test_split_train_test_ratio(
+    train_test_ratio, expected_train_len, expected_test_len, data, field_list
+):
     expected_total_len = expected_train_len + expected_test_len
 
     dataset = create_dataset(data, field_list)
@@ -260,11 +271,11 @@ def test_split_train_test_ratio(train_test_ratio, expected_train_len,
         ([0.84, 0.08, 0.08], 10, 1, 1),
         ([0.08, 0.84, 0.08], 1, 10, 1),
         ((0.3, 0.3, 0.3), 4, 4, 4),
-    ]
+    ],
 )
 def test_split_train_val_test_ratio(
-        train_val_test_ratio, exp_train_len, exp_val_len, exp_test_len,
-        data, field_list):
+    train_val_test_ratio, exp_train_len, exp_val_len, exp_test_len, data, field_list
+):
     exp_total_len = exp_train_len + exp_val_len + exp_test_len
 
     dataset = create_dataset(data, field_list)
@@ -279,12 +290,7 @@ def test_split_train_val_test_ratio(
 
 
 @pytest.mark.parametrize(
-    "split_ratio",
-    [
-        (0.3, 0.3, 0.3),
-        (0.2, 0.4, 0.4),
-        (0.2, 0.3, 0.5)
-    ]
+    "split_ratio", [(0.3, 0.3, 0.3), (0.2, 0.4, 0.4), (0.2, 0.3, 0.5)]
 )
 def test_split_non_overlap(split_ratio, data, field_list):
     dataset = create_dataset(data, field_list)
@@ -299,8 +305,7 @@ def test_split_non_overlap(split_ratio, data, field_list):
     assert not train_label_set.intersection(val_label_set)
     assert not train_label_set.intersection(test_label_set)
     assert not val_label_set.intersection(test_label_set)
-    assert train_label_set.union(val_label_set).union(
-        test_label_set) == label_set
+    assert train_label_set.union(val_label_set).union(test_label_set) == label_set
 
 
 @pytest.mark.parametrize(
@@ -315,7 +320,7 @@ def test_split_non_overlap(split_ratio, data, field_list):
         (0.998, 0.001, 0.001),  # given dataset they would result in some
         [0.999, 0.001],  # splits having 0 (the same ratios could be
         0.999,  # valid with larger datasets)
-    ]
+    ],
 )
 def test_split_wrong_ratio(data, field_list, ratio):
     dataset = create_dataset(data, field_list)
@@ -331,8 +336,7 @@ def test_split_stratified_ok(data_for_stratified, field_list):
     # should split evenly
     split_ratio = [0.33, 0.33, 0.33]
 
-    train_d, val_d, test_d = dataset.split(split_ratio, stratified=True,
-                                           random_state=1)
+    train_d, val_d, test_d = dataset.split(split_ratio, stratified=True, random_state=1)
 
     assert len(train_d) == len(test_d)
     assert len(train_d) == len(val_d)
@@ -359,18 +363,15 @@ def test_split_stratified_custom_name(data_for_stratified, field_list):
     dataset.split(split_ratio=0.5, stratified=True, strata_field_name="label")
 
 
-def test_split_stratified_exception_invalid_name(data_for_stratified,
-                                                 field_list):
+def test_split_stratified_exception_invalid_name(data_for_stratified, field_list):
     dataset = create_dataset(data_for_stratified, field_list)
 
     # when field with the given name doesn't exist
     with pytest.raises(ValueError):
-        dataset.split(split_ratio=0.5, stratified=True,
-                      strata_field_name="NOT_label")
+        dataset.split(split_ratio=0.5, stratified=True, strata_field_name="NOT_label")
 
 
-def test_split_stratified_exception_no_target(data_for_stratified,
-                                              field_list):
+def test_split_stratified_exception_no_target(data_for_stratified, field_list):
     for field in field_list:
         field.is_target = False
 
@@ -381,36 +382,33 @@ def test_split_stratified_exception_no_target(data_for_stratified,
         dataset.split(split_ratio=0.5, stratified=True)
 
 
-@pytest.mark.parametrize(
-    "file_format, use_dict",
-    FORMAT_USE_DICT_COMBINATIONS
-)
-def test_tabular_dataset_should_ignore(file_format, use_dict,
-                                       tabular_dataset_fields, tabular_data,
-                                       file_path):
+@pytest.mark.parametrize("file_format, use_dict", FORMAT_USE_DICT_COMBINATIONS)
+def test_tabular_dataset_should_ignore(
+    file_format, use_dict, tabular_dataset_fields, tabular_data, file_path
+):
     tabular_data["should_ignore"] = ["a", "b", "c", "d"]
 
     SHOULD_IGNORE = None
     if not use_dict:
         tabular_dataset_fields.append(SHOULD_IGNORE)
 
-    dataset = create_tabular_dataset(tabular_dataset_fields, file_format,
-                                     file_path, use_dict)
+    dataset = create_tabular_dataset(
+        tabular_dataset_fields, file_format, file_path, use_dict
+    )
 
     # SHOULD_IGNORE was ignored
     assert "should_ignore" not in set(f.name for f in dataset.fields)
 
 
-@pytest.mark.parametrize(
-    "file_format, use_dict",
-    FORMAT_USE_DICT_COMBINATIONS
-)
-def test_tabular_dataset_preserve_sort_key(file_format, use_dict,
-                                           tabular_dataset_fields, file_path):
+@pytest.mark.parametrize("file_format, use_dict", FORMAT_USE_DICT_COMBINATIONS)
+def test_tabular_dataset_preserve_sort_key(
+    file_format, use_dict, tabular_dataset_fields, file_path
+):
     sort_key_str = "d_sort_key"
 
-    dataset = create_tabular_dataset(tabular_dataset_fields, file_format,
-                                     file_path, use_dict)
+    dataset = create_tabular_dataset(
+        tabular_dataset_fields, file_format, file_path, use_dict
+    )
     dataset.sort_key = sort_key_str
 
     dataset.finalize_fields()
@@ -421,16 +419,14 @@ def test_tabular_dataset_preserve_sort_key(file_format, use_dict,
     assert d_test.sort_key == sort_key_str
 
 
-@pytest.mark.parametrize(
-    "file_format, use_dict",
-    FORMAT_USE_DICT_COMBINATIONS
-)
+@pytest.mark.parametrize("file_format, use_dict", FORMAT_USE_DICT_COMBINATIONS)
 def test_tabular_dataset_pickle_sort_key(
-        file_format, use_dict, tabular_dataset_fields, file_path, tmpdir):
+    file_format, use_dict, tabular_dataset_fields, file_path, tmpdir
+):
     sort_key_str = "d_sort_key"
-    dataset = create_tabular_dataset(tabular_dataset_fields, file_format,
-                                     file_path, use_dict,
-                                     sort_key=sort_key_str)
+    dataset = create_tabular_dataset(
+        tabular_dataset_fields, file_format, file_path, use_dict, sort_key=sort_key_str
+    )
     dataset.finalize_fields()
 
     dataset_file = os.path.join(tmpdir, "dataset.pkl")
@@ -443,15 +439,13 @@ def test_tabular_dataset_pickle_sort_key(
         assert loaded_dataset.sort_key == sort_key_str
 
 
-@pytest.mark.parametrize(
-    "file_format, use_dict",
-    FORMAT_USE_DICT_COMBINATIONS
-)
-def test_tabular_dataset_iterate_over_dataset(file_format, use_dict,
-                                              tabular_dataset_fields,
-                                              tabular_data, file_path):
-    dataset = create_tabular_dataset(tabular_dataset_fields, file_format,
-                                     file_path, use_dict)
+@pytest.mark.parametrize("file_format, use_dict", FORMAT_USE_DICT_COMBINATIONS)
+def test_tabular_dataset_iterate_over_dataset(
+    file_format, use_dict, tabular_dataset_fields, tabular_data, file_path
+):
+    dataset = create_tabular_dataset(
+        tabular_dataset_fields, file_format, file_path, use_dict
+    )
 
     field_name = "text"
     for example, val in zip(dataset, tabular_data[field_name]):
@@ -460,15 +454,13 @@ def test_tabular_dataset_iterate_over_dataset(file_format, use_dict,
         assert getattr(example, field_name) == expected_data
 
 
-@pytest.mark.parametrize(
-    "file_format, use_dict",
-    FORMAT_USE_DICT_COMBINATIONS
-)
-def test_tabular_dataset_iterate_over_examples(file_format, use_dict,
-                                               tabular_dataset_fields,
-                                               tabular_data, file_path):
-    dataset = create_tabular_dataset(tabular_dataset_fields, file_format,
-                                     file_path, use_dict)
+@pytest.mark.parametrize("file_format, use_dict", FORMAT_USE_DICT_COMBINATIONS)
+def test_tabular_dataset_iterate_over_examples(
+    file_format, use_dict, tabular_dataset_fields, tabular_data, file_path
+):
+    dataset = create_tabular_dataset(
+        tabular_dataset_fields, file_format, file_path, use_dict
+    )
 
     field_name = "text"
     for example, val in zip(dataset.examples, tabular_data[field_name]):
@@ -477,21 +469,20 @@ def test_tabular_dataset_iterate_over_examples(file_format, use_dict,
         assert getattr(example, field_name) == expected_data
 
 
-@pytest.mark.parametrize(
-    "file_format, use_dict",
-    FORMAT_USE_DICT_COMBINATIONS
-)
-def test_tabular_dataset_iterate_over_single_field(file_format, use_dict,
-                                                   tabular_dataset_fields,
-                                                   tabular_data, file_path):
-    dataset = create_tabular_dataset(tabular_dataset_fields, file_format,
-                                     file_path, use_dict)
+@pytest.mark.parametrize("file_format, use_dict", FORMAT_USE_DICT_COMBINATIONS)
+def test_tabular_dataset_iterate_over_single_field(
+    file_format, use_dict, tabular_dataset_fields, tabular_data, file_path
+):
+    dataset = create_tabular_dataset(
+        tabular_dataset_fields, file_format, file_path, use_dict
+    )
 
     field_name = "text"
 
     # iterating over a single field of a dataset
-    field_val_expected_data_tuples = zip(getattr(dataset, field_name),
-                                         tabular_data[field_name])
+    field_val_expected_data_tuples = zip(
+        getattr(dataset, field_name), tabular_data[field_name]
+    )
 
     for field_value, val in field_val_expected_data_tuples:
         expected_data = (val, [val])
@@ -499,15 +490,13 @@ def test_tabular_dataset_iterate_over_single_field(file_format, use_dict,
         assert field_value == expected_data
 
 
-@pytest.mark.parametrize(
-    "file_format, use_dict",
-    FORMAT_USE_DICT_COMBINATIONS
-)
-def test_tabular_dataset_get_example_by_index(file_format, use_dict,
-                                              tabular_dataset_fields,
-                                              tabular_data, file_path):
-    dataset = create_tabular_dataset(tabular_dataset_fields, file_format,
-                                     file_path, use_dict)
+@pytest.mark.parametrize("file_format, use_dict", FORMAT_USE_DICT_COMBINATIONS)
+def test_tabular_dataset_get_example_by_index(
+    file_format, use_dict, tabular_dataset_fields, tabular_data, file_path
+):
+    dataset = create_tabular_dataset(
+        tabular_dataset_fields, file_format, file_path, use_dict
+    )
 
     field_name = "text"
     index_of_example = 3
@@ -518,17 +507,16 @@ def test_tabular_dataset_get_example_by_index(file_format, use_dict,
     assert getattr(dataset[index_of_example], field_name) == expected_data
 
 
-@pytest.mark.parametrize(
-    "file_format, use_dict",
-    FORMAT_USE_DICT_COMBINATIONS
-)
-def test_tabular_dataset_exception(file_format, use_dict,
-                                   tabular_dataset_fields, file_path):
+@pytest.mark.parametrize("file_format, use_dict", FORMAT_USE_DICT_COMBINATIONS)
+def test_tabular_dataset_exception(
+    file_format, use_dict, tabular_dataset_fields, file_path
+):
     # skip_header True when using a dict
     if use_dict:
         with pytest.raises(ValueError):
-            TabularDataset(file_path, file_format, tabular_dataset_fields,
-                           skip_header=True)
+            TabularDataset(
+                file_path, file_format, tabular_dataset_fields, skip_header=True
+            )
 
     # wrong file_format given
     with pytest.raises(ValueError):
@@ -644,8 +632,10 @@ def test_dataset_multiindexing_pickling(data, field_list):
 
 @pytest.fixture
 def field_list():
-    return [MockField(field_name, eager, is_target=(field_name == "label"))
-            for field_name, eager in FIELD_DATA]
+    return [
+        MockField(field_name, eager, is_target=(field_name == "label"))
+        for field_name, eager in FIELD_DATA
+    ]
 
 
 @pytest.fixture
@@ -667,10 +657,10 @@ def data_for_stratified():
 
 @pytest.fixture
 def tabular_dataset_fields(use_dict):
-    TEXT = MockField('text', eager=True)
-    CHARS = MockField('chars', eager=True)
-    RATING = MockField('rating', sequential=False, eager=True)
-    SOURCE = MockField('source', sequential=False, eager=False)
+    TEXT = MockField("text", eager=True)
+    CHARS = MockField("chars", eager=True)
+    RATING = MockField("rating", sequential=False, eager=True)
+    SOURCE = MockField("source", sequential=False, eager=False)
 
     if use_dict:
         fields = {"text": (TEXT, CHARS), "rating": RATING, "source": SOURCE}
@@ -682,8 +672,7 @@ def tabular_dataset_fields(use_dict):
 
 @pytest.fixture
 def tabular_data():
-    return {"text": TABULAR_TEXT, "rating": TABULAR_RATINGS,
-            "source": TABULAR_SOURCES}
+    return {"text": TABULAR_TEXT, "rating": TABULAR_RATINGS, "source": TABULAR_SOURCES}
 
 
 def create_dataset(data, field_list):
@@ -692,12 +681,12 @@ def create_dataset(data, field_list):
     return Dataset(examples, field_list)
 
 
-def create_tabular_dataset(fields, file_format, file_path, use_dict,
-                           sort_key=None):
+def create_tabular_dataset(fields, file_format, file_path, use_dict, sort_key=None):
     skip_header = (file_format in {"csv", "tsv"}) and (not use_dict)
 
-    return TabularDataset(file_path, file_format, fields,
-                          skip_header=skip_header, sort_key=sort_key)
+    return TabularDataset(
+        file_path, file_format, fields, skip_header=skip_header, sort_key=sort_key
+    )
 
 
 def test_attribute_error(data, field_list):
@@ -729,10 +718,7 @@ def test_unpack_fields():
     assert unpack_fields([field1, (field2, field3)]) == [field1, field2, field3]
     assert unpack_fields([field3, mo_field]) == [field3, field1, field2]
 
-    field_dict = {
-        "1": field3,
-        "2": mo_field
-    }
+    field_dict = {"1": field3, "2": mo_field}
 
     unpacked_fields = unpack_fields(field_dict)
 
@@ -741,18 +727,17 @@ def test_unpack_fields():
 
 
 def test_eager_tokenization():
-
     def create_dataset():
 
         fields = (
             Field("text", vocab=Vocab()),
-            Field("source", vocab=Vocab(), tokenizer=list)
+            Field("source", vocab=Vocab(), tokenizer=list),
         )
         example_factory = ExampleFactory(fields)
 
-        examples = [example_factory.from_list(data)
-                    for data
-                    in zip(TABULAR_TEXT, TABULAR_SOURCES)]
+        examples = [
+            example_factory.from_list(data) for data in zip(TABULAR_TEXT, TABULAR_SOURCES)
+        ]
 
         dataset = Dataset(examples, fields)
         return dataset
@@ -786,10 +771,7 @@ def hierarchical_dataset_fields():
     name_field = Field("name", store_as_raw=True, tokenize=False)
     number_field = Field("number", store_as_raw=True, tokenize=False)
 
-    fields = {
-        "name": name_field,
-        "number": number_field
-    }
+    fields = {"name": name_field, "number": number_field}
     return fields
 
 
@@ -800,9 +782,11 @@ def hierarchical_dataset_parser():
 
 @pytest.fixture
 def hierarchical_dataset(hierarchical_dataset_fields, hierarchical_dataset_parser):
-    return HierarchicalDataset.from_json(dataset=HIERARCHIAL_DATASET_JSON_EXAMPLE,
-                                         fields=hierarchical_dataset_fields,
-                                         parser=hierarchical_dataset_parser)
+    return HierarchicalDataset.from_json(
+        dataset=HIERARCHIAL_DATASET_JSON_EXAMPLE,
+        fields=hierarchical_dataset_fields,
+        parser=hierarchical_dataset_parser,
+    )
 
 
 def test_create_hierarchical_dataset_from_json(hierarchical_dataset):
@@ -858,13 +842,12 @@ def test_hierarchical_dataset_finalize_fields(hierarchical_dataset_parser):
     name_field = Field("name", store_as_raw=True, tokenize=False, vocab=name_vocab)
     number_field = Field("number", store_as_raw=True, tokenize=False, vocab=number_vocab)
 
-    fields = {
-        "name": name_field,
-        "number": number_field
-    }
-    dataset = HierarchicalDataset.from_json(dataset=HIERARCHIAL_DATASET_JSON_EXAMPLE,
-                                            fields=fields,
-                                            parser=hierarchical_dataset_parser)
+    fields = {"name": name_field, "number": number_field}
+    dataset = HierarchicalDataset.from_json(
+        dataset=HIERARCHIAL_DATASET_JSON_EXAMPLE,
+        fields=fields,
+        parser=hierarchical_dataset_parser,
+    )
     dataset.finalize_fields()
     assert name_vocab.finalized
     assert number_vocab.finalized
@@ -872,19 +855,22 @@ def test_hierarchical_dataset_finalize_fields(hierarchical_dataset_parser):
 
 def test_hierarchical_dataset_invalid_json_fail(hierarchical_dataset_fields):
     with pytest.raises(JSONDecodeError):
-        HierarchicalDataset.from_json(INVALID_JSON, hierarchical_dataset_fields,
-                                      HierarchicalDataset
-                                      .get_default_dict_parser("children"))
+        HierarchicalDataset.from_json(
+            INVALID_JSON,
+            hierarchical_dataset_fields,
+            HierarchicalDataset.get_default_dict_parser("children"),
+        )
 
 
 def test_hierarchical_dataset_json_root_element_not_list_fail(
-        hierarchical_dataset_fields):
+    hierarchical_dataset_fields,
+):
     with pytest.raises(ValueError):
-        HierarchicalDataset.from_json(JSON_ROOT_NOT_LIST,
-                                      hierarchical_dataset_fields,
-                                      HierarchicalDataset.get_default_dict_parser(
-                                          "children")
-                                      )
+        HierarchicalDataset.from_json(
+            JSON_ROOT_NOT_LIST,
+            hierarchical_dataset_fields,
+            HierarchicalDataset.get_default_dict_parser("children"),
+        )
 
 
 def test_hierarchical_dataset_context_iteration(hierarchical_dataset):
@@ -894,9 +880,7 @@ def test_hierarchical_dataset_context_iteration(hierarchical_dataset):
 
     c23_expected_context_0_lvl = ["parent2", "c21", "c22"]
     c23_context_0_lvl = list(
-        map(
-            lambda x: x.name[0], hierarchical_dataset.get_context(7, 0)
-        )
+        map(lambda x: x.name[0], hierarchical_dataset.get_context(7, 0))
     )
 
     assert c23_context_0_lvl == c23_expected_context_0_lvl

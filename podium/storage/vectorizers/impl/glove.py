@@ -4,6 +4,7 @@ import os
 from podium.storage import BasicVectorStorage, LargeResource
 from podium.storage.vectorizers.vectorizer import random_normal_default_vector
 
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -28,31 +29,41 @@ class GloVe(BasicVectorStorage):
         defines if the vectors are stored in binary format or not. glove vectors
         are stored in binary format
     """
+
     NAME_URL_MAPPING = {
-        "glove-common-42b": 'http://nlp.stanford.edu/data/glove.42B.300d.zip',
-        "glove-common-840b": 'http://nlp.stanford.edu/data/glove.840B.300d.zip',
-        "glove-twitter": 'http://nlp.stanford.edu/data/glove.twitter.27B.zip',
-        "glove-wikipedia": 'http://nlp.stanford.edu/data/glove.6B.zip'
+        "glove-common-42b": "http://nlp.stanford.edu/data/glove.42B.300d.zip",
+        "glove-common-840b": "http://nlp.stanford.edu/data/glove.840B.300d.zip",
+        "glove-twitter": "http://nlp.stanford.edu/data/glove.twitter.27B.zip",
+        "glove-wikipedia": "http://nlp.stanford.edu/data/glove.6B.zip",
     }
     NAME_DIM_MAPPING = {
-        "glove-common-42b": {300, },
-        "glove-common-840b": {300, },
+        "glove-common-42b": {
+            300,
+        },
+        "glove-common-840b": {
+            300,
+        },
         "glove-twitter": {25, 50, 100, 200},
-        "glove-wikipedia": {50, 100, 200, 300}
+        "glove-wikipedia": {50, 100, 200, 300},
     }
     _NAME_FILE_MAPPING = {
-        "glove-common-42b": 'glove.42B',
-        "glove-common-840b": 'glove.840B.',
-        "glove-twitter": 'glove.twitter.27B',
-        "glove-wikipedia": 'glove.6B'
+        "glove-common-42b": "glove.42B",
+        "glove-common-840b": "glove.840B.",
+        "glove-twitter": "glove.twitter.27B",
+        "glove-wikipedia": "glove.6B",
     }
 
     _ARCHIVE_TYPE = "zip"
     _BINARY = True
 
-    def __init__(self, name="glove-wikipedia", dim=300,
-                 default_vector_function=random_normal_default_vector,
-                 cache_path=None, max_vectors=None):
+    def __init__(
+        self,
+        name="glove-wikipedia",
+        dim=300,
+        default_vector_function=random_normal_default_vector,
+        cache_path=None,
+        max_vectors=None,
+    ):
         """
         GloVe constructor that initializes vector storage and downloads vectors if
         necessary.
@@ -85,26 +96,37 @@ class GloVe(BasicVectorStorage):
         """
         if name not in GloVe.NAME_URL_MAPPING.keys():
             error_msg = "Given name not supported, supported names are {}".format(
-                GloVe.NAME_URL_MAPPING.keys())
+                GloVe.NAME_URL_MAPPING.keys()
+            )
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
         if dim not in GloVe.NAME_DIM_MAPPING[name]:
-            error_msg = "Unsupported dimension for given glove instance, {} GloVe "\
+            error_msg = (
+                "Unsupported dimension for given glove instance, {} GloVe "
                 "instance has following supported dimensions {}".format(
-                    name, GloVe.NAME_DIM_MAPPING[name])
+                    name, GloVe.NAME_DIM_MAPPING[name]
+                )
+            )
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
         url = GloVe.NAME_URL_MAPPING[name]
-        LargeResource(**{
-            LargeResource.RESOURCE_NAME: name,
-            LargeResource.ARCHIVE: GloVe._ARCHIVE_TYPE,
-            LargeResource.URI: url})
+        LargeResource(
+            **{
+                LargeResource.RESOURCE_NAME: name,
+                LargeResource.ARCHIVE: GloVe._ARCHIVE_TYPE,
+                LargeResource.URI: url,
+            }
+        )
 
         file_name = "{}.{}d.txt".format(GloVe._NAME_FILE_MAPPING[name], dim)
         path = os.path.join(LargeResource.BASE_RESOURCE_DIR, name, file_name)
 
-        vectors_kwargs = {"default_vector_function": random_normal_default_vector,
-                          "cache_path": cache_path, "max_vectors": max_vectors,
-                          "path": path, "binary": GloVe._BINARY}
+        vectors_kwargs = {
+            "default_vector_function": random_normal_default_vector,
+            "cache_path": cache_path,
+            "max_vectors": max_vectors,
+            "path": path,
+            "binary": GloVe._BINARY,
+        }
         super(GloVe, self).__init__(**vectors_kwargs)

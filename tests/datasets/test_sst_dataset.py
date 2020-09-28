@@ -1,20 +1,24 @@
 import os
 import tempfile
+
 import pytest
-from podium.datasets.impl.sst_sentiment_dataset import SST
+
 from podium.datasets.dataset import Dataset
+from podium.datasets.impl.sst_sentiment_dataset import SST
 from podium.storage.resources.large_resource import LargeResource
 
 
 EXPECTED_TRAIN_EXAMPLES = [
-    {"text": ("The Rock is destined to be the 21st Century 's new `` Conan ''"
-              " and that he 's going to make a splash even greater than "
-              "Arnold Schwarzenegger , Jean-Claud Van Damme or Steven Segal .").split(),
-     "label": "positive"},
-    {"text": "This is n't a new idea .".split(),
-     "label": "negative"},
-    {"text": "This is n't a bad idea .".split(),
-     "label": "neutral"}
+    {
+        "text": (
+            "The Rock is destined to be the 21st Century 's new `` Conan ''"
+            " and that he 's going to make a splash even greater than "
+            "Arnold Schwarzenegger , Jean-Claud Van Damme or Steven Segal ."
+        ).split(),
+        "label": "positive",
+    },
+    {"text": "This is n't a new idea .".split(), "label": "negative"},
+    {"text": "This is n't a bad idea .".split(), "label": "neutral"},
 ]
 
 RAW_EXAMPLES = [
@@ -25,10 +29,8 @@ RAW_EXAMPLES = [
     "(2 (2 even) (3 greater)))) (2 (2 than) (2 (2 (2 (2 (1 (2 Arnold) "
     "(2 Schwarzenegger)) (2 ,)) (2 (2 Jean-Claud) (2 (2 Van) (2 Damme)))) "
     "(2 or)) (2 (2 Steven) (2 Segal))))))))))))) (2 .))) ",
-
     "(1 (2 This) (2 (1 (1 (2 is) (2 n't)) (3 (2 a) (2 (3 new) (2 idea)))) (2 .)))",
-
-    "(2 (2 This) (2 (1 (1 (2 is) (2 n't)) (3 (2 a) (2 (1 bad) (2 idea)))) (2 .)))"
+    "(2 (2 This) (2 (1 (1 (2 is) (2 n't)) (3 (2 a) (2 (1 bad) (2 idea)))) (2 .)))",
 ]
 
 
@@ -39,14 +41,14 @@ def mock_dataset_path():
     LargeResource.BASE_RESOURCE_DIR = base_temp
     base_dataset_dir = os.path.join(base_temp, "trees")
     os.makedirs(base_dataset_dir)
-    train_filename = os.path.join(base_dataset_dir, 'train.txt')
+    train_filename = os.path.join(base_dataset_dir, "train.txt")
     create_examples(train_filename, RAW_EXAMPLES)
 
     return train_filename
 
 
 def create_examples(file_name, raw_examples):
-    with open(file=file_name, mode='w', encoding="utf8") as fpr:
+    with open(file=file_name, mode="w", encoding="utf8") as fpr:
         for example in raw_examples:
             fpr.write(example + "\n")
 
@@ -76,8 +78,9 @@ def test_load_dataset(mock_dataset_path):
 
 
 def test_load_finegrained(mock_dataset_path):
-    train_dataset = SST(file_path=mock_dataset_path, fields=SST.get_default_fields(),
-                        fine_grained=True)
+    train_dataset = SST(
+        file_path=mock_dataset_path, fields=SST.get_default_fields(), fine_grained=True
+    )
     train_dataset.finalize_fields()
     assert isinstance(train_dataset, Dataset)
 
@@ -89,8 +92,9 @@ def test_load_finegrained(mock_dataset_path):
 
 
 def test_load_subtrees(mock_dataset_path):
-    train_dataset = SST(file_path=mock_dataset_path, fields=SST.get_default_fields(),
-                        subtrees=True)
+    train_dataset = SST(
+        file_path=mock_dataset_path, fields=SST.get_default_fields(), subtrees=True
+    )
     train_dataset.finalize_fields()
     assert isinstance(train_dataset, Dataset)
 
@@ -99,8 +103,12 @@ def test_load_subtrees(mock_dataset_path):
 
 
 def test_load_subtrees_finegrained(mock_dataset_path):
-    train_dataset = SST(file_path=mock_dataset_path, fields=SST.get_default_fields(),
-                        subtrees=True, fine_grained=True)
+    train_dataset = SST(
+        file_path=mock_dataset_path,
+        fields=SST.get_default_fields(),
+        subtrees=True,
+        fine_grained=True,
+    )
     train_dataset.finalize_fields()
     assert isinstance(train_dataset, Dataset)
 

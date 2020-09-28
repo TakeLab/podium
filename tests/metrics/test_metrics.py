@@ -1,4 +1,5 @@
 import pytest
+
 from podium.metrics.metrics import f1_metric
 
 

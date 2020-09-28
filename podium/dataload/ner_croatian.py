@@ -1,11 +1,12 @@
 """Simple NERCroatian dataset module."""
 import glob
-import os
 import logging
+import os
 import xml.etree.ElementTree as ET
 
 from podium.preproc.tokenizers import get_tokenizer
 from podium.storage.resources.large_resource import init_scp_large_resource_from_kwargs
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -13,18 +14,16 @@ _LOGGER = logging.getLogger(__name__)
 class NERCroatianXMLLoader:
     """Simple croatian NER class"""
 
-    URL = '/storage/takepod_data/datasets/CroatianNERDataset.zip'
+    URL = "/storage/takepod_data/datasets/CroatianNERDataset.zip"
     NAME = "CroatianNERDataset"
     SCP_HOST = "djurdja.takelab.fer.hr"
     ARCHIVE_TYPE = "zip"
 
     SENTENCE_DELIMITER_TOKEN = (None, None)
 
-    def __init__(self,
-                 path='downloaded_datasets/',
-                 tokenizer='split',
-                 tag_schema='IOB',
-                 **kwargs):
+    def __init__(
+        self, path="downloaded_datasets/", tokenizer="split", tag_schema="IOB", **kwargs
+    ):
         """Constructor for Croatian NER dataset.
         Downloads and extracts the dataset.
 
@@ -58,9 +57,11 @@ class NERCroatianXMLLoader:
         self._tokenizer = get_tokenizer(tokenizer)
         self._label_resolver = self._get_label_resolver(tag_schema)
         init_scp_large_resource_from_kwargs(
-            resource=NERCroatianXMLLoader.NAME, uri=NERCroatianXMLLoader.URL,
-            archive=NERCroatianXMLLoader.ARCHIVE_TYPE, user_dict=kwargs,
-            scp_host=NERCroatianXMLLoader.SCP_HOST
+            resource=NERCroatianXMLLoader.NAME,
+            uri=NERCroatianXMLLoader.URL,
+            archive=NERCroatianXMLLoader.ARCHIVE_TYPE,
+            user_dict=kwargs,
+            scp_host=NERCroatianXMLLoader.SCP_HOST,
         )
 
     def load_dataset(self):
@@ -73,12 +74,11 @@ class NERCroatianXMLLoader:
             as a list of tuples (token, label). The sentences in document are
             delimited by tuple (None, None)
         """
-        source_dir_location = os.path.join(self._data_dir,
-                                           NERCroatianXMLLoader.NAME)
+        source_dir_location = os.path.join(self._data_dir, NERCroatianXMLLoader.NAME)
 
         tokenized_documents = []
 
-        for xml_file_path in sorted(glob.glob(source_dir_location + '/*.xml')):
+        for xml_file_path in sorted(glob.glob(source_dir_location + "/*.xml")):
             word_label_pairs = self._xml_to_token_label_pairs(xml_file_path)
             tokenized_documents.append(word_label_pairs)
 
@@ -102,17 +102,17 @@ class NERCroatianXMLLoader:
 
         token_label_pairs = []
 
-        for sentence in root.iter(tag='s'):
+        for sentence in root.iter(tag="s"):
             for sub_element in sentence.iter():
 
                 if sub_element.text is not None:
-                    token_label_pairs_subelement = \
-                        self._tokenize(sub_element.text.strip(), sub_element)
+                    token_label_pairs_subelement = self._tokenize(
+                        sub_element.text.strip(), sub_element
+                    )
                     token_label_pairs.extend(token_label_pairs_subelement)
 
                 if sub_element.tail is not None:
-                    token_label_pairs_outside = \
-                        self._tokenize(sub_element.tail.strip())
+                    token_label_pairs_outside = self._tokenize(sub_element.tail.strip())
                     token_label_pairs.extend(token_label_pairs_outside)
 
             token_label_pairs.append(self.SENTENCE_DELIMITER_TOKEN)
@@ -143,10 +143,10 @@ class NERCroatianXMLLoader:
         token_label_pairs = []
         for index, token in enumerate(tokenized_text):
             if element is not None:
-                label_unprefixed = element.attrib.get('type', None)
+                label_unprefixed = element.attrib.get("type", None)
                 label = self._label_resolver(index, label_unprefixed)
             else:
-                label = 'O'
+                label = "O"
             token_label_pairs.append((token, label))
 
         return token_label_pairs
@@ -164,11 +164,10 @@ class NERCroatianXMLLoader:
         label_resolver: callable
             Label resolver associated with the given tag schema
         """
-        if tag_schema == 'IOB':
+        if tag_schema == "IOB":
             return self._iob_label_resolver
 
-        error_msg = 'No label resolver for tag schema {} exists'\
-                    .format(tag_schema)
+        error_msg = "No label resolver for tag schema {} exists".format(tag_schema)
         _LOGGER.error(error_msg)
         raise ValueError(error_msg)
 
@@ -189,13 +188,13 @@ class NERCroatianXMLLoader:
             tag schema
         """
         if label is None:
-            return 'O'
+            return "O"
         elif index == 0:
-            return 'B-' + label
-        return 'I-' + label
+            return "B-" + label
+        return "I-" + label
 
 
-def convert_sequence_to_entities(sequence, text, delimiter='-'):
+def convert_sequence_to_entities(sequence, text, delimiter="-"):
     """Converts sequences of the BIO tagging schema to entities
 
     Parameters
@@ -241,50 +240,44 @@ def convert_sequence_to_entities(sequence, text, delimiter='-'):
             tag_type, tag_description = tag.split(delimiter)
         else:
             tag_type = tag[0]
-            tag_description = ''
+            tag_description = ""
 
-        if tag_type == 'B' and state == "start":
+        if tag_type == "B" and state == "start":
             state = "named_entity"
             current_tag = tag_description
             # create new entity
-            entity = {
-                'name': [word], 'type': tag_description,
-                'start': index, 'end': -1
-            }
+            entity = {"name": [word], "type": tag_description, "start": index, "end": -1}
             entities.append(entity)
 
-        elif tag_type == 'B' and state == "named_entity":
+        elif tag_type == "B" and state == "named_entity":
             state = "named_entity"
             # save previous
-            entities[-1]['end'] = index
+            entities[-1]["end"] = index
             # create new one
-            entity = {
-                'name': [word], 'type': tag_description,
-                'start': index, 'end': -1
-            }
+            entity = {"name": [word], "type": tag_description, "start": index, "end": -1}
             entities.append(entity)
 
-        elif tag_type == 'I' and state == "named_entity":
+        elif tag_type == "I" and state == "named_entity":
             # I tag has to be after a B tag of the same type
             # B-Org I-Org is good, B-Org I-Time is not
             # I-Time part of the entity is skipped
             if tag_description == current_tag and entities:
-                entities[-1]['name'].append(word)
+                entities[-1]["name"].append(word)
 
             # if it does not match, just close the started entity
             elif tag_description != current_tag and entities:
-                entities[-1]['end'] = index
+                entities[-1]["end"] = index
                 state = "start"
 
-        elif tag_type == 'O' and state == "named_entity":
+        elif tag_type == "O" and state == "named_entity":
             state = "start"
             if entities:
-                entities[-1]['end'] = index
+                entities[-1]["end"] = index
 
-        elif tag_type == 'O':
+        elif tag_type == "O":
             state = "start"
 
-    if entities and entities[-1]['end'] == -1:
-        entities[-1]['end'] = len(sequence)
+    if entities and entities[-1]["end"] == -1:
+        entities[-1]["end"] = len(sequence)
 
     return entities

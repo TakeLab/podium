@@ -10,6 +10,7 @@ from typing import Union
 
 from podium.storage.field import unpack_fields
 
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -28,7 +29,7 @@ FACTORY_METHOD_DICT = {
     "csv": lambda data, factory: factory.from_csv(data),
     "nltk": lambda data, factory: factory.from_fields_tree(data),
     "xml": lambda data, factory: factory.from_xml_str(data),
-    "json": lambda data, factory: factory.from_json(data)
+    "json": lambda data, factory: factory.from_json(data),
 }
 
 
@@ -50,8 +51,9 @@ class Example:
             setattr(self, fieldname, None)
 
     def __repr__(self):
-        attribute = [att for att in dir(self) if not att.startswith("__")
-                     and not att.endswith("_")]
+        attribute = [
+            att for att in dir(self) if not att.startswith("__") and not att.endswith("_")
+        ]
         att_values = ["{}: {}".format(att, getattr(self, att, None)) for att in attribute]
         att_string = "; ".join(att_values)
         return "{}[{}]".format(self.__class__.__name__, att_string)
@@ -74,10 +76,11 @@ class ExampleFactory:
 
         """
         if isinstance(fields, dict):
-            self.fields = {input_value_name: fields_
-                           for input_value_name, fields_
-                           in fields.items()
-                           if fields_ is not None}
+            self.fields = {
+                input_value_name: fields_
+                for input_value_name, fields_ in fields.items()
+                if fields_ is not None
+            }
         else:
             self.fields = fields
 
@@ -172,8 +175,10 @@ class ExampleFactory:
                 if root.tag == name:
                     node = root
                 else:
-                    error_msg = "Specified name {} was not found in the " \
-                                "input data".format(name)
+                    error_msg = (
+                        "Specified name {} was not found in the "
+                        "input data".format(name)
+                    )
                     _LOGGER.error(error_msg)
                     raise ValueError(error_msg)
 
@@ -237,7 +242,7 @@ class ExampleFactory:
             return self.from_dict(data_dict)
 
     def from_fields_tree(self, data, subtrees=False, label_transform=None):
-        """ Creates an Example (or multiple Examples) from a string
+        """Creates an Example (or multiple Examples) from a string
         representing an nltk tree and a list of corresponding values.
 
         Parameters
@@ -271,20 +276,18 @@ class ExampleFactory:
             subtree_lists = [tree_to_list(subtree) for subtree in tree.subtrees()]
             if label_transform is not None:
                 # This is perhaps inefficient but probably the best place to insert this
-                subtree_lists = [[text, label_transform(label)]
-                                 for text, label in subtree_lists]
+                subtree_lists = [
+                    [text, label_transform(label)] for text, label in subtree_lists
+                ]
             # an example is created for each subtree
-            return [self.from_list(subtree_list) for subtree_list in
-                    subtree_lists]
+            return [self.from_list(subtree_list) for subtree_list in subtree_lists]
         else:
             text, label = tree_to_list(tree)
             if label_transform is not None:
                 label = label_transform(label)
             return self.from_list([text, label])
 
-    def from_format(self,
-                    data,
-                    format_tag: Union[ExampleFormat, str]):
+    def from_format(self, data, format_tag: Union[ExampleFormat, str]):
 
         if isinstance(format_tag, ExampleFormat):
             format_str = format_tag.value
@@ -293,9 +296,10 @@ class ExampleFactory:
             format_str = format_tag.lower()
 
         else:
-            err_msg = "format_tag must be either an ExampleFormat or a string. " \
-                      "Passed value is of type : '{}'"\
-                .format(format_tag.__class__.__name__)
+            err_msg = (
+                "format_tag must be either an ExampleFormat or a string. "
+                "Passed value is of type : '{}'".format(format_tag.__class__.__name__)
+            )
             _LOGGER.error(err_msg)
             raise TypeError(err_msg)
 
@@ -321,7 +325,7 @@ def tree_to_list(tree):
     tree_list : list
         tree represented as list with its label
     """
-    return [' '.join(tree.leaves()), tree.label()]
+    return [" ".join(tree.leaves()), tree.label()]
 
 
 def set_example_attributes(example, field, val):

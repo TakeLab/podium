@@ -1,8 +1,9 @@
 """Example how to use simple PauzaHR dataset."""
 import dill
 
-from podium.storage.resources.large_resource import LargeResource
 from podium.datasets.impl.pauza_dataset import PauzaHRDataset
+from podium.storage.resources.large_resource import LargeResource
+
 
 if __name__ == "__main__":
     # for large resource settings see

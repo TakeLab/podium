@@ -2,23 +2,21 @@ from collections import namedtuple
 
 import numpy as np
 
-from podium.models import FeatureTransformer, TensorTransformer, \
-    SklearnTensorTransformerWrapper
+from podium.models import (
+    FeatureTransformer,
+    SklearnTensorTransformerWrapper,
+    TensorTransformer,
+)
 
 
 class MockTensorTransformer(TensorTransformer):
-
     def __init__(self, requires_fitting):
         self.requires_fitting_flag = requires_fitting
 
-    def fit(self,
-            x: np.ndarray,
-            y: np.ndarray):
+    def fit(self, x: np.ndarray, y: np.ndarray):
         pass
 
-    def transform(self,
-                  x: np.array
-                  ) -> np.ndarray:
+    def transform(self, x: np.array) -> np.ndarray:
         return [3, 4]
 
     def requires_fitting(self) -> bool:
@@ -33,11 +31,12 @@ def test_feature_transformer(mocker):
 
     mock_tensor_transformer = MockTensorTransformer(requires_fitting=True)
 
-    mocker.spy(mock_tensor_transformer, 'fit')
-    mocker.spy(mock_tensor_transformer, 'transform')
+    mocker.spy(mock_tensor_transformer, "fit")
+    mocker.spy(mock_tensor_transformer, "transform")
 
-    feature_transformer = FeatureTransformer(mock_feature_extraction_fn,
-                                             mock_tensor_transformer)
+    feature_transformer = FeatureTransformer(
+        mock_feature_extraction_fn, mock_tensor_transformer
+    )
 
     mock_feature_batch = mock_batch_class(mock_feature=[1, 2])
     y = [3, 4]
@@ -50,10 +49,11 @@ def test_feature_transformer(mocker):
     mock_tensor_transformer.transform.assert_called_once_with([4, 5])
 
     mock_tensor_transformer_no_fit = MockTensorTransformer(requires_fitting=False)
-    mocker.spy(mock_tensor_transformer_no_fit, 'fit')
-    mocker.spy(mock_tensor_transformer_no_fit, 'transform')
-    feature_transformer = FeatureTransformer(mock_feature_extraction_fn,
-                                             mock_tensor_transformer_no_fit)
+    mocker.spy(mock_tensor_transformer_no_fit, "fit")
+    mocker.spy(mock_tensor_transformer_no_fit, "transform")
+    feature_transformer = FeatureTransformer(
+        mock_feature_extraction_fn, mock_tensor_transformer_no_fit
+    )
 
     feature_transformer.fit(mock_feature_batch, y)
     mock_tensor_transformer_no_fit.fit.assert_not_called()
@@ -63,7 +63,6 @@ def test_feature_transformer(mocker):
 
 def test_sklearn_feature_transformer_wrapper(mocker):
     class MockSklearnTransformer:
-
         def fit(self, x, y):
             pass
 
@@ -72,8 +71,8 @@ def test_sklearn_feature_transformer_wrapper(mocker):
 
     # test with fitting
     tensor_transformer = MockSklearnTransformer()
-    mocker.spy(tensor_transformer, 'fit')
-    mocker.spy(tensor_transformer, 'transform')
+    mocker.spy(tensor_transformer, "fit")
+    mocker.spy(tensor_transformer, "transform")
 
     mock_feature_batch = np.array([[1, 2, 3]])
     mock_label_batch = np.array([[2, 3, 4]])
@@ -91,8 +90,8 @@ def test_sklearn_feature_transformer_wrapper(mocker):
 
     # test without fitting
     tensor_transformer = MockSklearnTransformer()
-    mocker.spy(tensor_transformer, 'fit')
-    mocker.spy(tensor_transformer, 'transform')
+    mocker.spy(tensor_transformer, "fit")
+    mocker.spy(tensor_transformer, "transform")
 
     wrapper = SklearnTensorTransformerWrapper(tensor_transformer, requires_fitting=False)
 

@@ -1,11 +1,13 @@
 """Module contains text tokenizers."""
 import logging
+
 import spacy
+
 
 _LOGGER = logging.getLogger(__name__)
 
 
-def get_tokenizer(tokenizer, language='en'):
+def get_tokenizer(tokenizer, language="en"):
     """Returns a tokenizer according to the parameters given.
 
     Parameters
@@ -49,19 +51,20 @@ def get_tokenizer(tokenizer, language='en'):
         try:
             spacy_tokenizer = spacy.load(language, disable=disable)
         except OSError:
-            _LOGGER.warning("SpaCy model {} not found."
-                            "Trying to download and install."
-                            .format(language))
+            _LOGGER.warning(
+                "SpaCy model {} not found."
+                "Trying to download and install.".format(language)
+            )
 
             from spacy.cli.download import download
+
             download(language)
             spacy_tokenizer = spacy.load(language, disable=disable)
 
         # closures instead of lambdas because they are serializable
         def spacy_tokenize(string):
             # need to wrap in a function to access .text
-            return [token.text for token in
-                    spacy_tokenizer.tokenizer(string)]
+            return [token.text for token in spacy_tokenizer.tokenizer(string)]
 
         return spacy_tokenize
 

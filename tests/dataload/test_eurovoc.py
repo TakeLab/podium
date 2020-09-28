@@ -1,20 +1,23 @@
 import os
-import tempfile
 import shutil
-import pytest
-import dill
-
+import tempfile
 from unittest.mock import patch
 
-from podium.dataload.eurovoc import EuroVocLoader, Label, LabelRank, dill_dataset
-from podium.storage.resources.large_resource import LargeResource, SCPLargeResource
-from podium.storage import Field, MultilabelField
-from podium.storage import Vocab
-from podium.datasets.impl.eurovoc_dataset import EuroVocDataset
+import dill
+import pytest
 
-from ..datasets.test_eurovoc_dataset import (eurovoc_label_hierarchy,
-                                             crovoc_label_hierarchy,
-                                             mappings, documents)
+from podium.dataload.eurovoc import EuroVocLoader, Label, LabelRank, dill_dataset
+from podium.datasets.impl.eurovoc_dataset import EuroVocDataset
+from podium.storage import Field, MultilabelField, Vocab
+from podium.storage.resources.large_resource import LargeResource, SCPLargeResource
+
+from ..datasets.test_eurovoc_dataset import (
+    crovoc_label_hierarchy,
+    documents,
+    eurovoc_label_hierarchy,
+    mappings,
+)
+
 
 EUROVOC_LABELS = r"""
 <DATABASE_THS>
@@ -152,9 +155,15 @@ def test_creating_term_label():
     thesaurus = 4
     micro_thesaurus = 5
 
-    label = Label(name=name, id=label_id, direct_parents=direct_parents,
-                  similar_terms=similar_terms, rank=rank, thesaurus=thesaurus,
-                  micro_thesaurus=micro_thesaurus)
+    label = Label(
+        name=name,
+        id=label_id,
+        direct_parents=direct_parents,
+        similar_terms=similar_terms,
+        rank=rank,
+        thesaurus=thesaurus,
+        micro_thesaurus=micro_thesaurus,
+    )
 
     assert label.name == name
     assert label.id == label_id
@@ -173,8 +182,14 @@ def test_creating_microthesaurus_label():
     rank = LabelRank.MICRO_THESAURUS
     thesaurus = 4
 
-    label = Label(name=name, id=label_id, direct_parents=direct_parents,
-                  similar_terms=similar_terms, rank=rank, thesaurus=thesaurus)
+    label = Label(
+        name=name,
+        id=label_id,
+        direct_parents=direct_parents,
+        similar_terms=similar_terms,
+        rank=rank,
+        thesaurus=thesaurus,
+    )
 
     assert label.name == name
     assert label.id == label_id
@@ -192,8 +207,13 @@ def test_creating_thesaurus_label():
     similar_terms = [3]
     rank = LabelRank.THESAURUS
 
-    label = Label(name=name, id=label_id, direct_parents=direct_parents,
-                  similar_terms=similar_terms, rank=rank)
+    label = Label(
+        name=name,
+        id=label_id,
+        direct_parents=direct_parents,
+        similar_terms=similar_terms,
+        rank=rank,
+    )
 
     assert label.name == name
     assert label.id == label_id
@@ -204,13 +224,15 @@ def test_creating_thesaurus_label():
     assert label.micro_thesaurus is None
 
 
-def create_mock_dataset(load_missing_doc=False,
-                        load_invalid_doc=False,
-                        load_doc_with_br_tag=False,
-                        load_doc_with_invalid_title=False,
-                        invalid_labels=False,
-                        non_existing_thesaurus=False,
-                        create_parent_dir=True):
+def create_mock_dataset(
+    load_missing_doc=False,
+    load_invalid_doc=False,
+    load_doc_with_br_tag=False,
+    load_doc_with_invalid_title=False,
+    invalid_labels=False,
+    non_existing_thesaurus=False,
+    create_parent_dir=True,
+):
     base_temp = tempfile.mkdtemp()
     assert os.path.exists(base_temp)
 
@@ -220,8 +242,9 @@ def create_mock_dataset(load_missing_doc=False,
     else:
         base_dataset_dir = base_temp
 
-    eurovoc_labels_path = os.path.join(base_dataset_dir,
-                                       EuroVocLoader.EUROVOC_LABELS_FILENAME)
+    eurovoc_labels_path = os.path.join(
+        base_dataset_dir, EuroVocLoader.EUROVOC_LABELS_FILENAME
+    )
     if invalid_labels:
         create_file(eurovoc_labels_path, INVALID_LABELS)
     elif non_existing_thesaurus:
@@ -229,55 +252,48 @@ def create_mock_dataset(load_missing_doc=False,
     else:
         create_file(eurovoc_labels_path, EUROVOC_LABELS)
 
-    crovoc_labels_path = os.path.join(base_dataset_dir,
-                                      EuroVocLoader.CROVOC_LABELS_FILENAME)
+    crovoc_labels_path = os.path.join(
+        base_dataset_dir, EuroVocLoader.CROVOC_LABELS_FILENAME
+    )
     create_file(crovoc_labels_path, CROVOC_LABELS)
 
-    dataset_dir = os.path.join(base_dataset_dir,
-                               EuroVocLoader.DATASET_DIR)
+    dataset_dir = os.path.join(base_dataset_dir, EuroVocLoader.DATASET_DIR)
     os.makedirs(dataset_dir)
-    document_1_path = os.path.join(dataset_dir,
-                                   "NN00001.xml")
+    document_1_path = os.path.join(dataset_dir, "NN00001.xml")
     create_file(document_1_path, DOCUMENT_1)
 
-    document_2_path = os.path.join(dataset_dir,
-                                   "NN00002.xml")
+    document_2_path = os.path.join(dataset_dir, "NN00002.xml")
     if load_doc_with_br_tag:
         create_file(document_2_path, DOCUMENT_2_BR)
     else:
-        document_2_path = os.path.join(dataset_dir,
-                                       "NN00002.xml")
+        document_2_path = os.path.join(dataset_dir, "NN00002.xml")
         create_file(document_2_path, DOCUMENT_2)
 
     if load_invalid_doc:
-        document_3_path = os.path.join(dataset_dir,
-                                       "NN00003.xml")
+        document_3_path = os.path.join(dataset_dir, "NN00003.xml")
         create_file(document_3_path, INVALID_DOCUMENT)
 
     if load_missing_doc:
-        document_4_path = os.path.join(dataset_dir,
-                                       "NN00004.xml")
+        document_4_path = os.path.join(dataset_dir, "NN00004.xml")
         create_file(document_4_path, MISSING_DOCUMENT)
 
     if load_doc_with_invalid_title:
-        document_5_path = os.path.join(dataset_dir,
-                                       "NN00005.xml")
+        document_5_path = os.path.join(dataset_dir, "NN00005.xml")
         create_file(document_5_path, INVALID_DOCUMENT_TITLE)
 
-    mappings_path = os.path.join(base_dataset_dir,
-                                 EuroVocLoader.MAPPING_FILENAME)
+    mappings_path = os.path.join(base_dataset_dir, EuroVocLoader.MAPPING_FILENAME)
 
     mappings_content = ""
-    with open("tests/dataload/mock_mapping.xlsx", mode='rb') as input_file:
+    with open("tests/dataload/mock_mapping.xlsx", mode="rb") as input_file:
         mappings_content = input_file.read()
-    with open(file=mappings_path, mode='wb') as fp:
+    with open(file=mappings_path, mode="wb") as fp:
         fp.write(mappings_content)
 
     return base_temp
 
 
 def create_file(file_path, file_content):
-    with open(file=file_path, mode='w', encoding="utf8") as fp:
+    with open(file=file_path, mode="w", encoding="utf8") as fp:
         fp.writelines(file_content)
 
 
@@ -481,23 +497,25 @@ def test_loading_dataset_with_non_existing_thesaurus():
 
 
 def mock_download(self):
-    assert self.config[SCPLargeResource.SCP_USER_KEY] == 'username'
-    assert self.config[SCPLargeResource.SCP_PRIVATE_KEY] == 'private_key'
-    assert self.config[SCPLargeResource.SCP_PASS_KEY] == 'pass'
+    assert self.config[SCPLargeResource.SCP_USER_KEY] == "username"
+    assert self.config[SCPLargeResource.SCP_PRIVATE_KEY] == "private_key"
+    assert self.config[SCPLargeResource.SCP_PASS_KEY] == "pass"
 
 
-@patch.object(LargeResource, '_download_unarchive', mock_download)
+@patch.object(LargeResource, "_download_unarchive", mock_download)
 def test_download_dataset_using_scp():
     pytest.importorskip("xlrd")
     base = tempfile.mkdtemp()
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", base):
         assert os.path.exists(LargeResource.BASE_RESOURCE_DIR)
 
-        EuroVocLoader(**{
-            SCPLargeResource.SCP_USER_KEY: 'username',
-            SCPLargeResource.SCP_PRIVATE_KEY: 'private_key',
-            SCPLargeResource.SCP_PASS_KEY: 'pass'
-        })
+        EuroVocLoader(
+            **{
+                SCPLargeResource.SCP_USER_KEY: "username",
+                SCPLargeResource.SCP_PRIVATE_KEY: "private_key",
+                SCPLargeResource.SCP_PASS_KEY: "pass",
+            }
+        )
 
 
 def mock_init(*args):
@@ -509,20 +527,26 @@ def mock_load_dataset(*args):
 
 
 def mock_get_default_fields():
-    title = Field(name="title", vocab=Vocab(), tokenizer='split', language="hr",
-                  tokenize=True)
-    text = Field(name="text", vocab=Vocab(keep_freqs=True),
-                 tokenizer='split', tokenize=True)
+    title = Field(
+        name="title", vocab=Vocab(), tokenizer="split", language="hr", tokenize=True
+    )
+    text = Field(
+        name="text", vocab=Vocab(keep_freqs=True), tokenizer="split", tokenize=True
+    )
     labels = MultilabelField(name="eurovoc_labels", vocab=Vocab(specials=()))
     crovoc_labels = MultilabelField(name="crovoc_labels", vocab=Vocab(specials=()))
-    fields = {"title": title, "text": text, "eurovoc_labels": labels,
-              "crovoc_labels": crovoc_labels}
+    fields = {
+        "title": title,
+        "text": text,
+        "eurovoc_labels": labels,
+        "crovoc_labels": crovoc_labels,
+    }
     return fields
 
 
-@patch.object(EuroVocLoader, '__init__', mock_init)
-@patch.object(EuroVocLoader, 'load_dataset', mock_load_dataset)
-@patch.object(EuroVocDataset, 'get_default_fields', mock_get_default_fields)
+@patch.object(EuroVocLoader, "__init__", mock_init)
+@patch.object(EuroVocLoader, "load_dataset", mock_load_dataset)
+@patch.object(EuroVocDataset, "get_default_fields", mock_get_default_fields)
 def test_dill_dataset(tmpdir):
     path = os.path.join(tmpdir, "dataset.dill")
     dill_dataset(path)

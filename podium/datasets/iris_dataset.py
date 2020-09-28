@@ -17,8 +17,7 @@ class IrisDataset(Dataset):
     """
 
     def __init__(self):
-        """Loads the Iris dataset.
-        """
+        """Loads the Iris dataset."""
         x, y = load_iris(return_X_y=True)
 
         fields = IrisDataset._get_default_fields()
@@ -34,22 +33,37 @@ class IrisDataset(Dataset):
         def identity(x):
             return x
 
-        sepal_len_field = Field("sepal_length", tokenize=False,
-                                custom_numericalize=identity,
-                                store_as_raw=True)
-        sepal_width_field = Field("sepal_width", tokenize=False,
-                                  custom_numericalize=identity,
-                                  store_as_raw=True)
-        petal_len_field = Field("petal_length", tokenize=False,
-                                custom_numericalize=identity,
-                                store_as_raw=True)
-        petal_width_field = Field("petal_width", tokenize=False,
-                                  custom_numericalize=identity,
-                                  store_as_raw=True)
+        sepal_len_field = Field(
+            "sepal_length",
+            tokenize=False,
+            custom_numericalize=identity,
+            store_as_raw=True,
+        )
+        sepal_width_field = Field(
+            "sepal_width", tokenize=False, custom_numericalize=identity, store_as_raw=True
+        )
+        petal_len_field = Field(
+            "petal_length",
+            tokenize=False,
+            custom_numericalize=identity,
+            store_as_raw=True,
+        )
+        petal_width_field = Field(
+            "petal_width", tokenize=False, custom_numericalize=identity, store_as_raw=True
+        )
 
-        species_field = Field("species", tokenize=False, store_as_raw=True,
-                              custom_numericalize=identity, is_target=True)
+        species_field = Field(
+            "species",
+            tokenize=False,
+            store_as_raw=True,
+            custom_numericalize=identity,
+            is_target=True,
+        )
 
-        return sepal_len_field, sepal_width_field, \
-            petal_len_field, petal_width_field, \
-            species_field
+        return (
+            sepal_len_field,
+            sepal_width_field,
+            petal_len_field,
+            petal_width_field,
+            species_field,
+        )

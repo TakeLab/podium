@@ -1,8 +1,10 @@
 import os
 import tempfile
+
 import pytest
-from podium.datasets.impl.snli_dataset import SNLISimple
+
 from podium.datasets.dataset import Dataset
+from podium.datasets.impl.snli_dataset import SNLISimple
 from podium.storage.resources.large_resource import LargeResource
 
 
@@ -16,20 +18,28 @@ TRAIN_EXAMPLES_SIMPLE = [
     '{"gold_label": "contradiction", "sentence1": "Fusce '
     'vehicula suscipit diam eu posuere. Aliquam ante diam.", '
     '"sentence2": "Mauris eros libero, mattis quis odio ut, '
-    'dictum consequat lorem."}'
+    'dictum consequat lorem."}',
 ]
 
 EXPECTED_EXAMPLES_SIMPLE = [
-    {"gold_label": "neutral",
-     "sentence1": ("Lorem ipsum dolor sit amet, "
-                   "consectetur adipiscing elit.").split(),
-     "sentence2": ("Vestibulum vehicula, eros at bibendum "
-                   "convallis, nulla eros luctus dui.").split()},
-    {"gold_label": "contradiction",
-     "sentence1": ("Fusce vehicula suscipit diam eu "
-                   "posuere. Aliquam ante diam.").split(),
-     "sentence2": ("Mauris eros libero, mattis quis "
-                   "odio ut, dictum consequat lorem.").split()}
+    {
+        "gold_label": "neutral",
+        "sentence1": (
+            "Lorem ipsum dolor sit amet, " "consectetur adipiscing elit."
+        ).split(),
+        "sentence2": (
+            "Vestibulum vehicula, eros at bibendum " "convallis, nulla eros luctus dui."
+        ).split(),
+    },
+    {
+        "gold_label": "contradiction",
+        "sentence1": (
+            "Fusce vehicula suscipit diam eu " "posuere. Aliquam ante diam."
+        ).split(),
+        "sentence2": (
+            "Mauris eros libero, mattis quis " "odio ut, dictum consequat lorem."
+        ).split(),
+    },
 ]
 
 
@@ -46,7 +56,7 @@ def mock_dataset_path():
 
 
 def create_examples(file_name, raw_examples):
-    with open(file=file_name, mode='w', encoding="utf8") as fpr:
+    with open(file=file_name, mode="w", encoding="utf8") as fpr:
         for example in raw_examples:
             fpr.write(example + "\n")
 
@@ -54,9 +64,11 @@ def create_examples(file_name, raw_examples):
 def test_default_fields():
     fields = SNLISimple.get_default_fields()
     assert len(fields) == 3
-    field_names = [SNLISimple.GOLD_LABEL_FIELD_NAME,
-                   SNLISimple.SENTENCE1_FIELD_NAME,
-                   SNLISimple.SENTENCE2_FIELD_NAME]
+    field_names = [
+        SNLISimple.GOLD_LABEL_FIELD_NAME,
+        SNLISimple.SENTENCE1_FIELD_NAME,
+        SNLISimple.SENTENCE2_FIELD_NAME,
+    ]
     assert all([name in fields for name in field_names])
     # Label field is a target
     assert fields[SNLISimple.GOLD_LABEL_FIELD_NAME].is_target
@@ -71,7 +83,9 @@ def test_load_dataset(mock_dataset_path):
 
     assert len(dataset) == 2
     for ex in dataset:
-        ex_data = {"gold_label": ex.gold_label[0],
-                   "sentence1": ex.sentence1[1],
-                   "sentence2": ex.sentence2[1]}
+        ex_data = {
+            "gold_label": ex.gold_label[0],
+            "sentence1": ex.sentence1[1],
+            "sentence2": ex.sentence2[1],
+        }
         assert ex_data in EXPECTED_EXAMPLES_SIMPLE

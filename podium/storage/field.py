@@ -1,6 +1,6 @@
 """Module contains dataset's field definition and methods for construction."""
-import logging
 import itertools
+import logging
 from collections import deque
 
 import numpy as np
@@ -8,11 +8,11 @@ import numpy as np
 from podium.preproc.tokenizers import get_tokenizer
 from podium.storage.vocab import Vocab
 
+
 _LOGGER = logging.getLogger(__name__)
 
 
 class PretokenizationPipeline:
-
     def __init__(self, hooks=()):
         self.hooks = deque(hooks)
 
@@ -47,8 +47,9 @@ class PosttokenizationPipeline:
         for hook in self.hooks:
             processed_raw, processed_tokenized = hook(processed_raw, processed_tokenized)
 
-        if processed_tokenized is not None \
-                and not isinstance(processed_tokenized, (list, tuple)):
+        if processed_tokenized is not None and not isinstance(
+            processed_tokenized, (list, tuple)
+        ):
             processed_tokenized = list(processed_tokenized)
 
         return processed_raw, processed_tokenized
@@ -65,10 +66,7 @@ class MultioutputField:
     output fields. Output fields are any type of field. The output fields are used only
     for posttokenization processing (posttokenization hooks and vocab updating)."""
 
-    def __init__(self,
-                 output_fields,
-                 tokenizer='split',
-                 language='en'):
+    def __init__(self, output_fields, tokenizer="split", language="en"):
         """Field that does pretokenization and tokenization once and passes it to its
         output fields. Output fields are any type of field. The output fields are used
         only for posttokenization processing (posttokenization hooks and vocab updating).
@@ -171,8 +169,7 @@ class MultioutputField:
         return self.output_fields
 
     def remove_pretokenize_hooks(self):
-        """Remove all the pre-tokenization hooks that were added to the MultioutputField.
-        """
+        """Remove all the pre-tokenization hooks that were added to the MultioutputField."""
         self.pretokenization_pipeline.clear()
 
 
@@ -181,24 +178,25 @@ class Field:
     field of a dataset.
     """
 
-    def __init__(self,
-                 name,
-                 tokenizer='split',
-                 language='en',
-                 vocab=None,
-                 tokenize=True,
-                 store_as_raw=False,
-                 store_as_tokenized=False,
-                 eager=True,
-                 is_numericalizable=True,
-                 custom_numericalize=None,
-                 batch_as_matrix=True,
-                 padding_token=-999,
-                 is_target=False,
-                 fixed_length=None,
-                 allow_missing_data=False,
-                 missing_data_token=-1
-                 ):
+    def __init__(
+        self,
+        name,
+        tokenizer="split",
+        language="en",
+        vocab=None,
+        tokenize=True,
+        store_as_raw=False,
+        store_as_tokenized=False,
+        eager=True,
+        is_numericalizable=True,
+        custom_numericalize=None,
+        batch_as_matrix=True,
+        padding_token=-999,
+        is_target=False,
+        fixed_length=None,
+        allow_missing_data=False,
+        missing_data_token=-1,
+    ):
         """Create a Field from arguments.
 
         Parameters
@@ -308,33 +306,42 @@ class Field:
         self.batch_as_matrix = batch_as_matrix
 
         if store_as_tokenized and tokenize:
-            error_msg = "Store_as_tokenized' and 'tokenize' both set to True." \
-                        " You can either store the data as tokenized, " \
-                        "tokenize it or do neither, but you can't do both."
+            error_msg = (
+                "Store_as_tokenized' and 'tokenize' both set to True."
+                " You can either store the data as tokenized, "
+                "tokenize it or do neither, but you can't do both."
+            )
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
         if not store_as_raw and not tokenize and not store_as_tokenized:
-            error_msg = "At least one of 'store_as_raw', 'tokenize'" \
-                        " or 'store_as_tokenized' must be True." \
-                        " Storing as raw by default for field {}.".format(name)
+            error_msg = (
+                "At least one of 'store_as_raw', 'tokenize'"
+                " or 'store_as_tokenized' must be True."
+                " Storing as raw by default for field {}.".format(name)
+            )
             _LOGGER.error(error_msg)
             # @mttk: This logic seems better as if the latter two are False,
             #        there is no way that you can store data as tokenized.
             store_as_raw = True
 
         if store_as_raw and store_as_tokenized:
-            error_msg = "'store_as_raw' and 'store_as_tokenized' both set to" \
-                        " True. You can't store the same value as raw and as " \
-                        "tokenized. Maybe you wanted to tokenize the raw " \
-                        "data? (the 'tokenize' parameter)"
+            error_msg = (
+                "'store_as_raw' and 'store_as_tokenized' both set to"
+                " True. You can't store the same value as raw and as "
+                "tokenized. Maybe you wanted to tokenize the raw "
+                "data? (the 'tokenize' parameter)"
+            )
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
-        if not is_numericalizable \
-                and (custom_numericalize is not None or vocab is not None):
-            error_msg = "Field that is not numericalizable can't have " \
-                        "custom_numericalize or vocab."
+        if not is_numericalizable and (
+            custom_numericalize is not None or vocab is not None
+        ):
+            error_msg = (
+                "Field that is not numericalizable can't have "
+                "custom_numericalize or vocab."
+            )
 
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
@@ -433,21 +440,21 @@ class Field:
             If field is declared as non numericalizable.
         """
         if not self.is_numericalizable:
-            error_msg = "Field is declared as non numericalizable. Posttokenization " \
-                        "hooks aren't used in such fields."
+            error_msg = (
+                "Field is declared as non numericalizable. Posttokenization "
+                "hooks aren't used in such fields."
+            )
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
         self.posttokenize_pipeline.add_hook(hook)
 
     def remove_pretokenize_hooks(self):
-        """Remove all the pre-tokenization hooks that were added to the Field.
-        """
+        """Remove all the pre-tokenization hooks that were added to the Field."""
         self.pretokenize_pipeline.clear()
 
     def remove_posttokenize_hooks(self):
-        """Remove all the post-tokenization hooks that were added to the Field.
-        """
+        """Remove all the post-tokenization hooks that were added to the Field."""
         self.posttokenize_pipeline.clear()
 
     def _run_pretokenization_hooks(self, data):
@@ -520,7 +527,7 @@ class Field:
                 raise ValueError(error_msg)
 
             else:
-                return (self.name, (None, None)),
+                return ((self.name, (None, None)),)
 
         if self.store_as_tokenized:
             # Store data as tokens
@@ -531,7 +538,7 @@ class Field:
             data = self._run_pretokenization_hooks(data)
             tokens = self.tokenizer(data) if self.tokenize else None
 
-        return self._process_tokens(data, tokens),
+        return (self._process_tokens(data, tokens),)
 
     def update_vocab(self, raw, tokenized):
         """Updates the vocab with a data point in its raw and tokenized form.
@@ -559,8 +566,7 @@ class Field:
         self.vocab += data
 
     def finalize(self):
-        """Signals that this field's vocab can be built.
-        """
+        """Signals that this field's vocab can be built."""
 
         if self.use_vocab:
             self.vocab.finalize()
@@ -685,8 +691,9 @@ class Field:
         else:
             return tokens
 
-    def pad_to_length(self, row, length, custom_pad_symbol=None,
-                      pad_left=False, truncate_left=False):
+    def pad_to_length(
+        self, row, length, custom_pad_symbol=None, pad_left=False, truncate_left=False
+    ):
         """Either pads the given row with pad symbols, or truncates the row
         to be of given length. The vocab provides the pad symbol for all
         fields that have vocabs, otherwise the pad symbol has to be given as
@@ -719,7 +726,7 @@ class Field:
             # truncating
 
             if truncate_left:
-                row = row[len(row) - length:]
+                row = row[len(row) - length :]
             else:
                 row = row[:length]
 
@@ -736,19 +743,18 @@ class Field:
                 pad_symbol = custom_pad_symbol
 
             if pad_symbol is None:
-                error_msg = 'Must provide a custom pad symbol if the ' \
-                            'field has no vocab.'
+                error_msg = (
+                    "Must provide a custom pad symbol if the " "field has no vocab."
+                )
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
             diff = length - len(row)
 
             if pad_left:
-                row = np.pad(row, (diff, 0), 'constant',
-                             constant_values=pad_symbol)
+                row = np.pad(row, (diff, 0), "constant", constant_values=pad_symbol)
             else:
-                row = np.pad(row, (0, diff), 'constant',
-                             constant_values=pad_symbol)
+                row = np.pad(row, (0, diff), "constant", constant_values=pad_symbol)
 
         return row
 
@@ -793,7 +799,7 @@ class Field:
             dataset state dictionary
         """
         state = self.__dict__.copy()
-        del state['tokenizer']
+        del state["tokenizer"]
         return state
 
     def __setstate__(self, state):
@@ -810,7 +816,8 @@ class Field:
 
     def __repr__(self):
         return "{}[name: {}, is_sequential: {}, is_target: {}]".format(
-            self.__class__.__name__, self.name, self.is_sequential, self.is_target)
+            self.__class__.__name__, self.name, self.is_sequential, self.is_target
+        )
 
     def get_output_fields(self):
         """Returns an Iterable of the contained output fields.
@@ -820,45 +827,49 @@ class Field:
         Iterable :
             an Iterable of the contained output fields.
         """
-        return self,
+        return (self,)
 
 
 class LabelField(Field):
-    def __init__(self,
-                 name,
-                 vocab=None,
-                 eager=True,
-                 custom_numericalize=None,
-                 batch_as_matrix=True,
-                 allow_missing_data=False,
-                 missing_data_token=-1,
-                 ):
+    def __init__(
+        self,
+        name,
+        vocab=None,
+        eager=True,
+        custom_numericalize=None,
+        batch_as_matrix=True,
+        allow_missing_data=False,
+        missing_data_token=-1,
+    ):
         if vocab is None and custom_numericalize is None:
             # Default to a vocabulary if custom numericalize is not set
             vocab = Vocab(specials=())
 
         if vocab is not None and vocab.has_specials:
-            error_msg = "Vocab contains special symbols." \
-                        " Vocabs with special symbols cannot be used" \
-                        " with LabelFields."
+            error_msg = (
+                "Vocab contains special symbols."
+                " Vocabs with special symbols cannot be used"
+                " with LabelFields."
+            )
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
-        super().__init__(name,
-                         tokenizer=None,
-                         language=None,
-                         vocab=vocab,
-                         tokenize=False,
-                         store_as_raw=True,
-                         store_as_tokenized=False,
-                         eager=eager,
-                         custom_numericalize=custom_numericalize,
-                         batch_as_matrix=batch_as_matrix,
-                         is_target=True,
-                         fixed_length=1,
-                         allow_missing_data=allow_missing_data,
-                         missing_data_token=missing_data_token
-                         )
+        super().__init__(
+            name,
+            tokenizer=None,
+            language=None,
+            vocab=vocab,
+            tokenize=False,
+            store_as_raw=True,
+            store_as_tokenized=False,
+            eager=eager,
+            custom_numericalize=custom_numericalize,
+            batch_as_matrix=batch_as_matrix,
+            is_target=True,
+            fixed_length=1,
+            allow_missing_data=allow_missing_data,
+            missing_data_token=missing_data_token,
+        )
 
 
 class TokenizedField(Field):
@@ -866,17 +877,19 @@ class TokenizedField(Field):
     numericalization logic for the pre-tokenized dataset fields.
     """
 
-    def __init__(self,
-                 name,
-                 vocab=None,
-                 eager=True,
-                 custom_numericalize=None,
-                 batch_as_matrix=True,
-                 padding_token=-999,
-                 is_target=False,
-                 fixed_length=None,
-                 allow_missing_data=False,
-                 missing_data_token=-1):
+    def __init__(
+        self,
+        name,
+        vocab=None,
+        eager=True,
+        custom_numericalize=None,
+        batch_as_matrix=True,
+        padding_token=-999,
+        is_target=False,
+        fixed_length=None,
+        allow_missing_data=False,
+        missing_data_token=-1,
+    ):
         super().__init__(
             name=name,
             vocab=vocab,
@@ -890,7 +903,7 @@ class TokenizedField(Field):
             is_target=is_target,
             fixed_length=fixed_length,
             allow_missing_data=allow_missing_data,
-            missing_data_token=missing_data_token
+            missing_data_token=missing_data_token,
         )
 
 
@@ -899,15 +912,17 @@ class MultilabelField(TokenizedField):
     Used for multilabeled datasets.
     """
 
-    def __init__(self,
-                 name,
-                 num_of_classes=None,
-                 vocab=None,
-                 eager=True,
-                 custom_numericalize=None,
-                 batch_as_matrix=True,
-                 allow_missing_data=False,
-                 missing_data_token=-1):
+    def __init__(
+        self,
+        name,
+        num_of_classes=None,
+        vocab=None,
+        eager=True,
+        custom_numericalize=None,
+        batch_as_matrix=True,
+        allow_missing_data=False,
+        missing_data_token=-1,
+    ):
         """Create a MultilabelField from arguments.
 
         Parameters
@@ -972,22 +987,26 @@ class MultilabelField(TokenizedField):
         """
 
         if vocab is not None and vocab.has_specials:
-            error_msg = "Vocab contains special symbols." \
-                        " Vocabs with special symbols cannot be used" \
-                        " with multilabel fields."
+            error_msg = (
+                "Vocab contains special symbols."
+                " Vocabs with special symbols cannot be used"
+                " with multilabel fields."
+            )
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
         self.num_of_classes = num_of_classes
-        super().__init__(name,
-                         vocab=vocab,
-                         eager=eager,
-                         custom_numericalize=custom_numericalize,
-                         batch_as_matrix=batch_as_matrix,
-                         is_target=True,
-                         fixed_length=num_of_classes,
-                         allow_missing_data=allow_missing_data,
-                         missing_data_token=missing_data_token)
+        super().__init__(
+            name,
+            vocab=vocab,
+            eager=eager,
+            custom_numericalize=custom_numericalize,
+            batch_as_matrix=batch_as_matrix,
+            is_target=True,
+            fixed_length=num_of_classes,
+            allow_missing_data=allow_missing_data,
+            missing_data_token=missing_data_token,
+        )
 
     def finalize(self):
         super().finalize()
@@ -995,9 +1014,12 @@ class MultilabelField(TokenizedField):
             self.fixed_length = self.num_of_classes = len(self.vocab)
 
         if self.use_vocab and len(self.vocab) > self.num_of_classes:
-            error_msg = "Number of classes in data is greater than the declared number " \
-                        "of classes. Declared: {}, Actual: {}" \
-                .format(self.num_of_classes, len(self.vocab))
+            error_msg = (
+                "Number of classes in data is greater than the declared number "
+                "of classes. Declared: {}, Actual: {}".format(
+                    self.num_of_classes, len(self.vocab)
+                )
+            )
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 

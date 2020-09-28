@@ -1,6 +1,6 @@
 """Module contains simple trainer classes."""
-from podium.models.trainer import AbstractTrainer
 from podium.datasets import Iterator
+from podium.models.trainer import AbstractTrainer
 
 
 class SimpleTrainer(AbstractTrainer):
@@ -14,13 +14,15 @@ class SimpleTrainer(AbstractTrainer):
 
     MAX_EPOCH_KEY = "max_epoch"
 
-    def train(self,
-              model,
-              dataset,
-              feature_transformer,
-              label_transform_fun,
-              max_epoch,
-              iterator=None):
+    def train(
+        self,
+        model,
+        dataset,
+        feature_transformer,
+        label_transform_fun,
+        max_epoch,
+        iterator=None,
+    ):
 
         if iterator is None:
             iterator = Iterator()
@@ -40,6 +42,7 @@ class SimpleTrainer(AbstractTrainer):
             training parameters
         """
         if self.MAX_EPOCH_KEY not in kwargs:
-            raise ValueError("Missing training parameter: {} "
-                             "(used for determining stop criterion)"
-                             .format(self.MAX_EPOCH_KEY))
+            raise ValueError(
+                "Missing training parameter: {} "
+                "(used for determining stop criterion)".format(self.MAX_EPOCH_KEY)
+            )

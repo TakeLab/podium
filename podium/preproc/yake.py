@@ -1,30 +1,35 @@
 """This module contains wrapper for Yet Another Keyword Extractor library."""
 import logging
 
+
 _LOGGER = logging.getLogger(__name__)
 
 try:
     import yake
 except ImportError as e:
-    _LOGGER.error("Problem occured while trying to import yake. "
-                  "If the library is not installed visit "
-                  "https://github.com/LIAAD/yake for more details.")
+    _LOGGER.error(
+        "Problem occured while trying to import yake. "
+        "If the library is not installed visit "
+        "https://github.com/LIAAD/yake for more details."
+    )
     raise e
 
 
 class YAKE:
     """Yet Another Keyword Extractor is an unsupervised, corpus-independent, and
-       domain and language independent keyword extraction algorithm for extraction from
-       single documents. This class is a wrapper of the official implementation available
-       at https://github.com/LIAAD/yake."""
+    domain and language independent keyword extraction algorithm for extraction from
+    single documents. This class is a wrapper of the official implementation available
+    at https://github.com/LIAAD/yake."""
 
-    def __init__(self,
-                 lan: str = "en",
-                 n: int = 3,
-                 dedupLim: float = 0.9,
-                 dedupFunc: str = 'seqm',
-                 windowsSize: int = 1,
-                 top: int = 20):
+    def __init__(
+        self,
+        lan: str = "en",
+        n: int = 3,
+        dedupLim: float = 0.9,
+        dedupFunc: str = "seqm",
+        windowsSize: int = 1,
+        top: int = 20,
+    ):
         """Constructor that initializes YAKE.
 
         Parameters
@@ -43,17 +48,18 @@ class YAKE:
             max number of keyphrases to extract
         """
 
-        self._kw_extractor = yake.KeywordExtractor(lan=lan,
-                                                   n=n,
-                                                   dedupLim=dedupLim,
-                                                   dedupFunc=dedupFunc,
-                                                   windowsSize=windowsSize,
-                                                   top=top,
-                                                   features=None)  # features dict
+        self._kw_extractor = yake.KeywordExtractor(
+            lan=lan,
+            n=n,
+            dedupLim=dedupLim,
+            dedupFunc=dedupFunc,
+            windowsSize=windowsSize,
+            top=top,
+            features=None,
+        )  # features dict
 
     def __call__(self, string):
-        """Extracts keywords from the string. See transform function for details.
-        """
+        """Extracts keywords from the string. See transform function for details."""
         return self.transform(string)
 
     def transform(self, string):

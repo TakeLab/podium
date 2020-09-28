@@ -1,10 +1,10 @@
 """Module contains Croatian NER dataset."""
-from podium.datasets.dataset import Dataset
-from podium.storage.field import TokenizedField
-from podium.storage import ExampleFactory
-from podium.storage.vocab import Vocab
-from podium.storage.resources.large_resource import LargeResource
 from podium.dataload.ner_croatian import NERCroatianXMLLoader
+from podium.datasets.dataset import Dataset
+from podium.storage import ExampleFactory
+from podium.storage.field import TokenizedField
+from podium.storage.resources.large_resource import LargeResource
+from podium.storage.vocab import Vocab
 
 
 class CroatianNERDataset(Dataset):
@@ -39,8 +39,7 @@ class CroatianNERDataset(Dataset):
         for document in tokenized_documents:
             for line in document:
                 if _is_delimiter_line(line):
-                    examples.append(
-                        example_factory.from_list((tokens, labels)))
+                    examples.append(example_factory.from_list((tokens, labels)))
                     tokens = []
                     labels = []
                 else:
@@ -51,7 +50,7 @@ class CroatianNERDataset(Dataset):
         super().__init__(examples, fields)
 
     @classmethod
-    def get_dataset(cls, tokenizer='split', tag_schema='IOB', fields=None, **kwargs):
+    def get_dataset(cls, tokenizer="split", tag_schema="IOB", fields=None, **kwargs):
         """Method downloads (if necessary) and loads the dataset.
 
         Parameters
@@ -95,8 +94,9 @@ class CroatianNERDataset(Dataset):
 
         path = LargeResource.BASE_RESOURCE_DIR
 
-        ner_croatian_xml_loader = NERCroatianXMLLoader(path, tokenizer,
-                                                       tag_schema, **kwargs)
+        ner_croatian_xml_loader = NERCroatianXMLLoader(
+            path, tokenizer, tag_schema, **kwargs
+        )
         tokenized_documents = ner_croatian_xml_loader.load_dataset()
 
         ner_dataset = cls(tokenized_documents, fields.values())

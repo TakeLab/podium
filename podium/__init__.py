@@ -5,27 +5,33 @@ GitHub repository: https://github.com/FilipBolt/takepod
 """
 import logging
 import logging.config
-from . import dataload
-from . import datasets
-from . import metrics
-from . import models
-from . import preproc
-from . import storage
-from . import validation
-from . import model_selection
-from . import pipeline
+
+from . import (
+    dataload,
+    datasets,
+    metrics,
+    model_selection,
+    models,
+    pipeline,
+    preproc,
+    storage,
+    validation,
+)
+
 
 __name__ = "podium"
 
-__all__ = ["dataload",
-           "datasets",
-           "metrics",
-           "models",
-           "preproc",
-           "storage",
-           "validation",
-           "model_selection",
-           "pipeline"]
+__all__ = [
+    "dataload",
+    "datasets",
+    "metrics",
+    "models",
+    "preproc",
+    "storage",
+    "validation",
+    "model_selection",
+    "pipeline",
+]
 
 
 # Reference for initialization of logging scikit-learn

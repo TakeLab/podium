@@ -1,9 +1,10 @@
-import os
 import csv
 import logging
+import os
 
 from podium.datasets.dataset import Dataset
 from podium.storage.example_factory import ExampleFactory
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -13,8 +14,9 @@ class TabularDataset(Dataset):
     each row of the file is a single example.
     """
 
-    def __init__(self, path, format, fields, skip_header=False,
-                 csv_reader_params={}, **kwargs):
+    def __init__(
+        self, path, format, fields, skip_header=False, csv_reader_params={}, **kwargs
+    ):
         """Creates a TabularDataset from a file containing the data rows and an
         object containing all the fields that we are interested in.
 
@@ -67,10 +69,9 @@ class TabularDataset(Dataset):
         format = format.lower()
 
         with open(os.path.expanduser(path), encoding="utf8") as f:
-            if format in {'csv', 'tsv'}:
-                delimiter = ',' if format == "csv" else '\t'
-                reader = csv.reader(f, delimiter=delimiter,
-                                    **csv_reader_params)
+            if format in {"csv", "tsv"}:
+                delimiter = "," if format == "csv" else "\t"
+                reader = csv.reader(f, delimiter=delimiter, **csv_reader_params)
             elif format == "json":
                 reader = f
             else:
@@ -124,9 +125,11 @@ def create_examples(reader, format, fields, skip_header):
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
         elif format in {"csv", "tsv"} and isinstance(fields, dict):
-            error_msg = "When using a dict to specify fields with a {}" \
-                " file, skip_header must be False and the file must " \
+            error_msg = (
+                "When using a dict to specify fields with a {}"
+                " file, skip_header must be False and the file must "
                 "have a header.".format(format)
+            )
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
@@ -148,7 +151,7 @@ def create_examples(reader, format, fields, skip_header):
     make_example_function = {
         "json": example_factory.from_json,
         "csv": example_factory.from_list,
-        "tsv": example_factory.from_list
+        "tsv": example_factory.from_list,
     }
 
     make_example = make_example_function[format]

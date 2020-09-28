@@ -1,17 +1,18 @@
 import random
 
 import numpy as np
-
 import pytest
 
-from podium.datasets.iterator import (Iterator, BucketIterator,
-                                      HierarchicalDatasetIterator)
-from podium.datasets.hierarhical_dataset import HierarchicalDataset
-from podium.storage import Field, ExampleFactory, Vocab
 from podium.datasets import Dataset
+from podium.datasets.hierarhical_dataset import HierarchicalDataset
+from podium.datasets.iterator import BucketIterator, HierarchicalDatasetIterator, Iterator
+from podium.storage import ExampleFactory, Field, Vocab
 
 from .conftest import (
-    create_tabular_dataset_from_json, tabular_dataset_fields, TABULAR_TEXT)
+    TABULAR_TEXT,
+    create_tabular_dataset_from_json,
+    tabular_dataset_fields,
+)
 
 
 @pytest.mark.parametrize(
@@ -24,7 +25,7 @@ from .conftest import (
         (6, 2),
         (7, 1),
         (10, 1),
-    ]
+    ],
 )
 @pytest.mark.usefixtures("tabular_dataset")
 def test_len(batch_size, expected_len, tabular_dataset):
@@ -37,19 +38,12 @@ def test_len(batch_size, expected_len, tabular_dataset):
 
 @pytest.mark.parametrize(
     "fixed_length, expected_shape",
-    [
-        (None, (7, 6)),
-        (1, (7, 1)),
-        (3, (7, 3)),
-        (5, (7, 5)),
-        (7, (7, 7))
-    ]
+    [(None, (7, 6)), (1, (7, 1)), (3, (7, 3)), (5, (7, 5)), (7, (7, 7))],
 )
 @pytest.mark.usefixtures("json_file_path")
 def test_padding(fixed_length, expected_shape, json_file_path):
     fields = tabular_dataset_fields(fixed_length=fixed_length)
-    ds = create_tabular_dataset_from_json(fields=fields,
-                                          json_file_path=json_file_path)
+    ds = create_tabular_dataset_from_json(fields=fields, json_file_path=json_file_path)
 
     batch_size = 7
     ds.finalize_fields()
@@ -100,13 +94,13 @@ def test_create_batch(tabular_dataset):
 
     tabular_dataset.finalize_fields()
     batch_size = 2
-    iterator = Iterator(dataset=tabular_dataset, batch_size=batch_size,
-                        shuffle=False)
+    iterator = Iterator(dataset=tabular_dataset, batch_size=batch_size, shuffle=False)
 
     iter_len = len(iterator)
     assert iter_len == 4
     for i, ((x_batch, y_batch), expected_row_length) in enumerate(
-            zip(iterator, expected_row_lengths)):
+        zip(iterator, expected_row_lengths)
+    ):
         assert hasattr(x_batch, "text") and not hasattr(x_batch, "rating")
         assert hasattr(y_batch, "rating") and not hasattr(y_batch, "text")
 
@@ -124,7 +118,6 @@ def test_create_batch(tabular_dataset):
 @pytest.mark.usefixtures("json_file_path")
 def test_not_numericalizable_field(json_file_path):
     class MockCustomDataClass:
-
         def __init__(self, data):
             self.data = data
 
@@ -132,14 +125,16 @@ def test_not_numericalizable_field(json_file_path):
         return MockCustomDataClass(data)
 
     fields = tabular_dataset_fields()
-    text_field = fields['text_with_missing_data']
-    non_numericalizable_field = Field("non_numericalizable_field",
-                                      tokenizer=custom_datatype_tokenizer,
-                                      is_numericalizable=False,
-                                      allow_missing_data=True,
-                                      store_as_raw=True)
+    text_field = fields["text_with_missing_data"]
+    non_numericalizable_field = Field(
+        "non_numericalizable_field",
+        tokenizer=custom_datatype_tokenizer,
+        is_numericalizable=False,
+        allow_missing_data=True,
+        store_as_raw=True,
+    )
 
-    fields['text_with_missing_data'] = (text_field, non_numericalizable_field)
+    fields["text_with_missing_data"] = (text_field, non_numericalizable_field)
 
     dataset = create_tabular_dataset_from_json(fields, json_file_path)
     dataset.finalize_fields()
@@ -147,7 +142,7 @@ def test_not_numericalizable_field(json_file_path):
     for x_batch, _ in Iterator(dataset, batch_size=len(dataset), shuffle=False):
         assert isinstance(x_batch.non_numericalizable_field, (list, tuple))
         for i, batch_data, real_data in zip(
-                range(len(dataset)), x_batch.non_numericalizable_field, TABULAR_TEXT
+            range(len(dataset)), x_batch.non_numericalizable_field, TABULAR_TEXT
         ):
             if i == 3:
                 assert batch_data is None
@@ -190,13 +185,13 @@ def test_sort_key(tabular_dataset):
         else:
             return len(tokens)
 
-    iterator = Iterator(dataset=tabular_dataset, batch_size=2,
-                        sort_key=text_len_sort_key, shuffle=False)
+    iterator = Iterator(
+        dataset=tabular_dataset, batch_size=2, sort_key=text_len_sort_key, shuffle=False
+    )
 
     expected_row_lengths = [1, 3, 4, 6]
 
-    for (x_batch, _), expected_row_length in zip(iterator,
-                                                 expected_row_lengths):
+    for (x_batch, _), expected_row_length in zip(iterator, expected_row_lengths):
         assert x_batch.text.shape[1] == expected_row_length
 
 
@@ -208,25 +203,29 @@ def test_sort_key(tabular_dataset):
         (1, 1, 3, 3, True),  # expect identical behaviour only in the case of
         # same seeds and same number of epochs elapsed
         (1, 1, 3, 4, False),
-    ]
+    ],
 )
 @pytest.mark.usefixtures("tabular_dataset")
-def test_shuffle_deterministic_sequence(seed_1, seed_2, num_epochs_1,
-                                        num_epochs_2,
-                                        expect_identical_behaviour,
-                                        tabular_dataset):
+def test_shuffle_deterministic_sequence(
+    seed_1,
+    seed_2,
+    num_epochs_1,
+    num_epochs_2,
+    expect_identical_behaviour,
+    tabular_dataset,
+):
     tabular_dataset.finalize_fields()
 
     random.seed(42)  # internal random state independent from global seed
 
-    iterator = Iterator(dataset=tabular_dataset, batch_size=2, shuffle=True,
-                        seed=seed_1)
+    iterator = Iterator(dataset=tabular_dataset, batch_size=2, shuffle=True, seed=seed_1)
     run_n_epochs(iterator, num_epochs_1)  # iterate for num_epochs_1 epochs
 
     random.seed(43)  # internal random state independent from global seed
 
-    iterator_2 = Iterator(dataset=tabular_dataset, batch_size=2, shuffle=True,
-                          seed=seed_2)
+    iterator_2 = Iterator(
+        dataset=tabular_dataset, batch_size=2, shuffle=True, seed=seed_2
+    )
     run_n_epochs(iterator_2, num_epochs_2)  # iterate for num_epochs_2 epochs
 
     random.seed(44)  # internal random state independent from global seed
@@ -255,8 +254,9 @@ def test_shuffle_random_state(tabular_dataset):
     random.seed(6)  # internal random state independent from global seed
 
     # initialize second iterator with the state
-    iterator_2 = Iterator(dataset=tabular_dataset, batch_size=2, shuffle=True,
-                          internal_random_state=state)
+    iterator_2 = Iterator(
+        dataset=tabular_dataset, batch_size=2, shuffle=True, internal_random_state=state
+    )
 
     # run both iterators for 2 epochs
     run_n_epochs(iterator, 2)
@@ -267,8 +267,7 @@ def test_shuffle_random_state(tabular_dataset):
     assert iterators_behave_identically(iterator, iterator_2)
 
     iterator_3 = Iterator(dataset=tabular_dataset, batch_size=2, shuffle=True)
-    iterator_3.set_internal_random_state(
-        iterator_2.get_internal_random_state())
+    iterator_3.set_internal_random_state(iterator_2.get_internal_random_state())
 
     # the iterators should behave identically
     assert iterators_behave_identically(iterator_2, iterator_3)
@@ -279,8 +278,13 @@ def test_shuffle_no_seed_or_state_exception(tabular_dataset):
     tabular_dataset.finalize_fields()
 
     with pytest.raises(ValueError):
-        Iterator(dataset=tabular_dataset, batch_size=2, shuffle=True, seed=None,
-                 internal_random_state=None)
+        Iterator(
+            dataset=tabular_dataset,
+            batch_size=2,
+            shuffle=True,
+            seed=None,
+            internal_random_state=None,
+        )
 
 
 @pytest.mark.usefixtures("tabular_dataset")
@@ -310,13 +314,15 @@ def text_len_key(example):
 def test_iterator_missing_data_in_batch(json_file_path):
     missing_data_default_value = -99
     fields = tabular_dataset_fields()
-    missing_value_field = Field("missing_value_field",
-                                tokenizer="split",
-                                vocab=Vocab(),
-                                allow_missing_data=True,
-                                store_as_raw=True,
-                                missing_data_token=missing_data_default_value)
-    fields['text_with_missing_data'] = missing_value_field
+    missing_value_field = Field(
+        "missing_value_field",
+        tokenizer="split",
+        vocab=Vocab(),
+        allow_missing_data=True,
+        store_as_raw=True,
+        missing_data_token=missing_data_default_value,
+    )
+    fields["text_with_missing_data"] = missing_value_field
     ds = create_tabular_dataset_from_json(fields, json_file_path)
 
     for x_batch, _ in Iterator(ds, batch_size=len(ds), shuffle=False):
@@ -331,20 +337,23 @@ def test_iterator_missing_data_in_batch(json_file_path):
         # effectively, no look-ahead
         (1, [3, 4, 3, 6], text_len_key, None),
         (2, [1, 4, 3, 6], text_len_key, None),
-
         # effectively, sort the whole dataset
         (4, [1, 3, 4, 6], text_len_key, None),
         (8, [1, 3, 4, 6], text_len_key, None),
-
         # if sort_key is set, the whole dataset is sorted
         (1, [1, 3, 4, 6], None, text_len_key),
         (2, [1, 3, 4, 6], None, text_len_key),
         (4, [1, 3, 4, 6], None, text_len_key),
-    ]
+    ],
 )
 @pytest.mark.usefixtures("tabular_dataset")
-def test_bucket_iterator(look_ahead_multiplier, expected_row_lengths,
-                         bucket_sort_key, sort_key, tabular_dataset):
+def test_bucket_iterator(
+    look_ahead_multiplier,
+    expected_row_lengths,
+    bucket_sort_key,
+    sort_key,
+    tabular_dataset,
+):
     tabular_dataset.finalize_fields()
 
     iterator = BucketIterator(
@@ -353,11 +362,10 @@ def test_bucket_iterator(look_ahead_multiplier, expected_row_lengths,
         shuffle=False,
         sort_key=sort_key,
         bucket_sort_key=bucket_sort_key,
-        look_ahead_multiplier=look_ahead_multiplier
+        look_ahead_multiplier=look_ahead_multiplier,
     )
 
-    for (x_batch, _), expected_row_length in zip(iterator,
-                                                 expected_row_lengths):
+    for (x_batch, _), expected_row_length in zip(iterator, expected_row_lengths):
         assert x_batch.text.shape[1] == expected_row_length
 
 
@@ -366,8 +374,13 @@ def test_bucket_iterator_exception(tabular_dataset):
     tabular_dataset.finalize_fields()
 
     with pytest.raises(ValueError):
-        BucketIterator(dataset=tabular_dataset, batch_size=2, sort_key=None,
-                       bucket_sort_key=None, look_ahead_multiplier=2)
+        BucketIterator(
+            dataset=tabular_dataset,
+            batch_size=2,
+            sort_key=None,
+            bucket_sort_key=None,
+            look_ahead_multiplier=2,
+        )
 
 
 @pytest.mark.usefixtures("tabular_dataset")
@@ -375,8 +388,11 @@ def test_bucket_iterator_no_dataset_on_init(tabular_dataset):
     tabular_dataset.finalize_fields()
 
     bi = BucketIterator(
-        dataset=None, batch_size=2, sort_key=None,
-        bucket_sort_key=text_len_key, look_ahead_multiplier=2
+        dataset=None,
+        batch_size=2,
+        sort_key=None,
+        bucket_sort_key=text_len_key,
+        look_ahead_multiplier=2,
     )
     # since no dataset is set, one can not iterate
     with pytest.raises(TypeError):
@@ -389,8 +405,11 @@ def test_bucket_iterator_set_dataset_on_init(tabular_dataset):
     tabular_dataset.finalize_fields()
 
     bi = BucketIterator(
-        dataset=None, batch_size=2, sort_key=None,
-        bucket_sort_key=text_len_key, look_ahead_multiplier=2
+        dataset=None,
+        batch_size=2,
+        sort_key=None,
+        bucket_sort_key=text_len_key,
+        look_ahead_multiplier=2,
     )
     # setting dataset
     bi.set_dataset(tabular_dataset)
@@ -402,8 +421,9 @@ def test_bucket_iterator_set_dataset_on_init(tabular_dataset):
 
 def test_iterator_batch_as_list():
     raw_dataset = [("1 2 3 4",), ("2 3 4",), ("3 4",)]
-    field = Field("test_field", custom_numericalize=int,
-                  tokenizer='split', batch_as_matrix=False)
+    field = Field(
+        "test_field", custom_numericalize=int, tokenizer="split", batch_as_matrix=False
+    )
     fields = (field,)
     ef = ExampleFactory(fields)
     examples = list(map(ef.from_list, raw_dataset))
@@ -425,8 +445,7 @@ def test_iterator_batch_as_list():
 def iterators_behave_identically(iterator_1, iterator_2):
     all_equal = True
 
-    for (x_batch_1, y_batch_1), (x_batch_2, y_batch_2) in zip(iterator_1,
-                                                              iterator_2):
+    for (x_batch_1, y_batch_1), (x_batch_2, y_batch_2) in zip(iterator_1, iterator_2):
 
         x_equal = np.array_equal(x_batch_1.text, x_batch_2.text)
         y_equal = np.array_equal(y_batch_1.rating, y_batch_2.rating)
@@ -451,13 +470,11 @@ def run_n_epochs(iterator, num_epochs):
 @pytest.fixture
 def hierarchical_dataset_fields():
     name_field = Field(name="name", store_as_raw=True, tokenize=False, vocab=Vocab())
-    number_field = Field(name="number", store_as_raw=True, tokenize=False,
-                         custom_numericalize=int)
+    number_field = Field(
+        name="number", store_as_raw=True, tokenize=False, custom_numericalize=int
+    )
 
-    fields = {
-        "name": name_field,
-        "number": number_field
-    }
+    fields = {"name": name_field, "number": number_field}
     return fields
 
 
@@ -468,9 +485,11 @@ def hierarchical_dataset_parser():
 
 @pytest.fixture
 def hierarchical_dataset(hierarchical_dataset_fields, hierarchical_dataset_parser):
-    dataset = HierarchicalDataset.from_json(HIERARCHIAL_DATASET_JSON_EXAMPLE,
-                                            hierarchical_dataset_fields,
-                                            hierarchical_dataset_parser)
+    dataset = HierarchicalDataset.from_json(
+        HIERARCHIAL_DATASET_JSON_EXAMPLE,
+        hierarchical_dataset_fields,
+        hierarchical_dataset_parser,
+    )
     dataset.finalize_fields()
     return dataset
 
@@ -506,8 +525,9 @@ def test_hierarchical_dataset_iteration(hierarchical_dataset):
 
 
 def test_hierarchical_dataset_iteration_with_depth_limitation(hierarchical_dataset):
-    hit = HierarchicalDatasetIterator(dataset=hierarchical_dataset, batch_size=20,
-                                      context_max_depth=0)
+    hit = HierarchicalDatasetIterator(
+        dataset=hierarchical_dataset, batch_size=20, context_max_depth=0
+    )
     batch_iter = hit.__iter__()
 
     input_batch, _ = batch_iter.__next__()
@@ -522,8 +542,9 @@ def test_hierarchial_dataset_iterator_numericalization_caching(hierarchical_data
             assert getattr(example, "{}_".format(field.name)) is None
 
     # Run one epoch to cause lazy numericalization
-    hit = HierarchicalDatasetIterator(dataset=hierarchical_dataset, batch_size=20,
-                                      context_max_depth=2)
+    hit = HierarchicalDatasetIterator(
+        dataset=hierarchical_dataset, batch_size=20, context_max_depth=2
+    )
     for _ in hit:
         pass
 
@@ -538,20 +559,14 @@ def test_hierarchial_dataset_iterator_numericalization_caching(hierarchical_data
 
 
 def test_hierarchical_no_dataset_set():
-    hi = HierarchicalDatasetIterator(
-        batch_size=20,
-        context_max_depth=2
-    )
+    hi = HierarchicalDatasetIterator(batch_size=20, context_max_depth=2)
     with pytest.raises(AttributeError):
         for b in hi:
             pass
 
 
 def test_hierarchical_set_dataset_after(hierarchical_dataset):
-    hi = HierarchicalDatasetIterator(
-        batch_size=20,
-        context_max_depth=2
-    )
+    hi = HierarchicalDatasetIterator(batch_size=20, context_max_depth=2)
     hi.set_dataset(hierarchical_dataset)
     for b in hi:
         pass

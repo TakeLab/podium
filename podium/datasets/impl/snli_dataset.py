@@ -7,8 +7,15 @@ import logging
 import os
 
 from podium.datasets import Dataset
-from podium.storage import LargeResource, ExampleFactory, Field, \
-    Vocab, LabelField, TokenizedField
+from podium.storage import (
+    ExampleFactory,
+    Field,
+    LabelField,
+    LargeResource,
+    TokenizedField,
+    Vocab,
+)
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,6 +50,7 @@ class SNLISimple(Dataset):
     SENTENCE2_FIELD_NAME : str
         Name of the field containing sentence2
     """
+
     NAME = "snli_1.0"
     URL = "https://nlp.stanford.edu/projects/snli/snli_1.0.zip"
     DATASET_DIR = "snli_1.0"
@@ -67,14 +75,15 @@ class SNLISimple(Dataset):
         fields : dict(str, Field)
             A dictionary that maps field names to Field objects.
         """
-        LargeResource(**{
-            LargeResource.RESOURCE_NAME: SNLISimple.NAME,
-            LargeResource.ARCHIVE: SNLISimple.ARCHIVE_TYPE,
-            LargeResource.URI: SNLISimple.URL
-        })
+        LargeResource(
+            **{
+                LargeResource.RESOURCE_NAME: SNLISimple.NAME,
+                LargeResource.ARCHIVE: SNLISimple.ARCHIVE_TYPE,
+                LargeResource.URI: SNLISimple.URL,
+            }
+        )
         examples = self._create_examples(file_path, fields)
-        super(SNLISimple, self).__init__(
-            **{"examples": examples, "fields": fields})
+        super(SNLISimple, self).__init__(**{"examples": examples, "fields": fields})
 
     @staticmethod
     def _create_examples(file_path, fields):
@@ -99,7 +108,7 @@ class SNLISimple(Dataset):
         examples = []
 
         _LOGGER.debug("Loading dataset from file {}".format(file_path))
-        with open(file=file_path, encoding='utf8') as in_file:
+        with open(file=file_path, encoding="utf8") as in_file:
             for line in in_file:
                 examples.append(example_factory.from_json(line))
         return examples
@@ -123,18 +132,24 @@ class SNLISimple(Dataset):
         (train_dataset, test_dataset, dev_dataset) : (Dataset, Dataset, Dataset)
             A tuple containing train, test and dev Datasets respectively.
         """
-        data_location = os.path.join(LargeResource.BASE_RESOURCE_DIR,
-                                     SNLISimple.DATASET_DIR)
+        data_location = os.path.join(
+            LargeResource.BASE_RESOURCE_DIR, SNLISimple.DATASET_DIR
+        )
 
         if not fields:
             fields = SNLISimple.get_default_fields()
 
-        train_dataset = SNLISimple(file_path=os.path.join(
-            data_location, SNLISimple.TRAIN_FILE_NAME), fields=fields)
-        test_dataset = SNLISimple(file_path=os.path.join(
-            data_location, SNLISimple.TEST_FILE_NAME), fields=fields)
-        dev_dataset = SNLISimple(file_path=os.path.join(
-            data_location, SNLISimple.DEV_FILE_NAME), fields=fields)
+        train_dataset = SNLISimple(
+            file_path=os.path.join(data_location, SNLISimple.TRAIN_FILE_NAME),
+            fields=fields,
+        )
+        test_dataset = SNLISimple(
+            file_path=os.path.join(data_location, SNLISimple.TEST_FILE_NAME),
+            fields=fields,
+        )
+        dev_dataset = SNLISimple(
+            file_path=os.path.join(data_location, SNLISimple.DEV_FILE_NAME), fields=fields
+        )
 
         # It is enough to finalize the fields once
         train_dataset.finalize_fields()
@@ -152,16 +167,29 @@ class SNLISimple(Dataset):
             Dictionary mapping field names to respective Fields.
         """
 
-        gold_label = LabelField(name=SNLISimple.GOLD_LABEL_FIELD_NAME,
-                                vocab=Vocab(specials=()))
+        gold_label = LabelField(
+            name=SNLISimple.GOLD_LABEL_FIELD_NAME, vocab=Vocab(specials=())
+        )
         sentence_vocab = Vocab()
-        sentence1 = Field(name=SNLISimple.SENTENCE1_FIELD_NAME, vocab=sentence_vocab,
-                          tokenizer="split", tokenize=True, store_as_raw=False)
-        sentence2 = Field(name=SNLISimple.SENTENCE2_FIELD_NAME, vocab=sentence_vocab,
-                          tokenizer="split", tokenize=True, store_as_raw=False)
-        fields = {SNLISimple.GOLD_LABEL_FIELD_NAME: gold_label,
-                  SNLISimple.SENTENCE1_FIELD_NAME: sentence1,
-                  SNLISimple.SENTENCE2_FIELD_NAME: sentence2}
+        sentence1 = Field(
+            name=SNLISimple.SENTENCE1_FIELD_NAME,
+            vocab=sentence_vocab,
+            tokenizer="split",
+            tokenize=True,
+            store_as_raw=False,
+        )
+        sentence2 = Field(
+            name=SNLISimple.SENTENCE2_FIELD_NAME,
+            vocab=sentence_vocab,
+            tokenizer="split",
+            tokenize=True,
+            store_as_raw=False,
+        )
+        fields = {
+            SNLISimple.GOLD_LABEL_FIELD_NAME: gold_label,
+            SNLISimple.SENTENCE1_FIELD_NAME: sentence1,
+            SNLISimple.SENTENCE2_FIELD_NAME: sentence2,
+        }
         return fields
 
 
@@ -174,12 +202,14 @@ class _TreeFactory:
         try:
             from nltk import Tree
         except ImportError:
-            _LOGGER.debug("Problem occurred while trying to import nltk. "
-                          "If the library is not installed visit "
-                          "https://www.nltk.org/ for more details.")
+            _LOGGER.debug(
+                "Problem occurred while trying to import nltk. "
+                "If the library is not installed visit "
+                "https://www.nltk.org/ for more details."
+            )
 
-        if text[0] != '(':
-            text = '(' + text + ')'
+        if text[0] != "(":
+            text = "(" + text + ")"
         return Tree.fromstring(text)
 
 
@@ -228,6 +258,7 @@ class SNLIDataset(SNLISimple):
     SENTENCE2_BINARY_PARSE_FIELD_NAME : str
         Name of the field containing sentence2 binary parse
     """
+
     ANNOTATOR_LABELS_FIELD_NAME = "annotator_labels"
     CAPTION_ID_FIELD_NAME = "captionID"
     GOLD_LABEL_FIELD_NAME = "gold_label"
@@ -266,46 +297,61 @@ class SNLIDataset(SNLISimple):
 
         tree_factory = _TreeFactory()
         fields = SNLISimple.get_default_fields()
-        annotator_labels = TokenizedField(name=SNLIDataset.ANNOTATOR_LABELS_FIELD_NAME,
-                                          vocab=Vocab(specials=()))
-        captionID = Field(name=SNLIDataset.CAPTION_ID_FIELD_NAME,
-                          tokenizer=lambda x: x,
-                          tokenize=True,
-                          store_as_raw=False,
-                          is_numericalizable=False)
-        pairID = Field(name=SNLIDataset.PAIR_ID_FIELD_NAME,
-                       tokenizer=lambda x: x,
-                       tokenize=True,
-                       store_as_raw=False,
-                       is_numericalizable=False)
-        sentence1_parse = Field(name=SNLIDataset.SENTENCE1_PARSE_FIELD_NAME,
-                                tokenize=True,
-                                tokenizer=tree_factory,
-                                is_numericalizable=False,
-                                store_as_raw=False)
-        sentence1_binary_parse = Field(name=SNLIDataset.SENTENCE1_BINARY_PARSE_FIELD_NAME,
-                                       tokenizer=tree_factory,
-                                       tokenize=True,
-                                       is_numericalizable=False,
-                                       store_as_raw=False)
-        sentence2_parse = Field(name=SNLIDataset.SENTENCE2_PARSE_FIELD_NAME,
-                                tokenizer=tree_factory,
-                                tokenize=True,
-                                is_numericalizable=False,
-                                store_as_raw=False)
-        sentence2_binary_parse = Field(name=SNLIDataset.SENTENCE2_BINARY_PARSE_FIELD_NAME,
-                                       tokenizer=tree_factory,
-                                       tokenize=True,
-                                       is_numericalizable=False,
-                                       store_as_raw=False)
+        annotator_labels = TokenizedField(
+            name=SNLIDataset.ANNOTATOR_LABELS_FIELD_NAME, vocab=Vocab(specials=())
+        )
+        captionID = Field(
+            name=SNLIDataset.CAPTION_ID_FIELD_NAME,
+            tokenizer=lambda x: x,
+            tokenize=True,
+            store_as_raw=False,
+            is_numericalizable=False,
+        )
+        pairID = Field(
+            name=SNLIDataset.PAIR_ID_FIELD_NAME,
+            tokenizer=lambda x: x,
+            tokenize=True,
+            store_as_raw=False,
+            is_numericalizable=False,
+        )
+        sentence1_parse = Field(
+            name=SNLIDataset.SENTENCE1_PARSE_FIELD_NAME,
+            tokenize=True,
+            tokenizer=tree_factory,
+            is_numericalizable=False,
+            store_as_raw=False,
+        )
+        sentence1_binary_parse = Field(
+            name=SNLIDataset.SENTENCE1_BINARY_PARSE_FIELD_NAME,
+            tokenizer=tree_factory,
+            tokenize=True,
+            is_numericalizable=False,
+            store_as_raw=False,
+        )
+        sentence2_parse = Field(
+            name=SNLIDataset.SENTENCE2_PARSE_FIELD_NAME,
+            tokenizer=tree_factory,
+            tokenize=True,
+            is_numericalizable=False,
+            store_as_raw=False,
+        )
+        sentence2_binary_parse = Field(
+            name=SNLIDataset.SENTENCE2_BINARY_PARSE_FIELD_NAME,
+            tokenizer=tree_factory,
+            tokenize=True,
+            is_numericalizable=False,
+            store_as_raw=False,
+        )
 
-        fields.update({SNLIDataset.ANNOTATOR_LABELS_FIELD_NAME: annotator_labels,
-                       SNLIDataset.CAPTION_ID_FIELD_NAME: captionID,
-                       SNLIDataset.PAIR_ID_FIELD_NAME: pairID,
-                       SNLIDataset.SENTENCE1_PARSE_FIELD_NAME: sentence1_parse,
-                       SNLIDataset.SENTENCE1_BINARY_PARSE_FIELD_NAME:
-                           sentence1_binary_parse,
-                       SNLIDataset.SENTENCE2_PARSE_FIELD_NAME: sentence2_parse,
-                       SNLIDataset.SENTENCE2_BINARY_PARSE_FIELD_NAME:
-                           sentence2_binary_parse})
+        fields.update(
+            {
+                SNLIDataset.ANNOTATOR_LABELS_FIELD_NAME: annotator_labels,
+                SNLIDataset.CAPTION_ID_FIELD_NAME: captionID,
+                SNLIDataset.PAIR_ID_FIELD_NAME: pairID,
+                SNLIDataset.SENTENCE1_PARSE_FIELD_NAME: sentence1_parse,
+                SNLIDataset.SENTENCE1_BINARY_PARSE_FIELD_NAME: sentence1_binary_parse,
+                SNLIDataset.SENTENCE2_PARSE_FIELD_NAME: sentence2_parse,
+                SNLIDataset.SENTENCE2_BINARY_PARSE_FIELD_NAME: sentence2_binary_parse,
+            }
+        )
         return fields

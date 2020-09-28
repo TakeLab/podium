@@ -1,5 +1,6 @@
-import dill
 import os
+
+import dill
 import pytest
 
 from podium.storage import vocab
@@ -88,7 +89,7 @@ def test_vocab_len_not_finalized():
 def test_empty_specials_len():
     voc = vocab.Vocab(specials=[])
     data = ["tree", "plant", "grass"]
-    voc = (voc + set(data))
+    voc = voc + set(data)
     voc.finalize()
 
     assert len(voc) == 3
@@ -106,7 +107,7 @@ def test_empty_specials_get_pad_symbol():
 def test_empty_specials_stoi():
     voc = vocab.Vocab(specials=[])
     data = ["tree", "plant", "grass"]
-    voc = (voc + set(data))
+    voc = voc + set(data)
     voc.finalize()
     with pytest.raises(ValueError):
         voc.stoi["apple"]
@@ -115,7 +116,7 @@ def test_empty_specials_stoi():
 def test_specials_get_pad_symbol():
     voc = vocab.Vocab(specials=(vocab.SpecialVocabSymbols.PAD,))
     data = ["tree", "plant", "grass"]
-    voc = (voc + set(data))
+    voc = voc + set(data)
     assert voc.padding_index() == 0
     voc.finalize()
     assert voc.itos[0] == vocab.SpecialVocabSymbols.PAD
@@ -130,8 +131,10 @@ def test_max_size():
 
 
 def test_max_size_with_specials():
-    voc = vocab.Vocab(max_size=2, specials=[vocab.SpecialVocabSymbols.PAD,
-                                            vocab.SpecialVocabSymbols.UNK])
+    voc = vocab.Vocab(
+        max_size=2,
+        specials=[vocab.SpecialVocabSymbols.PAD, vocab.SpecialVocabSymbols.UNK],
+    )
     data = ["tree", "plant", "grass"]
     voc = (voc + set(data)) + {"plant"}
     voc.finalize()
@@ -196,16 +199,18 @@ def test_add_vocab_to_vocab():
     voc4.finalize()
 
     voc = voc3 + voc4
-    assert set(voc.specials) == {vocab.SpecialVocabSymbols.PAD,
-                                 vocab.SpecialVocabSymbols.UNK}
+    assert set(voc.specials) == {
+        vocab.SpecialVocabSymbols.PAD,
+        vocab.SpecialVocabSymbols.UNK,
+    }
     assert voc.finalized
     assert len(voc.itos) == 7
 
 
 def test_iadd_vocab_to_vocab():
-    data1 = ['w1', 'w2', 'w3']
-    data2 = ['a1', 'a2', 'w1']
-    expected_freqs = {'w1': 2, 'w2': 1, 'w3': 1, 'a1': 1, 'a2': 1}
+    data1 = ["w1", "w2", "w3"]
+    data2 = ["a1", "a2", "w1"]
+    expected_freqs = {"w1": 2, "w2": 1, "w3": 1, "a1": 1, "a2": 1}
 
     voc1 = vocab.Vocab(specials=vocab.SpecialVocabSymbols.PAD)
     voc1 += data1
@@ -216,8 +221,10 @@ def test_iadd_vocab_to_vocab():
     voc1 += voc2
 
     assert voc1.get_freqs() == expected_freqs
-    assert all(spec in voc1.specials for spec in (vocab.SpecialVocabSymbols.PAD,
-                                                  vocab.SpecialVocabSymbols.UNK))
+    assert all(
+        spec in voc1.specials
+        for spec in (vocab.SpecialVocabSymbols.PAD, vocab.SpecialVocabSymbols.UNK)
+    )
 
 
 def test_add_vocab_to_vocab_error():
@@ -264,14 +271,7 @@ def test_iadd_non_iterable_object_to_vocab():
         voc += NonIterableClass()
 
 
-@pytest.mark.parametrize(
-    "object_to_add",
-    [
-        1,
-        1.566,
-        "word"
-    ]
-)
+@pytest.mark.parametrize("object_to_add", [1, 1.566, "word"])
 def test_add_not_set_or_vocab_to_vocab_error(object_to_add):
     voc = vocab.Vocab()
     with pytest.raises(TypeError):
@@ -404,7 +404,7 @@ def test_vocab_dict_default_factory_none_error():
 
 
 def test_reverse_numericalize():
-    words = ['first', 'second', 'third']
+    words = ["first", "second", "third"]
 
     voc = vocab.Vocab()
     voc += words
@@ -414,7 +414,7 @@ def test_reverse_numericalize():
 
 
 def test_reverse_numericalize_not_finalized():
-    words = ['first', 'second', 'third']
+    words = ["first", "second", "third"]
 
     voc = vocab.Vocab()
     voc += words

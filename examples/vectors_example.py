@@ -1,6 +1,6 @@
 """Module contains example on how to use vectorizer class by using GloVe concrete
 vectors class."""
-from podium.storage import (Vocab, LargeResource)
+from podium.storage import LargeResource, Vocab
 from podium.storage.vectorizers.impl import GloVe
 
 

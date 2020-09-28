@@ -2,15 +2,18 @@
 model training and prediction."""
 import logging
 from inspect import isclass
-from typing import Callable, NamedTuple, Dict, Type, Union
+from typing import Callable, Dict, NamedTuple, Type, Union
 
 import numpy as np
 
 from podium.datasets.dataset import Dataset
 from podium.datasets.iterator import Iterator, SingleBatchIterator
-from podium.models import AbstractSupervisedModel, \
-    default_feature_transform, default_label_transform, FeatureTransformer
-from podium.models.trainer import AbstractTrainer
+
+from .batch_transform_functions import default_feature_transform, default_label_transform
+from .model import AbstractSupervisedModel
+from .trainer import AbstractTrainer
+from .transformers import FeatureTransformer
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -18,14 +21,15 @@ _LOGGER = logging.getLogger(__name__)
 class Experiment:
     """Class used to streamline model fitting and prediction."""
 
-    def __init__(self,
-                 model: Union[Type[AbstractSupervisedModel], AbstractSupervisedModel],
-                 trainer: AbstractTrainer = None,
-                 feature_transformer:
-                 Union[FeatureTransformer, Callable[[NamedTuple], np.array]] = None,
-                 label_transform_fn:
-                 Callable[[NamedTuple], np.ndarray] = None
-                 ):
+    def __init__(
+        self,
+        model: Union[Type[AbstractSupervisedModel], AbstractSupervisedModel],
+        trainer: AbstractTrainer = None,
+        feature_transformer: Union[
+            FeatureTransformer, Callable[[NamedTuple], np.array]
+        ] = None,
+        label_transform_fn: Callable[[NamedTuple], np.ndarray] = None,
+    ):
         """Creates a new Experiment. The Experiment class is used to simplify model
         fitting and prediction using Podium components.
 
@@ -117,17 +121,20 @@ class Experiment:
             raise TypeError(err_msg)
 
     def set_label_transformer(self, label_transform_fn):
-        self.label_transform_fn = label_transform_fn \
-            if label_transform_fn is not None \
+        self.label_transform_fn = (
+            label_transform_fn
+            if label_transform_fn is not None
             else default_label_transform
+        )
 
-    def fit(self,
-            dataset: Dataset,
-            model_kwargs: Dict = None,
-            trainer_kwargs: Dict = None,
-            feature_transformer: FeatureTransformer = None,
-            trainer: AbstractTrainer = None
-            ):
+    def fit(
+        self,
+        dataset: Dataset,
+        model_kwargs: Dict = None,
+        trainer_kwargs: Dict = None,
+        feature_transformer: FeatureTransformer = None,
+        trainer: AbstractTrainer = None,
+    ):
         """Fits the model to the provided Dataset. During fitting, the provided Iterator
         and Trainer are used.
 
@@ -176,8 +183,10 @@ class Experiment:
 
         trainer = trainer if trainer is not None else self.trainer
         if trainer is None:
-            errmsg = "No trainer provided. Trainer must be provided either in the " \
-                     "constructor or as an argument to the fit method."
+            errmsg = (
+                "No trainer provided. Trainer must be provided either in the "
+                "constructor or as an argument to the fit method."
+            )
             _LOGGER.error(errmsg)
             raise RuntimeError(errmsg)
 
@@ -194,14 +203,14 @@ class Experiment:
         self.model = self.model_class(**model_args)
 
         # Train the model
-        self.partial_fit(dataset,
-                         trainer_kwargs,
-                         trainer)
+        self.partial_fit(dataset, trainer_kwargs, trainer)
 
-    def partial_fit(self,
-                    dataset: Dataset,
-                    trainer_kwargs: Dict = None,
-                    trainer: AbstractTrainer = None):
+    def partial_fit(
+        self,
+        dataset: Dataset,
+        trainer_kwargs: Dict = None,
+        trainer: AbstractTrainer = None,
+    ):
         """Fits the model to the data without resetting the model.
 
         Parameters
@@ -228,8 +237,10 @@ class Experiment:
 
         trainer = trainer if trainer is not None else self.trainer
         if trainer is None:
-            errmsg = "No trainer provided. Trainer must be provided either in the " \
-                     "constructor or as an argument to the partial_fit method."
+            errmsg = (
+                "No trainer provided. Trainer must be provided either in the "
+                "constructor or as an argument to the partial_fit method."
+            )
             _LOGGER.error(errmsg)
             raise RuntimeError(errmsg)
 
@@ -237,17 +248,15 @@ class Experiment:
         trainer_args = self.default_trainer_args.copy()
         trainer_args.update(trainer_kwargs)
 
-        trainer.train(self.model,
-                      dataset,
-                      self.feature_transformer,
-                      self.label_transform_fn,
-                      **trainer_args)
+        trainer.train(
+            self.model,
+            dataset,
+            self.feature_transformer,
+            self.label_transform_fn,
+            **trainer_args,
+        )
 
-    def predict(self,
-                dataset: Dataset,
-                batch_size: int = 128,
-                **kwargs
-                ) -> np.ndarray:
+    def predict(self, dataset: Dataset, batch_size: int = 128, **kwargs) -> np.ndarray:
         """Computes the prediction of the model for every example in the provided dataset.
 
         Parameters
@@ -282,8 +291,7 @@ class Experiment:
             prediction_tensor = batch_prediction[prediction_key]
             return prediction_tensor
         else:
-            prediction_iterator = Iterator(batch_size=batch_size,
-                                           shuffle=False)
+            prediction_iterator = Iterator(batch_size=batch_size, shuffle=False)
 
             for x_batch, _ in prediction_iterator(dataset):
                 x_batch_tensor = self.feature_transformer.transform(x_batch)
@@ -295,11 +303,14 @@ class Experiment:
 
     def _check_if_model_exists(self):
         if self.model is None:
-            errmsg = "Model instance not available. Please provide a model instance in " \
-                     "the constructor or call `fit` before calling `partial_fit.`"
+            errmsg = (
+                "Model instance not available. Please provide a model instance in "
+                "the constructor or call `fit` before calling `partial_fit.`"
+            )
             _LOGGER.error(errmsg)
             raise RuntimeError(errmsg)
 
     def __repr__(self):
         return "{}[model: {}, trainer: {}]".format(
-            self.__class__.__name__, str(self.model), str(self.trainer))
+            self.__class__.__name__, str(self.model), str(self.trainer)
+        )

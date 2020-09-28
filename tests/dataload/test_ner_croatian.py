@@ -1,18 +1,18 @@
-import xml.etree.ElementTree as ET
-import tempfile
-import zipfile
 import os
 import shutil
-import pytest
-
+import tempfile
+import xml.etree.ElementTree as ET
+import zipfile
 from unittest.mock import patch
+
+import pytest
 
 from podium.dataload.ner_croatian import (
     NERCroatianXMLLoader,
-    convert_sequence_to_entities
+    convert_sequence_to_entities,
 )
-from podium.storage.resources.large_resource import LargeResource
 from podium.storage.resources.downloader import SCPDownloader
+from podium.storage.resources.large_resource import LargeResource
 
 
 def create_ner_file(filepath, title_element, body_element):
@@ -22,37 +22,42 @@ def create_ner_file(filepath, title_element, body_element):
     root.append(body_element)
 
     tree = ET.ElementTree(root)
-    tree.write(filepath, encoding='utf-8')
+    tree.write(filepath, encoding="utf-8")
 
 
-title_1 = ET.fromstring("""
+title_1 = ET.fromstring(
+    """
 <title>
     <s>Random <enamex type="Organization">Entitet</enamex></s>
 </title>
-""")
+"""
+)
 
 body_1 = ET.fromstring("<body><s>Ovdje nema entiteta!</s></body>")
 
 expected_output_1 = [
-    ('Random', 'O'),
-    ('Entitet', 'B-Organization'),
+    ("Random", "O"),
+    ("Entitet", "B-Organization"),
     NERCroatianXMLLoader.SENTENCE_DELIMITER_TOKEN,
-    ('Ovdje', 'O'),
-    ('nema', 'O'),
-    ('entiteta!', 'O'),
-    NERCroatianXMLLoader.SENTENCE_DELIMITER_TOKEN
+    ("Ovdje", "O"),
+    ("nema", "O"),
+    ("entiteta!", "O"),
+    NERCroatianXMLLoader.SENTENCE_DELIMITER_TOKEN,
 ]
 
-title_2 = ET.fromstring("""
+title_2 = ET.fromstring(
+    """
 <title>
     <s>
         <enamex type="LocationAsOrganization">Kina</enamex>
         je najveći svjetski izvoznik
     </s>
 </title>
-""")
+"""
+)
 
-body_2 = ET.fromstring("""
+body_2 = ET.fromstring(
+    """
 <body>
     <s>
         Ukupna vrijednost izvoza <timex type="Date">u prvoj polovini
@@ -60,30 +65,31 @@ body_2 = ET.fromstring("""
         milijardi dolara</numex>.
     </s>
 </body>
-""")
+"""
+)
 
 expected_output_2 = [
-    ('Kina', 'B-LocationAsOrganization'),
-    ('je', 'O'),
-    ('najveći', 'O'),
-    ('svjetski', 'O'),
-    ('izvoznik', 'O'),
+    ("Kina", "B-LocationAsOrganization"),
+    ("je", "O"),
+    ("najveći", "O"),
+    ("svjetski", "O"),
+    ("izvoznik", "O"),
     NERCroatianXMLLoader.SENTENCE_DELIMITER_TOKEN,
-    ('Ukupna', 'O'),
-    ('vrijednost', 'O'),
-    ('izvoza', 'O'),
-    ('u', 'B-Date'),
-    ('prvoj', 'I-Date'),
-    ('polovini', 'I-Date'),
-    ('ove', 'I-Date'),
-    ('godine', 'I-Date'),
-    ('iznosila', 'O'),
-    ('je', 'O'),
-    ('521,7', 'B-Money'),
-    ('milijardi', 'I-Money'),
-    ('dolara', 'I-Money'),
-    ('.', 'O'),
-    NERCroatianXMLLoader.SENTENCE_DELIMITER_TOKEN
+    ("Ukupna", "O"),
+    ("vrijednost", "O"),
+    ("izvoza", "O"),
+    ("u", "B-Date"),
+    ("prvoj", "I-Date"),
+    ("polovini", "I-Date"),
+    ("ove", "I-Date"),
+    ("godine", "I-Date"),
+    ("iznosila", "O"),
+    ("je", "O"),
+    ("521,7", "B-Money"),
+    ("milijardi", "I-Money"),
+    ("dolara", "I-Money"),
+    (".", "O"),
+    NERCroatianXMLLoader.SENTENCE_DELIMITER_TOKEN,
 ]
 
 
@@ -92,29 +98,22 @@ expected_output_2 = [
     [
         ((title_1, body_1), expected_output_1),
         ((title_2, body_2), expected_output_2),
-    ]
+    ],
 )
 def test_load_dataset(tmpdir, expected_data, expected_output):
     base = tempfile.mkdtemp()
     assert os.path.exists(base)
     LargeResource.BASE_RESOURCE_DIR = base
 
-    unzipped_xml_directory = os.path.join(
-        base,
-        NERCroatianXMLLoader.NAME
-    )
+    unzipped_xml_directory = os.path.join(base, NERCroatianXMLLoader.NAME)
 
     os.makedirs(unzipped_xml_directory)
 
     title, body = expected_data
-    create_ner_file(
-        os.path.join(unzipped_xml_directory, "file.xml"),
-        title,
-        body
-    )
+    create_ner_file(os.path.join(unzipped_xml_directory, "file.xml"), title, body)
 
     ner_croatian_xml_loader = NERCroatianXMLLoader(
-        base, tokenizer='split', tag_schema='IOB'
+        base, tokenizer="split", tag_schema="IOB"
     )
 
     documents = ner_croatian_xml_loader.load_dataset()
@@ -131,26 +130,15 @@ def test_load_dataset_with_multiple_documents():
     assert os.path.exists(base)
     LargeResource.BASE_RESOURCE_DIR = base
 
-    unzipped_xml_directory = os.path.join(
-        base,
-        NERCroatianXMLLoader.NAME
-    )
+    unzipped_xml_directory = os.path.join(base, NERCroatianXMLLoader.NAME)
 
     os.makedirs(unzipped_xml_directory)
 
-    create_ner_file(
-        os.path.join(unzipped_xml_directory, "file_1.xml"),
-        title_1,
-        body_1
-    )
-    create_ner_file(
-        os.path.join(unzipped_xml_directory, "file_2.xml"),
-        title_2,
-        body_2
-    )
+    create_ner_file(os.path.join(unzipped_xml_directory, "file_1.xml"), title_1, body_1)
+    create_ner_file(os.path.join(unzipped_xml_directory, "file_2.xml"), title_2, body_2)
 
     ner_croatian_xml_loader = NERCroatianXMLLoader(
-        base, tokenizer='split', tag_schema='IOB'
+        base, tokenizer="split", tag_schema="IOB"
     )
 
     documents = ner_croatian_xml_loader.load_dataset()
@@ -166,19 +154,19 @@ def test_load_dataset_with_multiple_documents():
 
 def test_load_dataset_with_unsupported_tokenizer():
     with pytest.raises(ValueError):
-        NERCroatianXMLLoader(tokenizer='unsupported_tokenizer')
+        NERCroatianXMLLoader(tokenizer="unsupported_tokenizer")
 
 
 def test_load_dataset_with_unsupported_tag_schema():
     with pytest.raises(ValueError):
-        NERCroatianXMLLoader(tag_schema='unsupported_tag_schema')
+        NERCroatianXMLLoader(tag_schema="unsupported_tag_schema")
 
 
 def mock_download(uri, path, overwrite=False, **kwargs):
     create_mock_zip_archive_with_xml_file(path)
 
 
-@patch.object(SCPDownloader, 'download', mock_download)
+@patch.object(SCPDownloader, "download", mock_download)
 def test_download_dataset_using_scp():
     base = tempfile.mkdtemp()
     assert os.path.exists(base)
@@ -186,10 +174,7 @@ def test_download_dataset_using_scp():
     LargeResource.BASE_RESOURCE_DIR = base
 
     ner_croatian_xml_loader = NERCroatianXMLLoader(
-        base,
-        scp_user='username',
-        scp_private_key='private_key',
-        scp_pass_key='pass'
+        base, scp_user="username", scp_private_key="private_key", scp_pass_key="pass"
     )
 
     tokenized_documents = ner_croatian_xml_loader.load_dataset()
@@ -206,94 +191,78 @@ def test_download_dataset_using_scp():
     [
         (
             [
-                'B-Organization', 'I-Organization',
-                'O', 'O',
-                'B-Money', 'O', 'B-Organization'
+                "B-Organization",
+                "I-Organization",
+                "O",
+                "O",
+                "B-Money",
+                "O",
+                "B-Organization",
             ],
+            ["Kompanija", "Microsoft", "je", "kupila", "$8000", "dionica", "APIS-a"],
             [
-                'Kompanija', 'Microsoft',
-                'je', 'kupila',
-                '$8000', 'dionica', 'APIS-a'
+                {
+                    "name": ["Kompanija", "Microsoft"],
+                    "type": "Organization",
+                    "start": 0,
+                    "end": 2,
+                },
+                {"name": ["$8000"], "type": "Money", "start": 4, "end": 5},
+                {"name": ["APIS-a"], "type": "Organization", "start": 6, "end": 7},
             ],
-            [
-                {
-                    'name': ['Kompanija', 'Microsoft'],
-                    'type': 'Organization',
-                    'start': 0,
-                    'end': 2
-                },
-                {
-                    'name': ['$8000'],
-                    'type': 'Money',
-                    'start': 4,
-                    'end': 5
-                },
-                {
-                    'name': ['APIS-a'],
-                    'type': 'Organization',
-                    'start': 6,
-                    'end': 7
-                }
-            ]
         ),
         (
             [
-                'O', 'B-Time', 'O', 'O',
-                'B-Time', 'O', 'O', 'B-Test',
-                'I-Test', 'I-Test', 'O'
+                "O",
+                "B-Time",
+                "O",
+                "O",
+                "B-Time",
+                "O",
+                "O",
+                "B-Test",
+                "I-Test",
+                "I-Test",
+                "O",
             ],
             [
-                'Jucer', 'popodne', 'je', 'bio',
-                'dvotjedni', 'prosvjed', 'protiv',
-                'testiranja', 'algoritamskih', 'zadataka',
-                'natjecanja'
+                "Jucer",
+                "popodne",
+                "je",
+                "bio",
+                "dvotjedni",
+                "prosvjed",
+                "protiv",
+                "testiranja",
+                "algoritamskih",
+                "zadataka",
+                "natjecanja",
             ],
             [
+                {"name": ["popodne"], "type": "Time", "start": 1, "end": 2},
+                {"name": ["dvotjedni"], "type": "Time", "start": 4, "end": 5},
                 {
-                    'name': ['popodne'],
-                    'type': 'Time',
-                    'start': 1,
-                    'end': 2
+                    "name": ["testiranja", "algoritamskih", "zadataka"],
+                    "type": "Test",
+                    "start": 7,
+                    "end": 10,
                 },
-                {
-                    'name': ['dvotjedni'],
-                    'type': 'Time',
-                    'start': 4,
-                    'end': 5
-                },
-                {
-                    'name': ['testiranja', 'algoritamskih', 'zadataka'],
-                    'type': 'Test',
-                    'start': 7,
-                    'end': 10
-                }
-            ]
+            ],
         ),
         (
             [
-                'B-Organization', 'B-Organization',
-                'O', 'O',
+                "B-Organization",
+                "B-Organization",
+                "O",
+                "O",
             ],
+            ["Amazon", "Microsoftu", "nije", "suradnik"],
             [
-                'Amazon', 'Microsoftu',
-                'nije', 'suradnik'
+                {"name": ["Amazon"], "type": "Organization", "start": 0, "end": 1},
+                {"name": ["Microsoftu"], "type": "Organization", "start": 1, "end": 2},
             ],
-            [
-                {
-                    'name': ['Amazon'],
-                    'type': 'Organization',
-                    'start': 0,
-                    'end': 1
-                },
-                {
-                    'name': ['Microsoftu'],
-                    'type': 'Organization',
-                    'start': 1,
-                    'end': 2
-                },
-            ]
         ),
-    ]
+    ],
 )
 def test_convert_valid_sequence_to_entities(sequence, text, expected_entities):
     received_entities = convert_sequence_to_entities(sequence, text)
@@ -307,32 +276,21 @@ def test_convert_valid_sequence_to_entities(sequence, text, expected_entities):
         # resulting in ignoring this entity
         (
             [
-                'I-Organization', 'O', 'O',
+                "I-Organization",
+                "O",
+                "O",
             ],
-            [
-                'Struji', 'struja', 'u'
-            ],
-            []
+            ["Struji", "struja", "u"],
+            [],
         ),
         # if tag description is different Organization!=Time
         # those tags are skipped
         (
-            [
-                'B-Organization', 'I-Time', 'O'
-            ],
-            [
-                'FER', 'petak', 'je!'
-            ],
-            [
-                {
-                    'name': ['FER'],
-                    'type': 'Organization',
-                    'start': 0,
-                    'end': 1
-                }
-            ]
+            ["B-Organization", "I-Time", "O"],
+            ["FER", "petak", "je!"],
+            [{"name": ["FER"], "type": "Organization", "start": 0, "end": 1}],
         ),
-    ]
+    ],
 )
 def test_convert_invalid_sequence_to_entities(invalid_sequence, text, expected_entities):
     received_entities = convert_sequence_to_entities(invalid_sequence, text)
@@ -340,22 +298,22 @@ def test_convert_invalid_sequence_to_entities(invalid_sequence, text, expected_e
 
 
 def test_invalid_delimiter():
-    sequence = ['B', 'I', 'O', 'O', 'B']
-    text = ['a', 'b', 'c', 'd', 'e']
+    sequence = ["B", "I", "O", "O", "B"]
+    text = ["a", "b", "c", "d", "e"]
     with pytest.raises(TypeError):
         convert_sequence_to_entities(sequence, text, delimiter=None)
 
 
 def test_invalid_sequence_len():
-    sequence = ['B', 'I']
-    text = ['a']
+    sequence = ["B", "I"]
+    text = ["a"]
     with pytest.raises(ValueError):
         convert_sequence_to_entities(sequence, text)
 
 
 def create_mock_zip_archive_with_xml_file(dir_path):
     base = tempfile.mkdtemp()
-    mock_xml_name = 'mock.xml'
+    mock_xml_name = "mock.xml"
     mock_xml_path = os.path.join(base, mock_xml_name)
     create_ner_file(mock_xml_path, title_1, body_1)
 

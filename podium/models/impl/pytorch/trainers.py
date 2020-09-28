@@ -12,12 +12,7 @@ class TorchTrainer(AbstractTrainer):
         self.device = device
         self.iterator = iterator
 
-    def train(self,
-              model,
-              dataset,
-              feature_transformer,
-              label_transform_fun,
-              **kwargs):
+    def train(self, model, dataset, feature_transformer, label_transform_fun, **kwargs):
 
         for _ in range(self.epochs):
             total_time = time.time()
@@ -29,9 +24,13 @@ class TorchTrainer(AbstractTrainer):
 
                 return_dict = model.fit(X, y)
 
-                print("[Batch]: {} in {:.5f} seconds, loss={:.5f}".format(
-                      batch, time.time() - t, return_dict['loss']),
-                      end='\r', flush=True)
+                print(
+                    "[Batch]: {} in {:.5f} seconds, loss={:.5f}".format(
+                        batch, time.time() - t, return_dict["loss"]
+                    ),
+                    end="\r",
+                    flush=True,
+                )
 
             print(f"\nTotal time for train epoch: {time.time() - total_time}")
 
@@ -43,9 +42,13 @@ class TorchTrainer(AbstractTrainer):
                 y = torch.from_numpy(label_transform_fun(batch_y)).to(self.device)
 
                 return_dict = model.evaluate(X, y)
-                loss = return_dict['loss']
-                print("[Valid]: {} in {:.5f} seconds, loss={:.5f}".format(
-                      batch, time.time() - t, loss),
-                      end='\r', flush=True)
+                loss = return_dict["loss"]
+                print(
+                    "[Valid]: {} in {:.5f} seconds, loss={:.5f}".format(
+                        batch, time.time() - t, loss
+                    ),
+                    end="\r",
+                    flush=True,
+                )
 
             print(f"\nTotal time for valid epoch: {time.time() - total_time}")

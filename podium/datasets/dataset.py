@@ -1,11 +1,12 @@
 """Module contains base classes for datasets."""
+import copy
 import itertools
 import logging
 import random
-import copy
 from abc import ABC
 
 from podium.storage.field import unpack_fields
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -182,6 +183,7 @@ class Dataset(ABC):
         """
 
         if attr in self.field_dict:
+
             def attr_generator():
                 for x in self.examples:
                     yield getattr(x, attr)
@@ -208,12 +210,12 @@ class Dataset(ABC):
             self.examples = list(filter(predicate, self.examples))
             return
 
-        filtered_examples = [copy.deepcopy(ex)
-                             for ex in self.examples if predicate(ex)]
+        filtered_examples = [copy.deepcopy(ex) for ex in self.examples if predicate(ex)]
         fields_copy = copy.deepcopy(self.fields)
 
-        return Dataset(examples=filtered_examples, fields=fields_copy,
-                       sort_key=self.sort_key)
+        return Dataset(
+            examples=filtered_examples, fields=fields_copy, sort_key=self.sort_key
+        )
 
     def finalize_fields(self, *args):
         """
@@ -230,12 +232,10 @@ class Dataset(ABC):
         """
 
         # if there are non-eager fields, we need to build their vocabularies
-        fields_to_build = [f for f in self.fields if
-                           not f.eager and f.use_vocab]
+        fields_to_build = [f for f in self.fields if not f.eager and f.use_vocab]
         if fields_to_build:
             # there can be multiple datasets we want to iterate over
-            data_sources = list(
-                filter(lambda arg: isinstance(arg, Dataset), args))
+            data_sources = list(filter(lambda arg: isinstance(arg, Dataset), args))
 
             # use self as a data source if no other given
             if not data_sources:
@@ -251,9 +251,14 @@ class Dataset(ABC):
         for field in self.fields:
             field.finalize()
 
-    def split(self, split_ratio=0.7, stratified=False,
-              strata_field_name=None,
-              random_state=None, shuffle=True):
+    def split(
+        self,
+        split_ratio=0.7,
+        stratified=False,
+        strata_field_name=None,
+        random_state=None,
+        shuffle=True,
+    ):
         """Creates train-(validation)-test splits from this dataset.
 
         The splits are new Dataset objects, each containing a part of this
@@ -316,18 +321,16 @@ class Dataset(ABC):
 
         if not stratified:
             train_data, val_data, test_data = rationed_split(
-                self.examples,
-                train_ratio,
-                val_ratio,
-                test_ratio,
-                shuffle
+                self.examples, train_ratio, val_ratio, test_ratio, shuffle
             )
         else:
             strata_field_name = self._get_strata_field_name(strata_field_name)
 
             if strata_field_name is None:
-                error_msg = "If strata_field_name is not provided, at least" \
-                            " one field has to have is_target equal to True."
+                error_msg = (
+                    "If strata_field_name is not provided, at least"
+                    " one field has to have is_target equal to True."
+                )
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
@@ -337,8 +340,13 @@ class Dataset(ABC):
                 raise ValueError(error_msg)
 
             train_data, val_data, test_data = stratified_split(
-                self.examples, train_ratio, val_ratio, test_ratio,
-                strata_field_name, shuffle)
+                self.examples,
+                train_ratio,
+                val_ratio,
+                test_ratio,
+                strata_field_name,
+                shuffle,
+            )
 
         splits = tuple(
             Dataset(example_list, self.fields, sort_key=self.sort_key)
@@ -390,9 +398,9 @@ class Dataset(ABC):
         """
         self.__dict__ = state
 
-    def _dataset_copy_with_examples(self,
-                                    examples: list,
-                                    deep_copy: bool = False) -> "Dataset":
+    def _dataset_copy_with_examples(
+        self, examples: list, deep_copy: bool = False
+    ) -> "Dataset":
         """Creates a new dataset with the same fields and sort_key. The new dataset
         contains only the fields passed to this function.Fields are deep-copied into
         the new dataset, but examples are used as-is.
@@ -416,9 +424,7 @@ class Dataset(ABC):
         examples = copy.deepcopy(examples) if deep_copy else examples
         fields = copy.deepcopy(self.fields) if deep_copy else self.fields
 
-        return Dataset(examples,
-                       fields,
-                       self.sort_key)
+        return Dataset(examples, fields, self.sort_key)
 
     def shuffle_examples(self, random_state=None):
         """Shuffles the examples in this dataset
@@ -454,7 +460,8 @@ class Dataset(ABC):
     def __repr__(self):
         fields = [field.name for field in self.fields]
         return "{}[Size: {}, Fields: {}]".format(
-            self.__class__.__name__, len(self.examples), fields)
+            self.__class__.__name__, len(self.examples), fields
+        )
 
 
 def check_split_ratio(split_ratio):
@@ -488,7 +495,7 @@ def check_split_ratio(split_ratio):
 
     if isinstance(split_ratio, float):
         # Only the train set relative ratio is provided
-        if not (0. < split_ratio < 1.):
+        if not (0.0 < split_ratio < 1.0):
             error_msg = "Split ratio {} not between 0 and 1".format(split_ratio)
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
@@ -502,23 +509,26 @@ def check_split_ratio(split_ratio):
         length = len(split_ratio)
 
         if length not in {2, 3}:
-            error_msg = "Split ratio list/tuple should be of length 2 or 3, " \
-                        "got {}.".format(length)
+            error_msg = (
+                "Split ratio list/tuple should be of length 2 or 3, "
+                "got {}.".format(length)
+            )
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
         for i, ratio in enumerate(split_ratio):
             if float(ratio) <= 0.0:
-                error_msg = "Elements of ratio tuple/list must be > 0.0 " \
-                            "(got value {} at index {}).".format(ratio, i)
+                error_msg = (
+                    "Elements of ratio tuple/list must be > 0.0 "
+                    "(got value {} at index {}).".format(ratio, i)
+                )
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg)
 
         # Normalize if necessary
         ratio_sum = sum(split_ratio)
         if not ratio_sum == 1.0:
-            split_ratio = tuple(
-                float(ratio) / ratio_sum for ratio in split_ratio)
+            split_ratio = tuple(float(ratio) / ratio_sum for ratio in split_ratio)
 
         train_ratio = split_ratio[0]
         if length == 2:
@@ -528,8 +538,9 @@ def check_split_ratio(split_ratio):
             val_ratio = split_ratio[1]
             test_ratio = split_ratio[2]
     else:
-        error_msg = "Split ratio must be a float, a list or a tuple, " \
-                    "got {}".format(type(split_ratio))
+        error_msg = "Split ratio must be a float, a list or a tuple, " "got {}".format(
+            type(split_ratio)
+        )
         _LOGGER.error(error_msg)
         raise ValueError(error_msg)
 
@@ -581,41 +592,36 @@ def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
     # Due to possible rounding problems
     if val_ratio is None:
         if train_len == 0 or (N - train_len) == 0:
-            error_msg = 'Bad ratio: both splits should have at least 1 element.'
+            error_msg = "Bad ratio: both splits should have at least 1 element."
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
-        indices_tuple = (
-            indices[:train_len],
-            [],
-            indices[train_len:]
-        )
+        indices_tuple = (indices[:train_len], [], indices[train_len:])
     else:
         test_len = int(round(test_ratio * N))
         val_len = N - train_len - test_len
 
         if train_len * test_len * val_len == 0:
-            error_msg = 'Bad ratio: all splits should have at least 1 element.'
+            error_msg = "Bad ratio: all splits should have at least 1 element."
             _LOGGER.error(error_msg)
             raise ValueError(error_msg)
 
         indices_tuple = (
             indices[:train_len],  # Train
-            indices[train_len:train_len + val_len],  # Validation
-            indices[train_len + val_len:]  # Test
+            indices[train_len : train_len + val_len],  # Validation
+            indices[train_len + val_len :],  # Test
         )
 
     # Create a tuple of 3 lists, the middle of which is empty if only the
     # train and test ratios were provided
-    data = tuple(
-        [examples[idx] for idx in indices] for indices in indices_tuple
-    )
+    data = tuple([examples[idx] for idx in indices] for indices in indices_tuple)
 
     return data
 
 
-def stratified_split(examples, train_ratio, val_ratio, test_ratio,
-                     strata_field_name, shuffle):
+def stratified_split(
+    examples, train_ratio, val_ratio, test_ratio, strata_field_name, shuffle
+):
     """Performs a stratified split on a list of examples according to the
     given ratios and the given strata field.
 
@@ -649,19 +655,14 @@ def stratified_split(examples, train_ratio, val_ratio, test_ratio,
     """
 
     # group the examples by the strata_field
-    strata = itertools.groupby(examples,
-                               key=lambda ex: getattr(ex, strata_field_name))
+    strata = itertools.groupby(examples, key=lambda ex: getattr(ex, strata_field_name))
     strata = (list(group) for _, group in strata)
 
     train_split, val_split, test_split = [], [], []
     for group in strata:
         # Split each group of examples according to the ratios given
         group_train_split, group_val_split, group_test_split = rationed_split(
-            group,
-            train_ratio,
-            val_ratio,
-            test_ratio,
-            shuffle
+            group, train_ratio, val_ratio, test_ratio, shuffle
         )
 
         # add the group splits to total splits

@@ -1,6 +1,8 @@
 import pytest
-from podium.datasets import CornellMovieDialogsConversationalDataset
+
 from podium.dataload.cornell_movie_dialogs import CornellMovieDialogsNamedTuple
+from podium.datasets import CornellMovieDialogsConversationalDataset
+
 
 EXPECTED_EXAMPLES = [
     {"statement": "They do not!".split(), "reply": "They do to!".split()},
@@ -9,7 +11,7 @@ EXPECTED_EXAMPLES = [
     {"statement": "Wow".split(), "reply": "They do not!".split()},
     {"statement": "They do not!".split(), "reply": "They do to!".split()},
     {"statement": "They do to!".split(), "reply": "I hope so.".split()},
-    {"statement": "She okay?".split(), "reply": "They do to!".split()}
+    {"statement": "She okay?".split(), "reply": "They do to!".split()},
 ]
 
 
@@ -26,24 +28,41 @@ def lines():
         "characterID": ["u0", "u2", "u0", "u2", "u0", "u2"],
         "movieID": ["m0", "m0", "m0", "m0", "m0", "m0"],
         "character": ["BIANCA", "CAMERON", "BIANCA", "CAMERON", "BIANCA", "CAMERON"],
-        "text": ["They do not!", "They do to!", "I hope so.", "She okay?", "Let's go.",
-                 "Wow"]
+        "text": [
+            "They do not!",
+            "They do to!",
+            "I hope so.",
+            "She okay?",
+            "Let's go.",
+            "Wow",
+        ],
     }
 
 
 def conversations():
-    return {"character1ID": ["u0", "u0", "u0", "u0", "u0"],
-            "character2ID": ["u2", "u2", "u2", "u2", "u2"],
-            "movieID": ["m0", "m0", "m0", "m0", "m0"],
-            "utteranceIDs": [['L194', 'L195', 'L196', 'L197'], ['L198', 'L199'],
-                             ['L200', 'L194', 'L195', 'L196'], ['L197', 'L198', 'L195'],
-                             ['L199']]}
+    return {
+        "character1ID": ["u0", "u0", "u0", "u0", "u0"],
+        "character2ID": ["u2", "u2", "u2", "u2", "u2"],
+        "movieID": ["m0", "m0", "m0", "m0", "m0"],
+        "utteranceIDs": [
+            ["L194", "L195", "L196", "L197"],
+            ["L198", "L199"],
+            ["L200", "L194", "L195", "L196"],
+            ["L197", "L198", "L195"],
+            ["L199"],
+        ],
+    }
 
 
 @pytest.fixture(scope="module")
 def default_dataset():
-    data = CornellMovieDialogsNamedTuple(titles=None, conversations=conversations(),
-                                         lines=lines(), characters=None, url=None)
+    data = CornellMovieDialogsNamedTuple(
+        titles=None,
+        conversations=conversations(),
+        lines=lines(),
+        characters=None,
+        url=None,
+    )
     return CornellMovieDialogsConversationalDataset(data=data)
 
 
