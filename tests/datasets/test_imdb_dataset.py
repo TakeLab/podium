@@ -11,7 +11,7 @@ from podium.storage.resources.large_resource import LargeResource
 
 
 try:
-    spacy.load('en')
+    spacy.load("en")
     IS_MODEL_DOWNLOADED = True
 except OSError:
     IS_MODEL_DOWNLOADED = False
@@ -117,9 +117,12 @@ def create_examples(base_dir, examples):
             fpr.write(examples[i])
 
 
-@pytest.mark.skipif(not RUN_SPACY, reason='requires already downloaded model or '
-                                          'admin privileges to download it '
-                                          'while executing')
+@pytest.mark.skipif(
+    not RUN_SPACY,
+    reason="requires already downloaded model or "
+    "admin privileges to download it "
+    "while executing",
+)
 def test_return_params(mock_dataset_path):
     data = IMDB.get_dataset_splits()
     assert len(data) == 2
@@ -127,9 +130,12 @@ def test_return_params(mock_dataset_path):
     assert isinstance(data[1], Dataset)
 
 
-@pytest.mark.skipif(not RUN_SPACY, reason='requires already downloaded model or '
-                                          'admin privileges to download it '
-                                          'while executing')
+@pytest.mark.skipif(
+    not RUN_SPACY,
+    reason="requires already downloaded model or "
+    "admin privileges to download it "
+    "while executing",
+)
 def test_default_fields():
     fields = IMDB.get_default_fields()
     assert len(fields) == 2
@@ -137,9 +143,12 @@ def test_default_fields():
     assert all([name in fields for name in field_names])
 
 
-@pytest.mark.skipif(not RUN_SPACY, reason='requires already downloaded model or '
-                                          'admin privileges to download it '
-                                          'while executing')
+@pytest.mark.skipif(
+    not RUN_SPACY,
+    reason="requires already downloaded model or "
+    "admin privileges to download it "
+    "while executing",
+)
 def test_loaded_data(mock_dataset_path):
     spacy_tokenizer = spacy.load("en", disable=["parser", "ner"])
 
