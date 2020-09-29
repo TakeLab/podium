@@ -17,7 +17,7 @@ blocks:
           commands:
             - checkout
             - python -m venv venv
-            - sudo source venv/bin/activate
+            - sudo -s source venv/bin/activate
             - pip install .[tests]
             - pytest -sv tests
 
