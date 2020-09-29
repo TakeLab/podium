@@ -1,13 +1,12 @@
-import pytest
+from sklearn.datasets import load_iris
+
+from podium.datasets.iris_dataset import IrisDataset
 
 
 def test_iris_dataset():
-    sklearn_datasets = pytest.importorskip("sklearn.datasets")
-    from podium.datasets.iris_dataset import IrisDataset
-
     iris_ds = IrisDataset()
 
-    x, y = sklearn_datasets.load_iris(return_X_y=True)
+    x, y = load_iris(return_X_y=True)
 
     assert len(iris_ds) == len(x)
     for i in range(0, len(x), 30):

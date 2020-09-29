@@ -1,11 +1,35 @@
+import ctypes
 import os
 import tempfile
 
 import pytest
+import spacy
 
 from podium.datasets.dataset import Dataset
 from podium.datasets.impl.imdb_sentiment_dataset import IMDB
 from podium.storage.resources.large_resource import LargeResource
+
+
+try:
+    spacy.load('en')
+    IS_MODEL_DOWNLOADED = True
+except OSError:
+    IS_MODEL_DOWNLOADED = False
+
+# on some systems/environments, admin privileges are required to download
+# a SpaCy model using the shorthand syntax
+# see: https://stackoverflow.com/questions/1026431/
+# cross-platform-way-to-check-admin-rights-in-a-python-script-under-windows
+if IS_MODEL_DOWNLOADED:
+    # if the SpaCy model is downloaded, skip the check
+    IS_ADMIN = None
+else:
+    try:
+        IS_ADMIN = os.getuid() == 0
+    except AttributeError:
+        IS_ADMIN = ctypes.windll.shell32.IsUserAnAdmin() != 0
+
+RUN_SPACY = IS_MODEL_DOWNLOADED or IS_ADMIN
 
 
 TRAIN_EXAMPLES = {
@@ -93,24 +117,30 @@ def create_examples(base_dir, examples):
             fpr.write(examples[i])
 
 
+@pytest.mark.skipif(not RUN_SPACY, reason='requires already downloaded model or '
+                                          'admin privileges to download it '
+                                          'while executing')
 def test_return_params(mock_dataset_path):
-    pytest.importorskip("spacy")
     data = IMDB.get_dataset_splits()
     assert len(data) == 2
     assert isinstance(data[0], Dataset)
     assert isinstance(data[1], Dataset)
 
 
+@pytest.mark.skipif(not RUN_SPACY, reason='requires already downloaded model or '
+                                          'admin privileges to download it '
+                                          'while executing')
 def test_default_fields():
-    pytest.importorskip("spacy")
     fields = IMDB.get_default_fields()
     assert len(fields) == 2
     field_names = [IMDB.LABEL_FIELD_NAME, IMDB.TEXT_FIELD_NAME]
     assert all([name in fields for name in field_names])
 
 
+@pytest.mark.skipif(not RUN_SPACY, reason='requires already downloaded model or '
+                                          'admin privileges to download it '
+                                          'while executing')
 def test_loaded_data(mock_dataset_path):
-    spacy = pytest.importorskip("spacy")
     spacy_tokenizer = spacy.load("en", disable=["parser", "ner"])
 
     def spacy_tokenize(string):
