@@ -20,7 +20,7 @@ def _identity(x):
 
 
 class _FeatureConverter:
-    """Class for converting features of the HuggingFace Dataset to the Podium fields.
+    """Class for converting features of the HuggingFace Dataset to the podium.storage.Fields.
 
     Notes
     -----
@@ -30,18 +30,18 @@ class _FeatureConverter:
 
     @staticmethod
     def convert(name, feature):
-        """Convert a feature to the Podium field.
+        """Convert a feature to the podium.storage.Field.
 
         Parameters:
         name : str
             Name of the column corresponding to the feature.
-        feature: datasets.features.FeatureType
+        feature : datasets.features.FeatureType
             Column feature.
 
         Returns
         -------
-        Field
-            Podium field after the conversion.
+        podium.storage.Field
+            podium.storage.Field after the conversion.
 
         Raises
         ------
@@ -66,6 +66,9 @@ class _FeatureConverter:
                 kwargs = {'vocab': Vocab()}
 
             else:
+                # some dtypes are not processed and stored as raw
+                # for the full list see:
+                # https://arrow.apache.org/docs/python/api/datatypes.html#factory-functions
                 kwargs = {'tokenize': False,
                           'store_as_raw': True,
                           'is_numericalizable': False}
@@ -94,17 +97,17 @@ class _FeatureConverter:
 
 def convert_features_to_fields(features):
     """Convert a dictionary that maps column names of the HuggingFace Dataset
-    to the features into a dictionary that maps column names to the Podium fields.
+    to the features into a dictionary that maps column names to the podium.storage.Fields.
 
     Parameters
     ----------
     features : dict(str, datasets.features.FeatureType)
-        Dictioanry that maps a column name to the feature.
+        Dictionary that maps a column name to the feature.
 
     Returns
     -------
-    dict(str, Field)
-        Dictionary that maps a column name to the Podium field.
+    dict(str, podium.storage.Field)
+        Dictionary that maps a column name to the podium.storage.Field.
     """
     return {
         name: _FeatureConverter.convert(name, feature)
@@ -113,7 +116,8 @@ def convert_features_to_fields(features):
 
 
 class HuggingFaceDatasetConverter:
-    """Class for converting rows from the HuggingFace Datasets to Podium Examples."""
+    """Class for converting rows from the HuggingFace Datasets to podium.storage.Example.
+    """
 
     def __init__(self, dataset, fields=None):
         """HuggingFaceDatasetConverter constructor.
@@ -123,14 +127,15 @@ class HuggingFaceDatasetConverter:
         dataset : datasets.Dataset
             HuggingFace Dataset.
 
-        fields : dict(str, Field)
-            Dictionary that maps a column name of the dataset to the field.
+        fields : dict(str, podium.storage.Field)
+            Dictionary that maps a column name of the dataset to the podium.storage.Field.
             If passed None the default feature conversion rules will be used
             to build a dictonary from the dataset features.
 
         Raises
         ------
-            If dataset type is incorrect.
+        TypeError
+            If dataset is not an instance of datasets.Dataset.
         """
         if not isinstance(dataset, datasets.Dataset):
             error_msg = 'Incorrect dataset type. Expected datasets.Dataset, but got {}' \
@@ -149,11 +154,11 @@ class HuggingFaceDatasetConverter:
             yield example_factory.from_dict(raw_example)
 
     def as_dataset(self):
-        """Convert the original HuggingFace dataset to a Podium Dataset.
+        """Convert the original HuggingFace dataset to a podium.storage.Dataset.
 
         Returns
         -------
-        Dataset
-            Podium Dataset.
+        podium.storage.Dataset
+            podium.storage.Dataset instance.
         """
         return Dataset(list(self), self.fields)

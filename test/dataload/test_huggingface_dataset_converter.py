@@ -1,10 +1,12 @@
 import pytest
 
 pytest.importorskip('datasets')
-from datasets import ClassLabel, Dataset, Features, Translation
+import datasets
+from datasets import ClassLabel, Features, Translation
 
 from podium.dataload.huggingface_dataset_converter import (convert_features_to_fields,
                                                            HuggingFaceDatasetConverter)
+from podium.datasets import Dataset
 
 
 SIMPLE_DATA = {
@@ -26,7 +28,7 @@ COMPLEX_DATA = {
 
 @pytest.fixture
 def simple_dataset():
-    return Dataset.from_dict(SIMPLE_DATA)
+    return datasets.Dataset.from_dict(SIMPLE_DATA)
 
 
 @pytest.fixture
@@ -36,7 +38,7 @@ def complex_dataset():
         'sentiment': ClassLabel(num_classes=2),
     }
 
-    return Dataset.from_dict(COMPLEX_DATA, Features(features))
+    return datasets.Dataset.from_dict(COMPLEX_DATA, Features(features))
 
 
 def test_simple_feature_conversion(simple_dataset):
@@ -47,6 +49,12 @@ def test_simple_feature_conversion(simple_dataset):
     assert fields['review'].is_sequential
     assert fields['rating'].store_as_raw
     assert fields['related_movies'].store_as_raw
+
+    assert fields['id'].allow_missing_data
+    assert fields['name'].allow_missing_data
+    assert fields['review'].allow_missing_data
+    assert fields['rating'].allow_missing_data
+    assert fields['related_movies'].allow_missing_data
 
 
 def test_simple_data(simple_dataset):
@@ -73,6 +81,9 @@ def test_complex_feature_conversion(complex_dataset):
     assert fields['translation'].store_as_raw
     assert fields['sentiment'].is_target
 
+    assert fields['translation'].allow_missing_data
+    assert not fields['sentiment'].allow_missing_data
+
 
 def test_complex_data(complex_dataset):
     converter_iter = iter(HuggingFaceDatasetConverter(complex_dataset))
@@ -92,4 +103,6 @@ def test_invalid_dataset():
 
 
 def test_as_dataset(simple_dataset):
-    assert len(HuggingFaceDatasetConverter(simple_dataset).as_dataset()) == 2
+    podium_dataset = HuggingFaceDatasetConverter(simple_dataset).as_dataset()
+    assert isinstance(podium_dataset, Dataset)
+    assert len(podium_dataset) == 2
