@@ -20,6 +20,14 @@ takepod.dataload.eurovoc module
    :undoc-members:
    :show-inheritance:
 
+takepod.dataload.huggingface\_dataset\_converter module
+-------------------------------------------------------
+
+.. automodule:: takepod.dataload.huggingface_dataset_converter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 takepod.dataload.ner\_croatian module
 -------------------------------------
 
