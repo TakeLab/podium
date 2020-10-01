@@ -48,14 +48,14 @@ DOCS_REQUIRE = [
 
 EXTRAS_REQUIRE = {
     # for blcc model
-    'blcc': ['keras==2.2.4', 'tensorflow=1.15'],
+    'blcc': ['keras==2.2.4', 'tensorflow==1.15'],
     'torch': ['torch'],
     # dependencies for all dataset implementations (including the ones in dataload)
     'datasets': DATASETS_REQUIRE,
     # for preprocessing
     'yake': ['yake @ git+https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz'],
 
-    'docs': DOCS_REQUIRE,
+    # 'docs': DOCS_REQUIRE,
     'dev': TESTS_REQUIRE + QUALITY_REQUIRE,
     'quality': QUALITY_REQUIRE,
     'tests': TESTS_REQUIRE + DATASETS_REQUIRE,
