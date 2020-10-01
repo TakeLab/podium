@@ -23,7 +23,7 @@ except ImportError as ie:
     raise ie
 
 
-def group(iterable, n):
+def _group(iterable, n):
     """ groups an iterable into tuples of size n"""
     it = iter(iterable)
     while True:
@@ -42,7 +42,7 @@ class ArrowDataset:
     CACHE_TABLE_FILENAME = 'podium_arrow_cache.arrow'
     CACHE_FIELDS_FILENAME = 'podium_fields.pkl'
 
-    CHUNK_MAX_SIZE = 10000
+    CHUNK_MAX_SIZE = 10_000
 
     def __init__(self,
                  table: pa.Table,
@@ -75,14 +75,10 @@ class ArrowDataset:
             inferred data type if possible.
         """
         self.cache_path = cache_path
-
         self.fields = unpack_fields(fields)
         self.field_dict = {field.name: field for field in fields}
-
         self.mmapped_file = mmapped_file
-
         self.table = table
-
         self.data_types = data_types
 
     @staticmethod
@@ -90,7 +86,7 @@ class ArrowDataset:
                      cache_path: str = None,
                      data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None
                      ) -> 'ArrowDataset':
-        """Creates an ArrowDataset instance from a regular podium Dataset.
+        """Creates an ArrowDataset instance from a podium.datasets.Dataset.
 
         Parameters
         ----------
@@ -160,7 +156,7 @@ class ArrowDataset:
 
         # TODO hande cache case when cache is present
 
-        chunks_iter = group(examples, ArrowDataset.CHUNK_MAX_SIZE)
+        chunks_iter = _group(examples, ArrowDataset.CHUNK_MAX_SIZE)
 
         # get first group to infer schema
         first_group = next(chunks_iter)
@@ -170,25 +166,7 @@ class ArrowDataset:
         inferred_data_types = ArrowDataset._schema_to_data_types(record_batch.schema)
 
         # check for missing data types in inferred schema
-        for field in fields:
-            raw_dtype, tokenized_dtype = inferred_data_types.get(field.name, (None, None))
-
-            error_part = None
-            if raw_dtype is None and field.store_as_raw:
-                error_part = "raw"
-
-            if tokenized_dtype is None and (field.store_as_tokenized or field.tokenize):
-                error_part = "tokenized"
-
-            if error_part is not None:
-                msg = "Data type of the {} part of field '{}' cannot be inferred. " \
-                      "Please provide the explicit " \
-                      "pyarrow datatype trough the 'data_type' argument. The data_type " \
-                      "format is " \
-                      "{{field_name: (raw_dtype, tokenized_dtype)}}." \
-                    .format(error_part, field.name)
-                _LOGGER.error(msg)
-                raise Exception(msg)
+        ArrowDataset._check_for_missing_data_types(fields, inferred_data_types)
 
         # write cache file to disk
         with pa.OSFile(cache_table_path, 'wb') as f:
@@ -434,7 +412,7 @@ class ArrowDataset:
 
         Returns
         -------
-        Iterator[Example]
+        Iterator[podium.storage.Example]
             An Iterator iterating over the Examples contained in the passed RecordBatch.
 
         """
@@ -448,6 +426,45 @@ class ArrowDataset:
             for fieldname, values in zip(fieldnames, row):
                 setattr(example, fieldname, values)
             yield example
+
+    @staticmethod
+    def _check_for_missing_data_types(fields, data_types):
+        """ Checks if data_types has non-null data types for every field in fields.
+        Raises a RuntimeError if not.
+
+        Parameters
+        ----------
+        fields: List[Field]
+            Fields to check for.
+
+        data_types: Dict[str, Tuple[pyarrow.DataType, pyarrow.DataType]]
+            Inferred data_types to check for missing data types.
+
+        Raises
+        ------
+        RuntimeError
+            If not every field in fields has appropriate data types in data_types.
+
+        """
+        for field in fields:
+            raw_dtype, tokenized_dtype = data_types.get(field.name, (None, None))
+
+            error_part = None
+            if raw_dtype is None and field.store_as_raw:
+                error_part = "raw"
+
+            if tokenized_dtype is None and (field.store_as_tokenized or field.tokenize):
+                error_part = "tokenized"
+
+            if error_part is not None:
+                msg = "Data type of the {} part of field '{}' cannot be inferred. " \
+                      "Please provide the explicit " \
+                      "pyarrow datatype trough the 'data_type' argument. The data_type " \
+                      "format is " \
+                      "{{field_name: (raw_dtype, tokenized_dtype)}}." \
+                    .format(error_part, field.name)
+                _LOGGER.error(msg)
+                raise RuntimeError(msg)
 
     @staticmethod
     def load_cache(cache_path) -> 'ArrowDataset':

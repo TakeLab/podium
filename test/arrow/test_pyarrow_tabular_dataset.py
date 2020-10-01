@@ -216,7 +216,7 @@ def test_missing_datatype_exception(data, fields):
     exf = ExampleFactory(fields_null)
     examples = map(exf.from_list, data_null)
 
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError):
         ArrowDataset.from_examples(fields_null, examples)
 
 
