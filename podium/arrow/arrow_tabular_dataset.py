@@ -4,7 +4,6 @@ import itertools
 import os
 import shutil
 import pickle
-import io
 import csv
 from collections import defaultdict
 from typing import List, Dict, Union, Tuple, Iterable, Iterator, Any, Callable
@@ -278,7 +277,7 @@ class ArrowDataset:
         format = format.lower()
         csv_reader_params = {} if csv_reader_params is None else csv_reader_params
 
-        with io.open(os.path.expanduser(path), encoding="utf8") as f:
+        with open(os.path.expanduser(path), encoding="utf8") as f:
             if format in {'csv', 'tsv'}:
                 delimiter = ',' if format == "csv" else '\t'
                 reader = csv.reader(f, delimiter=delimiter,
@@ -611,7 +610,7 @@ class ArrowDataset:
 
         Parameters
         ----------
-        i: int or slice or iterable
+        item: int or slice or iterable
             Index used to index examples.
 
         deep_copy: bool

@@ -60,31 +60,29 @@ def test_from_examples(data, fields):
         assert tokenized == tok.split(' ')
 
 
-def test_slicing(data, fields, pyarrow_dataset):
-    indices = [
-        slice(0, len(data)),
-        slice(None, None, 2),
-        slice(None, None, -1),
-        slice(2, 8, 2),
-        (1, 5, 8),
-        np.array([1, 5, 8]),
-    ]
+@pytest.mark.parametrize('index', [
+    slice(0, 10),
+    slice(None, None, 2),
+    slice(None, None, -1),
+    slice(2, 8, 2),
+    (1, 5, 8),
+    np.array([1, 5, 8]),
+])
+def test_slicing(index, data, fields, pyarrow_dataset):
+    dataset_slice = pyarrow_dataset[index]
 
-    for i in indices:
-        dataset_slice = pyarrow_dataset[i]
+    if isinstance(index, slice):
+        data_slice = data[index]
+    else:
+        data_slice = [data[i] for i in index]
 
-        if isinstance(i, slice):
-            data_slice = data[i]
-        else:
-            data_slice = [data[index] for index in i]
+    assert len(dataset_slice) == len(data_slice)
+    for ex, (num, tok) in zip(dataset_slice, data_slice):
+        num_raw, _ = getattr(ex, 'number')
+        tok_raw, _ = getattr(ex, 'tokens')
 
-        assert len(dataset_slice) == len(data_slice)
-        for ex, (num, tok) in zip(dataset_slice, data_slice):
-            num_raw, _ = getattr(ex, 'number')
-            tok_raw, _ = getattr(ex, 'tokens')
-
-            assert num_raw == num
-            assert tok_raw == tok
+        assert num_raw == num
+        assert tok_raw == tok
 
 
 def test_dump_and_load(pyarrow_dataset):
