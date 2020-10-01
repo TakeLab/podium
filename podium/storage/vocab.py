@@ -77,8 +77,6 @@ class Vocab:
         list of words
     stoi : dict
         mapping from word string to index
-    has_specials:
-        whether the dictionary contains special symbols
     """
 
     def __init__(
@@ -457,7 +455,7 @@ class Vocab:
 
     @property
     def has_specials(self):
-        """Method checks if the vocabulary contains special symbols.
+        """Property that checks if the vocabulary contains special symbols.
 
         Returns
         -------

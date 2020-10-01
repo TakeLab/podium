@@ -31,5 +31,14 @@ blocks:
             - black --check --line-length 90 --target-version py36 podium tests examples
             - isort --check-only podium tests examples
             - flake8 podium tests examples
-
-# add `build/deploy docs` block on stable relase
+  
+  - name: build docs
+    task:
+      jobs:
+        - name: build docs with sphinx
+          commands:
+            - checkout
+            - sudo pip install .[docs]
+            - cd docs && make html SPHINXOPTS="-W"
+            - artifact push job ./docs/build
+# add `deploy docs` block on stable relase

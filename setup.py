@@ -39,17 +39,23 @@ DATASETS_REQUIRE = [
 ]
 
 
+DOCS_REQUIRE = [
+    'sphinx',
+    'keras==2.2.4',
+    'tensorflow==1.15',
+]
+
+
 EXTRAS_REQUIRE = {
     # for blcc model
-    'keras': ['keras==2.2.4'],
+    'blcc': ['keras==2.2.4', 'tensorflow=1.15'],
     'torch': ['torch'],
+    # dependencies for all dataset implementations (including the ones in dataload)
+    'datasets': DATASETS_REQUIRE,
     # for preprocessing
     'yake': ['yake @ git+https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz'],
 
-    # dependencies for all dataset implementations (including the ones in dataload)
-    'datasets': DATASETS_REQUIRE,
-
-    'docs': ['sphinx'],
+    'docs': DOCS_REQUIRE,
     'dev': TESTS_REQUIRE + QUALITY_REQUIRE,
     'quality': QUALITY_REQUIRE,
     'tests': TESTS_REQUIRE + DATASETS_REQUIRE,

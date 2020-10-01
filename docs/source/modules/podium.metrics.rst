@@ -1,22 +1,22 @@
-takepod.metrics package
+podium.metrics package
 =======================
 
 Submodules
 ----------
 
-takepod.metrics.metrics module
+podium.metrics.metrics module
 ------------------------------
 
-.. automodule:: takepod.metrics.metrics
+.. automodule:: podium.metrics.metrics
    :members:
-   :undoc-members:
+   :no-undoc-members:
    :show-inheritance:
 
 
 Module contents
 ---------------
 
-.. automodule:: takepod.metrics
+.. automodule:: podium.metrics
    :members:
-   :undoc-members:
+   :no-undoc-members:
    :show-inheritance:

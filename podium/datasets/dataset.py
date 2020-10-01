@@ -443,6 +443,7 @@ class Dataset(ABC):
     def batch(self):
         """Creates an input and target batch containing the whole dataset.
         The format of the batch is the same as the batches returned by the
+
         Returns
         -------
         input_batch, target_batch

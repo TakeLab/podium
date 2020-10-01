@@ -1,7 +1,7 @@
-takepod
+podium
 =======
 
 .. toctree::
    :maxdepth: 4
 
-   takepod
+   podium
