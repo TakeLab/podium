@@ -4,7 +4,6 @@ pytest.importorskip("podium.preproc.yake")
 from podium.preproc.yake import YAKE
 import yake
 
-
 TEXT = """Sources tell us that Google is acquiring Kaggle, a platform that hosts
         data science and machine learning competitions. Details about the
         transaction remain somewhat vague, but given that Google is hosting
@@ -35,7 +34,6 @@ KEYWORDS = ['machine learning competitions',
             'anthony goldbloom declined',
             'co-founder ceo anthony',
             'kaggle co-founder ceo']
-
 
 KEYWORD_DATA = {
     "text": TEXT,
@@ -70,8 +68,18 @@ def test_yake_en_wrapper_output():
 
 
 def test_yake_en_nondefault_wrapper_output():
-    yake_original = yake.KeywordExtractor(n=2)
-    yake_podium = YAKE(n=2)
+    yake_original = yake.KeywordExtractor(n=2,
+                                          lan="en",
+                                          dedupLim=0.8,
+                                          dedupFunc='levenshtein',
+                                          windowsSize=2,
+                                          top=20)
+    yake_podium = YAKE(n=2,
+                       lan="en",
+                       dedupLim=0.8,
+                       dedupFunc='levenshtein',
+                       windowsSize=2,
+                       top=20)
 
     output_original = [kw for kw, _ in
                        yake_original.extract_keywords(KEYWORD_DATA["text"])]
