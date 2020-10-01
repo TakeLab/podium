@@ -56,25 +56,6 @@ class Example:
         att_string = "; ".join(att_values)
         return "{}[{}]".format(self.__class__.__name__, att_string)
 
-    def __repr__(self):
-        return self.__str__()
-
-    # def __eq__(self, other):
-    #     if self is other:
-    #         return True
-    #
-    #     if not isinstance(other, Example):
-    #         return False
-    #
-    #     for var_name, var_value in vars(self).items():
-    #         if not hasattr(other, var_name):
-    #             return False
-    #
-    #         if var_value != getattr(other, var_name):
-    #             return False
-    #
-    #     return True
-
 
 class ExampleFactory:
     """Class used to create Example instances. Every ExampleFactory dynamically creates
@@ -313,7 +294,7 @@ class ExampleFactory:
 
         else:
             err_msg = "format_tag must be either an ExampleFormat or a string. " \
-                      "Passed value is of type : '{}'"\
+                      "Passed value is of type : '{}'" \
                 .format(format_tag.__class__.__name__)
             _LOGGER.error(err_msg)
             raise TypeError(err_msg)
