@@ -2,8 +2,10 @@
 import sys
 
 
-def error(error_type, logger, msg):
-    """
+def log_and_raise_error(error_type, logger, msg):
+    """Utility function that logs and raises an exception of type
+    `error_type` with the given error message.
+
     Parameters
     ----------
     error_type : Type[Exception]

@@ -8,7 +8,7 @@ from podium.models.experiment import Experiment
 import numpy as np
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
-from podium.util import error
+from podium.util import log_and_raise_error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -210,7 +210,7 @@ def k_fold_classification_metrics(experiment: Experiment,
     if average not in ('micro', 'macro', 'weighted', 'binary'):
         error_msg = "`average` parameter must be either `micro`, `macro`, `weighted`" \
                     f" or `binary`. Provided value: '{average}'"
-        error(ValueError, _LOGGER, error_msg)
+        log_and_raise_error(ValueError, _LOGGER, error_msg)
 
     def scorer(y_true, y_pred):
         accuracy = accuracy_score(y_true, y_pred)

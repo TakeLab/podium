@@ -9,7 +9,7 @@ from enum import Enum
 from typing import Union
 
 from podium.storage.field import unpack_fields
-from podium.util import error
+from podium.util import log_and_raise_error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -174,7 +174,7 @@ class ExampleFactory:
                     node = root
                 else:
                     error_msg = f"Specified name {name} was not found in the input data"
-                    error(ValueError, _LOGGER, error_msg)
+                    log_and_raise_error(ValueError, _LOGGER, error_msg)
 
             val = node.text
             set_example_attributes(example, field, val)
@@ -294,12 +294,12 @@ class ExampleFactory:
         else:
             error_msg = "format_tag must be either an ExampleFormat or a string. " \
                         f"Passed value is of type : '{type(format_tag).__name__}'"
-            error(TypeError, _LOGGER, error_msg)
+            log_and_raise_error(TypeError, _LOGGER, error_msg)
 
         factory_method = FACTORY_METHOD_DICT.get(format_str)
         if factory_method is None:
             error_msg = f"Unsupported example format: '{format_str}'"
-            error(ValueError, _LOGGER, error_msg)
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         return factory_method(data, self)
 

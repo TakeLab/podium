@@ -7,7 +7,7 @@ import numpy as np
 
 from podium.preproc.tokenizers import get_tokenizer
 from podium.storage.vocab import Vocab
-from podium.util import error
+from podium.util import log_and_raise_error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -312,7 +312,7 @@ class Field:
             error_msg = "Store_as_tokenized' and 'tokenize' both set to True." \
                         " You can either store the data as tokenized, " \
                         "tokenize it or do neither, but you can't do both."
-            error(ValueError, _LOGGER, error_msg)
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         if not store_as_raw and not tokenize and not store_as_tokenized:
             warn_msg = "At least one of 'store_as_raw', 'tokenize'" \
@@ -328,13 +328,13 @@ class Field:
                         " True. You can't store the same value as raw and as " \
                         "tokenized. Maybe you wanted to tokenize the raw " \
                         "data? (the 'tokenize' parameter)"
-            error(ValueError, _LOGGER, error_msg)
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         if not is_numericalizable \
                 and (custom_numericalize is not None or vocab is not None):
             error_msg = "Field that is not numericalizable can't have " \
                         "custom_numericalize or vocab."
-            error(ValueError, _LOGGER, error_msg)
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         self.is_sequential = (store_as_tokenized or tokenize) and is_numericalizable
         self.store_as_raw = store_as_raw
@@ -432,7 +432,7 @@ class Field:
         if not self.is_numericalizable:
             error_msg = "Field is declared as non numericalizable. Posttokenization " \
                         "hooks aren't used in such fields."
-            error(ValueError, _LOGGER, error_msg)
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         self.posttokenize_pipeline.add_hook(hook)
 
@@ -512,7 +512,7 @@ class Field:
         if data is None:
             if not self.allow_missing_data:
                 error_msg = f"Missing data not allowed in field {self.name}"
-                error(ValueError, _LOGGER, error_msg)
+                log_and_raise_error(ValueError, _LOGGER, error_msg)
 
             else:
                 return (self.name, (None, None)),
@@ -628,7 +628,7 @@ class Field:
         """
         if not self.allow_missing_data:
             error_msg = f"Missing data not allowed in field {self.name}"
-            error(ValueError, _LOGGER, error_msg)
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         if self.is_numericalizable:
             return self.missing_data_token
@@ -664,7 +664,7 @@ class Field:
         if raw is None and tokenized is None:
             if not self.allow_missing_data:
                 error_msg = f"Missing value found in field {self.name}."
-                error(ValueError, _LOGGER, error_msg)
+                log_and_raise_error(ValueError, _LOGGER, error_msg)
 
             else:
                 return None
@@ -731,7 +731,7 @@ class Field:
             if pad_symbol is None:
                 error_msg = 'Must provide a custom pad symbol if the ' \
                             'field has no vocab.'
-                error(ValueError, _LOGGER, error_msg)
+                log_and_raise_error(ValueError, _LOGGER, error_msg)
 
             diff = length - len(row)
 
@@ -833,7 +833,7 @@ class LabelField(Field):
             error_msg = "Vocab contains special symbols." \
                         " Vocabs with special symbols cannot be used" \
                         " with LabelFields."
-            error(ValueError, _LOGGER, error_msg)
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         super().__init__(name,
                          tokenizer=None,
@@ -966,7 +966,7 @@ class MultilabelField(TokenizedField):
             error_msg = "Vocab contains special symbols." \
                         " Vocabs with special symbols cannot be used" \
                         " with multilabel fields."
-            error(ValueError, _LOGGER, error_msg)
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         self.num_of_classes = num_of_classes
         super().__init__(name,
@@ -988,7 +988,7 @@ class MultilabelField(TokenizedField):
             error_msg = "Number of classes in data is greater than the declared number " \
                         f"of classes. Declared: {self.num_of_classes}, " \
                         f"Actual: {len(self.vocab)}"
-            error(ValueError, _LOGGER, error_msg)
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
     def _numericalize_tokens(self, tokens):
         if self.use_vocab:

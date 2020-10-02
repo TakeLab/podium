@@ -10,7 +10,7 @@ from podium.preproc.util import (capitalize_target_like_source,
                                  uppercase_target_like_source)
 from podium.storage.resources.large_resource import (init_scp_large_resource_from_kwargs,
                                                      SCPLargeResource)
-from podium.util import error
+from podium.util import log_and_raise_error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -118,7 +118,7 @@ class CroatianLemmatizer():
             ]
         except KeyError:
             error_msg = f"No words found for lemma {lemma}"
-            error(ValueError, _LOGGER, error_msg)
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
     @property
     def _word2lemma(self):

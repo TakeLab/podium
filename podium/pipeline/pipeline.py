@@ -8,7 +8,7 @@ from podium.storage.field import Field, MultioutputField
 from podium.datasets import Dataset
 from podium.models import AbstractSupervisedModel, FeatureTransformer, Experiment, \
     AbstractTrainer
-from podium.util import error
+from podium.util import log_and_raise_error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -95,12 +95,12 @@ class Pipeline(Experiment):
                 error_msg = "If `example format` is LIST, CSV or NLTK, `fields`" \
                             "must be either a list or tuple. " \
                             f"Type of `fields`: {type(fields)}"
-                error(TypeError, _LOGGER, error_msg)
+                log_and_raise_error(TypeError, _LOGGER, error_msg)
         elif not isinstance(fields, dict):
             error_msg = "If `example format` is DICT, XML or JSON, `fields`" \
                         "must be a dict. " \
                         f"Type of `fields`: {type(fields)}"
-            error(TypeError, _LOGGER, error_msg)
+            log_and_raise_error(TypeError, _LOGGER, error_msg)
 
         if isinstance(fields, (list, tuple)):
             feature_field_dict = _filter_feature_fields(

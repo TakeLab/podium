@@ -11,7 +11,7 @@ from podium.datasets.iterator import Iterator, SingleBatchIterator
 from podium.models import AbstractSupervisedModel, \
     default_feature_transform, default_label_transform, FeatureTransformer
 from podium.models.trainer import AbstractTrainer
-from podium.util import error
+from podium.util import log_and_raise_error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -115,7 +115,7 @@ class Experiment:
                         "feature_transformer must be either " \
                         "be None, a FeatureTransformer instance or a callable " \
                         "taking a batch and returning a numpy matrix of features."
-            error(TypeError, _LOGGER, error_msg)
+            log_and_raise_error(TypeError, _LOGGER, error_msg)
 
     def set_label_transformer(self, label_transform_fn):
         self.label_transform_fn = label_transform_fn \
@@ -179,7 +179,7 @@ class Experiment:
         if trainer is None:
             error_msg = "No trainer provided. Trainer must be provided either in the " \
                         "constructor or as an argument to the fit method."
-            error(RuntimeError, _LOGGER, error_msg)
+            log_and_raise_error(RuntimeError, _LOGGER, error_msg)
 
         if feature_transformer is not None:
             self.set_feature_transformer(feature_transformer)
@@ -230,7 +230,7 @@ class Experiment:
         if trainer is None:
             error_msg = "No trainer provided. Trainer must be provided either " \
                         "in the constructor or as an argument to the partial_fit method."
-            error(RuntimeError, _LOGGER, error_msg)
+            log_and_raise_error(RuntimeError, _LOGGER, error_msg)
 
         trainer_kwargs = {} if trainer_kwargs is None else trainer_kwargs
         trainer_args = self.default_trainer_args.copy()
@@ -297,7 +297,7 @@ class Experiment:
             error_msg = "Model instance not available. Please provide " \
                         "a model instance in the constructor or call `fit` " \
                         "before calling `partial_fit.`"
-            error(RuntimeError, _LOGGER, error_msg)
+            log_and_raise_error(RuntimeError, _LOGGER, error_msg)
 
     def __repr__(self):
         return "{}[model: {}, trainer: {}]".format(

@@ -8,7 +8,7 @@ import numpy as np
 
 from podium.datasets.dataset import Dataset
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
-from podium.util import error
+from podium.util import log_and_raise_error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -98,7 +98,7 @@ class Iterator:
             if seed is None and internal_random_state is None:
                 error_msg = "If shuffle==True, either seed or " \
                             "internal_random_state have to be != None."
-                error(ValueError, _LOGGER, error_msg)
+                log_and_raise_error(ValueError, _LOGGER, error_msg)
 
             self.shuffler = Random(seed)
 
@@ -217,7 +217,7 @@ class Iterator:
         if not self.shuffle:
             error_msg = "Iterator with shuffle=False does not have " \
                         "an internal random state."
-            error(RuntimeError, _LOGGER, error_msg)
+            log_and_raise_error(RuntimeError, _LOGGER, error_msg)
 
         return self.shuffler.getstate()
 
@@ -241,7 +241,7 @@ class Iterator:
         if not self.shuffle:
             error_msg = "Iterator with shuffle=False does not have " \
                         "an internal random state."
-            error(RuntimeError, _LOGGER, error_msg)
+            log_and_raise_error(RuntimeError, _LOGGER, error_msg)
 
         self.shuffler.setstate(state)
 
@@ -462,7 +462,7 @@ class BucketIterator(Iterator):
         if sort_key is None and bucket_sort_key is None:
             error_msg = "For BucketIterator to work, either sort_key or " \
                         "bucket_sort_key must be != None."
-            error(ValueError, _LOGGER, error_msg)
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         super().__init__(dataset,
                          batch_size,
@@ -601,12 +601,12 @@ class HierarchicalDatasetIterator(Iterator):
             error_msg = "'context_max_length' must not be less than 1. " \
                         "If you don't want context, try flattening the dataset. " \
                         f"'context_max_length' : {context_max_length})"
-            error(ValueError, _LOGGER, error_msg)
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         if context_max_depth is not None and context_max_depth < 0:
             error_msg = "'context_max_depth' must not be negative. " \
                         f"'context_max_depth' : {context_max_length}"
-            error(ValueError, _LOGGER, error_msg)
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         self._context_max_depth = context_max_depth
         self._context_max_size = context_max_length

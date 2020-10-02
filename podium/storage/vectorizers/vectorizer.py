@@ -10,7 +10,7 @@ import six
 
 import numpy as np
 
-from podium.util import error
+from podium.util import log_and_raise_error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ def zeros_default_vector(token, dim):
     if dim is None:
         error_msg = "Can't create zeros default vector with dimension "\
                     f"equal to None. Given token= {token}, dim={dim}"
-        error(ValueError, _LOGGER, error_msg)
+        log_and_raise_error(ValueError, _LOGGER, error_msg)
     return np.zeros(dim)
 
 
@@ -61,7 +61,7 @@ def random_normal_default_vector(token, dim):
     if dim is None:
         error_msg = "Can't create random normal vector with dimension "\
                     f"equal to None. Given token={token}, dim={dim}"
-        error(ValueError, _LOGGER, error_msg)
+        log_and_raise_error(ValueError, _LOGGER, error_msg)
     return np.random.randn(dim)
 
 
@@ -259,7 +259,7 @@ class BasicVectorStorage(VectorStorage):
         if vocab is None:
             error_msg = "Cannot load vectors for vocab because given "\
                         "vocab is None."
-            error(ValueError, _LOGGER, error_msg)
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
         self._load_vectors(vocab=vocab)
         _LOGGER.debug("Loaded vectors for vocab.")
         return self.get_embedding_matrix(vocab)
@@ -269,11 +269,11 @@ class BasicVectorStorage(VectorStorage):
             error_msg = "Vector storage is not initialized so it cannot"\
                         " transform token to vector. Use load_all or "\
                         " load_vocab function to initialize."
-            error(RuntimeError, _LOGGER, error_msg)
+            log_and_raise_error(RuntimeError, _LOGGER, error_msg)
         if token is None:
             error_msg = "User gave None token to be converted to vector"\
                         ", but None is not a valid token."
-            error(ValueError, _LOGGER, error_msg)
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
         if token not in self._vectors \
            and self._default_vector_function is not None:
             return self._default_vector_function(token, self._dim)
@@ -348,7 +348,7 @@ class BasicVectorStorage(VectorStorage):
                 if not stripped_line:
                     error_msg = "Vectors file contains empty lines which is"\
                                 " not supported."
-                    error(RuntimeError, _LOGGER, error_msg)
+                    log_and_raise_error(RuntimeError, _LOGGER, error_msg)
 
                 word, vector_entries_str = stripped_line.split(split_delimiter, 1)
                 vector_entry = np.fromstring(string=vector_entries_str,
@@ -362,7 +362,7 @@ class BasicVectorStorage(VectorStorage):
                     if header_lines > 1:
                         error_msg = "Found more than one header line in "\
                                     "vectors file."
-                        error(RuntimeError, _LOGGER, error_msg)
+                        log_and_raise_error(RuntimeError, _LOGGER, error_msg)
                     continue  # probably a header, reference torch text
                 # second reference:
                 # https://radimrehurek.com/gensim/scripts/glove2word2vec.html
@@ -371,7 +371,7 @@ class BasicVectorStorage(VectorStorage):
                                 "dimensions, but previously read vectors have" \
                                 f"{self._dim} dimensions. All " \
                                 "vectors must have the same number of dimensions."
-                    error(RuntimeError, _LOGGER, error_msg)
+                    log_and_raise_error(RuntimeError, _LOGGER, error_msg)
 
                 if self._binary:
                     word = self._decode_word(word)
@@ -393,7 +393,7 @@ class BasicVectorStorage(VectorStorage):
         if not self._initialized:
             error_msg = "Vector storage must be initialized to obtain "\
                         "vector dimenstion."
-            error(RuntimeError, _LOGGER, error_msg)
+            log_and_raise_error(RuntimeError, _LOGGER, error_msg)
         return self._dim
 
     def _check_path(self):
@@ -405,14 +405,14 @@ class BasicVectorStorage(VectorStorage):
             error_msg = "Error in checking paths that are handed to "\
                         "load vectors. Given vectors and cache paths "\
                         "mustn't be both None."
-            error(ValueError, _LOGGER, error_msg)
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         if self._path is not None and not os.path.exists(self._path):
             error_msg = "Error in checking paths that are handed to "\
                         "load vectors. Given vectors path doesn't"\
                         " exist. If you want to use only cached path "\
                         "set path to None."
-            error(ValueError, _LOGGER, error_msg)
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         if self._path is None and self._cache_path is not None\
            and not os.path.exists(self._cache_path):
@@ -420,4 +420,4 @@ class BasicVectorStorage(VectorStorage):
                         "load vectors. Given cache path doesn't exist."\
                         " User needs to specify valid path or existing "\
                         "cache path."
-            error(ValueError, _LOGGER, error_msg)
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
