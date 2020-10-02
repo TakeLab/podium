@@ -27,3 +27,4 @@ wget
 paramiko
 dill
 nltk>=3.0
+pyarrow
