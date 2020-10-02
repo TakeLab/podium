@@ -292,17 +292,14 @@ class ExampleFactory:
             format_str = format_tag.lower()
 
         else:
-            err_msg = "format_tag must be either an ExampleFormat or a string. " \
-                      "Passed value is of type : '{}'"\
-                .format(format_tag.__class__.__name__)
-            _LOGGER.error(err_msg)
-            raise TypeError(err_msg)
+            error_msg = "format_tag must be either an ExampleFormat or a string. " \
+                        f"Passed value is of type : '{type(format_tag).__name__}'"
+            error(TypeError, _LOGGER, error_msg)
 
         factory_method = FACTORY_METHOD_DICT.get(format_str)
         if factory_method is None:
-            err_msg = "Unsupported example format: '{}'".format(format_str)
-            _LOGGER.error(err_msg)
-            raise ValueError(err_msg)
+            error_msg = f"Unsupported example format: '{format_str}'"
+            error(ValueError, _LOGGER, error_msg)
 
         return factory_method(data, self)
 
