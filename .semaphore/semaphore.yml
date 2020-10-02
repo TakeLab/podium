@@ -41,5 +41,5 @@ blocks:
             - checkout
             - sudo pip install .[docs]
             - cd docs && make html SPHINXOPTS="-W"
-            - artifact push job docs/build
+            - artifact push job build
 # add `deploy docs` block on stable relase
