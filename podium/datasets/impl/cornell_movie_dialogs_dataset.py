@@ -6,6 +6,7 @@ from podium.storage.example_factory import ExampleFactory
 from podium.storage.vocab import Vocab
 from podium.storage.field import Field
 from podium.dataload.cornell_movie_dialogs import CornellMovieDialogsNamedTuple
+from podium.util import error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,8 +32,7 @@ class CornellMovieDialogsConversationalDataset(Dataset):
         if data is None:
             error_msg = "Specified data is None, dataset expects "\
                         "CornellMovieDialogsNamedTuple instance."
-            _LOGGER.error(error_msg)
-            raise ValueError(error_msg)
+            error(ValueError, _LOGGER, error_msg)
         if not fields:
             fields = CornellMovieDialogsConversationalDataset.get_default_fields()
         examples = CornellMovieDialogsConversationalDataset._create_examples(

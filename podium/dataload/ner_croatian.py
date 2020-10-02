@@ -6,6 +6,7 @@ import xml.etree.ElementTree as ET
 
 from podium.preproc.tokenizers import get_tokenizer
 from podium.storage.resources.large_resource import init_scp_large_resource_from_kwargs
+from podium.util import error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -167,10 +168,8 @@ class NERCroatianXMLLoader:
         if tag_schema == 'IOB':
             return self._iob_label_resolver
 
-        error_msg = 'No label resolver for tag schema {} exists'\
-                    .format(tag_schema)
-        _LOGGER.error(error_msg)
-        raise ValueError(error_msg)
+        error_msg = f'No label resolver for tag schema {tag_schema} exists'
+        error(ValueError, _LOGGER, error_msg)
 
     @staticmethod
     def _iob_label_resolver(index, label):

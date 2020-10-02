@@ -3,6 +3,7 @@ import logging
 
 from podium.datasets import Dataset
 from podium.storage import ExampleFactory, Field, LabelField, Vocab
+from podium.util import error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -82,10 +83,9 @@ class _FeatureConverter:
                       'is_numericalizable': False}
 
         else:
-            error_msg = 'Conversion for feature type {} is not supported' \
-                        .format(type(feature).__name__)
-            _LOGGER.error(error_msg)
-            raise TypeError(error_msg)
+            error_msg = f'Conversion for feature type {type(feature).__name__} ' \
+                        'is not supported'
+            error(TypeError, _LOGGER, error_msg)
 
         # allow missing data for all fields except
         # the ones corresponding to the datasets.ClassLabel
@@ -138,10 +138,9 @@ class HuggingFaceDatasetConverter:
             If dataset is not an instance of datasets.Dataset.
         """
         if not isinstance(dataset, datasets.Dataset):
-            error_msg = 'Incorrect dataset type. Expected datasets.Dataset, but got {}' \
-                        .format(type(dataset).__name__)
-            _LOGGER.error(error_msg)
-            raise TypeError(error_msg)
+            error_msg = 'Incorrect dataset type. Expected datasets.Dataset, ' \
+                        f'but got {type(dataset).__name__}'
+            error(TypeError, _LOGGER, error_msg)
 
         self.dataset = dataset
         self.fields = fields or convert_features_to_fields(dataset.features)

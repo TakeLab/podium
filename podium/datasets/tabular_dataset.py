@@ -4,6 +4,7 @@ import logging
 
 from podium.datasets.dataset import Dataset
 from podium.storage.example_factory import ExampleFactory
+from podium.util import error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -74,9 +75,8 @@ class TabularDataset(Dataset):
             elif format == "json":
                 reader = f
             else:
-                error_msg = "Invalid format: {}".format(format)
-                _LOGGER.error(error_msg)
-                raise ValueError(error_msg)
+                error_msg = f"Invalid format: {format}"
+                error(ValueError, _LOGGER, error_msg)
 
             # create a list of examples
             examples = create_examples(reader, format, fields, skip_header)
@@ -120,15 +120,13 @@ def create_examples(reader, format, fields, skip_header):
 
     if skip_header:
         if format == "json":
-            error_msg = "When using a {} file, skip_header must be False.".format(format)
-            _LOGGER.error(error_msg)
-            raise ValueError(error_msg)
+            error_msg = f"When using a {format} file, skip_header must be False."
+            error(ValueError, _LOGGER, error_msg)
         elif format in {"csv", "tsv"} and isinstance(fields, dict):
-            error_msg = "When using a dict to specify fields with a {}" \
-                " file, skip_header must be False and the file must " \
-                "have a header.".format(format)
-            _LOGGER.error(error_msg)
-            raise ValueError(error_msg)
+            error_msg = f"When using a dict to specify fields with a {format}" \
+                        " file, skip_header must be False and the file must " \
+                        "have a header."
+            error(ValueError, _LOGGER, error_msg)
 
         # skipping the header
         next(reader)

@@ -9,6 +9,7 @@ from enum import Enum
 from typing import Union
 
 from podium.storage.field import unpack_fields
+from podium.util import error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -172,10 +173,8 @@ class ExampleFactory:
                 if root.tag == name:
                     node = root
                 else:
-                    error_msg = "Specified name {} was not found in the " \
-                                "input data".format(name)
-                    _LOGGER.error(error_msg)
-                    raise ValueError(error_msg)
+                    error_msg = f"Specified name {name} was not found in the input data"
+                    error(ValueError, _LOGGER, error_msg)
 
             val = node.text
             set_example_attributes(example, field, val)
