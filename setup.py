@@ -55,7 +55,7 @@ EXTRAS_REQUIRE = {
     # for preprocessing
     'yake': ['yake @ git+https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz'],
 
-    # 'docs': DOCS_REQUIRE,
+    'docs': DOCS_REQUIRE,
     'dev': TESTS_REQUIRE + QUALITY_REQUIRE,
     'quality': QUALITY_REQUIRE,
     'tests': TESTS_REQUIRE + DATASETS_REQUIRE,
@@ -90,7 +90,7 @@ setup(
     zip_safe=False
 )
 
-# before release:
+# TODO: (before release)
 # 1. add setup.py args: long description (via __doc__), download_url (point to tag),
 #    keywords, classifiers
 # 2. add dependency comments (so it's more clear why we use them)
