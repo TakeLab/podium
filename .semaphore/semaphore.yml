@@ -7,7 +7,7 @@ agent:
 
   containers:
     - name: main
-      image: semaphoreci/python:3.6.2
+      image: semaphoreci/python:3.6.12
 
 blocks:
   - name: setup environment and run tests
