@@ -5,9 +5,9 @@ agent:
   machine:
     type: e1-standard-2
 
-    containers:
-      - name: main
-        image: semaphoreci/python:3.6.0
+  containers:
+    - name: main
+      image: semaphoreci/python:3.6.0
 
 blocks:
   - name: setup environment and run tests
