@@ -7,7 +7,6 @@ import os
 from abc import ABC, abstractmethod
 
 import numpy as np
-import six
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -326,7 +325,7 @@ class BasicVectorStorage(VectorStorage):
         UnicodeDecodeError
             If given word cannot be decoded in unicode.
         """
-        if isinstance(word, six.binary_type):
+        if isinstance(word, bytes):
             decoded = word.decode("utf-8")
             return decoded
 

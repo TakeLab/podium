@@ -10,7 +10,6 @@ INSTALL_REQUIRES = [
     'requests',
     'scikit-learn',
     'scipy',
-    'six',
     'spacy',
     'tqdm',
     'yake @ https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz',
