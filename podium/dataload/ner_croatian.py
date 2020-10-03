@@ -214,13 +214,14 @@ def convert_sequence_to_entities(sequence, text, delimiter="-"):
 
         ```text[entity['start'] : entity['end']]``` retrieves the entity text
 
-        Example
-        {
-            'name': list(str),
-            'type': str,
-            'start': int,
-            'end': int
-        }
+        This means that the entity has the following form:
+            {                      \
+                'name': list(str), \
+                'type': str,       \
+                'start': int,      \
+                'end': int         \
+            }
+
 
     Raises
     ------
