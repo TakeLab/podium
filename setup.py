@@ -13,6 +13,7 @@ INSTALL_REQUIRES = [
     'six',
     'spacy',
     'tqdm',
+    'yake @ https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz',
 ]
 
 
@@ -21,7 +22,6 @@ TESTS_REQUIRE = [
     'pytest-cov',
     'pytest-mock',
     'urllib3',
-    'yake @ https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz',
 ]
 
 
@@ -44,21 +44,19 @@ DOCS_REQUIRE = [
     'datasets',
     'keras==2.2.4',
     'tensorflow==1.15',
-    'yake @ https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz',
 ]
 
 
 EXTRAS_REQUIRE = {
     # for blcc model
     'blcc': ['keras==2.2.4', 'tensorflow==1.15'],
+    # for training/evaluation PyTorch models
     'torch': ['torch'],
     # dependencies for all dataset implementations (including the ones in dataload)
     'datasets': DATASETS_REQUIRE,
-    # for preprocessing
-    'yake': ['yake @ https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz'],
 
     'docs': DOCS_REQUIRE,
-    'dev': TESTS_REQUIRE + QUALITY_REQUIRE,
+    'dev': TESTS_REQUIRE + QUALITY_REQUIRE + DATASETS_REQUIRE,
     'quality': QUALITY_REQUIRE,
     'tests': TESTS_REQUIRE + DATASETS_REQUIRE,
 }
@@ -88,7 +86,7 @@ setup(
         'podium': [
             'preproc/stemmer/data/*.txt'
         ]},
-    python_requires=">=3.6.0",
+    python_requires=">=3.6",
     zip_safe=False
 )
 
