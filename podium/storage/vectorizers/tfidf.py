@@ -10,6 +10,7 @@ from sklearn.feature_extraction.text import TfidfTransformer
 
 from podium.util import log_and_raise_error
 
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -156,14 +157,18 @@ class CountVectorizer:
             If the vocab or fields vocab are None
         """
         if self._vocab is None and (field is None or field.vocab is None):
-            error_msg = "Vocab is not defined. User should define vocab in constructor "\
-                        "or by providing field with a non-empty vocab property."
+            error_msg = (
+                "Vocab is not defined. User should define vocab in constructor "
+                "or by providing field with a non-empty vocab property."
+            )
             log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         if field and field.allow_missing_data:
-            error_msg = "CountVectorizer doesn't support fields that " \
-                        "contain missing data: " \
-                        f"{dataset}, field: {field}"
+            error_msg = (
+                "CountVectorizer doesn't support fields that "
+                "contain missing data: "
+                f"{dataset}, field: {field}"
+            )
             log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         self._vocab = field.vocab if self._vocab is None else self._vocab
@@ -206,11 +211,14 @@ class CountVectorizer:
                 data=examples, unpack_data=partial(self._get_example_values, field=field)
             )
         elif is_tokens_tensor:
-            return self._build_count_matrix(data=examples,
-                                            unpack_data=self._get_tensor_values)
-        error_msg = "Invalid method arguments. Method expects tensors of numericalized "\
-                    "tokens as examples or dataset as collection of examples from which "\
-                    " with given field to extract data."
+            return self._build_count_matrix(
+                data=examples, unpack_data=self._get_tensor_values
+            )
+        error_msg = (
+            "Invalid method arguments. Method expects tensors of numericalized "
+            "tokens as examples or dataset as collection of examples from which "
+            " with given field to extract data."
+        )
         log_and_raise_error(ValueError, _LOGGER, error_msg)
 
 
@@ -279,8 +287,10 @@ class TfIdfVectorizer(CountVectorizer):
         """
         super(TfIdfVectorizer, self).fit(dataset=dataset, field=field)
         if dataset is None or field is None:
-            error_msg = "dataset or field mustn't be None, given dataset: "\
-                        f"{dataset}, field: {field}"
+            error_msg = (
+                "dataset or field mustn't be None, given dataset: "
+                f"{dataset}, field: {field}"
+            )
             log_and_raise_error(ValueError, _LOGGER, error_msg)
         if field.name not in dataset.field_dict:
             error_msg = f"invalid field, given field: {field}"

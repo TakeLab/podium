@@ -9,6 +9,7 @@ import numpy as np
 
 from podium.util import log_and_raise_error
 
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -43,8 +44,9 @@ class VocabDict(dict):
 
     def __missing__(self, key):
         if self._default_factory is None:
-            error_msg = "Default factory is not defined and key is not in " \
-                        "the dictionary."
+            error_msg = (
+                "Default factory is not defined and key is not in " "the dictionary."
+            )
             log_and_raise_error(KeyError, _LOGGER, error_msg)
         return self._default_factory()
 
@@ -153,8 +155,10 @@ class Vocab:
             If unknown symbol is not present in the vocab.
         """
         if self._default_unk_index is None:
-            error_msg = "Unknown symbol is not present in the vocab but " \
-                        "the user asked for the word that isn't in the vocab."
+            error_msg = (
+                "Unknown symbol is not present in the vocab but "
+                "the user asked for the word that isn't in the vocab."
+            )
             log_and_raise_error(ValueError, _LOGGER, error_msg)
         return self._default_unk_index
 
@@ -173,8 +177,10 @@ class Vocab:
             and the vocab is finalized.
         """
         if self.finalized and not self._keep_freqs:
-            error_msg = "User specified that frequencies aren't kept in " \
-                        "vocabulary but the get_freqs method is called."
+            error_msg = (
+                "User specified that frequencies aren't kept in "
+                "vocabulary but the get_freqs method is called."
+            )
             log_and_raise_error(RuntimeError, _LOGGER, error_msg)
         return self._freqs
 
@@ -228,9 +234,11 @@ class Vocab:
             log_and_raise_error(RuntimeError, _LOGGER, error_msg)
 
         if isinstance(values, str):
-            error_msg = "Vocabulary doesn't support adding a string. " \
-                        "If you need single word added to vocab," \
-                        " you should wrap it to an iterable."
+            error_msg = (
+                "Vocabulary doesn't support adding a string. "
+                "If you need single word added to vocab,"
+                " you should wrap it to an iterable."
+            )
             log_and_raise_error(TypeError, _LOGGER, error_msg)
             # if it is a string characters of a string will be added to counter
             # instead of whole string
@@ -239,10 +247,12 @@ class Vocab:
             other_vocab = values
 
             if other_vocab._freqs is None:
-                error_msg = "Error while adding Vocabs inplace. " \
-                            "RHS Vocab doesn't have word frequencies stored." \
-                            " Try adding a non-finalized vocab or or a Vocab with " \
-                            "`keep_freqs` enabled."
+                error_msg = (
+                    "Error while adding Vocabs inplace. "
+                    "RHS Vocab doesn't have word frequencies stored."
+                    " Try adding a non-finalized vocab or or a Vocab with "
+                    "`keep_freqs` enabled."
+                )
                 log_and_raise_error(RuntimeError, _LOGGER, error_msg)
 
             # unique is used instead of set to somewhat preserve ordering
@@ -328,8 +338,10 @@ class Vocab:
                 return new_vocab
 
             else:
-                error_msg = "Vocab addition error. When adding up two Vocabs " \
-                            "both must be either finalized or not finalized."
+                error_msg = (
+                    "Vocab addition error. When adding up two Vocabs "
+                    "both must be either finalized or not finalized."
+                )
                 log_and_raise_error(RuntimeError, _LOGGER, error_msg)
         else:
             new_vocab = Vocab(
@@ -398,8 +410,10 @@ class Vocab:
             If the vocabulary is not finalized.
         """
         if not self.finalized:
-            error_msg = "Cannot numericalize if the vocabulary has not been " \
-                        "finalized because itos and stoi are not yet built."
+            error_msg = (
+                "Cannot numericalize if the vocabulary has not been "
+                "finalized because itos and stoi are not yet built."
+            )
             log_and_raise_error(RuntimeError, _LOGGER, error_msg)
         return np.array([self.stoi[token] for token in data])
 
@@ -423,8 +437,10 @@ class Vocab:
             If the vocabulary is not finalized.
         """
         if not self.finalized:
-            error_msg = "Cannot reverse numericalize if the vocabulary has not been " \
-                        "finalized because itos and stoi are not yet built."
+            error_msg = (
+                "Cannot reverse numericalize if the vocabulary has not been "
+                "finalized because itos and stoi are not yet built."
+            )
             log_and_raise_error(RuntimeError, _LOGGER, error_msg)
         return [self.itos[i] for i in numericalized_data]
 

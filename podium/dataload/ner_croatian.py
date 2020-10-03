@@ -168,7 +168,7 @@ class NERCroatianXMLLoader:
         if tag_schema == "IOB":
             return self._iob_label_resolver
 
-        error_msg = f'No label resolver for tag schema {tag_schema} exists'
+        error_msg = f"No label resolver for tag schema {tag_schema} exists"
         log_and_raise_error(ValueError, _LOGGER, error_msg)
 
     @staticmethod

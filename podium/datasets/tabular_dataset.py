@@ -124,9 +124,11 @@ def create_examples(reader, format, fields, skip_header):
             error_msg = f"When using a {format} file, skip_header must be False."
             log_and_raise_error(ValueError, _LOGGER, error_msg)
         elif format in {"csv", "tsv"} and isinstance(fields, dict):
-            error_msg = f"When using a dict to specify fields with a {format}" \
-                        " file, skip_header must be False and the file must " \
-                        "have a header."
+            error_msg = (
+                f"When using a dict to specify fields with a {format}"
+                " file, skip_header must be False and the file must "
+                "have a header."
+            )
             log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         # skipping the header

@@ -9,6 +9,7 @@ from podium.storage.resources import util
 from podium.storage.resources.downloader import SCPDownloader, SimpleHttpDownloader
 from podium.util import log_and_raise_error
 
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -96,11 +97,12 @@ class LargeResource:
         ValueError
             If configured archiving method is not supported.
         """
-        if self.config[LargeResource.ARCHIVE] \
-                not in LargeResource.SUPPORTED_ARCHIVE:
-            error_msg = "Unsupported archive method. " \
-                        f"Given {self.config[LargeResource.ARCHIVE]}, expected one " \
-                        f"from {LargeResource.SUPPORTED_ARCHIVE}"
+        if self.config[LargeResource.ARCHIVE] not in LargeResource.SUPPORTED_ARCHIVE:
+            error_msg = (
+                "Unsupported archive method. "
+                f"Given {self.config[LargeResource.ARCHIVE]}, expected one "
+                f"from {LargeResource.SUPPORTED_ARCHIVE}"
+            )
             log_and_raise_error(ValueError, _LOGGER, error_msg)
         if self.config[LargeResource.ARCHIVE] == "zip":
             util.extract_zip_file(

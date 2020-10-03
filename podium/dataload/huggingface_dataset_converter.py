@@ -109,8 +109,10 @@ class _FeatureConverter:
             }
 
         else:
-            error_msg = f'Conversion for feature type {type(feature).__name__} ' \
-                        'is not supported'
+            error_msg = (
+                f"Conversion for feature type {type(feature).__name__} "
+                "is not supported"
+            )
             log_and_raise_error(TypeError, _LOGGER, error_msg)
 
         # allow missing data for all fields except
@@ -163,8 +165,10 @@ class HuggingFaceDatasetConverter:
             If dataset is not an instance of datasets.Dataset.
         """
         if not isinstance(dataset, datasets.Dataset):
-            error_msg = 'Incorrect dataset type. Expected datasets.Dataset, ' \
-                        f'but got {type(dataset).__name__}'
+            error_msg = (
+                "Incorrect dataset type. Expected datasets.Dataset, "
+                f"but got {type(dataset).__name__}"
+            )
             log_and_raise_error(TypeError, _LOGGER, error_msg)
 
         self.dataset = dataset

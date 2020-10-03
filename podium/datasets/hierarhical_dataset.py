@@ -6,6 +6,7 @@ from podium.storage.example_factory import ExampleFactory
 from podium.storage.field import unpack_fields
 from podium.util import log_and_raise_error
 
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -103,8 +104,9 @@ class HierarchicalDataset:
 
         root_examples = json.loads(dataset)
         if not isinstance(root_examples, list):
-            error_msg = "The base element in the JSON string must be a list " \
-                        "of root elements."
+            error_msg = (
+                "The base element in the JSON string must be a list " "of root elements."
+            )
             log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         ds._load(root_examples)
@@ -248,8 +250,9 @@ class HierarchicalDataset:
 
         """
         if index < 0 or index >= len(self):
-            error_msg = f"Index {index} out of bounds. Must be within " \
-                        "[0, len(dataset) - 1]"
+            error_msg = (
+                f"Index {index} out of bounds. Must be within " "[0, len(dataset) - 1]"
+            )
             log_and_raise_error(IndexError, _LOGGER, error_msg)
 
         def get_item(nodes, index):
@@ -310,8 +313,10 @@ class HierarchicalDataset:
         """
         levels = float("Inf") if levels is None else levels
         if levels < 0:
-            error_msg = "Number of context levels must be greater or equal to 0." \
-                        f" Passed value: {levels}"
+            error_msg = (
+                "Number of context levels must be greater or equal to 0."
+                f" Passed value: {levels}"
+            )
             log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         parent = node

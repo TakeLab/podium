@@ -57,9 +57,11 @@ class CoNLLUDataset(Dataset):
         try:
             import conllu
         except ImportError as e:
-            error_msg = 'Problem occurred while trying to import conllu. ' \
-                        'If the library is not installed visit ' \
-                        'https://pypi.org/project/conllu/ for more details.'
+            error_msg = (
+                "Problem occurred while trying to import conllu. "
+                "If the library is not installed visit "
+                "https://pypi.org/project/conllu/ for more details."
+            )
             _LOGGER.error(error_msg)
             raise e
 

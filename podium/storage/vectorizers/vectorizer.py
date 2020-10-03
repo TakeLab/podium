@@ -10,6 +10,7 @@ import numpy as np
 
 from podium.util import log_and_raise_error
 
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -34,8 +35,10 @@ def zeros_default_vector(token, dim):
         If dim is None.
     """
     if dim is None:
-        error_msg = "Can't create zeros default vector with dimension "\
-                    f"equal to None. Given token= {token}, dim={dim}"
+        error_msg = (
+            "Can't create zeros default vector with dimension "
+            f"equal to None. Given token= {token}, dim={dim}"
+        )
         log_and_raise_error(ValueError, _LOGGER, error_msg)
     return np.zeros(dim)
 
@@ -57,8 +60,10 @@ def random_normal_default_vector(token, dim):
         sampled from normal distribution with given dimension
     """
     if dim is None:
-        error_msg = "Can't create random normal vector with dimension "\
-                    f"equal to None. Given token={token}, dim={dim}"
+        error_msg = (
+            "Can't create random normal vector with dimension "
+            f"equal to None. Given token={token}, dim={dim}"
+        )
         log_and_raise_error(ValueError, _LOGGER, error_msg)
     return np.random.randn(dim)
 
@@ -264,8 +269,7 @@ class BasicVectorStorage(VectorStorage):
 
     def load_vocab(self, vocab):
         if vocab is None:
-            error_msg = "Cannot load vectors for vocab because given "\
-                        "vocab is None."
+            error_msg = "Cannot load vectors for vocab because given " "vocab is None."
             log_and_raise_error(ValueError, _LOGGER, error_msg)
         self._load_vectors(vocab=vocab)
         _LOGGER.debug("Loaded vectors for vocab.")
@@ -273,16 +277,19 @@ class BasicVectorStorage(VectorStorage):
 
     def token_to_vector(self, token):
         if not self._initialized:
-            error_msg = "Vector storage is not initialized so it cannot"\
-                        " transform token to vector. Use load_all or "\
-                        " load_vocab function to initialize."
+            error_msg = (
+                "Vector storage is not initialized so it cannot"
+                " transform token to vector. Use load_all or "
+                " load_vocab function to initialize."
+            )
             log_and_raise_error(RuntimeError, _LOGGER, error_msg)
         if token is None:
-            error_msg = "User gave None token to be converted to vector"\
-                        ", but None is not a valid token."
+            error_msg = (
+                "User gave None token to be converted to vector"
+                ", but None is not a valid token."
+            )
             log_and_raise_error(ValueError, _LOGGER, error_msg)
-        if token not in self._vectors \
-           and self._default_vector_function is not None:
+        if token not in self._vectors and self._default_vector_function is not None:
             return self._default_vector_function(token, self._dim)
         return self._vectors[token]
 
@@ -357,8 +364,9 @@ class BasicVectorStorage(VectorStorage):
             for line in vector_file:
                 stripped_line = line.rstrip()
                 if not stripped_line:
-                    error_msg = "Vectors file contains empty lines which is"\
-                                " not supported."
+                    error_msg = (
+                        "Vectors file contains empty lines which is" " not supported."
+                    )
                     log_and_raise_error(RuntimeError, _LOGGER, error_msg)
 
                 word, vector_entries_str = stripped_line.split(split_delimiter, 1)
@@ -372,17 +380,18 @@ class BasicVectorStorage(VectorStorage):
                 elif len(vector_entry) == 1:
                     header_lines += 1
                     if header_lines > 1:
-                        error_msg = "Found more than one header line in "\
-                                    "vectors file."
+                        error_msg = "Found more than one header line in " "vectors file."
                         log_and_raise_error(RuntimeError, _LOGGER, error_msg)
                     continue  # probably a header, reference torch text
                 # second reference:
                 # https://radimrehurek.com/gensim/scripts/glove2word2vec.html
                 elif self._dim != len(vector_entry):
-                    error_msg = f"Vector for token {word} has {len(vector_entry)} " \
-                                "dimensions, but previously read vectors have" \
-                                f"{self._dim} dimensions. All " \
-                                "vectors must have the same number of dimensions."
+                    error_msg = (
+                        f"Vector for token {word} has {len(vector_entry)} "
+                        "dimensions, but previously read vectors have"
+                        f"{self._dim} dimensions. All "
+                        "vectors must have the same number of dimensions."
+                    )
                     log_and_raise_error(RuntimeError, _LOGGER, error_msg)
 
                 if self._binary:
@@ -402,8 +411,9 @@ class BasicVectorStorage(VectorStorage):
 
     def get_vector_dim(self):
         if not self._initialized:
-            error_msg = "Vector storage must be initialized to obtain "\
-                        "vector dimenstion."
+            error_msg = (
+                "Vector storage must be initialized to obtain " "vector dimenstion."
+            )
             log_and_raise_error(RuntimeError, _LOGGER, error_msg)
         return self._dim
 
@@ -413,22 +423,31 @@ class BasicVectorStorage(VectorStorage):
         path must exist unless if it is used for caching loaded vectors.
         """
         if self._path is None and self._cache_path is None:
-            error_msg = "Error in checking paths that are handed to "\
-                        "load vectors. Given vectors and cache paths "\
-                        "mustn't be both None."
+            error_msg = (
+                "Error in checking paths that are handed to "
+                "load vectors. Given vectors and cache paths "
+                "mustn't be both None."
+            )
             log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         if self._path is not None and not os.path.exists(self._path):
-            error_msg = "Error in checking paths that are handed to "\
-                        "load vectors. Given vectors path doesn't"\
-                        " exist. If you want to use only cached path "\
-                        "set path to None."
+            error_msg = (
+                "Error in checking paths that are handed to "
+                "load vectors. Given vectors path doesn't"
+                " exist. If you want to use only cached path "
+                "set path to None."
+            )
             log_and_raise_error(ValueError, _LOGGER, error_msg)
 
-        if self._path is None and self._cache_path is not None\
-           and not os.path.exists(self._cache_path):
-            error_msg = "Error in checking paths that are handed to "\
-                        "load vectors. Given cache path doesn't exist."\
-                        " User needs to specify valid path or existing "\
-                        "cache path."
+        if (
+            self._path is None
+            and self._cache_path is not None
+            and not os.path.exists(self._cache_path)
+        ):
+            error_msg = (
+                "Error in checking paths that are handed to "
+                "load vectors. Given cache path doesn't exist."
+                " User needs to specify valid path or existing "
+                "cache path."
+            )
             log_and_raise_error(ValueError, _LOGGER, error_msg)

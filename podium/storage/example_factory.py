@@ -293,8 +293,10 @@ class ExampleFactory:
             format_str = format_tag.lower()
 
         else:
-            error_msg = "format_tag must be either an ExampleFormat or a string. " \
-                        f"Passed value is of type : '{type(format_tag).__name__}'"
+            error_msg = (
+                "format_tag must be either an ExampleFormat or a string. "
+                f"Passed value is of type : '{type(format_tag).__name__}'"
+            )
             log_and_raise_error(TypeError, _LOGGER, error_msg)
 
         factory_method = FACTORY_METHOD_DICT.get(format_str)

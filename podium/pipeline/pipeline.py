@@ -14,6 +14,7 @@ from podium.storage import ExampleFactory, ExampleFormat
 from podium.storage.field import Field, MultioutputField
 from podium.util import log_and_raise_error
 
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -101,14 +102,18 @@ class Pipeline(Experiment):
             ExampleFormat.NLTK.value,
         ):
             if not isinstance(fields, (list, tuple)):
-                error_msg = "If `example format` is LIST, CSV or NLTK, `fields`" \
-                            "must be either a list or tuple. " \
-                            f"Type of `fields`: {type(fields)}"
+                error_msg = (
+                    "If `example format` is LIST, CSV or NLTK, `fields`"
+                    "must be either a list or tuple. "
+                    f"Type of `fields`: {type(fields)}"
+                )
                 log_and_raise_error(TypeError, _LOGGER, error_msg)
         elif not isinstance(fields, dict):
-            error_msg = "If `example format` is DICT, XML or JSON, `fields`" \
-                        "must be a dict. " \
-                        f"Type of `fields`: {type(fields)}"
+            error_msg = (
+                "If `example format` is DICT, XML or JSON, `fields`"
+                "must be a dict. "
+                f"Type of `fields`: {type(fields)}"
+            )
             log_and_raise_error(TypeError, _LOGGER, error_msg)
 
         if isinstance(fields, (list, tuple)):

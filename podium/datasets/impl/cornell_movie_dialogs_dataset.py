@@ -32,8 +32,10 @@ class CornellMovieDialogsConversationalDataset(Dataset):
             If given data is None.
         """
         if data is None:
-            error_msg = "Specified data is None, dataset expects "\
-                        "CornellMovieDialogsNamedTuple instance."
+            error_msg = (
+                "Specified data is None, dataset expects "
+                "CornellMovieDialogsNamedTuple instance."
+            )
             log_and_raise_error(ValueError, _LOGGER, error_msg)
         if not fields:
             fields = CornellMovieDialogsConversationalDataset.get_default_fields()
