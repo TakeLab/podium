@@ -5,6 +5,7 @@
 # Or automatically with:
 #     git config blame.ignoreRevsFile .git-blame-ignore-revs
 
+082afd6833b38b11da4c89ccdabc85f7f184369d  # Black and isort changes after adding log_and_raise_error
 802d76ba716a1f3b0a72d25786afe8b141f34b5f  # Apply black and isort to huggingface converter
 df64620c1554d8f0a70ef510807afe3c9d139d57  # Black code style fixes in test_imdb_dataset
 2147c086ff4ac5c5d5752ccd6de3c7b61da6b768  # Add black and isort code changes
