@@ -9,6 +9,7 @@ from enum import Enum
 from typing import Union
 
 from podium.storage.field import unpack_fields
+from podium.util import log_and_raise_error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -172,10 +173,8 @@ class ExampleFactory:
                 if root.tag == name:
                     node = root
                 else:
-                    error_msg = "Specified name {} was not found in the " \
-                                "input data".format(name)
-                    _LOGGER.error(error_msg)
-                    raise ValueError(error_msg)
+                    error_msg = f"Specified name {name} was not found in the input data"
+                    log_and_raise_error(ValueError, _LOGGER, error_msg)
 
             val = node.text
             set_example_attributes(example, field, val)
@@ -293,17 +292,14 @@ class ExampleFactory:
             format_str = format_tag.lower()
 
         else:
-            err_msg = "format_tag must be either an ExampleFormat or a string. " \
-                      "Passed value is of type : '{}'"\
-                .format(format_tag.__class__.__name__)
-            _LOGGER.error(err_msg)
-            raise TypeError(err_msg)
+            error_msg = "format_tag must be either an ExampleFormat or a string. " \
+                        f"Passed value is of type : '{type(format_tag).__name__}'"
+            log_and_raise_error(TypeError, _LOGGER, error_msg)
 
         factory_method = FACTORY_METHOD_DICT.get(format_str)
         if factory_method is None:
-            err_msg = "Unsupported example format: '{}'".format(format_str)
-            _LOGGER.error(err_msg)
-            raise ValueError(err_msg)
+            error_msg = f"Unsupported example format: '{format_str}'"
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         return factory_method(data, self)
 

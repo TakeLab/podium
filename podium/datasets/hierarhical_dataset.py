@@ -3,6 +3,7 @@ import logging
 from podium.datasets.dataset import Dataset
 from podium.storage.field import unpack_fields
 from podium.storage.example_factory import ExampleFactory
+from podium.util import log_and_raise_error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -102,8 +103,7 @@ class HierarchicalDataset:
         if not isinstance(root_examples, list):
             error_msg = "The base element in the JSON string must be a list " \
                         "of root elements."
-            _LOGGER.error(error_msg)
-            raise ValueError(error_msg)
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         ds._load(root_examples)
 
@@ -247,10 +247,9 @@ class HierarchicalDataset:
 
         """
         if index < 0 or index >= len(self):
-            error_msg = "Index {} out of bounds. Must be within " \
-                "[0, len(dataset) - 1]".format(index)
-            _LOGGER.error(error_msg)
-            raise IndexError(error_msg)
+            error_msg = f"Index {index} out of bounds. Must be within " \
+                        "[0, len(dataset) - 1]"
+            log_and_raise_error(IndexError, _LOGGER, error_msg)
 
         def get_item(nodes, index):
             """Right bisect binary search.
@@ -311,9 +310,8 @@ class HierarchicalDataset:
         levels = float('Inf') if levels is None else levels
         if levels < 0:
             error_msg = "Number of context levels must be greater or equal to 0." \
-                " Passed value: {}".format(levels)
-            _LOGGER.error(error_msg)
-            raise ValueError(error_msg)
+                        f" Passed value: {levels}"
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         parent = node
         while parent.parent is not None and levels >= 0:
