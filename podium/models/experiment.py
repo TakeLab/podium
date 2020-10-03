@@ -8,12 +8,12 @@ import numpy as np
 
 from podium.datasets.dataset import Dataset
 from podium.datasets.iterator import Iterator, SingleBatchIterator
+from podium.util import log_and_raise_error
 
 from .batch_transform_functions import default_feature_transform, default_label_transform
 from .model import AbstractSupervisedModel
 from .trainer import AbstractTrainer
 from .transformers import FeatureTransformer
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -114,11 +114,11 @@ class Experiment:
             self.feature_transformer = FeatureTransformer(feature_transformer)
 
         else:
-            err_msg = """Invalid feature_transformer. feature_transformer must be either
-            be None, a FeatureTransformer instance or a callable
-            taking a batch and returning a numpy matrix of features."""
-            _LOGGER.error(err_msg)
-            raise TypeError(err_msg)
+            error_msg = "Invalid feature_transformer. " \
+                        "feature_transformer must be either " \
+                        "be None, a FeatureTransformer instance or a callable " \
+                        "taking a batch and returning a numpy matrix of features."
+            log_and_raise_error(TypeError, _LOGGER, error_msg)
 
     def set_label_transformer(self, label_transform_fn):
         self.label_transform_fn = (
@@ -183,12 +183,9 @@ class Experiment:
 
         trainer = trainer if trainer is not None else self.trainer
         if trainer is None:
-            errmsg = (
-                "No trainer provided. Trainer must be provided either in the "
-                "constructor or as an argument to the fit method."
-            )
-            _LOGGER.error(errmsg)
-            raise RuntimeError(errmsg)
+            error_msg = "No trainer provided. Trainer must be provided either in the " \
+                        "constructor or as an argument to the fit method."
+            log_and_raise_error(RuntimeError, _LOGGER, error_msg)
 
         if feature_transformer is not None:
             self.set_feature_transformer(feature_transformer)
@@ -237,12 +234,9 @@ class Experiment:
 
         trainer = trainer if trainer is not None else self.trainer
         if trainer is None:
-            errmsg = (
-                "No trainer provided. Trainer must be provided either in the "
-                "constructor or as an argument to the partial_fit method."
-            )
-            _LOGGER.error(errmsg)
-            raise RuntimeError(errmsg)
+            error_msg = "No trainer provided. Trainer must be provided either " \
+                        "in the constructor or as an argument to the partial_fit method."
+            log_and_raise_error(RuntimeError, _LOGGER, error_msg)
 
         trainer_kwargs = {} if trainer_kwargs is None else trainer_kwargs
         trainer_args = self.default_trainer_args.copy()
@@ -303,12 +297,10 @@ class Experiment:
 
     def _check_if_model_exists(self):
         if self.model is None:
-            errmsg = (
-                "Model instance not available. Please provide a model instance in "
-                "the constructor or call `fit` before calling `partial_fit.`"
-            )
-            _LOGGER.error(errmsg)
-            raise RuntimeError(errmsg)
+            error_msg = "Model instance not available. Please provide " \
+                        "a model instance in the constructor or call `fit` " \
+                        "before calling `partial_fit.`"
+            log_and_raise_error(RuntimeError, _LOGGER, error_msg)
 
     def __repr__(self):
         return "{}[model: {}, trainer: {}]".format(

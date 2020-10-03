@@ -3,6 +3,7 @@ import logging
 
 import spacy
 
+from podium.util import log_and_raise_error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -72,6 +73,5 @@ def get_tokenizer(tokenizer, language="en"):
         return str.split
 
     # if tokenizer not found
-    error_msg = "Wrong value given for the tokenizer: {}".format(tokenizer)
-    _LOGGER.error(error_msg)
-    raise ValueError(error_msg)
+    error_msg = f"Wrong value given for the tokenizer: {tokenizer}"
+    log_and_raise_error(ValueError, _LOGGER, error_msg)

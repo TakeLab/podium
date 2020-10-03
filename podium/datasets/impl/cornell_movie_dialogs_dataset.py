@@ -6,6 +6,7 @@ from podium.datasets.dataset import Dataset
 from podium.storage.example_factory import ExampleFactory
 from podium.storage.field import Field
 from podium.storage.vocab import Vocab
+from podium.util import log_and_raise_error
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,12 +32,9 @@ class CornellMovieDialogsConversationalDataset(Dataset):
             If given data is None.
         """
         if data is None:
-            error_msg = (
-                "Specified data is None, dataset expects "
-                "CornellMovieDialogsNamedTuple instance."
-            )
-            _LOGGER.error(error_msg)
-            raise ValueError(error_msg)
+            error_msg = "Specified data is None, dataset expects "\
+                        "CornellMovieDialogsNamedTuple instance."
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
         if not fields:
             fields = CornellMovieDialogsConversationalDataset.get_default_fields()
         examples = CornellMovieDialogsConversationalDataset._create_examples(

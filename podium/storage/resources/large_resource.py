@@ -7,7 +7,7 @@ import tempfile
 
 from podium.storage.resources import util
 from podium.storage.resources.downloader import SCPDownloader, SimpleHttpDownloader
-
+from podium.util import log_and_raise_error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -96,18 +96,12 @@ class LargeResource:
         ValueError
             If configured archiving method is not supported.
         """
-        if self.config[LargeResource.ARCHIVE] not in LargeResource.SUPPORTED_ARCHIVE:
-            _LOGGER.error(
-                "Unsupported archive method. Given %s, expected one" " from %s",
-                self.config[LargeResource.ARCHIVE],
-                str(LargeResource.SUPPORTED_ARCHIVE),
-            )
-            raise ValueError(
-                "Unsupported archive method. Given {}, expected"
-                "one from {}".format(
-                    self.config[LargeResource.ARCHIVE], LargeResource.SUPPORTED_ARCHIVE
-                )
-            )
+        if self.config[LargeResource.ARCHIVE] \
+                not in LargeResource.SUPPORTED_ARCHIVE:
+            error_msg = "Unsupported archive method. " \
+                        f"Given {self.config[LargeResource.ARCHIVE]}, expected one " \
+                        f"from {LargeResource.SUPPORTED_ARCHIVE}"
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
         if self.config[LargeResource.ARCHIVE] == "zip":
             util.extract_zip_file(
                 archive_file=archive_file, destination_dir=self.resource_location
@@ -143,9 +137,8 @@ class LargeResource:
         essential_arguments = [LargeResource.RESOURCE_NAME, LargeResource.URI]
         for arg in essential_arguments:
             if arg not in arguments or not arguments[arg]:
-                error_msg = "Large resource argument {} is missing.".format(arg)
-                _LOGGER.error(error_msg)
-                raise ValueError(error_msg)
+                error_msg = f"Large resource argument {arg} is missing."
+                log_and_raise_error(ValueError, _LOGGER, error_msg)
 
     def __repr__(self):
         return "{}[name: {}, uri: {}]".format(

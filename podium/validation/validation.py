@@ -9,6 +9,8 @@ from podium.models.experiment import Experiment
 from podium.validation import KFold
 
 
+from podium.util import log_and_raise_error
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -205,13 +207,10 @@ def k_fold_classification_metrics(
     ValueError
         If `average` is not one of: `micro`, `macro`, `weighted`, `binary`
     """
-    if average not in ("micro", "macro", "weighted", "binary"):
-        error_msg = (
-            "`average` parameter must be either `micro`, `macro`, `weighted`"
-            " or `binary`. Provided value: '{}'".format(average)
-        )
-        _LOGGER.error(error_msg)
-        raise ValueError(error_msg)
+    if average not in ('micro', 'macro', 'weighted', 'binary'):
+        error_msg = "`average` parameter must be either `micro`, `macro`, `weighted`" \
+                    f" or `binary`. Provided value: '{average}'"
+        log_and_raise_error(ValueError, _LOGGER, error_msg)
 
     def scorer(y_true, y_pred):
         accuracy = accuracy_score(y_true, y_pred)
