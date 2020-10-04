@@ -540,6 +540,12 @@ class ArrowDataset:
 
         return cache_path
 
+    @property
+    def examples(self):
+        """Loads this ArrowDataset into memory and returns a list containing
+        the loaded Examples."""
+        return self.as_dataset().examples
+
     def as_dataset(self) -> Dataset:
         """ Loads this ArrowDataset into memory and returns an Dataset object containing
         the loaded data.
