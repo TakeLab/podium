@@ -722,6 +722,30 @@ class ArrowDataset:
         indices = [i for i, example in enumerate(self) if predicate(example)]
         return self[indices]
 
+    def sorted(self, key: Callable[[Example], Any], reverse=False) -> 'ArrowDataset':
+        """Returns a new ArrowDataset with sorted Examples.
+
+        Parameters
+        ----------
+        key: Callable[[Example], Any]
+            Extracts a comparable value from an Example.
+            That value will be used to determine Example ordering.
+
+        reverse: bool
+            If True, the returned dataset will be reversed.
+
+        Returns
+        -------
+        ArrowDataset
+            An ArrowDataset containing sorted Examples from this dataset.
+        """
+        def index_key(i, _dataset=self):
+            return key(_dataset[i])
+
+        indices = list(range(len(self)))
+        indices.sort(key=index_key, reverse=reverse)
+        return self[indices]
+
     def close(self):
         """ Closes resources held by the ArrowDataset."""
         if self.mmapped_file is not None:

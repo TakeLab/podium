@@ -249,3 +249,21 @@ def test_delete_cache(data, fields):
     assert os.path.exists(cache_dir)
     ad.delete_cache()
     assert not os.path.exists(cache_dir)
+
+
+def test_sorted(data, pyarrow_dataset):
+    indices = [1, 5, 2, 7, 3]
+
+    data_slice = [data[i] for i in indices]
+    dataset_slice = pyarrow_dataset[indices]
+
+    sorted_data = sorted(data_slice, key=lambda x: x[0], reverse=False)
+    sorted_dataset = dataset_slice.sorted(key=lambda ex: ex.number[0], reverse=False)
+    for d, ex in zip(sorted_data, sorted_dataset):
+        assert d[0] == ex.number[0]
+
+    reverse_sorted_data = sorted(data_slice, key=lambda x: x[0], reverse=True)
+    reverse_sorted_dataset = dataset_slice.sorted(key=lambda ex: ex.number[0],
+                                                  reverse=True)
+    for d, ex in zip(reverse_sorted_data, reverse_sorted_dataset):
+        assert d[0] == ex.number[0]
