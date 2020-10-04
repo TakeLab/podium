@@ -10,13 +10,13 @@ _LOGGER = logging.getLogger(__name__)
 
 try:
     import datasets
-except ImportError as e:
+except ImportError:
     _LOGGER.error(
         "Problem occured while trying to import datasets. "
         "If the library is not installed visit "
         "https://huggingface.co/docs/datasets/ for more details."
     )
-    raise e
+    raise
 
 
 def _identity(x):
