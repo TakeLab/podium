@@ -298,6 +298,8 @@ def create_file(file_path, file_content):
 
 
 def test_loading_dataset():
+    pytest.importorskip("xlrd")
+
     path = create_mock_dataset()
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
         loader = EuroVocLoader()
@@ -390,6 +392,8 @@ def test_loading_dataset():
 
 
 def test_loading_dataset_with_missing_document():
+    pytest.importorskip("xlrd")
+
     path = create_mock_dataset(load_missing_doc=True)
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
         loader = EuroVocLoader()
@@ -409,6 +413,8 @@ def test_loading_dataset_with_missing_document():
 
 
 def test_loading_dataset_with_invalid_document():
+    pytest.importorskip("xlrd")
+
     path = create_mock_dataset(load_invalid_doc=True)
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
         loader = EuroVocLoader()
@@ -428,6 +434,8 @@ def test_loading_dataset_with_invalid_document():
 
 
 def test_loading_dataset_with_document_containing_br():
+    pytest.importorskip("xlrd")
+
     path = create_mock_dataset(load_doc_with_br_tag=True)
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
         loader = EuroVocLoader()
@@ -449,6 +457,8 @@ def test_loading_dataset_with_document_containing_br():
 
 
 def test_loading_dataset_with_invalid_title():
+    pytest.importorskip("xlrd")
+
     path = create_mock_dataset(load_doc_with_invalid_title=True)
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
         loader = EuroVocLoader()
@@ -472,6 +482,8 @@ def test_loading_dataset_with_invalid_title():
 
 
 def test_loading_dataset_with_invalid_labels():
+    pytest.importorskip("xlrd")
+
     with pytest.raises(ValueError):
         path = create_mock_dataset(invalid_labels=True)
         with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
@@ -480,6 +492,8 @@ def test_loading_dataset_with_invalid_labels():
 
 
 def test_loading_dataset_with_non_existing_thesaurus():
+    pytest.importorskip("xlrd")
+
     path = create_mock_dataset(non_existing_thesaurus=True)
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
         loader = EuroVocLoader()
@@ -497,6 +511,8 @@ def mock_download(self):
 
 @patch.object(LargeResource, "_download_unarchive", mock_download)
 def test_download_dataset_using_scp():
+    pytest.importorskip("xlrd")
+
     base = tempfile.mkdtemp()
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", base):
         assert os.path.exists(LargeResource.BASE_RESOURCE_DIR)
