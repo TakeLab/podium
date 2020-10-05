@@ -5,7 +5,6 @@ from collections import deque
 
 import numpy as np
 
-from podium.preproc.tokenizers import get_tokenizer
 from podium.storage.vocab import Vocab
 from podium.util import log_and_raise_error
 
@@ -68,8 +67,7 @@ class MultioutputField:
 
     def __init__(self,
                  output_fields,
-                 tokenizer='split',
-                 language='en'):
+                 tokenizer='split'):
         """Field that does pretokenization and tokenization once and passes it to its
         output fields. Output fields are any type of field. The output fields are used
         only for posttokenization processing (posttokenization hooks and vocab updating).
@@ -98,7 +96,7 @@ class MultioutputField:
         self.language = language
         self._tokenizer_arg = tokenizer
         self.pretokenization_pipeline = PretokenizationPipeline()
-        self.tokenizer = get_tokenizer(tokenizer, language)
+        self.tokenizer = self.get_tokenizer(tokenizer, language)
         self.output_fields = deque(output_fields)
 
     def add_pretokenize_hook(self, hook):
@@ -184,7 +182,9 @@ class Field:
 
     def __init__(self,
                  name,
+                 pretokenize_hooks=None,
                  tokenizer='split',
+                 posttokenize_hooks=None,
                  language='en',
                  vocab=None,
                  tokenize=True,
@@ -308,6 +308,18 @@ class Field:
         self.is_numericalizable = is_numericalizable
         self.batch_as_matrix = batch_as_matrix
 
+        if pretokenize_hooks is not None:
+            if not isinstance(pretokenize_hooks, (list, tuple)):
+                pretokenize_hooks = (pretokenize_hooks,)
+            for hook in pretokenize_hooks:
+                self.add_pretokenize_hook(hook)
+
+        if posttokenize_hooks is not None:
+            if not isinstance(posttokenize_hooks, (list, tuple)):
+                posttokenize_hooks = (posttokenize_hooks,)
+            for hook in posttokenize_hooks:
+                self.add_posttokenize_hook(hook)
+
         if store_as_tokenized and tokenize:
             error_msg = "Store_as_tokenized' and 'tokenize' both set to True." \
                         " You can either store the data as tokenized, " \
@@ -359,6 +371,8 @@ class Field:
         self.posttokenize_pipeline = PosttokenizationPipeline()
         self.allow_missing_data = allow_missing_data
         self.missing_data_token = missing_data_token
+
+
 
     @property
     def use_vocab(self):
