@@ -42,8 +42,6 @@ class ArrowDataset:
     CACHE_TABLE_FILENAME = 'podium_arrow_cache.arrow'
     CACHE_FIELDS_FILENAME = 'podium_fields.pkl'
 
-    CHUNK_MAX_SIZE = 10_000
-
     def __init__(self,
                  table: pa.Table,
                  fields: Union[Dict[str, Field], List[Field]],
@@ -118,7 +116,8 @@ class ArrowDataset:
     def from_examples(fields: Union[Dict[str, Field], List[Field]],
                       examples: Iterable[Example],
                       cache_path: str = None,
-                      data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None
+                      data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
+                      chunk_size=10_000
                       ) -> 'ArrowDataset':
         """ Creates an ArrowDataset from the provided Examples.
 
@@ -140,6 +139,10 @@ class ArrowDataset:
             example. None can be used as a wildcard data type and will be overridden by an
             inferred data type if possible.
 
+        chunk_size: int
+            Maximum number of examples to be loaded before dumping to the on-disk cache
+            file. Use lower number if memory usage is an issue while loading.
+
         Returns
         -------
         ArrowDataset
@@ -156,7 +159,7 @@ class ArrowDataset:
 
         # TODO hande cache case when cache is present
 
-        chunks_iter = _group(examples, ArrowDataset.CHUNK_MAX_SIZE)
+        chunks_iter = _group(examples, chunk_size)
 
         # get first group to infer schema
         first_group = next(chunks_iter)
@@ -190,6 +193,7 @@ class ArrowDataset:
                           fields: Union[Dict[str, Field], List[Field]],
                           cache_path: str = None,
                           data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
+                          chunk_size=10_000,
                           skip_header: bool = False,
                           csv_reader_params: Dict = None) -> 'ArrowDataset':
         """Loads a tabular file format (csv, tsv, json) as an ArrowDataset.
@@ -233,6 +237,10 @@ class ArrowDataset:
             tuple has two values, corresponding to the raw and tokenized data types in an
             example. None can be used as a wildcard data type and will be overridden by an
             inferred data type if possible.
+
+        chunk_size: int
+            Maximum number of examples to be loaded before dumping to the on-disk cache
+            file. Use lower number if memory usage is an issue while loading.
 
         skip_header : bool
                 Whether to skip the first line of the input file.
@@ -304,11 +312,12 @@ class ArrowDataset:
             make_example = make_example_function[format]
 
             # map each line from the reader to an example
-            examples = map(make_example, reader)
+            example_iterator = map(make_example, reader)
             return ArrowDataset.from_examples(fields,
-                                              examples,
+                                              example_iterator,
                                               cache_path=cache_path,
-                                              data_types=data_types)
+                                              data_types=data_types,
+                                              chunk_size=chunk_size)
 
     @staticmethod
     def _schema_to_data_types(inferred_schema: pa.Schema
