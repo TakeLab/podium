@@ -195,6 +195,7 @@ class ArrowDataset:
                           data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
                           chunk_size=10_000,
                           skip_header: bool = False,
+                          delimiter=None,
                           csv_reader_params: Dict = None) -> 'ArrowDataset':
         """Loads a tabular file format (csv, tsv, json) as an ArrowDataset.
 
@@ -247,7 +248,10 @@ class ArrowDataset:
                 If format is CSV/TSV and 'fields' is a dict, then skip_header
                 must be False and the data file must have a header.
                 Default is False.
-
+        delimiter: str
+            Delimiter used to separate columns in a row.
+            If set to None, the default delimiter for the given format will
+            be used.
         csv_reader_params : Dict
                 Parameters to pass to the csv reader. Only relevant when
                 format is csv or tsv.
