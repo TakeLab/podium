@@ -96,12 +96,12 @@ def _get_spacy_tokenizer(language):
         download(language)
         spacy_tokenizer = spacy.load(language, disable=disable)
 
-    def spacy_tokenize(string):
+    def spacy_tokenizer(string):
         # need to wrap in a function to access .text
         return [token.text for token in
                 spacy_tokenizer.tokenizer(string)]
 
-    return spacy_tokenize
+    return spacy_tokenizer
 
 
 @tokenizer_factory('split')
