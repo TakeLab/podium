@@ -133,9 +133,9 @@ class CatacxCommentsDataset(Dataset):
         # cs
 
         author_name = Field(name='author_name', tokenize=False,
-                            store_as_raw=True)
+                            keep_raw=True)
 
-        id = Field(name='id', tokenize=False, store_as_raw=True)
+        id = Field(name='id', tokenize=False, keep_raw=True)
 
         likes_cnt = Field(name="likes_cnt", vocab=None,
                           tokenize=False,
@@ -145,7 +145,7 @@ class CatacxCommentsDataset(Dataset):
                         tokenizer='split')
 
         author_id = Field(name='author_id', tokenize=False,
-                          store_as_raw=True)
+                          keep_raw=True)
 
         return {
             "author_name": author_name,

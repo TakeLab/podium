@@ -50,6 +50,7 @@ def get_tokenizer(tokenizer):
         If the given tokenizer is not a callable or a string, or is a
         string that doesn't correspond to any of the supported tokenizers.
     """
+
     # Add every new tokenizer to this "factory" method
     if callable(tokenizer):
         # if arg is already a function, just return it

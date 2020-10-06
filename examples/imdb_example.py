@@ -58,7 +58,7 @@ def create_fields():
     min_frequency = 5
     vocab = Vocab(max_size=max_vocab_size, min_freq=min_frequency)
 
-    text = Field(name='text', vocab=vocab, tokenizer='spacy', store_as_raw=False)
+    text = Field(name='text', vocab=vocab, tokenizer='spacy', keep_raw=False)
     # Add preprpocessing hooks to model
     # 1. Lowercase
     text.add_posttokenize_hook(lowercase)

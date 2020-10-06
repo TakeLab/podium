@@ -142,25 +142,25 @@ class CatacxDataset(HierarchicalDataset):
         #                  tokenize=False)
 
         sentiment_field = Field("sentiment",
-                                store_as_raw=True,
+                                keep_raw=True,
                                 tokenize=False,
                                 custom_numericalize=float,
                                 allow_missing_data=True)
 
         likes_cnt_field = Field("likes_cnt",
-                                store_as_raw=True,
+                                keep_raw=True,
                                 tokenize=False,
                                 custom_numericalize=int)
 
         message_field = Field(name='message',
                               vocab=Vocab(),
                               tokenize=True,
-                              store_as_raw=False,
+                              keep_raw=False,
                               tokenizer='split',
                               language='hr')
 
         spam_field = Field("spam",
-                           store_as_raw=True,
+                           keep_raw=True,
                            tokenize=False,
                            custom_numericalize=int,
                            allow_missing_data=True)
@@ -171,7 +171,7 @@ class CatacxDataset(HierarchicalDataset):
                                          num_of_classes=19)
 
         irony_field = Field("irony",
-                            store_as_raw=True,
+                            keep_raw=True,
                             tokenize=False,
                             custom_numericalize=int,
                             allow_missing_data=True)
@@ -192,29 +192,29 @@ class CatacxDataset(HierarchicalDataset):
                                    num_of_classes=8)
 
         pos_tag_field = Field("pos_tags",
-                              store_as_raw=False,
+                              keep_raw=False,
                               tokenizer=CatacxDataset.get_sentence_tokenizer("pos_tag"))
 
         lemma_field = Field("lemmas",
-                            store_as_raw=False,
+                            keep_raw=False,
                             tokenizer=CatacxDataset.get_sentence_tokenizer("lemma"))
 
         parent_ids_field = Field("parent_ids",
-                                 store_as_raw=False,
+                                 keep_raw=False,
                                  tokenizer=CatacxDataset
                                  .get_sentence_tokenizer("parent_id"))
 
         tokens_field = Field("tokens",
-                             store_as_raw=False,
+                             keep_raw=False,
                              tokenizer=CatacxDataset.get_sentence_tokenizer("token"))
 
         dependency_tags_field = Field("dependency_tags",
-                                      store_as_raw=False,
+                                      keep_raw=False,
                                       tokenizer=CatacxDataset.get_sentence_tokenizer(
                                           "dependency_tag"))
 
         token_id_field = Field("id_tags",
-                               store_as_raw=False,
+                               keep_raw=False,
                                tokenizer=CatacxDataset.get_sentence_tokenizer("id"))
 
         return {

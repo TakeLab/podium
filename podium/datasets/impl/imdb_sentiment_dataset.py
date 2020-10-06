@@ -199,7 +199,7 @@ class IMDB(Dataset):
         """
         text = Field(name=IMDB.TEXT_FIELD_NAME, vocab=Vocab(),
                      tokenizer='spacy', language="en", tokenize=True,
-                     store_as_raw=False)
+                     keep_raw=False)
         label = LabelField(name=IMDB.LABEL_FIELD_NAME,
                            vocab=Vocab(specials=()))
         return {IMDB.TEXT_FIELD_NAME: text,

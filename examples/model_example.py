@@ -28,11 +28,11 @@ def feature_extraction_fn(x_batch):
 
 def basic_pauza_hr_fields():
     """Function returns pauza-hr fields used for classification."""
-    rating = Field(name="Rating", vocab=Vocab(specials=()), store_as_raw=True,
+    rating = Field(name="Rating", vocab=Vocab(specials=()), keep_raw=True,
                    is_target=True, tokenize=False,
                    custom_numericalize=numericalize_pauza_rating)
     text = Field(name="Text", vocab=Vocab(), tokenizer='split',
-                 language="hr", tokenize=True, store_as_raw=False,
+                 language="hr", tokenize=True, keep_raw=False,
                  fixed_length=100)
     return {"Text": text, "Rating": rating}
 

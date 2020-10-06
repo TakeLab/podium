@@ -84,7 +84,7 @@ def test_field_preprocess_eager():
 def test_field_preprocess_raw_sequential(value, store_raw, is_sequential,
                                          expected_raw_value,
                                          expected_tokenized_value):
-    f = Field(name="F", store_as_raw=store_raw, tokenize=is_sequential)
+    f = Field(name="F", keep_raw=store_raw, tokenize=is_sequential)
 
     (_, (received_raw_value, received_tokenized_value)), = f.preprocess(value)
 
@@ -104,7 +104,7 @@ def test_field_preprocess_raw_sequential(value, store_raw, is_sequential,
 def test_field_pickle_tokenized(value, store_raw, is_sequential,
                                 expected_raw_value,
                                 expected_tokenized_value, tmpdir):
-    fld = Field(name="F", store_as_raw=store_raw, tokenize=is_sequential)
+    fld = Field(name="F", keep_raw=store_raw, tokenize=is_sequential)
 
     (_, (received_raw_value, received_tokenized_value)), = fld.preprocess(value)
 
@@ -123,7 +123,7 @@ def test_field_pickle_tokenized(value, store_raw, is_sequential,
         assert raw_value == expected_raw_value
         assert tokenized_value == expected_tokenized_value
         assert loaded_fld.name == "F"
-        assert loaded_fld.store_as_raw == store_raw
+        assert loaded_fld.keep_raw == store_raw
         assert loaded_fld.is_sequential == is_sequential
 
 
@@ -152,7 +152,7 @@ def test_field_use_vocab(vocab, expected_value):
 def test_field_update_vocab(use_vocab, is_sequential, expected_vocab_values):
     vocab = MockVocab()
     f = Field(name="F", vocab=vocab if use_vocab else None,
-              tokenize=is_sequential, store_as_raw=True)
+              tokenize=is_sequential, keep_raw=True)
 
     raw_value = "some text"
     tokenized_value = ["some", "text"]
@@ -331,14 +331,14 @@ def test_field_pickle_spacy_tokenizer(tmpdir):
     with open(field_file, "rb") as fdata:
         loaded_fld = dill.load(fdata)
 
-        assert loaded_fld._tokenizer_arg == "spacy"
+        assert loaded_fld._tokenizer_arg_string == "spacy"
 
         _, data = loaded_fld.preprocess("bla blu")[0]
         assert data == (None, ["bla", "blu"])
 
 
 def test_field_pretokenize_hooks():
-    f = Field(name="F", tokenize=True, store_as_raw=True)
+    f = Field(name="F", tokenize=True, keep_raw=True)
 
     f.add_pretokenize_hook(str.lower)
     f.add_pretokenize_hook(lambda x: x.replace("bla", "blu"))
@@ -354,7 +354,7 @@ def test_field_pretokenize_hooks():
 
 
 def test_field_pretokenize_hooks_detach():
-    f = Field(name="F", tokenize=True, store_as_raw=True)
+    f = Field(name="F", tokenize=True, keep_raw=True)
 
     f.add_pretokenize_hook(str.lower)
     f.add_pretokenize_hook(lambda x: x.replace(";", " "))
@@ -373,7 +373,7 @@ def test_field_pretokenize_hooks_detach():
 
 
 def test_field_posttokenize_hooks():
-    f = Field(name="F", tokenize=True, store_as_raw=True)
+    f = Field(name="F", tokenize=True, keep_raw=True)
 
     def remove_tags_hook(raw, tokenized):
         raw = raw.replace("<tag>", "")
@@ -398,7 +398,7 @@ def test_field_posttokenize_hooks():
 
 def test_field_posttokenize_hooks_detach():
     f = Field(name="F", tokenize=True, custom_numericalize=float,
-              store_as_raw=True)
+              keep_raw=True)
 
     def remove_tags_hook(raw, tokenized):
         raw = raw.replace("<tag>", "")
@@ -441,7 +441,7 @@ def test_field_repeated_hooks():
     to_lower_hook.call_count = 0
 
     f = Field(name="F", tokenize=True, custom_numericalize=float,
-              store_as_raw=True)
+              keep_raw=True)
 
     # TAG -> tag
     f.add_posttokenize_hook(to_lower_hook)
@@ -679,14 +679,14 @@ def test_multilabel_too_many_classes_in_data_exception():
 def test_field_fail_initialization(store_as_raw, store_as_tokenized, tokenize):
     with pytest.raises(ValueError):
         Field("bla",
-              store_as_raw=store_as_raw,
+              keep_raw=store_as_raw,
               store_as_tokenized=store_as_tokenized,
               tokenize=tokenize)
 
 
 def test_missing_values_default_sequential():
     fld = Field(name="bla",
-                store_as_raw=False,
+                keep_raw=False,
                 tokenize=True,
                 custom_numericalize=lambda x: hash(x),
                 allow_missing_data=True)
@@ -704,7 +704,7 @@ def test_missing_values_default_sequential():
 
 def test_missing_values_custom_numericalize():
     fld = Field(name="test_field",
-                store_as_raw=True,
+                keep_raw=True,
                 tokenize=False,
                 custom_numericalize=int,
                 allow_missing_data=True)
@@ -725,7 +725,7 @@ def test_missing_symbol_index_vocab():
     vocab = Vocab()
     fld = Field(name="test_field",
                 tokenizer='split',
-                store_as_raw=False,
+                keep_raw=False,
                 tokenize=True,
                 vocab=vocab,
                 allow_missing_data=True)
@@ -741,7 +741,7 @@ def test_missing_symbol_index_vocab():
 
 def test_missing_symbol_index_custom_numericalize():
     fld = Field(name="test_field",
-                store_as_raw=True,
+                keep_raw=True,
                 tokenize=False,
                 custom_numericalize=int,
                 allow_missing_data=True)
@@ -752,7 +752,7 @@ def test_missing_symbol_index_custom_numericalize():
 
 def test_missing_values_fail():
     fld = Field(name="bla",
-                store_as_raw=True,
+                keep_raw=True,
                 tokenize=False,
                 custom_numericalize=lambda x: hash(x))
 
@@ -761,8 +761,8 @@ def test_missing_values_fail():
 
 
 def test_multioutput_field_posttokenization():
-    uppercase_field = Field("uppercase_field", store_as_raw=True)
-    lowercase_field = Field("lowercase_field", store_as_raw=True)
+    uppercase_field = Field("uppercase_field", keep_raw=True)
+    lowercase_field = Field("lowercase_field", keep_raw=True)
 
     def post_tokenization_all_upper(raw, tokenized):
         return raw, list(map(str.upper, tokenized))
@@ -840,7 +840,7 @@ def test_hook_returning_iterable():
 
     field = Field("Iterator_hook_test_field",
                   tokenizer=lambda raw: [int(x) for x in raw.split(',')],
-                  custom_numericalize=id, store_as_raw=True)
+                  custom_numericalize=id, keep_raw=True)
 
     def multiply_by_two_hook(raw, tokens):
         return raw, (i * 2 for i in tokens)

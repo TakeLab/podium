@@ -6,6 +6,7 @@ from collections import deque
 import numpy as np
 
 from podium.storage.vocab import Vocab
+from podium.preproc.tokenizers import get_tokenizer
 from podium.util import log_and_raise_error
 
 _LOGGER = logging.getLogger(__name__)
@@ -92,11 +93,10 @@ class MultioutputField:
             spacy).
             Default is 'en'.
         """
-
-        self.language = language
+        # TODO rework MultioutputField
         self._tokenizer_arg = tokenizer
         self.pretokenization_pipeline = PretokenizationPipeline()
-        self.tokenizer = self.get_tokenizer(tokenizer, language)
+        self.tokenizer = get_tokenizer(tokenizer)
         self.output_fields = deque(output_fields)
 
     def add_pretokenize_hook(self, hook):
@@ -182,22 +182,15 @@ class Field:
 
     def __init__(self,
                  name,
-                 pretokenize_hooks=None,
+                 pretokenize_hooks=(),
                  tokenizer='split',
-                 posttokenize_hooks=None,
-                 language='en',
-                 vocab=None,
-                 tokenize=True,
-                 store_as_raw=False,
-                 store_as_tokenized=False,
-                 eager=True,
-                 is_numericalizable=True,
-                 custom_numericalize=None,
-                 batch_as_matrix=True,
-                 padding_token=-999,
+                 posttokenize_hooks=(),
+                 keep_raw=False,
+                 numericalizer=None,  # TODO Better arg name?
                  is_target=False,
                  fixed_length=None,
                  allow_missing_data=False,
+                 padding_token=-999,
                  missing_data_token=-1
                  ):
         """Create a Field from arguments.
@@ -231,7 +224,7 @@ class Field:
             tokenized using the tokenizer, run through the posttokenize hooks
             and then stored in the 'tokenized' part of the example tuple.
             If True, 'store_as_tokenized' must be False.
-        store_as_raw : bool
+        keep_raw : bool
             Whether to store untokenized preprocessed data.
             If True, the raw data will be run trough the provided pretokenize
             hooks and stored in the 'raw' part of the example tuple.
@@ -303,10 +296,31 @@ class Field:
         """
 
         self.name = name
-        self.language = language
-        self._tokenizer_arg = tokenizer
-        self.is_numericalizable = is_numericalizable
-        self.batch_as_matrix = batch_as_matrix
+        self._tokenizer_arg_string = tokenizer if isinstance(tokenizer, str) else None
+
+        if tokenizer is None:
+            def no_op(x):
+                return x
+
+            self.tokenizer = no_op
+        else:
+            self.tokenizer = get_tokenizer(tokenizer)
+
+        if isinstance(numericalizer, Vocab):
+            self.vocab = numericalizer
+            self.numericalizer = self.vocab.__getitem__
+        else:
+            self.vocab = None
+            self.numericalizer = numericalizer
+
+        self.keep_raw = keep_raw
+        self.padding_token = padding_token
+        self.is_target = is_target
+        self.fixed_length = fixed_length
+        self.allow_missing_data = allow_missing_data
+        self.missing_data_token = missing_data_token
+        self.pretokenize_pipeline = PretokenizationPipeline()
+        self.posttokenize_pipeline = PosttokenizationPipeline()
 
         if pretokenize_hooks is not None:
             if not isinstance(pretokenize_hooks, (list, tuple)):
@@ -320,59 +334,9 @@ class Field:
             for hook in posttokenize_hooks:
                 self.add_posttokenize_hook(hook)
 
-        if store_as_tokenized and tokenize:
-            error_msg = "Store_as_tokenized' and 'tokenize' both set to True." \
-                        " You can either store the data as tokenized, " \
-                        "tokenize it or do neither, but you can't do both."
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
-
-        if not store_as_raw and not tokenize and not store_as_tokenized:
-            warn_msg = "At least one of 'store_as_raw', 'tokenize'" \
-                       " or 'store_as_tokenized' must be True." \
-                       f" Storing as raw by default for field {name}."
-            _LOGGER.warning(warn_msg)
-            # @mttk: This logic seems better as if the latter two are False,
-            #        there is no way that you can store data as tokenized.
-            store_as_raw = True
-
-        if store_as_raw and store_as_tokenized:
-            error_msg = "'store_as_raw' and 'store_as_tokenized' both set to" \
-                        " True. You can't store the same value as raw and as " \
-                        "tokenized. Maybe you wanted to tokenize the raw " \
-                        "data? (the 'tokenize' parameter)"
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
-
-        if not is_numericalizable \
-                and (custom_numericalize is not None or vocab is not None):
-            error_msg = "Field that is not numericalizable can't have " \
-                        "custom_numericalize or vocab."
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
-
-        self.is_sequential = (store_as_tokenized or tokenize) and is_numericalizable
-        self.store_as_raw = store_as_raw
-        self.tokenize = tokenize
-        self.store_as_tokenized = store_as_tokenized
-
-        self.eager = eager
-        self.vocab = vocab
-
-        if tokenize:
-            self.tokenizer = get_tokenizer(tokenizer, language)
-        else:
-            self.tokenizer = None
-
-        self.custom_numericalize = custom_numericalize
-        self.padding_token = padding_token
-
-        self.is_target = is_target
-        self.fixed_length = fixed_length
-
-        self.pretokenize_pipeline = PretokenizationPipeline()
-        self.posttokenize_pipeline = PosttokenizationPipeline()
-        self.allow_missing_data = allow_missing_data
-        self.missing_data_token = missing_data_token
-
-
+    @property
+    def is_eager(self):
+        return self.vocab is not None and self.vocab.eager
 
     @property
     def use_vocab(self):
@@ -498,7 +462,7 @@ class Field:
 
     def preprocess(self, data):
         """Preprocesses raw data, tokenizing it if the field is sequential,
-        updating the vocab if the field is eager and preserving the raw data
+        updating the vocab if the vocab is eager and preserving the raw data
         if field's 'store_raw' is true.
 
         Parameters
@@ -531,18 +495,37 @@ class Field:
             else:
                 return (self.name, (None, None)),
 
-        if self.store_as_tokenized:
-            # Store data as tokens
-            data, tokens = None, data
+        # Preprocess the raw input
+        processed_raw = self._run_pretokenization_hooks(data)
+        tokenized = self.tokenizer(processed_raw)
 
-        else:
-            # Preprocess the raw input
-            data = self._run_pretokenization_hooks(data)
-            tokens = self.tokenizer(data) if self.tokenize else None
+        return self._process_tokens(processed_raw, tokenized),
 
-        return self._process_tokens(data, tokens),
+    def _process_tokens(self, raw, tokens):
+        """Runs posttokenization processing on the provided data and tokens and updates
+        the vocab if needed. Used by Multioutput field.
 
-    def update_vocab(self, raw, tokenized):
+        Parameters
+        ----------
+        data
+            data processed by Pretokenization hooks
+
+        tokens : list
+            tokenized data
+
+        Returns
+        -------
+        name, (data, tokens)
+            Returns and tuple containing this both field's name and a tuple containing
+            the data and tokens processed by posttokenization hooks.
+        """
+
+        raw, tokenized = self._run_posttokenization_hooks(raw, tokens)
+        if self.is_eager and not self.vocab.finalized:
+            self.update_vocab(tokenized)
+        return self.name, (raw, tokenized)
+
+    def update_vocab(self, tokenized):
         """Updates the vocab with a data point in its raw and tokenized form.
         If the field is sequential, the vocab is updated with the tokenized
         form (and 'raw' can be None), otherwise the raw form is used to
@@ -562,9 +545,9 @@ class Field:
         """
 
         if not self.use_vocab:
-            return
+            return  # TODO throw Error?
 
-        data = tokenized if self.tokenize or self.store_as_tokenized else [raw]
+        data = tokenized if isinstance(tokenized, (list, tuple)) else (tokenized,)
         self.vocab += data
 
     @property
@@ -587,35 +570,6 @@ class Field:
         if self.use_vocab:
             self.vocab.finalize()
 
-    def _process_tokens(self, data, tokens):
-        """Runs posttokenization processing on the provided data and tokens and updates
-        the vocab if needed. Used by Multioutput field.
-
-        Parameters
-        ----------
-        data
-            data processed by Pretokenization hooks
-
-        tokens : list
-            tokenized data
-
-        Returns
-        -------
-        name, (data, tokens)
-            Returns and tuple containing this both field's name and a tuple containing
-            the data and tokens processed by posttokenization hooks.
-        """
-
-        if self.is_numericalizable:
-            data, tokens = self._run_posttokenization_hooks(data, tokens)
-
-        if self.eager and self.use_vocab and not self.vocab.finalized:
-            self.update_vocab(data, tokens)
-
-        data = data if self.store_as_raw else None
-
-        return self.name, (data, tokens)
-
     def _numericalize_tokens(self, tokens):
         """Numericalizes an iterable of tokens.
         If use_vocab is True, numericalization of the vocab is used. Else
@@ -632,12 +586,22 @@ class Field:
             Array of numericalized representations of the tokens.
 
         """
-        if self.custom_numericalize is None and self.use_vocab:
-            return self.vocab.numericalize(tokens)
+        if isinstance(tokens, (list, tuple)):
+            if self.use_vocab:
+                return self.vocab.numericalize(tokens)
 
-        # custom numericalization for non-vocab data
-        # (such as floating point data Fields)
-        return np.array([self.custom_numericalize(tok) for tok in tokens])
+            else:
+                # custom numericalization for non-vocab data
+                # (such as floating point data Fields)
+                return np.array([self.custom_numericalize(tok) for tok in tokens])
+        else:
+            if self.use_vocab:
+                return np.array((self.vocab[tokens]))
+
+            else:
+                # custom numericalization for non-vocab data
+                # (such as floating point data Fields)
+                return np.array([self.custom_numericalize(tok) for tok in tokens])
 
     def get_default_value(self):
         """Method obtains default field value for missing data.
@@ -688,7 +652,7 @@ class Field:
         """
         raw, tokenized = data
 
-        if raw is None and tokenized is None:
+        if tokenized is None:
             if not self.allow_missing_data:
                 error_msg = f"Missing value found in field {self.name}."
                 log_and_raise_error(ValueError, _LOGGER, error_msg)
@@ -697,7 +661,7 @@ class Field:
                 return None
 
         # raw data is just a string, so we need to wrap it into an iterable
-        tokens = tokenized if self.tokenize or self.store_as_tokenized else [raw]
+        tokens = tokenized if self.tokenize or self.store_as_tokenized else [raw] # TODO CONTINUE HERE
 
         if self.is_numericalizable:
             return self._numericalize_tokens(tokens)
@@ -825,7 +789,7 @@ class Field:
             dataset state dictionary
         """
         self.__dict__.update(state)
-        self.tokenizer = get_tokenizer(self._tokenizer_arg, self.language)
+        self.tokenizer = get_tokenizer(self._tokenizer_arg_string, self.language)
 
     def __repr__(self):
         return "{}[name: {}, is_sequential: {}, is_target: {}]".format(
@@ -867,7 +831,7 @@ class LabelField(Field):
                          language=None,
                          vocab=vocab,
                          tokenize=False,
-                         store_as_raw=True,
+                         keep_raw=True,
                          store_as_tokenized=False,
                          eager=eager,
                          custom_numericalize=custom_numericalize,
@@ -898,7 +862,7 @@ class TokenizedField(Field):
         super().__init__(
             name=name,
             vocab=vocab,
-            store_as_raw=False,
+            keep_raw=False,
             tokenize=False,
             store_as_tokenized=True,
             eager=eager,

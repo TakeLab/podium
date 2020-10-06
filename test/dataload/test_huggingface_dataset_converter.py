@@ -44,11 +44,11 @@ def complex_dataset():
 def test_simple_feature_conversion(simple_dataset):
     fields = convert_features_to_fields(simple_dataset.features)
 
-    assert fields['id'].store_as_raw
+    assert fields['id'].keep_raw
     assert fields['name'].is_sequential
     assert fields['review'].is_sequential
-    assert fields['rating'].store_as_raw
-    assert fields['related_movies'].store_as_raw
+    assert fields['rating'].keep_raw
+    assert fields['related_movies'].keep_raw
 
     assert fields['id'].allow_missing_data
     assert fields['name'].allow_missing_data
@@ -78,7 +78,7 @@ def test_simple_data(simple_dataset):
 def test_complex_feature_conversion(complex_dataset):
     fields = convert_features_to_fields(complex_dataset.features)
 
-    assert fields['translation'].store_as_raw
+    assert fields['translation'].keep_raw
     assert fields['sentiment'].is_target
 
     assert fields['translation'].allow_missing_data

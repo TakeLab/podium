@@ -184,7 +184,7 @@ class SST(Dataset):
         """
         text = Field(name=SST.TEXT_FIELD_NAME, vocab=Vocab(),
                      tokenizer='split', language="en", tokenize=True,
-                     store_as_raw=False, eager=False)
+                     keep_raw=False, eager=False)
         label = LabelField(name=SST.LABEL_FIELD_NAME, eager=False)
         return {SST.TEXT_FIELD_NAME: text,
                 SST.LABEL_FIELD_NAME: label}

@@ -134,7 +134,7 @@ def test_not_numericalizable_field(json_file_path):
                                       tokenizer=custom_datatype_tokenizer,
                                       is_numericalizable=False,
                                       allow_missing_data=True,
-                                      store_as_raw=True)
+                                      keep_raw=True)
 
     fields['text_with_missing_data'] = (text_field, non_numericalizable_field)
 
@@ -311,7 +311,7 @@ def test_iterator_missing_data_in_batch(json_file_path):
                                 tokenizer="split",
                                 vocab=Vocab(),
                                 allow_missing_data=True,
-                                store_as_raw=True,
+                                keep_raw=True,
                                 missing_data_token=missing_data_default_value)
     fields['text_with_missing_data'] = missing_value_field
     ds = create_tabular_dataset_from_json(fields, json_file_path)
@@ -456,8 +456,8 @@ def np_arrays_equal(arr_1, arr_2):
 
 @pytest.fixture
 def hierarchical_dataset_fields():
-    name_field = Field(name="name", store_as_raw=True, tokenize=False, vocab=Vocab())
-    number_field = Field(name="number", store_as_raw=True, tokenize=False,
+    name_field = Field(name="name", keep_raw=True, tokenize=False, vocab=Vocab())
+    number_field = Field(name="number", keep_raw=True, tokenize=False,
                          custom_numericalize=int)
 
     fields = {

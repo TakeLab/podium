@@ -81,7 +81,7 @@ class Vocab:
 
     def __init__(self, max_size=None, min_freq=1,
                  specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD),
-                 keep_freqs=False):
+                 keep_freqs=False, eager=False):
         """Vocab constructor. Specials are first in the vocabulary.
 
         Parameters
@@ -112,6 +112,7 @@ class Vocab:
         self.stoi.update({k: v for v, k in enumerate(self.itos)})
 
         self._max_size = max_size
+        self.eager = eager
         self.finalized = False  # flag to know if we're ready to numericalize
         _LOGGER.debug("Vocabulary has been created and initialized.")
 
@@ -424,6 +425,13 @@ class Vocab:
             true if the vocabulary has special symbols, false otherwise.
         """
         return self._has_specials
+
+    def __getitem__(self, token):
+        if not self.finalized:
+            error_msg = "Cannot numericalize if the vocabulary has not been " \
+                        "finalized because itos and stoi are not yet built."
+            log_and_raise_error(RuntimeError, _LOGGER, error_msg)
+        return self.stoi[token]
 
     def __len__(self):
         """Method calculates vocab lengths including special symbols.

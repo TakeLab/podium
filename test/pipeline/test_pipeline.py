@@ -24,9 +24,9 @@ mock_data = [
 
 
 def get_fields():
-    name_field = Field("Name", custom_numericalize=name_dict.get, store_as_raw=True)
+    name_field = Field("Name", custom_numericalize=name_dict.get, keep_raw=True)
     score_field = Field("Score", tokenize=False, custom_numericalize=int,
-                        store_as_raw=True)
+                        keep_raw=True)
     age_field = LabelField("Age", custom_numericalize=int)
 
     name_field.finalize()
@@ -174,9 +174,9 @@ def test_output_transform_fn():
 
 def test_pipeline_multioutputfield_without_target():
     # case where name is used to generate two fields => name and case
-    name_field = Field("Name", custom_numericalize=name_dict.get, store_as_raw=True)
+    name_field = Field("Name", custom_numericalize=name_dict.get, keep_raw=True)
     case_field = Field("Case", custom_numericalize={True: 1, False: 0}.get,
-                       store_as_raw=True)
+                       keep_raw=True)
 
     def get_case(raw, tokenized):
         return raw, list(map(str.islower, tokenized))
@@ -208,11 +208,11 @@ def test_pipeline_multioutputfield_with_some_target():
     mask_dict = {"XXXXX": 1, "XXXX": 2}
     text_dict = {"Marko": 1, "radi": 2}
     mask_field = Field(
-        "Masked", custom_numericalize=mask_dict.get, store_as_raw=True
+        "Masked", custom_numericalize=mask_dict.get, keep_raw=True
     )
     text_field = Field(
         "Text", custom_numericalize=text_dict.get, is_target=True,
-        store_as_raw=True
+        keep_raw=True
     )
     text_field.finalize()
 
@@ -240,11 +240,11 @@ def test_pipeline_multioutputfield_with_all_targets():
     mask_field = Field("Mask", custom_numericalize=mask_dict.get)
     text1_field = Field(
         "Text1", custom_numericalize=text_dict.get,
-        is_target=True, store_as_raw=True
+        is_target=True, keep_raw=True
     )
     text2_field = Field(
         "Text2", custom_numericalize=text_dict.get,
-        is_target=True, store_as_raw=True
+        is_target=True, keep_raw=True
     )
     mask_field.finalize()
 
@@ -269,11 +269,11 @@ def test_pipeline_multioutputfield_with_all_targets():
 def test_pipeline_nested_fields_no_targets():
     name_field = Field(
         "Name", custom_numericalize=name_dict.get,
-        store_as_raw=True
+        keep_raw=True
     )
     case_field = Field(
         "Case", custom_numericalize={True: 1, False: 0}.get,
-        store_as_raw=True
+        keep_raw=True
     )
 
     def get_case(raw, tokenized):
@@ -308,15 +308,15 @@ def test_pipeline_nested_fields_all_targets():
     mask_dict = {"XXXXX": 1, "XXXX": 2}
     text_field = Field(
         "Text", custom_numericalize=text_dict.get,
-        store_as_raw=True
+        keep_raw=True
     )
     mask1_field = Field(
         "Masked1", custom_numericalize=mask_dict.get, is_target=True,
-        store_as_raw=True
+        keep_raw=True
     )
     mask2_field = Field(
         "Masked2", custom_numericalize=mask_dict.get, is_target=True,
-        store_as_raw=True
+        keep_raw=True
     )
     text_field.finalize()
 

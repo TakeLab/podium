@@ -90,9 +90,9 @@ class CornellMovieDialogsConversationalDataset(Dataset):
         """
         vocabulary = Vocab()
         statement = Field(name="statement", vocab=vocabulary, tokenizer="split",
-                          language="en", tokenize=True, store_as_raw=False,
+                          language="en", tokenize=True, keep_raw=False,
                           is_target=False)
         reply = Field(name="reply", vocab=vocabulary, tokenizer="split",
-                      language="en", tokenize=True, store_as_raw=False, is_target=True)
+                      language="en", tokenize=True, keep_raw=False, is_target=True)
         fields = {"statement": statement, "reply": reply}
         return fields

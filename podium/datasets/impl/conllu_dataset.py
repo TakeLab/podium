@@ -103,29 +103,29 @@ class CoNLLUDataset(Dataset):
         # numericalization of integer ranges is undefined
         id = Field(name='id',
                    tokenize=False,
-                   store_as_raw=True,
+                   keep_raw=True,
                    is_numericalizable=False)
 
         form = Field(name='form',
                      vocab=Vocab(specials=()),
                      tokenize=False,
-                     store_as_raw=True)
+                     keep_raw=True)
 
         lemma = Field(name='lemma',
                       vocab=Vocab(specials=()),
                       tokenize=False,
-                      store_as_raw=True)
+                      keep_raw=True)
 
         upos = Field(name='upos',
                      vocab=Vocab(specials=()),
                      tokenize=False,
-                     store_as_raw=True,
+                     keep_raw=True,
                      allow_missing_data=True)
 
         xpos = Field(name='xpos',
                      vocab=Vocab(specials=()),
                      tokenize=False,
-                     store_as_raw=True,
+                     keep_raw=True,
                      allow_missing_data=True)
 
         feats = Field(name='feats',
@@ -136,13 +136,13 @@ class CoNLLUDataset(Dataset):
 
         head = Field(name='head',
                      tokenize=False,
-                     store_as_raw=True,
+                     keep_raw=True,
                      custom_numericalize=int,
                      allow_missing_data=True)
 
         deprel = Field(name='deprel',
                        tokenize=False,
-                       store_as_raw=True,
+                       keep_raw=True,
                        allow_missing_data=True)
 
         deps = Field(name='deps',

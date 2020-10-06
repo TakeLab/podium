@@ -783,8 +783,8 @@ def test_eager_tokenization():
 
 @pytest.fixture
 def hierarchical_dataset_fields():
-    name_field = Field("name", store_as_raw=True, tokenize=False)
-    number_field = Field("number", store_as_raw=True, tokenize=False)
+    name_field = Field("name", keep_raw=True, tokenize=False)
+    number_field = Field("number", keep_raw=True, tokenize=False)
 
     fields = {
         "name": name_field,
@@ -855,8 +855,8 @@ def test_hierarchical_dataset_example_indexing(hierarchical_dataset):
 def test_hierarchical_dataset_finalize_fields(hierarchical_dataset_parser):
     name_vocab = Vocab()
     number_vocab = Vocab()
-    name_field = Field("name", store_as_raw=True, tokenize=False, vocab=name_vocab)
-    number_field = Field("number", store_as_raw=True, tokenize=False, vocab=number_vocab)
+    name_field = Field("name", keep_raw=True, tokenize=False, vocab=name_vocab)
+    number_field = Field("number", keep_raw=True, tokenize=False, vocab=number_vocab)
 
     fields = {
         "name": name_field,
