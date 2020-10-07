@@ -1,10 +1,10 @@
 import os
 
 from podium.datasets.dataset import Dataset
-from podium.storage.field import Field, LabelField
 from podium.storage.example_factory import ExampleFactory
-from podium.storage.vocab import Vocab
+from podium.storage.field import Field, LabelField
 from podium.storage.resources.large_resource import LargeResource
+from podium.storage.vocab import Vocab
 
 
 class SST(Dataset):
@@ -31,13 +31,13 @@ class SST(Dataset):
     """
 
     NAME = "sst"
-    URL = 'https://nlp.stanford.edu/sentiment/trainDevTestTrees_PTB.zip'
+    URL = "https://nlp.stanford.edu/sentiment/trainDevTestTrees_PTB.zip"
     DATASET_DIR = os.path.join("sst", "trees")
     ARCHIVE_TYPE = "zip"
 
-    TRAIN_FILE = 'train.txt'
-    VALID_FILE = 'dev.txt'
-    TEST_FILE = 'test.txt'
+    TRAIN_FILE = "train.txt"
+    VALID_FILE = "dev.txt"
+    TEST_FILE = "test.txt"
 
     TEXT_FIELD_NAME = "text"
     LABEL_FIELD_NAME = "label"
@@ -60,25 +60,31 @@ class SST(Dataset):
             also return the subtrees of each input instance as separate
             instances. This causes the dataset to become much larger.
         """
-        LargeResource(**{
-            LargeResource.RESOURCE_NAME: SST.NAME,
-            LargeResource.ARCHIVE: SST.ARCHIVE_TYPE,
-            LargeResource.URI: SST.URL})
+        LargeResource(
+            **{
+                LargeResource.RESOURCE_NAME: SST.NAME,
+                LargeResource.ARCHIVE: SST.ARCHIVE_TYPE,
+                LargeResource.URI: SST.URL,
+            }
+        )
         # Assign these to enable filtering
-        self.examples = self._create_examples(file_path=file_path, fields=fields,
-                                              fine_grained=fine_grained,
-                                              subtrees=subtrees)
+        self.examples = self._create_examples(
+            file_path=file_path,
+            fields=fields,
+            fine_grained=fine_grained,
+            subtrees=subtrees,
+        )
         self.fields = fields
 
         # If not fine-grained, return binary task: filter out neutral instances
         if not fine_grained:
             # TODO @mttk: Perhaps issue warning if any of fields is eager
             def filter_neutral(example):
-                return example.label[0] != 'neutral'
+                return example.label[0] != "neutral"
+
             self.filter(predicate=filter_neutral, inplace=True)
 
-        super(SST, self).__init__(
-            **{"examples": self.examples, "fields": self.fields})
+        super(SST, self).__init__(**{"examples": self.examples, "fields": self.fields})
 
     @staticmethod
     def _create_examples(file_path, fields, fine_grained, subtrees):
@@ -115,11 +121,12 @@ class SST(Dataset):
             return label_to_string_map[label]
 
         examples = []
-        with open(file=file_path, encoding='utf8') as fpr:
+        with open(file=file_path, encoding="utf8") as fpr:
             for line in fpr:
 
-                example = example_factory.from_fields_tree(line, subtrees=subtrees,
-                                                           label_transform=label_trf)
+                example = example_factory.from_fields_tree(
+                    line, subtrees=subtrees, label_transform=label_trf
+                )
                 if subtrees:
                     # Example is actually a list
                     examples.extend(example)
@@ -150,25 +157,30 @@ class SST(Dataset):
         (train_dataset, valid_dataset, test_dataset) : (Dataset, Dataset, Dataset)
             tuple containing train, valid and test dataset
         """
-        data_location = os.path.join(LargeResource.BASE_RESOURCE_DIR,
-                                     SST.DATASET_DIR)
+        data_location = os.path.join(LargeResource.BASE_RESOURCE_DIR, SST.DATASET_DIR)
         if fields is None:
             fields = SST.get_default_fields()
 
         train_dataset = SST(
-            file_path=os.path.join(
-                data_location, SST.TRAIN_FILE),
-            fields=fields, fine_grained=fine_grained, subtrees=subtrees)
+            file_path=os.path.join(data_location, SST.TRAIN_FILE),
+            fields=fields,
+            fine_grained=fine_grained,
+            subtrees=subtrees,
+        )
 
         valid_dataset = SST(
-            file_path=os.path.join(
-                data_location, SST.VALID_FILE),
-            fields=fields, fine_grained=fine_grained, subtrees=subtrees)
+            file_path=os.path.join(data_location, SST.VALID_FILE),
+            fields=fields,
+            fine_grained=fine_grained,
+            subtrees=subtrees,
+        )
 
         test_dataset = SST(
-            file_path=os.path.join(
-                data_location, SST.TEST_FILE),
-            fields=fields, fine_grained=fine_grained, subtrees=subtrees)
+            file_path=os.path.join(data_location, SST.TEST_FILE),
+            fields=fields,
+            fine_grained=fine_grained,
+            subtrees=subtrees,
+        )
 
         train_dataset.finalize_fields()
         return (train_dataset, valid_dataset, test_dataset)
@@ -182,18 +194,28 @@ class SST(Dataset):
         fields : dict(str, Field)
             Dictionary mapping field name to field.
         """
-        text = Field(name=SST.TEXT_FIELD_NAME, vocab=Vocab(),
-                     tokenizer='split', language="en", tokenize=True,
-                     store_as_raw=False, eager=False)
+        text = Field(
+            name=SST.TEXT_FIELD_NAME,
+            vocab=Vocab(),
+            tokenizer="split",
+            language="en",
+            tokenize=True,
+            store_as_raw=False,
+            eager=False,
+        )
         label = LabelField(name=SST.LABEL_FIELD_NAME, eager=False)
-        return {SST.TEXT_FIELD_NAME: text,
-                SST.LABEL_FIELD_NAME: label}
+        return {SST.TEXT_FIELD_NAME: text, SST.LABEL_FIELD_NAME: label}
 
 
 def _label_to_string_map(fine_grained):
-    pre = 'very ' if fine_grained else ''
-    return {'0': pre + 'negative', '1': 'negative', '2': 'neutral',
-            '3': 'positive', '4': pre + 'positive'}
+    pre = "very " if fine_grained else ""
+    return {
+        "0": pre + "negative",
+        "1": "negative",
+        "2": "neutral",
+        "3": "positive",
+        "4": pre + "positive",
+    }
 
 
 def _get_label_str(label, fine_grained):

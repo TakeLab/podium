@@ -1,24 +1,27 @@
-import logging
-import tempfile
-import itertools
-import os
-import shutil
-import pickle
 import csv
+import itertools
+import logging
+import os
+import pickle
+import shutil
+import tempfile
 from collections import defaultdict
-from typing import List, Dict, Union, Tuple, Iterable, Iterator, Any, Callable
+from typing import Any, Callable, Dict, Iterable, Iterator, List, Tuple, Union
 
-from podium.storage import ExampleFactory, Field, unpack_fields
 from podium.datasets import Dataset
+from podium.storage import ExampleFactory, Field, unpack_fields
 from podium.storage.example_factory import Example
+
 
 _LOGGER = logging.getLogger(__name__)
 
 try:
     import pyarrow as pa
 except ImportError as ie:
-    msg = "Error encountered while importing Pyarrow. If Pyarrow is not installed, " \
-          "please visit https://pypi.org/project/pyarrow/ for more information."
+    msg = (
+        "Error encountered while importing Pyarrow. If Pyarrow is not installed, "
+        "please visit https://pypi.org/project/pyarrow/ for more information."
+    )
     _LOGGER.error(msg)
     raise ie
 
@@ -38,16 +41,18 @@ class ArrowDataset:
     Examples are stored in a file which is then memory mapped for fast random access.
     """
 
-    TEMP_CACHE_FILENAME_PREFIX = 'podium_arrow_cache_'
-    CACHE_TABLE_FILENAME = 'podium_arrow_cache.arrow'
-    CACHE_FIELDS_FILENAME = 'podium_fields.pkl'
+    TEMP_CACHE_FILENAME_PREFIX = "podium_arrow_cache_"
+    CACHE_TABLE_FILENAME = "podium_arrow_cache.arrow"
+    CACHE_FIELDS_FILENAME = "podium_fields.pkl"
 
-    def __init__(self,
-                 table: pa.Table,
-                 fields: Union[Dict[str, Field], List[Field]],
-                 cache_path: str,
-                 mmapped_file: pa.MemoryMappedFile,
-                 data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None):
+    def __init__(
+        self,
+        table: pa.Table,
+        fields: Union[Dict[str, Field], List[Field]],
+        cache_path: str,
+        mmapped_file: pa.MemoryMappedFile,
+        data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
+    ):
         """Creates a new ArrowDataset instance. Users should use static constructor
         functions like 'from_dataset' to construct new ArrowDataset instances.
 
@@ -80,10 +85,11 @@ class ArrowDataset:
         self.data_types = data_types
 
     @staticmethod
-    def from_dataset(dataset: Dataset,
-                     cache_path: str = None,
-                     data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None
-                     ) -> 'ArrowDataset':
+    def from_dataset(
+        dataset: Dataset,
+        cache_path: str = None,
+        data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
+    ) -> "ArrowDataset":
         """Creates an ArrowDataset instance from a podium.datasets.Dataset.
 
         Parameters
@@ -107,19 +113,19 @@ class ArrowDataset:
             ArrowDataset instance created from the passed Dataset.
 
         """
-        return ArrowDataset.from_examples(dataset.fields,
-                                          iter(dataset),
-                                          cache_path,
-                                          data_types)
+        return ArrowDataset.from_examples(
+            dataset.fields, iter(dataset), cache_path, data_types
+        )
 
     @staticmethod
-    def from_examples(fields: Union[Dict[str, Field], List[Field]],
-                      examples: Iterable[Example],
-                      cache_path: str = None,
-                      data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
-                      chunk_size=10_000
-                      ) -> 'ArrowDataset':
-        """ Creates an ArrowDataset from the provided Examples.
+    def from_examples(
+        fields: Union[Dict[str, Field], List[Field]],
+        examples: Iterable[Example],
+        cache_path: str = None,
+        data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
+        chunk_size=10_000,
+    ) -> "ArrowDataset":
+        """Creates an ArrowDataset from the provided Examples.
 
         Parameters
         ----------
@@ -163,23 +169,22 @@ class ArrowDataset:
 
         # get first group to infer schema
         first_group = next(chunks_iter)
-        record_batch = ArrowDataset._examples_to_recordbatch(first_group,
-                                                             fields,
-                                                             data_types)
+        record_batch = ArrowDataset._examples_to_recordbatch(
+            first_group, fields, data_types
+        )
         inferred_data_types = ArrowDataset._schema_to_data_types(record_batch.schema)
 
         # check for missing data types in inferred schema
         ArrowDataset._check_for_missing_data_types(fields, inferred_data_types)
 
         # write cache file to disk
-        with pa.OSFile(cache_table_path, 'wb') as f:
+        with pa.OSFile(cache_table_path, "wb") as f:
             with pa.RecordBatchFileWriter(f, schema=record_batch.schema) as writer:
                 writer.write(record_batch)  # write first chunk
                 for examples_chunk in chunks_iter:  # write rest of chunks
-                    record_batch = \
-                        ArrowDataset._examples_to_recordbatch(examples_chunk,
-                                                              fields,
-                                                              inferred_data_types)
+                    record_batch = ArrowDataset._examples_to_recordbatch(
+                        examples_chunk, fields, inferred_data_types
+                    )
                     writer.write(record_batch)
 
         mmapped_file = pa.memory_map(cache_table_path)
@@ -188,15 +193,17 @@ class ArrowDataset:
         return ArrowDataset(table, fields, cache_path, mmapped_file, inferred_data_types)
 
     @staticmethod
-    def from_tabular_file(path: str,
-                          format: str,
-                          fields: Union[Dict[str, Field], List[Field]],
-                          cache_path: str = None,
-                          data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
-                          chunk_size=10_000,
-                          skip_header: bool = False,
-                          delimiter=None,
-                          csv_reader_params: Dict = None) -> 'ArrowDataset':
+    def from_tabular_file(
+        path: str,
+        format: str,
+        fields: Union[Dict[str, Field], List[Field]],
+        cache_path: str = None,
+        data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
+        chunk_size=10_000,
+        skip_header: bool = False,
+        delimiter=None,
+        csv_reader_params: Dict = None,
+    ) -> "ArrowDataset":
         """Loads a tabular file format (csv, tsv, json) as an ArrowDataset.
 
         Parameters
@@ -268,10 +275,9 @@ class ArrowDataset:
         csv_reader_params = {} if csv_reader_params is None else csv_reader_params
 
         with open(os.path.expanduser(path), encoding="utf8") as f:
-            if format in {'csv', 'tsv'}:
-                delimiter = ',' if format == "csv" else '\t'
-                reader = csv.reader(f, delimiter=delimiter,
-                                    **csv_reader_params)
+            if format in {"csv", "tsv"}:
+                delimiter = "," if format == "csv" else "\t"
+                reader = csv.reader(f, delimiter=delimiter, **csv_reader_params)
             elif format == "json":
                 reader = f
             else:
@@ -281,14 +287,17 @@ class ArrowDataset:
 
             if skip_header:
                 if format == "json":
-                    error_msg = "When using a {} file, skip_header must be False." \
-                        .format(format)
+                    error_msg = "When using a {} file, skip_header must be False.".format(
+                        format
+                    )
                     _LOGGER.error(error_msg)
                     raise ValueError(error_msg)
                 elif format in {"csv", "tsv"} and isinstance(fields, dict):
-                    error_msg = "When using a dict to specify fields with a {}" \
-                                " file, skip_header must be False and the file must " \
-                                "have a header.".format(format)
+                    error_msg = (
+                        "When using a dict to specify fields with a {}"
+                        " file, skip_header must be False and the file must "
+                        "have a header.".format(format)
+                    )
                     _LOGGER.error(error_msg)
                     raise ValueError(error_msg)
 
@@ -310,22 +319,25 @@ class ArrowDataset:
             make_example_function = {
                 "json": example_factory.from_json,
                 "csv": example_factory.from_list,
-                "tsv": example_factory.from_list
+                "tsv": example_factory.from_list,
             }
 
             make_example = make_example_function[format]
 
             # map each line from the reader to an example
             example_iterator = map(make_example, reader)
-            return ArrowDataset.from_examples(fields,
-                                              example_iterator,
-                                              cache_path=cache_path,
-                                              data_types=data_types,
-                                              chunk_size=chunk_size)
+            return ArrowDataset.from_examples(
+                fields,
+                example_iterator,
+                cache_path=cache_path,
+                data_types=data_types,
+                chunk_size=chunk_size,
+            )
 
     @staticmethod
-    def _schema_to_data_types(inferred_schema: pa.Schema
-                              ) -> Dict[str, Tuple[pa.DataType, pa.DataType]]:
+    def _schema_to_data_types(
+        inferred_schema: pa.Schema,
+    ) -> Dict[str, Tuple[pa.DataType, pa.DataType]]:
         """Converts a pyarrow Schema instance into the ArrowDataset data_types format.
 
         Parameters
@@ -341,16 +353,20 @@ class ArrowDataset:
         dtypes = defaultdict(dict)
 
         for dtype_field in inferred_schema:
-            field_name, part = dtype_field.name.rsplit('_', 1)
+            field_name, part = dtype_field.name.rsplit("_", 1)
             dtypes[field_name][part] = dtype_field.type
 
-        return {field_name: (field_dtypes.get('raw'), field_dtypes.get('tokenized'))
-                for field_name, field_dtypes in dtypes.items()}
+        return {
+            field_name: (field_dtypes.get("raw"), field_dtypes.get("tokenized"))
+            for field_name, field_dtypes in dtypes.items()
+        }
 
     @staticmethod
-    def _examples_to_recordbatch(examples: List[Example],
-                                 fields: Union[Dict[str, Field], List[Field]],
-                                 data_types=None) -> pa.RecordBatch:
+    def _examples_to_recordbatch(
+        examples: List[Example],
+        fields: Union[Dict[str, Field], List[Field]],
+        data_types=None,
+    ) -> pa.RecordBatch:
         """Converts an list of examples into a pyarrow RecordBatch object.
 
         Parameters
@@ -431,8 +447,10 @@ class ArrowDataset:
         """
         fields = unpack_fields(fields)
         fieldnames = tuple(field.name for field in fields)
-        field_value_iterators = tuple(ArrowDataset._field_values(record_batch, fieldname)
-                                      for fieldname in fieldnames)
+        field_value_iterators = tuple(
+            ArrowDataset._field_values(record_batch, fieldname)
+            for fieldname in fieldnames
+        )
 
         for row in zip(*field_value_iterators):
             example = Example(fieldnames)
@@ -442,7 +460,7 @@ class ArrowDataset:
 
     @staticmethod
     def _check_for_missing_data_types(fields, data_types):
-        """ Checks if data_types has non-null data types for every field in fields.
+        """Checks if data_types has non-null data types for every field in fields.
         Raises a RuntimeError if not.
 
         Parameters
@@ -470,18 +488,21 @@ class ArrowDataset:
                 error_part = "tokenized"
 
             if error_part is not None:
-                msg = "Data type of the {} part of field '{}' cannot be inferred. " \
-                      "Please provide the explicit " \
-                      "pyarrow datatype trough the 'data_type' argument. The data_type " \
-                      "format is " \
-                      "{{field_name: (raw_dtype, tokenized_dtype)}}." \
-                    .format(error_part, field.name)
+                msg = (
+                    "Data type of the {} part of field '{}' cannot be inferred. "
+                    "Please provide the explicit "
+                    "pyarrow datatype trough the 'data_type' argument. The data_type "
+                    "format is "
+                    "{{field_name: (raw_dtype, tokenized_dtype)}}.".format(
+                        error_part, field.name
+                    )
+                )
                 _LOGGER.error(msg)
                 raise RuntimeError(msg)
 
     @staticmethod
-    def load_cache(cache_path) -> 'ArrowDataset':
-        """ Loads a cached ArrowDataset contained in the cache_path directory.
+    def load_cache(cache_path) -> "ArrowDataset":
+        """Loads a cached ArrowDataset contained in the cache_path directory.
         Fields will be loaded into memory but the Example data will be memory mapped
         avoiding unnecessary memory usage.
 
@@ -498,7 +519,7 @@ class ArrowDataset:
         """
         # load fields
         fields_file_path = os.path.join(cache_path, ArrowDataset.CACHE_FIELDS_FILENAME)
-        with open(fields_file_path, 'rb') as fields_cache_file:
+        with open(fields_file_path, "rb") as fields_cache_file:
             fields = pickle.load(fields_cache_file)
 
         # load dataset as memory mapped arrow table
@@ -507,9 +528,8 @@ class ArrowDataset:
         table = pa.RecordBatchFileReader(mmapped_file).read_all()
         return ArrowDataset(table, fields, cache_path, mmapped_file)
 
-    def dump_cache(self,
-                   cache_path: str = None) -> str:
-        """ Saves this dataset at cache_path. Dumped datasets can be loaded with the
+    def dump_cache(self, cache_path: str = None) -> str:
+        """Saves this dataset at cache_path. Dumped datasets can be loaded with the
         ArrowDataset.load_cache static method. All fields contained in this dataset must
         be serializable using pickle.
 
@@ -528,9 +548,10 @@ class ArrowDataset:
 
         """
         if cache_path == self.cache_path:
-            msg = "Cache path same as datasets cache path. " \
-                  "Dataset can't overwrite its own cache. Cache path: {}" \
-                .format(cache_path)
+            msg = (
+                "Cache path same as datasets cache path. "
+                "Dataset can't overwrite its own cache. Cache path: {}".format(cache_path)
+            )
             _LOGGER.error(msg)
             raise Exception(msg)
 
@@ -542,12 +563,12 @@ class ArrowDataset:
 
         # pickle fields
         cache_fields_path = os.path.join(cache_path, ArrowDataset.CACHE_FIELDS_FILENAME)
-        with open(cache_fields_path, 'wb') as fields_cache_file:
+        with open(cache_fields_path, "wb") as fields_cache_file:
             pickle.dump(self.fields, fields_cache_file)
 
         # dump table
         cache_table_path = os.path.join(cache_path, ArrowDataset.CACHE_TABLE_FILENAME)
-        with pa.OSFile(cache_table_path, 'wb') as f:
+        with pa.OSFile(cache_table_path, "wb") as f:
             with pa.RecordBatchFileWriter(f, self.table.schema) as writer:
                 writer.write(self.table)
 
@@ -560,7 +581,7 @@ class ArrowDataset:
         return self.as_dataset().examples
 
     def as_dataset(self) -> Dataset:
-        """ Loads this ArrowDataset into memory and returns an Dataset object containing
+        """Loads this ArrowDataset into memory and returns an Dataset object containing
         the loaded data.
 
         Returns
@@ -573,21 +594,22 @@ class ArrowDataset:
 
     def batch(self):
         """Creates an input and target batch containing the whole dataset.
-       The format of the batch is the same as the batches returned by the Iterator class.
+        The format of the batch is the same as the batches returned by the Iterator class.
 
-       Returns
-       -------
-       input_batch, target_batch
-               Two objects containing the input and target batches over
-               the whole dataset.
+        Returns
+        -------
+        input_batch, target_batch
+                Two objects containing the input and target batches over
+                the whole dataset.
         """
         # TODO custom batch method?
         return self.as_dataset().batch()
 
     @staticmethod
-    def _field_values(record_batch: pa.RecordBatch,
-                      fieldname: str) -> Iterable[Tuple[Any, Any]]:
-        """ Iterates over the raw and tokenized values of a field contained in the
+    def _field_values(
+        record_batch: pa.RecordBatch, fieldname: str
+    ) -> Iterable[Tuple[Any, Any]]:
+        """Iterates over the raw and tokenized values of a field contained in the
         record_batch.
 
         Parameters
@@ -622,8 +644,7 @@ class ArrowDataset:
 
         return zip(raw_values, tokenized_values)
 
-    def __getitem__(self, item,
-                    deep_copy=False) -> Union[Example, 'ArrowDataset']:
+    def __getitem__(self, item, deep_copy=False) -> Union[Example, "ArrowDataset"]:
         """Returns an example or a new ArrowDataset containing the indexed examples.
         If indexed with an int, only the example at that position will be returned.
         If Indexed with a slice or iterable, all examples indexed by the object
@@ -662,9 +683,10 @@ class ArrowDataset:
 
         if isinstance(item, int):
             # slices extract row, indexing with int extracts column
-            record_batch = self.table[item:item + 1]
-            example_iter = ArrowDataset \
-                ._recordbatch_to_examples(record_batch, self.fields)
+            record_batch = self.table[item : item + 1]
+            example_iter = ArrowDataset._recordbatch_to_examples(
+                record_batch, self.fields
+            )
             return next(example_iter)  # returns the one example
 
         if isinstance(item, slice):
@@ -675,13 +697,15 @@ class ArrowDataset:
                 item = list(item)
             table_slice = self.table.take(item)
 
-        return ArrowDataset(table=table_slice,
-                            fields=self.fields,
-                            cache_path=self.cache_path,
-                            mmapped_file=self.mmapped_file)
+        return ArrowDataset(
+            table=table_slice,
+            fields=self.fields,
+            cache_path=self.cache_path,
+            mmapped_file=self.mmapped_file,
+        )
 
     def __len__(self) -> int:
-        """ Returns the number of Examples in this Dataset.
+        """Returns the number of Examples in this Dataset.
 
         Returns
         -------
@@ -691,7 +715,7 @@ class ArrowDataset:
         return len(self.table)
 
     def __iter__(self) -> Iterator[Example]:
-        """ Iterates over Examples in this dataset.
+        """Iterates over Examples in this dataset.
 
         Returns
         -------
@@ -701,7 +725,7 @@ class ArrowDataset:
         yield from self._recordbatch_to_examples(self.table, self.fields)
 
     def __getattr__(self, fieldname) -> Iterator[Tuple[Any, Any]]:
-        """ Iterates over the raw and tokenized values of all examples in this dataset.
+        """Iterates over the raw and tokenized values of all examples in this dataset.
 
         Parameters
         ----------
@@ -722,9 +746,8 @@ class ArrowDataset:
             _LOGGER.error(error_msg)
             raise AttributeError(error_msg)
 
-    def filter(self,
-               predicate: Callable[[Example], bool]) -> 'ArrowDataset':
-        """ Creates a new ArrowDataset instance containing only Examples for which the
+    def filter(self, predicate: Callable[[Example], bool]) -> "ArrowDataset":
+        """Creates a new ArrowDataset instance containing only Examples for which the
         predicate returns True.
 
         Parameters
@@ -741,7 +764,7 @@ class ArrowDataset:
         indices = [i for i, example in enumerate(self) if predicate(example)]
         return self[indices]
 
-    def sorted(self, key: Callable[[Example], Any], reverse=False) -> 'ArrowDataset':
+    def sorted(self, key: Callable[[Example], Any], reverse=False) -> "ArrowDataset":
         """Returns a new ArrowDataset with sorted Examples.
 
         Parameters
@@ -758,6 +781,7 @@ class ArrowDataset:
         ArrowDataset
             An ArrowDataset containing sorted Examples from this dataset.
         """
+
         def index_key(i, _dataset=self):
             return key(_dataset[i])
 
@@ -782,7 +806,7 @@ class ArrowDataset:
         shutil.rmtree(self.cache_path)
 
     def finalize_fields(self, *datasets):
-        """ Builds vocabularies of all the non-eager fields in the dataset,
+        """Builds vocabularies of all the non-eager fields in the dataset,
         from the Dataset objects given as \\*args and then finalizes all the
         fields.
 
@@ -794,12 +818,10 @@ class ArrowDataset:
             vocabularies are built from this Dataset (self).
         """
         # if there are non-eager fields, we need to build their vocabularies
-        fields_to_build = [f for f in self.fields if
-                           not f.eager and f.use_vocab]
+        fields_to_build = [f for f in self.fields if not f.eager and f.use_vocab]
         if fields_to_build:
             # there can be multiple datasets we want to iterate over
-            data_sources = list(
-                filter(lambda arg: isinstance(arg, Dataset), datasets))
+            data_sources = list(filter(lambda arg: isinstance(arg, Dataset), datasets))
 
             # use self as a data source if no other given
             if not data_sources:

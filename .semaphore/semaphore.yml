@@ -1,26 +1,45 @@
 version: v1.0
-name: Unit tests for podium
+name: CI tests for TakeLab podium
+
 agent:
   machine:
     type: e1-standard-2
-    os_image: ubuntu1804
+
+  containers:
+    - name: main
+      image: semaphoreci/python:3.6
+
 blocks:
-  - name: Python
+  - name: setup environment and run tests
     task:
       jobs:
-        - name: Create env and run tests and flake8 check
+        - name: setup env and run pytest
           commands:
-            - 'python -c ''print("evol"[::-1])'''
-            - python --version
-            - sudo apt-get update -y
-            - >-
-              sudo apt-get install -y python3-pip python3-dev ipython3
-              build-essential python-dev
             - checkout
-            - virtualenv env -p /usr/bin/python3
-            - source env/bin/activate
-            - python --version
-            - pip install -r requirements.txt
-            - py.test --cov-report=term-missing --cov=podium
-            - flake8 podium
-            - flake8 test
+            - python -m venv venv
+            - source venv/bin/activate
+            - pip install --upgrade pip
+            - pip install .[tests]
+            - pytest -sv tests
+
+  - name: check code quality
+    task:
+      jobs:
+        - name: check black isort flake8 compliance
+          commands:
+            - checkout
+            - sudo pip install .[quality]
+            - black --check --line-length 90 --target-version py36 podium tests examples
+            - isort --check-only podium tests examples
+            - flake8 podium tests examples
+  
+  - name: build docs
+    task:
+      jobs:
+        - name: build docs with sphinx
+          commands:
+            - checkout
+            - sudo pip install .[docs]
+            - cd docs && make html SPHINXOPTS="-W"
+            - artifact push job build
+# add `deploy docs` block on stable relase

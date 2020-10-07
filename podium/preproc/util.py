@@ -1,6 +1,6 @@
 """Module contains utility functions to preprocess text data"""
 
-TRIE_END_SYMBOL = '*'
+TRIE_END_SYMBOL = "*"
 
 
 def capitalize_target_like_source(func):
@@ -35,6 +35,7 @@ def capitalize_target_like_source(func):
             return target
         else:
             return uppercase_target_like_source(source, target)
+
     return _wrapper
 
 
@@ -53,12 +54,13 @@ def uppercase_target_like_source(source, target):
     uppercased_target : str
         uppercased target string
     """
-    uppercased_target = ''.join([
-        target[i].upper()
-        if s.isupper() and s.lower() == target[i] else target[i]
-        for i, s in zip(range(len(target)), source)
-    ])
-    uppercased_target += target[len(source):]
+    uppercased_target = "".join(
+        [
+            target[i].upper() if s.isupper() and s.lower() == target[i] else target[i]
+            for i, s in zip(range(len(target)), source)
+        ]
+    )
+    uppercased_target += target[len(source) :]
     return uppercased_target
 
 
@@ -118,7 +120,7 @@ def find_word_by_prefix(trie, word):
         # found a match in trie for the prefix,
         # haven't reached the end of the given word
         elif TRIE_END_SYMBOL in trie:
-            return ''.join(found_word)
+            return "".join(found_word)
         else:
             return None
 

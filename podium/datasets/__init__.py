@@ -1,22 +1,41 @@
 """Package contains datasets"""
 
-from .dataset import Dataset, stratified_split, rationed_split
+from .dataset import Dataset, rationed_split, stratified_split
 from .hierarhical_dataset import HierarchicalDataset
-from .tabular_dataset import TabularDataset
-from .impl.pauza_dataset import PauzaHRDataset
 from .impl.catacx_dataset import CatacxDataset
 from .impl.conllu_dataset import CoNLLUDataset
-from .impl.imdb_sentiment_dataset import IMDB
-from .impl.eurovoc_dataset import EuroVocDataset
-from .impl.sst_sentiment_dataset import SST
 from .impl.cornell_movie_dialogs_dataset import CornellMovieDialogsConversationalDataset
+from .impl.eurovoc_dataset import EuroVocDataset
+from .impl.imdb_sentiment_dataset import IMDB
+from .impl.pauza_dataset import PauzaHRDataset
 from .impl.snli_dataset import SNLIDataset, SNLISimple
-from .iterator import (Iterator, SingleBatchIterator, BucketIterator,
-                       HierarchicalDatasetIterator)
+from .impl.sst_sentiment_dataset import SST
+from .iterator import (
+    BucketIterator,
+    HierarchicalDatasetIterator,
+    Iterator,
+    SingleBatchIterator,
+)
+from .tabular_dataset import TabularDataset
 
-__all__ = ["Dataset", "TabularDataset", "HierarchicalDataset",
-           "stratified_split", "rationed_split",
-           "IMDB", "CatacxDataset", "CoNLLUDataset", "SST",
-           "CornellMovieDialogsConversationalDataset", "EuroVocDataset", "PauzaHRDataset",
-           "Iterator", "SingleBatchIterator", "BucketIterator",
-           "HierarchicalDatasetIterator", "SNLIDataset", "SNLISimple"]
+
+__all__ = [
+    "Dataset",
+    "TabularDataset",
+    "HierarchicalDataset",
+    "stratified_split",
+    "rationed_split",
+    "IMDB",
+    "CatacxDataset",
+    "CoNLLUDataset",
+    "SST",
+    "CornellMovieDialogsConversationalDataset",
+    "EuroVocDataset",
+    "PauzaHRDataset",
+    "Iterator",
+    "SingleBatchIterator",
+    "BucketIterator",
+    "HierarchicalDatasetIterator",
+    "SNLIDataset",
+    "SNLISimple",
+]

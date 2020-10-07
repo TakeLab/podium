@@ -2,10 +2,10 @@
 import os
 
 from podium.datasets.dataset import Dataset
-from podium.storage.field import Field
-from podium.storage.vocab import Vocab
-from podium.storage.resources.large_resource import LargeResource
 from podium.storage.example_factory import ExampleFactory
+from podium.storage.field import Field
+from podium.storage.resources.large_resource import LargeResource
+from podium.storage.vocab import Vocab
 
 
 class PauzaHRDataset(Dataset):
@@ -26,10 +26,10 @@ class PauzaHRDataset(Dataset):
     TEST_DIR : str
         name of the directory containing test examples
     """
+
     NAME = "croopinion"
     URL = "http://takelab.fer.hr/data/cropinion/CropinionDataset.zip"
-    DATASET_DIR = os.path.join("croopinion", "CropinionDataset",
-                               "reviews_original")
+    DATASET_DIR = os.path.join("croopinion", "CropinionDataset", "reviews_original")
     ARCHIVE_TYPE = "zip"
     TRAIN_DIR = "Train"
     TEST_DIR = "Test"
@@ -46,13 +46,15 @@ class PauzaHRDataset(Dataset):
         fields : dict(str, Field)
             dictionary that maps field name to the field
         """
-        LargeResource(**{
-            LargeResource.RESOURCE_NAME: PauzaHRDataset.NAME,
-            LargeResource.ARCHIVE: PauzaHRDataset.ARCHIVE_TYPE,
-            LargeResource.URI: PauzaHRDataset.URL})
+        LargeResource(
+            **{
+                LargeResource.RESOURCE_NAME: PauzaHRDataset.NAME,
+                LargeResource.ARCHIVE: PauzaHRDataset.ARCHIVE_TYPE,
+                LargeResource.URI: PauzaHRDataset.URL,
+            }
+        )
         examples = self._create_examples(dir_path=dir_path, fields=fields)
-        super(PauzaHRDataset, self).__init__(
-            **{"examples": examples, "fields": fields})
+        super(PauzaHRDataset, self).__init__(**{"examples": examples, "fields": fields})
 
     @staticmethod
     def _create_examples(dir_path, fields):
@@ -71,13 +73,13 @@ class PauzaHRDataset(Dataset):
         examples : list(Example)
             list of examples from given dir_path
         """
-        files_list = [f for f in os.listdir(dir_path) if os.path.isfile(
-            os.path.join(dir_path, f))]
+        files_list = [
+            f for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f))
+        ]
         example_factory = ExampleFactory(fields)
         examples = []
         for file_path in files_list:
-            with open(file=os.path.join(dir_path, file_path),
-                      encoding='utf8') as fpr:
+            with open(file=os.path.join(dir_path, file_path), encoding="utf8") as fpr:
                 examples.append(example_factory.from_xml_str(fpr.read()))
         return examples
 
@@ -96,15 +98,18 @@ class PauzaHRDataset(Dataset):
         (train_dataset, test_dataset) : (Dataset, Dataset)
             tuple containing train dataset and test dataset
         """
-        data_location = os.path.join(LargeResource.BASE_RESOURCE_DIR,
-                                     PauzaHRDataset.DATASET_DIR)
+        data_location = os.path.join(
+            LargeResource.BASE_RESOURCE_DIR, PauzaHRDataset.DATASET_DIR
+        )
         if not fields:
             fields = PauzaHRDataset.get_default_fields()
 
-        train_dataset = PauzaHRDataset(dir_path=os.path.join(
-            data_location, PauzaHRDataset.TRAIN_DIR), fields=fields)
-        test_dataset = PauzaHRDataset(dir_path=os.path.join(
-            data_location, PauzaHRDataset.TEST_DIR), fields=fields)
+        train_dataset = PauzaHRDataset(
+            dir_path=os.path.join(data_location, PauzaHRDataset.TRAIN_DIR), fields=fields
+        )
+        test_dataset = PauzaHRDataset(
+            dir_path=os.path.join(data_location, PauzaHRDataset.TEST_DIR), fields=fields
+        )
 
         train_dataset.finalize_fields()
         return (train_dataset, test_dataset)
@@ -118,12 +123,23 @@ class PauzaHRDataset(Dataset):
         fields : dict(str, Field)
             Dictionary mapping field name to field.
         """
-        rating = Field(name="Rating", vocab=Vocab(specials=()),
-                       tokenize=False, store_as_raw=True, is_target=True)
-        source = Field(name="Source", vocab=Vocab(specials=()),
-                       tokenize=False, store_as_raw=True)
-        text = Field(name="Text", vocab=Vocab(), tokenizer='split',
-                     tokenize=True, store_as_raw=False)
+        rating = Field(
+            name="Rating",
+            vocab=Vocab(specials=()),
+            tokenize=False,
+            store_as_raw=True,
+            is_target=True,
+        )
+        source = Field(
+            name="Source", vocab=Vocab(specials=()), tokenize=False, store_as_raw=True
+        )
+        text = Field(
+            name="Text",
+            vocab=Vocab(),
+            tokenizer="split",
+            tokenize=True,
+            store_as_raw=False,
+        )
 
         fields = {"Text": text, "Rating": rating, "Source": source}
         return fields

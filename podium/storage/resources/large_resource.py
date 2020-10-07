@@ -6,8 +6,9 @@ import os
 import tempfile
 
 from podium.storage.resources import util
-from podium.storage.resources.downloader import SimpleHttpDownloader, SCPDownloader
+from podium.storage.resources.downloader import SCPDownloader, SimpleHttpDownloader
 from podium.util import log_and_raise_error
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,6 +30,7 @@ class LargeResource:
     SUPPORTED_ARCHIVE : list(str)
         list of supported archive file types
     """
+
     BASE_RESOURCE_DIR = "."
     RESOURCE_NAME = "resource"
     URI = "uri"
@@ -50,11 +52,12 @@ class LargeResource:
         self._check_args(arguments=kwargs)
         self.config = kwargs
         self.resource_location = os.path.join(
-            LargeResource.BASE_RESOURCE_DIR,
-            self.config[LargeResource.RESOURCE_NAME])
+            LargeResource.BASE_RESOURCE_DIR, self.config[LargeResource.RESOURCE_NAME]
+        )
         self._check_files()
-        _LOGGER.debug("Large resource %s initialized.",
-                      self.config[LargeResource.RESOURCE_NAME])
+        _LOGGER.debug(
+            "Large resource %s initialized.", self.config[LargeResource.RESOURCE_NAME]
+        )
 
     def _check_files(self):
         """Method checks if large resource files exists and if they don't it
@@ -63,8 +66,7 @@ class LargeResource:
             _LOGGER.debug("Large resource alreadys exists, skipping download.")
             return
         _LOGGER.debug("Large resource doesn't exist, starting download.")
-        if LargeResource.ARCHIVE in self.config\
-                and self.config[LargeResource.ARCHIVE]:
+        if LargeResource.ARCHIVE in self.config and self.config[LargeResource.ARCHIVE]:
             self._download_unarchive()
             return
         self._download(download_destination=self.resource_location)
@@ -77,9 +79,9 @@ class LargeResource:
         download_destination : str
             place where to download resource
         """
-        SimpleHttpDownloader.download(uri=self.config[LargeResource.URI],
-                                      path=download_destination,
-                                      overwrite=False)
+        SimpleHttpDownloader.download(
+            uri=self.config[LargeResource.URI], path=download_destination, overwrite=False
+        )
 
     def _unarchive(self, archive_file):
         """Method unarchives given archive file if decompression of given file
@@ -95,25 +97,28 @@ class LargeResource:
         ValueError
             If configured archiving method is not supported.
         """
-        if self.config[LargeResource.ARCHIVE] \
-                not in LargeResource.SUPPORTED_ARCHIVE:
-            error_msg = "Unsupported archive method. " \
-                        f"Given {self.config[LargeResource.ARCHIVE]}, expected one " \
-                        f"from {LargeResource.SUPPORTED_ARCHIVE}"
+        if self.config[LargeResource.ARCHIVE] not in LargeResource.SUPPORTED_ARCHIVE:
+            error_msg = (
+                "Unsupported archive method. "
+                f"Given {self.config[LargeResource.ARCHIVE]}, expected one "
+                f"from {LargeResource.SUPPORTED_ARCHIVE}"
+            )
             log_and_raise_error(ValueError, _LOGGER, error_msg)
         if self.config[LargeResource.ARCHIVE] == "zip":
-            util.extract_zip_file(archive_file=archive_file,
-                                  destination_dir=self.resource_location)
+            util.extract_zip_file(
+                archive_file=archive_file, destination_dir=self.resource_location
+            )
             return
-        util.extract_tar_file(archive_file=archive_file,
-                              destination_dir=self.resource_location)
+        util.extract_tar_file(
+            archive_file=archive_file, destination_dir=self.resource_location
+        )
 
     def _download_unarchive(self):
-        """Method downloades resource and decompresses it to resource location.
-        """
+        """Method downloades resource and decompresses it to resource location."""
         os.makedirs(name=self.resource_location)
-        download_dir = os.path.join(tempfile.mkdtemp(),
-                                    self.config[LargeResource.RESOURCE_NAME])
+        download_dir = os.path.join(
+            tempfile.mkdtemp(), self.config[LargeResource.RESOURCE_NAME]
+        )
         self._download(download_destination=download_dir)
         self._unarchive(archive_file=download_dir)
 
@@ -139,8 +144,10 @@ class LargeResource:
 
     def __repr__(self):
         return "{}[name: {}, uri: {}]".format(
-            self.__class__.__name__, self.config[LargeResource.RESOURCE_NAME],
-            self.config[LargeResource.URI])
+            self.__class__.__name__,
+            self.config[LargeResource.RESOURCE_NAME],
+            self.config[LargeResource.URI],
+        )
 
 
 class SCPLargeResource(LargeResource):
@@ -161,6 +168,7 @@ class SCPLargeResource(LargeResource):
         on linux OS it can be optional if the key is in default location
 
     """
+
     SCP_HOST_KEY = "scp_host"
     SCP_USER_KEY = "scp_user"
     SCP_PASS_KEY = "scp_pass"
@@ -168,18 +176,12 @@ class SCPLargeResource(LargeResource):
 
     def __init__(self, **kwargs):
         self._scp_config = {
-            SCPDownloader.HOST_ADDR_KEY: kwargs.get(
-                SCPLargeResource.SCP_HOST_KEY
-            ),
-            SCPDownloader.USER_NAME_KEY: kwargs.get(
-                SCPLargeResource.SCP_USER_KEY
-            ),
-            SCPDownloader.PASSWORD_KEY: kwargs.get(
-                SCPLargeResource.SCP_PASS_KEY
-            ),
+            SCPDownloader.HOST_ADDR_KEY: kwargs.get(SCPLargeResource.SCP_HOST_KEY),
+            SCPDownloader.USER_NAME_KEY: kwargs.get(SCPLargeResource.SCP_USER_KEY),
+            SCPDownloader.PASSWORD_KEY: kwargs.get(SCPLargeResource.SCP_PASS_KEY),
             SCPDownloader.PRIVATE_KEY_FILE_KEY: kwargs.get(
                 SCPLargeResource.SCP_PRIVATE_KEY
-            )
+            ),
         }
         super(SCPLargeResource, self).__init__(**kwargs)
 
@@ -191,10 +193,12 @@ class SCPLargeResource(LargeResource):
         download_destination : str
             place where to download resource
         """
-        SCPDownloader.download(uri=self.config[LargeResource.URI],
-                               path=download_destination,
-                               overwrite=False,
-                               **self._scp_config)
+        SCPDownloader.download(
+            uri=self.config[LargeResource.URI],
+            path=download_destination,
+            overwrite=False,
+            **self._scp_config,
+        )
 
 
 def init_scp_large_resource_from_kwargs(resource, uri, archive, scp_host, user_dict):
@@ -232,6 +236,6 @@ def init_scp_large_resource_from_kwargs(resource, uri, archive, scp_host, user_d
         SCPLargeResource.SCP_HOST_KEY: scp_host,
         SCPLargeResource.SCP_USER_KEY: scp_user,
         SCPLargeResource.SCP_PRIVATE_KEY: scp_private_key,
-        SCPLargeResource.SCP_PASS_KEY: scp_pass_key
+        SCPLargeResource.SCP_PASS_KEY: scp_pass_key,
     }
     SCPLargeResource(**config)

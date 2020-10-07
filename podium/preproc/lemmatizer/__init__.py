@@ -2,4 +2,5 @@
 
 from .croatian_lemmatizer import CroatianLemmatizer
 
+
 __all__ = ["CroatianLemmatizer"]

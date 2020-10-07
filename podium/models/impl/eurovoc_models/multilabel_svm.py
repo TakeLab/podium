@@ -27,16 +27,15 @@ import logging
 
 import dill
 import numpy as np
-
-from sklearn import svm
-from sklearn.metrics import precision_score, recall_score, f1_score
+from sklearn import model_selection, svm
+from sklearn.metrics import f1_score, precision_score, recall_score
 from sklearn.model_selection import GridSearchCV
-from sklearn import model_selection
 
 from podium.datasets.iterator import Iterator
 from podium.models import AbstractSupervisedModel
 from podium.storage.vectorizers.tfidf import TfIdfVectorizer
 from podium.validation.validation import KFold
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,12 +49,20 @@ class MultilabelSVM(AbstractSupervisedModel):
     """
 
     def __init__(self):
-        """Creates and instance of MultilabelSVM.
-        """
+        """Creates and instance of MultilabelSVM."""
         self._models = None
 
-    def fit(self, X, y, parameter_grid, n_splits=3, max_iter=10000, cutoff=1,
-            scoring='f1', n_jobs=1):
+    def fit(
+        self,
+        X,
+        y,
+        parameter_grid,
+        n_splits=3,
+        max_iter=10000,
+        cutoff=1,
+        scoring="f1",
+        n_jobs=1,
+    ):
         """Fits the model on given data.
 
         For each class present in y (for each column of the y matrix), a separate SVM
@@ -107,17 +114,25 @@ class MultilabelSVM(AbstractSupervisedModel):
             If max_iter is not a positive integer >= 1.
         """
         if cutoff < 1:
-            raise ValueError("cutoff must be a positive integer >= 1, but"
-                             "{} was given".format(cutoff))
+            raise ValueError(
+                "cutoff must be a positive integer >= 1, but"
+                "{} was given".format(cutoff)
+            )
         if n_jobs < -1 or n_jobs == 0:
-            raise ValueError("n_jobs must be a postivive integer or -1, but"
-                             "{} was given".format(n_jobs))
+            raise ValueError(
+                "n_jobs must be a postivive integer or -1, but"
+                "{} was given".format(n_jobs)
+            )
         if n_splits < 1:
-            raise ValueError("n_splits must be a positive integer >= 1, but"
-                             "{} was given".format(n_splits))
+            raise ValueError(
+                "n_splits must be a positive integer >= 1, but"
+                "{} was given".format(n_splits)
+            )
         if max_iter < 1:
-            raise ValueError("max_iter must be a positive integer >= 1, but"
-                             "{} was given".format(max_iter))
+            raise ValueError(
+                "max_iter must be a positive integer >= 1, but"
+                "{} was given".format(max_iter)
+            )
 
         y = np.ndarray.transpose(y)  # Returns a transposed view of the y matrix
 
@@ -133,20 +148,26 @@ class MultilabelSVM(AbstractSupervisedModel):
                 self._models.append(None)
                 self._missing_indexes.add(i)
 
-                _LOGGER.debug("Label at index {} doesn't have enough instances in the "
-                              "train set, a model won't be trained for this label."
-                              "Number of instances: {}, cutoff {}".format(i,
-                                                                          num_examples,
-                                                                          cutoff))
+                _LOGGER.debug(
+                    "Label at index {} doesn't have enough instances in the "
+                    "train set, a model won't be trained for this label."
+                    "Number of instances: {}, cutoff {}".format(i, num_examples, cutoff)
+                )
                 continue
 
             # using KFold from sklearn as model_selection.KFold
-            inner_cv = model_selection.KFold(n_splits=n_splits,
-                                             shuffle=True, random_state=0)
+            inner_cv = model_selection.KFold(
+                n_splits=n_splits, shuffle=True, random_state=0
+            )
             classifier = svm.LinearSVC(max_iter=max_iter)
-            clf = GridSearchCV(estimator=classifier, param_grid=parameter_grid,
-                               cv=inner_cv,
-                               scoring=scoring, error_score=0.0, n_jobs=n_jobs)
+            clf = GridSearchCV(
+                estimator=classifier,
+                param_grid=parameter_grid,
+                cv=inner_cv,
+                scoring=scoring,
+                error_score=0.0,
+                n_jobs=n_jobs,
+            )
 
             clf.fit(X, y_i)
             self._models.append(clf)
@@ -181,8 +202,10 @@ class MultilabelSVM(AbstractSupervisedModel):
         for i, model in enumerate(self._models):
             if model is None:
                 Y[i] = [0] * X.shape[0]
-                debug_msg = "No model trained for label at index {}, returning a zero"\
-                            "vector instead of model prediction.".format(i)
+                debug_msg = (
+                    "No model trained for label at index {}, returning a zero"
+                    "vector instead of model prediction.".format(i)
+                )
                 _LOGGER.debug(debug_msg)
             else:
                 Y[i] = model.predict(X)
@@ -203,8 +226,9 @@ class MultilabelSVM(AbstractSupervisedModel):
             If the model instance is not fitted.
         """
         if self._models is None:
-            raise RuntimeError("Trying to get missing model indices on an unfitted model"
-                               "instance.")
+            raise RuntimeError(
+                "Trying to get missing model indices on an unfitted model" "instance."
+            )
         return self._missing_indexes
 
     def reset(self, **kwargs):
@@ -227,15 +251,17 @@ def get_label_matrix(Y):
     return np.array(Y.eurovoc_labels, dtype=np.float32)
 
 
-def train_multilabel_svm(dataset_path,
-                         param_grid,
-                         cutoff,
-                         n_outer_splits=5,
-                         n_inner_splits=3,
-                         n_jobs=1,
-                         is_verbose=True,
-                         include_classes_with_no_train_examples=False,
-                         include_classes_with_no_test_examples=False):
+def train_multilabel_svm(
+    dataset_path,
+    param_grid,
+    cutoff,
+    n_outer_splits=5,
+    n_inner_splits=3,
+    n_jobs=1,
+    is_verbose=True,
+    include_classes_with_no_train_examples=False,
+    include_classes_with_no_test_examples=False,
+):
     """Trains the multilabel SVM model on a given instance of dataset.
 
     Parameters
@@ -276,7 +302,7 @@ def train_multilabel_svm(dataset_path,
         dataset = dill.load(input_file)
 
     vectorizer = TfIdfVectorizer()
-    vectorizer.fit(dataset, dataset.field_dict['text'])
+    vectorizer.fit(dataset, dataset.field_dict["text"])
 
     outer_cv = KFold(n_splits=n_outer_splits, shuffle=True, random_state=0)
 
@@ -304,8 +330,9 @@ def train_multilabel_svm(dataset_path,
             Y_pred = prediction_dict[AbstractSupervisedModel.PREDICTION_KEY]
 
             if not include_classes_with_no_train_examples:
-                Y_pred = np.delete(Y_pred, list(clf.get_indexes_of_missing_models()),
-                                   axis=1)
+                Y_pred = np.delete(
+                    Y_pred, list(clf.get_indexes_of_missing_models()), axis=1
+                )
                 Y = np.delete(Y, list(clf.get_indexes_of_missing_models()), axis=1)
 
             # deletes all zero columns (all labels which don't have any positive exaples
@@ -315,13 +342,13 @@ def train_multilabel_svm(dataset_path,
                 Y = Y[:, cols]
                 Y_pred = Y_pred[:, cols]
 
-            micro_P.append(precision_score(Y, Y_pred, average='micro'))
-            micro_R.append(recall_score(Y, Y_pred, average='micro'))
-            micro_F1.append(f1_score(Y, Y_pred, average='micro'))
+            micro_P.append(precision_score(Y, Y_pred, average="micro"))
+            micro_R.append(recall_score(Y, Y_pred, average="micro"))
+            micro_F1.append(f1_score(Y, Y_pred, average="micro"))
 
-            macro_P.append(precision_score(Y, Y_pred, average='macro'))
-            macro_R.append(recall_score(Y, Y_pred, average='macro'))
-            macro_F1.append(f1_score(Y, Y_pred, average='macro'))
+            macro_P.append(precision_score(Y, Y_pred, average="macro"))
+            macro_R.append(recall_score(Y, Y_pred, average="macro"))
+            macro_F1.append(f1_score(Y, Y_pred, average="macro"))
 
             if is_verbose:
                 print("Scores on test set:")

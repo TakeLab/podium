@@ -23,42 +23,42 @@ import re
 
 from podium.preproc.util import (
     capitalize_target_like_source,
+    find_word_by_prefix,
     make_trie,
-    find_word_by_prefix
 )
 
 
 class CroatianStemmer:
     """Simple stemmer for Croatian language"""
+
     def __init__(self):
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
         self.__rules = [
-            re.compile(r'^(' + base + ')(' + suffix + r')$') for
-            base, suffix in [
-                e.strip().split(' ')
-                for e in
-                open(os.path.join(dir_path, "data/rules.txt"),
-                     encoding='utf-8')]
+            re.compile(r"^(" + base + ")(" + suffix + r")$")
+            for base, suffix in [
+                e.strip().split(" ")
+                for e in open(os.path.join(dir_path, "data/rules.txt"), encoding="utf-8")
+            ]
         ]
         self.__transform_map = self._load_transformations(
             os.path.join(dir_path, "data/transformations.txt")
         )
-        self.__transform_trie = make_trie(
-            list(self.__transform_map.keys())
+        self.__transform_trie = make_trie(list(self.__transform_map.keys()))
+        self.__stop = set(
+            [
+                e.strip()
+                for e in open(
+                    os.path.join(dir_path, "data/nostem-hr.txt"), encoding="utf-8"
+                )
+            ]
         )
-        self.__stop = set([
-            e.strip()
-            for e in
-            open(os.path.join(dir_path, 'data/nostem-hr.txt'),
-                 encoding='utf-8')
-        ])
 
     def _load_transformations(self, file_path):
         transform_map = {}
-        with open(file_path, encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             for line in f:
-                (key, value) = line.split('\t')
+                (key, value) = line.split("\t")
                 # we reverse the keys, since we search for prefixes
                 # e.g. when searching for 'izam' in 'turizam'
                 # we go from end to start
@@ -66,7 +66,7 @@ class CroatianStemmer:
         return transform_map
 
     def _determine_r_vowel(self, string):
-        '''
+        """
         Determines if 'r' is a vowel or not
         If it is => uppercase it.
 
@@ -79,11 +79,11 @@ class CroatianStemmer:
         -------
         string : str
             Croatian word with 'r' vowel uppercased
-        '''
-        return re.sub(r'(^|[^aeiou])r($|[^aeiou])', r'\1R\2', string)
+        """
+        return re.sub(r"(^|[^aeiou])r($|[^aeiou])", r"\1R\2", string)
 
     def _has_vowel(self, string):
-        if re.search(r'[aeiouR]', self._determine_r_vowel(string)):
+        if re.search(r"[aeiouR]", self._determine_r_vowel(string)):
             return True
         else:
             return False
@@ -109,7 +109,7 @@ class CroatianStemmer:
 
         if found_prefix:
             replace = self.__transform_map[found_prefix]
-            return word[:-len(found_prefix)] + replace
+            return word[: -len(found_prefix)] + replace
         else:
             return word
 
@@ -136,7 +136,7 @@ class CroatianStemmer:
 
     @capitalize_target_like_source
     def stem_word(self, word, **kwargs):
-        '''
+        """
         Returns the root or roots of a word,
         together with any derivational affixes
 
@@ -149,7 +149,7 @@ class CroatianStemmer:
         -------
         string : str
             Croatian word root plus derivational morphemes
-        '''
+        """
 
         if word in self.__stop:
             return word
@@ -182,5 +182,4 @@ def _stemmer_posttokenized_hook(raw, tokenized, stemmer):
 
 def get_croatian_stemmer_hook():
     """Method obtains croatian stemmer hook."""
-    return functools.partial(_stemmer_posttokenized_hook,
-                             stemmer=CroatianStemmer())
+    return functools.partial(_stemmer_posttokenized_hook, stemmer=CroatianStemmer())

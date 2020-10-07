@@ -1,28 +1,23 @@
 """Module contains EuroVoc dataset."""
-import os
-import re
 import functools
 import logging
+import os
+import re
+
 from podium.datasets.dataset import Dataset
-from podium.storage.example_factory import ExampleFactory, set_example_attributes
-from podium.storage import Field, MultilabelField
-from podium.storage import Vocab
-from podium.preproc.stop_words import CROATIAN_EXTENDED
 from podium.preproc.lemmatizer.croatian_lemmatizer import get_croatian_lemmatizer_hook
+from podium.preproc.stop_words import CROATIAN_EXTENDED
+from podium.storage import Field, MultilabelField, Vocab
+from podium.storage.example_factory import ExampleFactory, set_example_attributes
+
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class EuroVocDataset(Dataset):
-    """EuroVoc dataset class that contains labeled documents and the label hierarchy.
-    """
+    """EuroVoc dataset class that contains labeled documents and the label hierarchy."""
 
-    def __init__(self,
-                 eurovoc_labels,
-                 crovoc_labels,
-                 documents,
-                 mappings,
-                 fields=None):
+    def __init__(self, eurovoc_labels, crovoc_labels, documents, mappings, fields=None):
         """Dataset constructor.
 
         Parameters
@@ -53,9 +48,9 @@ class EuroVocDataset(Dataset):
             documents=documents,
             mappings=mappings,
             eurovoc_label_hierarchy=eurovoc_labels,
-            crovoc_label_hierarchy=crovoc_labels)
-        super(EuroVocDataset, self).__init__(
-            **{"examples": examples, "fields": fields})
+            crovoc_label_hierarchy=crovoc_labels,
+        )
+        super(EuroVocDataset, self).__init__(**{"examples": examples, "fields": fields})
 
     def get_eurovoc_label_hierarchy(self):
         """Returns the EuroVoc label hierarchy.
@@ -78,8 +73,9 @@ class EuroVocDataset(Dataset):
         return self._crovoc_label_hierarchy
 
     @staticmethod
-    def _create_examples(fields, documents, mappings, eurovoc_label_hierarchy,
-                         crovoc_label_hierarchy):
+    def _create_examples(
+        fields, documents, mappings, eurovoc_label_hierarchy, crovoc_label_hierarchy
+    ):
         """Method creates examples for EuroVoc dataset.
 
         Examples are created from the given documents and mappings. Documents that don't
@@ -130,15 +126,16 @@ class EuroVocDataset(Dataset):
                 elif label in crovoc_label_hierarchy:
                     crovoc_labels.append(label)
                 else:
-                    debug_msg = "Document {} has label {} which is not present in the"\
-                                "given label hierarchies.".format(document_id, label)
+                    debug_msg = (
+                        "Document {} has label {} which is not present in the"
+                        "given label hierarchies.".format(document_id, label)
+                    )
                     _LOGGER.debug(debug_msg)
 
             example = example_factory.create_empty_example()
             set_example_attributes(example, fields["title"], document.title)
             set_example_attributes(example, fields["text"], document.text)
-            set_example_attributes(example, fields["eurovoc_labels"],
-                                   eurovoc_labels)
+            set_example_attributes(example, fields["eurovoc_labels"], eurovoc_labels)
             set_example_attributes(example, fields["crovoc_labels"], crovoc_labels)
             examples.append(example)
 
@@ -234,17 +231,35 @@ class EuroVocDataset(Dataset):
         fields : dict(str, Field)
             Dictionary mapping field name to field.
         """
-        title = Field(name="title", vocab=Vocab(), tokenizer='split', language="hr",
-                      tokenize=True, store_as_raw=False)
-        text = Field(name="text", vocab=Vocab(keep_freqs=True),
-                     tokenizer='split', tokenize=True, store_as_raw=False)
-        text.add_posttokenize_hook(functools.partial(remove_nonalpha_and_stopwords,
-                                                     stop_words=set(CROATIAN_EXTENDED)))
+        title = Field(
+            name="title",
+            vocab=Vocab(),
+            tokenizer="split",
+            language="hr",
+            tokenize=True,
+            store_as_raw=False,
+        )
+        text = Field(
+            name="text",
+            vocab=Vocab(keep_freqs=True),
+            tokenizer="split",
+            tokenize=True,
+            store_as_raw=False,
+        )
+        text.add_posttokenize_hook(
+            functools.partial(
+                remove_nonalpha_and_stopwords, stop_words=set(CROATIAN_EXTENDED)
+            )
+        )
         text.add_posttokenize_hook(get_croatian_lemmatizer_hook())
         labels = MultilabelField(name="eurovoc_labels", vocab=Vocab(specials=()))
         crovoc_labels = MultilabelField(name="crovoc_labels", vocab=Vocab(specials=()))
-        fields = {"title": title, "text": text, "eurovoc_labels": labels,
-                  "crovoc_labels": crovoc_labels}
+        fields = {
+            "title": title,
+            "text": text,
+            "eurovoc_labels": labels,
+            "crovoc_labels": crovoc_labels,
+        }
         return fields
 
 
@@ -264,9 +279,9 @@ def remove_nonalpha_and_stopwords(raw, tokenized, stop_words):
     tuple(str, list(str))
     """
     tokens = []
-    pattern = re.compile(r'[\W_]+')
+    pattern = re.compile(r"[\W_]+")
     for token in tokenized:
-        pattern.sub('', token)
+        pattern.sub("", token)
         if len(token) > 1 and token not in stop_words:
             tokens.append(token)
     return (raw, tokens)

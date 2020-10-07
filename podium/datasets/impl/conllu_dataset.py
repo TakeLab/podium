@@ -2,7 +2,8 @@
 import logging
 
 from podium.datasets import Dataset
-from podium.storage import Field, ExampleFactory, Vocab
+from podium.storage import ExampleFactory, Field, Vocab
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,12 +56,14 @@ class CoNLLUDataset(Dataset):
 
         try:
             import conllu
-        except ImportError as e:
-            error_msg = 'Problem occurred while trying to import conllu. ' \
-                        'If the library is not installed visit ' \
-                        'https://pypi.org/project/conllu/ for more details.'
+        except ImportError:
+            error_msg = (
+                "Problem occurred while trying to import conllu. "
+                "If the library is not installed visit "
+                "https://pypi.org/project/conllu/ for more details."
+            )
             _LOGGER.error(error_msg)
-            raise e
+            raise
 
         # we define a nested function that will catch parse exceptions,
         # but we don't let them point directly to the library code
@@ -69,20 +72,23 @@ class CoNLLUDataset(Dataset):
             try:
                 yield from conllu.parse_incr(in_file)
             except Exception as e:
-                error_msg = 'Error occured during parsing the file'
+                error_msg = "Error occured during parsing the file"
                 _LOGGER.error(error_msg)
                 raise ValueError(error_msg) from e
 
         example_factory = ExampleFactory(fields)
 
         examples = []
-        with open(file_path, encoding='utf-8') as in_file:
+        with open(file_path, encoding="utf-8") as in_file:
 
             for tokenlist in safe_conllu_parse(in_file):
                 for token in tokenlist:
-                    token = {field_name: tuple(field_value.items())
-                             if isinstance(field_value, dict) else field_value
-                             for field_name, field_value in token.items()}
+                    token = {
+                        field_name: tuple(field_value.items())
+                        if isinstance(field_value, dict)
+                        else field_value
+                        for field_name, field_value in token.items()
+                    }
 
                     examples.append(example_factory.from_dict(token))
 
@@ -101,71 +107,77 @@ class CoNLLUDataset(Dataset):
 
         # numericalization of id is not allowed because
         # numericalization of integer ranges is undefined
-        id = Field(name='id',
-                   tokenize=False,
-                   store_as_raw=True,
-                   is_numericalizable=False)
+        id = Field(name="id", tokenize=False, store_as_raw=True, is_numericalizable=False)
 
-        form = Field(name='form',
-                     vocab=Vocab(specials=()),
-                     tokenize=False,
-                     store_as_raw=True)
+        form = Field(
+            name="form", vocab=Vocab(specials=()), tokenize=False, store_as_raw=True
+        )
 
-        lemma = Field(name='lemma',
-                      vocab=Vocab(specials=()),
-                      tokenize=False,
-                      store_as_raw=True)
+        lemma = Field(
+            name="lemma", vocab=Vocab(specials=()), tokenize=False, store_as_raw=True
+        )
 
-        upos = Field(name='upos',
-                     vocab=Vocab(specials=()),
-                     tokenize=False,
-                     store_as_raw=True,
-                     allow_missing_data=True)
+        upos = Field(
+            name="upos",
+            vocab=Vocab(specials=()),
+            tokenize=False,
+            store_as_raw=True,
+            allow_missing_data=True,
+        )
 
-        xpos = Field(name='xpos',
-                     vocab=Vocab(specials=()),
-                     tokenize=False,
-                     store_as_raw=True,
-                     allow_missing_data=True)
+        xpos = Field(
+            name="xpos",
+            vocab=Vocab(specials=()),
+            tokenize=False,
+            store_as_raw=True,
+            allow_missing_data=True,
+        )
 
-        feats = Field(name='feats',
-                      tokenize=False,
-                      store_as_tokenized=True,
-                      is_numericalizable=False,
-                      allow_missing_data=True)
+        feats = Field(
+            name="feats",
+            tokenize=False,
+            store_as_tokenized=True,
+            is_numericalizable=False,
+            allow_missing_data=True,
+        )
 
-        head = Field(name='head',
-                     tokenize=False,
-                     store_as_raw=True,
-                     custom_numericalize=int,
-                     allow_missing_data=True)
+        head = Field(
+            name="head",
+            tokenize=False,
+            store_as_raw=True,
+            custom_numericalize=int,
+            allow_missing_data=True,
+        )
 
-        deprel = Field(name='deprel',
-                       tokenize=False,
-                       store_as_raw=True,
-                       allow_missing_data=True)
+        deprel = Field(
+            name="deprel", tokenize=False, store_as_raw=True, allow_missing_data=True
+        )
 
-        deps = Field(name='deps',
-                     tokenize=False,
-                     store_as_tokenized=True,
-                     is_numericalizable=False,
-                     allow_missing_data=True)
+        deps = Field(
+            name="deps",
+            tokenize=False,
+            store_as_tokenized=True,
+            is_numericalizable=False,
+            allow_missing_data=True,
+        )
 
-        misc = Field(name='misc',
-                     tokenize=False,
-                     store_as_tokenized=True,
-                     is_numericalizable=False,
-                     allow_missing_data=True)
+        misc = Field(
+            name="misc",
+            tokenize=False,
+            store_as_tokenized=True,
+            is_numericalizable=False,
+            allow_missing_data=True,
+        )
 
         return {
-            'id': id,
-            'form': form,
-            'lemma': lemma,
-            'upos': upos,
-            'xpos': xpos,
-            'feats': feats,
-            'head': head,
-            'deprel': deprel,
-            'deps': deps,
-            'misc': misc
+            "id": id,
+            "form": form,
+            "lemma": lemma,
+            "upos": upos,
+            "xpos": xpos,
+            "feats": feats,
+            "head": head,
+            "deprel": deprel,
+            "deps": deps,
+            "misc": misc,
         }

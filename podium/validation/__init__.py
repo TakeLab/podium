@@ -1,6 +1,7 @@
 """Package contains modules used in model validation"""
 
 from .kfold import KFold
-from .validation import kfold_scores, k_fold_validation, k_fold_classification_metrics
+from .validation import k_fold_classification_metrics, k_fold_validation, kfold_scores
+
 
 __all__ = ["KFold", "kfold_scores", "k_fold_validation", "k_fold_classification_metrics"]

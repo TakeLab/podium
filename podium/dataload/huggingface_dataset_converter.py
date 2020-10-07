@@ -5,15 +5,18 @@ from podium.datasets import Dataset
 from podium.storage import ExampleFactory, Field, LabelField, Vocab
 from podium.util import log_and_raise_error
 
+
 _LOGGER = logging.getLogger(__name__)
 
 try:
     import datasets
-except ImportError as e:
-    _LOGGER.error('Problem occured while trying to import datasets. '
-                  'If the library is not installed visit '
-                  'https://huggingface.co/docs/datasets/ for more details.')
-    raise e
+except ImportError:
+    _LOGGER.error(
+        "Problem occured while trying to import datasets. "
+        "If the library is not installed visit "
+        "https://huggingface.co/docs/datasets/ for more details."
+    )
+    raise
 
 
 def _identity(x):
@@ -50,46 +53,71 @@ class _FeatureConverter:
             If conversion of the given feature type is not supported.
         """
         if isinstance(feature, datasets.ClassLabel):
-            field = LabelField(name=name,
-                               custom_numericalize=_identity)
+            field = LabelField(name=name, custom_numericalize=_identity)
             return field
 
         elif isinstance(feature, datasets.Value):
             dtype = feature.dtype
 
-            if dtype in {'bool', 'uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16',
-                         'int32', 'int64', 'float16', 'float32', 'float64'}:
-                kwargs = {'tokenize': False,
-                          'store_as_raw': True,
-                          'custom_numericalize': _identity}
+            if dtype in {
+                "bool",
+                "uint8",
+                "uint16",
+                "uint32",
+                "uint64",
+                "int8",
+                "int16",
+                "int32",
+                "int64",
+                "float16",
+                "float32",
+                "float64",
+            }:
+                kwargs = {
+                    "tokenize": False,
+                    "store_as_raw": True,
+                    "custom_numericalize": _identity,
+                }
 
-            elif dtype in {'string', 'utf8'}:
-                kwargs = {'vocab': Vocab()}
+            elif dtype in {"string", "utf8"}:
+                kwargs = {"vocab": Vocab()}
 
             else:
                 # some dtypes are not processed and stored as raw
                 # for the full list see:
                 # https://arrow.apache.org/docs/python/api/datatypes.html#factory-functions
-                kwargs = {'tokenize': False,
-                          'store_as_raw': True,
-                          'is_numericalizable': False}
+                kwargs = {
+                    "tokenize": False,
+                    "store_as_raw": True,
+                    "is_numericalizable": False,
+                }
 
-        elif isinstance(feature,
-                        (dict, list, datasets.Sequence,
-                         datasets.Translation,
-                         datasets.TranslationVariableLanguages)):
-            kwargs = {'tokenize': False,
-                      'store_as_raw': True,
-                      'is_numericalizable': False}
+        elif isinstance(
+            feature,
+            (
+                dict,
+                list,
+                datasets.Sequence,
+                datasets.Translation,
+                datasets.TranslationVariableLanguages,
+            ),
+        ):
+            kwargs = {
+                "tokenize": False,
+                "store_as_raw": True,
+                "is_numericalizable": False,
+            }
 
         else:
-            error_msg = f'Conversion for feature type {type(feature).__name__} ' \
-                        'is not supported'
+            error_msg = (
+                f"Conversion for feature type {type(feature).__name__} "
+                "is not supported"
+            )
             log_and_raise_error(TypeError, _LOGGER, error_msg)
 
         # allow missing data for all fields except
         # the ones corresponding to the datasets.ClassLabel
-        kwargs.update({'allow_missing_data': True})
+        kwargs.update({"allow_missing_data": True})
         field = Field(name=name, **kwargs)
 
         return field
@@ -116,8 +144,7 @@ def convert_features_to_fields(features):
 
 
 class HuggingFaceDatasetConverter:
-    """Class for converting rows from the HuggingFace Datasets to podium.storage.Example.
-    """
+    """Class for converting rows from the HuggingFace Datasets to podium.storage.Example."""
 
     def __init__(self, dataset, fields=None):
         """HuggingFaceDatasetConverter constructor.
@@ -138,8 +165,10 @@ class HuggingFaceDatasetConverter:
             If dataset is not an instance of datasets.Dataset.
         """
         if not isinstance(dataset, datasets.Dataset):
-            error_msg = 'Incorrect dataset type. Expected datasets.Dataset, ' \
-                        f'but got {type(dataset).__name__}'
+            error_msg = (
+                "Incorrect dataset type. Expected datasets.Dataset, "
+                f"but got {type(dataset).__name__}"
+            )
             log_and_raise_error(TypeError, _LOGGER, error_msg)
 
         self.dataset = dataset

@@ -32,12 +32,14 @@ def tfidf_svm_example_main():
     model = ScikitLinearSVCModel()
     trainer = SimpleTrainer()
 
-    trainer.train(model=model,
-                  dataset=train_set,
-                  iterator=train_iter,
-                  feature_transformer=feature_transformer,
-                  label_transform_fun=label_extraction_fn,
-                  **{trainer.MAX_EPOCH_KEY: 1})
+    trainer.train(
+        model=model,
+        dataset=train_set,
+        iterator=train_iter,
+        feature_transformer=feature_transformer,
+        label_transform_fun=label_extraction_fn,
+        **{trainer.MAX_EPOCH_KEY: 1},
+    )
 
     x_batch, y_batch = next(iter(test_iter(train_set)))
     x_train = feature_transformer.transform(x_batch)

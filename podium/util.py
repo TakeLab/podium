@@ -19,8 +19,8 @@ def log_and_raise_error(error_type, logger, msg):
     caller_frame = sys._getframe(1)
 
     extra = {
-        'funcName': caller_frame.f_code.co_name,
-        'lineno': caller_frame.f_lineno,
+        "funcName": caller_frame.f_code.co_name,
+        "lineno": caller_frame.f_lineno,
     }
 
     logger.error(msg, extra=extra)

@@ -3,18 +3,22 @@ import logging
 
 from podium.models.model import AbstractSupervisedModel
 
+
 _LOGGER = logging.getLogger(__name__)
 
 try:
     from sklearn.neural_network import MLPClassifier
 except ImportError:
-    _LOGGER.debug("Problem occured while trying to import sklearn. If the "
-                  "library is not installed visit https://scikit-learn.org "
-                  "for more details.")
+    _LOGGER.debug(
+        "Problem occured while trying to import sklearn. If the "
+        "library is not installed visit https://scikit-learn.org "
+        "for more details."
+    )
 
 
 class ScikitMLPClassifier(AbstractSupervisedModel):
     """Simple scikitlearn multiperceptron model."""
+
     def __init__(self, classes, **kwargs):
         """Constructor that initializes Sckit MLPClassfier with given list of
         classes.
