@@ -39,7 +39,7 @@ def mock_dataset_path():
     base_temp = tempfile.mkdtemp()
     assert os.path.exists(base_temp)
     LargeResource.BASE_RESOURCE_DIR = base_temp
-    base_dataset_dir = os.path.join(base_temp, "trees")
+    base_dataset_dir = os.path.join(base_temp, "sst", "trees")
     os.makedirs(base_dataset_dir)
     train_filename = os.path.join(base_dataset_dir, "train.txt")
     create_examples(train_filename, RAW_EXAMPLES)

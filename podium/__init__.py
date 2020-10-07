@@ -7,6 +7,7 @@ import logging
 import logging.config
 
 from . import (
+    arrow,
     dataload,
     datasets,
     metrics,
@@ -22,6 +23,7 @@ from . import (
 __name__ = "podium"
 
 __all__ = [
+    "arrow",
     "dataload",
     "datasets",
     "metrics",

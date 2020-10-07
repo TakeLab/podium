@@ -185,11 +185,11 @@ class Dataset(ABC):
 
         if attr in self.field_dict:
 
-            def attr_generator():
-                for x in self.examples:
+            def attr_generator(dataset, attr):
+                for x in dataset.examples:
                     yield getattr(x, attr)
 
-            return attr_generator()
+            return attr_generator(self, attr)
 
         else:
             error_msg = f"Dataset has no field {attr}."
