@@ -5,6 +5,9 @@ from podium.datasets.impl.sst_sentiment_dataset import SST
 from podium.datasets.dataset import Dataset
 from podium.storage.resources.large_resource import LargeResource
 
+# TODO mock the connection to make tests more robust
+pytestmark = pytest.mark.skip("Skipping sst dataset test until connection"
+                              " issues are resolved or the connection is mocked.")
 
 EXPECTED_TRAIN_EXAMPLES = [
     {"text": ("The Rock is destined to be the 21st Century 's new `` Conan ''"

@@ -15,7 +15,7 @@ class TabularDataset(Dataset):
     """
 
     def __init__(self, path, format, fields, skip_header=False,
-                 csv_reader_params={}, **kwargs):
+                 delimiter=None, csv_reader_params={}, **kwargs):
         """Creates a TabularDataset from a file containing the data rows and an
         object containing all the fields that we are interested in.
 
@@ -51,6 +51,10 @@ class TabularDataset(Dataset):
             If format is CSV/TSV and 'fields' is a dict, then skip_header
             must be False and the data file must have a header.
             Default is False.
+        delimiter: str
+            Delimiter used to separate columns in a row.
+            If set to None, the default delimiter for the given format will
+            be used.
         csv_reader_params : dict
             Parameters to pass to the csv reader. Only relevant when
             format is csv or tsv.
@@ -68,8 +72,9 @@ class TabularDataset(Dataset):
         format = format.lower()
 
         with open(os.path.expanduser(path), encoding="utf8") as f:
-            if format in {'csv', 'tsv'}:
-                delimiter = ',' if format == "csv" else '\t'
+            if format in ('csv', 'tsv'):
+                if delimiter is None:
+                    delimiter = ',' if format == "csv" else '\t'
                 reader = csv.reader(f, delimiter=delimiter,
                                     **csv_reader_params)
             elif format == "json":
