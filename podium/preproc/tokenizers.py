@@ -107,7 +107,6 @@ def _get_spacy_tokenizer(language):
 
 @tokenizer_factory('split')
 def _get_split_tokenizer(arg):
-    if arg is not None and arg != "":
-        wrn_msg = f"""Split takes no parameters but was given "{arg}". """
-        _LOGGER.warning(wrn_msg)
-    return str.split
+    def split(s, sep=arg):
+        return s.split(sep)
+    return split

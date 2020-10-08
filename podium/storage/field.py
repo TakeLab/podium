@@ -301,10 +301,7 @@ class Field:
         self._tokenizer_arg_string = tokenizer if isinstance(tokenizer, str) else None
 
         if tokenizer is None:
-            def no_op(x):
-                return x
-
-            self.tokenizer = no_op
+            self.tokenizer = None
         else:
             self.tokenizer = get_tokenizer(tokenizer)
 
@@ -498,8 +495,10 @@ class Field:
                 return (self.name, (None, None)),
 
         # Preprocess the raw input
+        # TODO keep unprocessed or processed raw?
         processed_raw = self._run_pretokenization_hooks(data)
-        tokenized = self.tokenizer(processed_raw)
+        tokenized = self.tokenizer(processed_raw) if self.tokenizer is not None \
+            else processed_raw
 
         return self._process_tokens(processed_raw, tokenized),
 
@@ -636,13 +635,9 @@ class Field:
             error_msg = f"Missing data not allowed in field {self.name}"
             log_and_raise_error(ValueError, _LOGGER, error_msg)
 
-        if self.is_numericalizable:
-            return self.missing_data_token
+        return self.missing_data_token
 
-        else:
-            return None
-
-    def get_numericalization_for_example(self, example, cache=True):
+    def get_numericalization_for_example(self, example, cache=False):
         """Returns the numericalized data of this field for the provided example.
         The numericalized data is generated and cached in the example if 'cache' is true
         and the cached data is not already present. If already cached, the cached data is
@@ -833,18 +828,17 @@ class Field:
 class LabelField(Field):
     def __init__(self,
                  name,
-                 vocab=None,
-                 eager=True,
-                 custom_numericalize=None,
-                 batch_as_matrix=True,
+                 numericalizer=None,
                  allow_missing_data=False,
+                 is_target=True,
                  missing_data_token=-1,
+                 label_processing_hooks=()
                  ):
-        if vocab is None and custom_numericalize is None:
+        if numericalizer is None:
             # Default to a vocabulary if custom numericalize is not set
-            vocab = Vocab(specials=())
+            numericalizer = Vocab(specials=())
 
-        if vocab is not None and vocab.has_specials:
+        if isinstance(numericalizer, Vocab) and numericalizer.has_specials:
             error_msg = "Vocab contains special symbols." \
                         " Vocabs with special symbols cannot be used" \
                         " with LabelFields."
@@ -852,68 +846,64 @@ class LabelField(Field):
 
         super().__init__(name,
                          tokenizer=None,
-                         language=None,
-                         vocab=vocab,
-                         tokenize=False,
-                         keep_raw=True,
-                         store_as_tokenized=False,
-                         eager=eager,
-                         custom_numericalize=custom_numericalize,
-                         batch_as_matrix=batch_as_matrix,
-                         is_target=True,
+                         keep_raw=False,
+                         numericalizer=numericalizer,
+                         is_target=is_target,
                          fixed_length=1,
-                         allow_missing_data=allow_missing_data,
-                         missing_data_token=missing_data_token
+                         allow_missing_data=True,
+                         missing_data_token=missing_data_token,
+                         pretokenize_hooks=label_processing_hooks
                          )
 
 
-class TokenizedField(Field):
-    """Tokenized version of the Field. Holds the preprocessing and
-    numericalization logic for the pre-tokenized dataset fields.
-    """
+# class TokenizedField(Field):
+#     """Tokenized version of the Field. Holds the preprocessing and
+#     numericalization logic for the pre-tokenized dataset fields.
+#     """
+#
+#     def __init__(self,
+#                  name,
+#                  vocab=None,
+#                  eager=True,
+#                  custom_numericalize=None,
+#                  batch_as_matrix=True,
+#                  padding_token=-999,
+#                  is_target=False,
+#                  fixed_length=None,
+#                  allow_missing_data=False,
+#                  missing_data_token=-1):
+#         super().__init__(
+#             name=name,
+#             vocab=vocab,
+#             keep_raw=False,
+#             tokenize=False,
+#             store_as_tokenized=True,
+#             eager=eager,
+#             custom_numericalize=custom_numericalize,
+#             batch_as_matrix=batch_as_matrix,
+#             padding_token=padding_token,
+#             is_target=is_target,
+#             fixed_length=fixed_length,
+#             allow_missing_data=allow_missing_data,
+#             missing_data_token=missing_data_token
+#         )
 
-    def __init__(self,
-                 name,
-                 vocab=None,
-                 eager=True,
-                 custom_numericalize=None,
-                 batch_as_matrix=True,
-                 padding_token=-999,
-                 is_target=False,
-                 fixed_length=None,
-                 allow_missing_data=False,
-                 missing_data_token=-1):
-        super().__init__(
-            name=name,
-            vocab=vocab,
-            keep_raw=False,
-            tokenize=False,
-            store_as_tokenized=True,
-            eager=eager,
-            custom_numericalize=custom_numericalize,
-            batch_as_matrix=batch_as_matrix,
-            padding_token=padding_token,
-            is_target=is_target,
-            fixed_length=fixed_length,
-            allow_missing_data=allow_missing_data,
-            missing_data_token=missing_data_token
-        )
 
-
-class MultilabelField(TokenizedField):
+class MultilabelField(Field):
     """Class used for storing pre-tokenized labels.
     Used for multilabeled datasets.
     """
 
     def __init__(self,
                  name,
+                 tokenizer=None,
+                 numericalizer=None,
                  num_of_classes=None,
-                 vocab=None,
-                 eager=True,
-                 custom_numericalize=None,
-                 batch_as_matrix=True,
+                 is_target=True,
                  allow_missing_data=False,
-                 missing_data_token=-1):
+                 missing_data_token=-1,
+                 pretokenize_hooks=(),
+                 posttokenize_hooks=()):
         """Create a MultilabelField from arguments.
 
         Parameters
@@ -977,22 +967,27 @@ class MultilabelField(TokenizedField):
             If the provided Vocab contains special symbols.
         """
 
-        if vocab is not None and vocab.has_specials:
+        if numericalizer is None:
+            numericalizer = Vocab(specials=())
+
+        if isinstance(numericalizer, Vocab) and numericalizer.has_specials:
             error_msg = "Vocab contains special symbols." \
                         " Vocabs with special symbols cannot be used" \
-                        " with multilabel fields."
+                        " with MultilabelFields."
             log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         self.num_of_classes = num_of_classes
         super().__init__(name,
-                         vocab=vocab,
-                         eager=eager,
-                         custom_numericalize=custom_numericalize,
-                         batch_as_matrix=batch_as_matrix,
-                         is_target=True,
+                         tokenizer=tokenizer,
+                         keep_raw=False,
+                         numericalizer=numericalizer,
+                         is_target=is_target,
                          fixed_length=num_of_classes,
                          allow_missing_data=allow_missing_data,
-                         missing_data_token=missing_data_token)
+                         missing_data_token=missing_data_token,
+                         pretokenize_hooks=pretokenize_hooks,
+                         posttokenize_hooks=posttokenize_hooks
+                         )
 
     def finalize(self):
         super().finalize()
@@ -1005,14 +1000,53 @@ class MultilabelField(TokenizedField):
                         f"Actual: {len(self.vocab)}"
             log_and_raise_error(ValueError, _LOGGER, error_msg)
 
-    def _numericalize_tokens(self, tokens):
+    def numericalize(self, data):
+        """Numericalize the already preprocessed data point based either on
+        the vocab that was previously built, or on a custom numericalization
+        function, if the field doesn't use a vocab.
+
+        Parameters
+        ----------
+        data : (hashable, iterable(hashable))
+            Tuple of (raw, tokenized) of preprocessed input data. If the field
+            is sequential, 'raw' is ignored and can be None. Otherwise,
+            'sequential' is ignored and can be None.
+
+        Returns
+        -------
+        numpy array
+            Array of stoi indexes of the tokens, if data exists.
+            None, if data is missing and missing data is allowed.
+
+        Raises
+        ------
+        ValueError
+            If data is None and missing data is not allowed in this field.
+        """
+        _, tokenized = data
+
+        if tokenized is None:
+            if not self.allow_missing_data:
+                error_msg = f"Missing value found in field {self.name}."
+                log_and_raise_error(ValueError, _LOGGER, error_msg)
+
+            else:
+                return None
+
+        if self.numericalizer is None:
+            # data can not be numericalized, return tokenized as-is
+            return tokenized
+
+        tokens = tokenized if isinstance(tokenized, (list, tuple)) else [tokenized]
+
         if self.use_vocab:
-            token_numericalize = self.vocab.stoi.get
-
+            active_classes = self.vocab.numericalize(tokens)
         else:
-            token_numericalize = self.custom_numericalize
+            active_classes = np.array([self.numericalizer(t) for t in tokens])
 
-        return numericalize_multihot(tokens, token_numericalize, self.num_of_classes)
+        multihot = np.full(shape=self.num_of_asses, fill_value=0, dtype=np.int)
+        multihot[active_classes] = 1
+        return multihot
 
 
 def numericalize_multihot(tokens, token_indexer, num_of_classes):
