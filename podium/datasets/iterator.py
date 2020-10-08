@@ -179,18 +179,110 @@ class Iterator:
         iter
             Iterator that iterates over batches of examples in the dataset.
         """
+        indices = list(range(len(self._dataset)))
+        if self.shuffle:
+            self.shuffler.shuffle(indices)
 
-        data = self._data()
+        data = self._dataset[indices]
+
+        if self.sort_key is not None:
+            data = data.sorted(key=self.sort_key)
+
         for i in range(0, len(data), self.batch_size):
-            batch_examples = data[i: i + self.batch_size]
-            input_batch, target_batch = self._create_batch(batch_examples)
-
-            yield input_batch, target_batch
+            batch_dataset = data[i: i + self.batch_size]
             self.iterations += 1
+            yield batch_dataset.batch()
+
 
         # prepare for new epoch
         self.iterations = 0
         self.epoch += 1
+
+    def _create_batch(self, dataset):
+
+        examples = dataset.as_dataset().examples
+
+        # dicts that will be used to create the InputBatch and TargetBatch
+        # objects
+        input_batch_dict = {}
+        target_batch_dict = {}
+
+        for field in dataset.fields:
+            batched = field.to_batch(examples)
+            if field.is_target:
+                target_batch_dict[field.name] = batched
+            else:
+                input_batch_dict[field.name] = batched
+
+        input_batch = self.input_batch_class(**input_batch_dict)
+        target_batch = self.target_batch_class(**target_batch_dict)
+
+        return input_batch, target_batch
+
+                # for field in self._dataset.fields:
+        #     if field.is_numericalizable and field.batch_as_matrix:
+        #         # If this field is numericalizable, generate a possibly padded matrix
+        #
+        #         # the length to which all the rows are padded (or truncated)
+        #         pad_length = Iterator._get_pad_length(field, examples)
+        #
+        #         # the last batch can have < batch_size examples
+        #         n_rows = min(self.batch_size, len(examples))
+        #
+        #         # empty matrix to be filled with numericalized fields
+        #         matrix = None  # np.empty(shape=(n_rows, pad_length))
+        #
+        #         # non-sequential fields all have length = 1, no padding necessary
+        #         should_pad = True if field.is_sequential else False
+        #
+        #         for i, example in enumerate(examples):
+        #
+        #             # Get cached value
+        #             data = field.get_numericalization_for_example(example)
+        #
+        #             if data is None:
+        #                 # If data is missing, fill row with missing data symbol indexes
+        #                 missing_data_symbol_index = field.get_default_value()
+        #                 # TODO cache missing data
+        #                 #      row for batch to avoid multiple instantiations?
+        #
+        #                 if matrix is None:
+        #                     # Create matrix of the correct dtype
+        #                     matrix = np.empty(shape=(n_rows, pad_length),
+        #                                       dtype=type(missing_data_symbol_index))
+        #
+        #                 matrix[i] = missing_data_symbol_index
+        #
+        #             else:
+        #                 row = data
+        #                 if should_pad:
+        #                     row = field.pad_to_length(row, pad_length)
+        #
+        #                 if matrix is None:
+        #                     # Create matrix of the correct dtype
+        #                     matrix = np.empty(shape=(n_rows, pad_length),
+        #                                       dtype=row.dtype)
+        #
+        #                 # set the matrix row to the numericalized, padded array
+        #                 matrix[i] = row
+        #
+        #         batch_feature = matrix
+        #
+        #     else:
+        #         # if the field is not representable as a matrix return a list of
+        #         # "tokens", which can be any data structure
+        #         batch_feature = [field.get_numericalization_for_example(example)
+        #                          for example in examples]
+        #
+        #     if field.is_target:
+        #         target_batch_dict[field.name] = batch_feature
+        #     else:
+        #         input_batch_dict[field.name] = batch_feature
+        #
+        # input_batch = self.input_batch_class(**input_batch_dict)
+        # target_batch = self.target_batch_class(**target_batch_dict)
+        #
+        # return input_batch, target_batch
 
     def get_internal_random_state(self):
         """Returns the internal random state of the iterator.
@@ -245,81 +337,12 @@ class Iterator:
 
         self.shuffler.setstate(state)
 
-    def _create_batch(self, examples):
-
-        # dicts that will be used to create the InputBatch and TargetBatch
-        # objects
-        input_batch_dict, target_batch_dict = {}, {}
-
-        for field in self._dataset.fields:
-            if field.is_numericalizable and field.batch_as_matrix:
-                # If this field is numericalizable, generate a possibly padded matrix
-
-                # the length to which all the rows are padded (or truncated)
-                pad_length = Iterator._get_pad_length(field, examples)
-
-                # the last batch can have < batch_size examples
-                n_rows = min(self.batch_size, len(examples))
-
-                # empty matrix to be filled with numericalized fields
-                matrix = None  # np.empty(shape=(n_rows, pad_length))
-
-                # non-sequential fields all have length = 1, no padding necessary
-                should_pad = True if field.is_sequential else False
-
-                for i, example in enumerate(examples):
-
-                    # Get cached value
-                    data = field.get_numericalization_for_example(example)
-
-                    if data is None:
-                        # If data is missing, fill row with missing data symbol indexes
-                        missing_data_symbol_index = field.get_default_value()
-                        # TODO cache missing data
-                        #      row for batch to avoid multiple instantiations?
-
-                        if matrix is None:
-                            # Create matrix of the correct dtype
-                            matrix = np.empty(shape=(n_rows, pad_length),
-                                              dtype=type(missing_data_symbol_index))
-
-                        matrix[i] = missing_data_symbol_index
-
-                    else:
-                        row = data
-                        if should_pad:
-                            row = field.pad_to_length(row, pad_length)
-
-                        if matrix is None:
-                            # Create matrix of the correct dtype
-                            matrix = np.empty(shape=(n_rows, pad_length),
-                                              dtype=row.dtype)
-
-                        # set the matrix row to the numericalized, padded array
-                        matrix[i] = row
-
-                batch_feature = matrix
-
-            else:
-                # if the field is not representable as a matrix return a list of
-                # "tokens", which can be any data structure
-                batch_feature = [field.get_numericalization_for_example(example)
-                                 for example in examples]
-
-            if field.is_target:
-                target_batch_dict[field.name] = batch_feature
-            else:
-                input_batch_dict[field.name] = batch_feature
-
-        input_batch = self.input_batch_class(**input_batch_dict)
-        target_batch = self.target_batch_class(**target_batch_dict)
-
-        return input_batch, target_batch
+    @staticmethod
+    def _arrays_to_matrix(arrays, width, padding_token, missing_data_token):
+        pass
 
     @staticmethod
-    def _get_pad_length(field, examples):
-        if not field.is_sequential:
-            return 1
+    def _get_pad_length(field, numericalizations):
 
         # the fixed_length attribute of Field has priority over the max length
         # of all the examples in the batch
@@ -328,15 +351,8 @@ class Iterator:
 
         # if fixed_length is None, then return the maximum length of all the
         # examples in the batch
-        def length_of_field(example):
-            _, tokens = getattr(example, field.name)
-            if tokens is None:
-                # missing data
-                return 1
-            else:
-                return len(tokens)
-
-        return max(map(length_of_field, examples))
+        num_length = lambda n: 1 if n is None else len(n)
+        return max(map(num_length, numericalizations))
 
     def _data(self):
         """Method returns the copy of examples in the dataset.
@@ -406,9 +422,7 @@ class SingleBatchIterator(Iterator):
         return 1
 
     def __iter__(self):
-        examples = self._data()
-        input_batch, target_batch = self._create_batch(examples)
-        yield input_batch, target_batch
+        yield self._dataset.batch()
 
         self.epoch += 1
 
@@ -506,11 +520,11 @@ class BucketIterator(Iterator):
 
     def __repr__(self):
         return "{}[batch_size: {}, batch_to_matrix: {}, sort_key: {}, " \
-               "shuffle: {}, look_ahead_multiplier: {}, bucket_sort_key: {}]"\
+               "shuffle: {}, look_ahead_multiplier: {}, bucket_sort_key: {}]" \
             .format(
-                self.__class__.__name__, self.batch_size,
-                self.batch_to_matrix, self.sort_key, self.shuffle,
-                self.look_ahead_multiplier, self.bucket_sort_key)
+            self.__class__.__name__, self.batch_size,
+            self.batch_to_matrix, self.sort_key, self.shuffle,
+            self.look_ahead_multiplier, self.bucket_sort_key)
 
 
 class HierarchicalDatasetIterator(Iterator):
@@ -735,8 +749,8 @@ class HierarchicalDatasetIterator(Iterator):
 
     def __repr__(self):
         return "{}[batch_size: {}, batch_to_matrix: {}, sort_key: {}, " \
-               "shuffle: {}, context_max_length: {}, context_max_depth: {}]"\
+               "shuffle: {}, context_max_length: {}, context_max_depth: {}]" \
             .format(
-                self.__class__.__name__, self.batch_size,
-                self.batch_to_matrix, self.sort_key, self.shuffle,
-                self._context_max_size, self._context_max_depth)
+            self.__class__.__name__, self.batch_size,
+            self.batch_to_matrix, self.sort_key, self.shuffle,
+            self._context_max_size, self._context_max_depth)

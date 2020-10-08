@@ -118,12 +118,12 @@ class PauzaHRDataset(Dataset):
         fields : dict(str, Field)
             Dictionary mapping field name to field.
         """
-        rating = Field(name="Rating", vocab=Vocab(specials=()),
-                       tokenize=False, keep_raw=True, is_target=True)
-        source = Field(name="Source", vocab=Vocab(specials=()),
-                       tokenize=False, keep_raw=True)
-        text = Field(name="Text", vocab=Vocab(), tokenizer='split',
-                     tokenize=True, keep_raw=False)
+        rating = Field(name="Rating", numericalizer=Vocab(specials=()),
+                       keep_raw=True, is_target=True)
+        source = Field(name="Source", numericalizer=Vocab(specials=()),
+                       keep_raw=True)
+        text = Field(name="Text", numericalizer=Vocab(), tokenizer='split',
+                     keep_raw=False)
 
         fields = {"Text": text, "Rating": rating, "Source": source}
         return fields

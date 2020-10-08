@@ -182,16 +182,17 @@ class Field:
 
     def __init__(self,
                  name,
-                 pretokenize_hooks=(),
                  tokenizer='split',
-                 posttokenize_hooks=(),
                  keep_raw=False,
                  numericalizer=None,  # TODO Better arg name?
                  is_target=False,
                  fixed_length=None,
                  allow_missing_data=False,
+                 disable_batch_matrix=False,
                  padding_token=-999,
-                 missing_data_token=-1
+                 missing_data_token=-1,
+                 pretokenize_hooks=(),
+                 posttokenize_hooks=()
                  ):
         """Create a Field from arguments.
 
@@ -296,6 +297,7 @@ class Field:
         """
 
         self.name = name
+        self.disable_batch_matrix = disable_batch_matrix
         self._tokenizer_arg_string = tokenizer if isinstance(tokenizer, str) else None
 
         if tokenizer is None:
@@ -335,7 +337,7 @@ class Field:
                 self.add_posttokenize_hook(hook)
 
     @property
-    def is_eager(self):
+    def eager(self):
         return self.vocab is not None and self.vocab.eager
 
     @property
@@ -521,7 +523,9 @@ class Field:
         """
 
         raw, tokenized = self._run_posttokenization_hooks(raw, tokens)
-        if self.is_eager and not self.vocab.finalized:
+        raw = raw if self.keep_raw else None
+
+        if self.eager and not self.vocab.finalized:
             self.update_vocab(tokenized)
         return self.name, (raw, tokenized)
 
@@ -570,38 +574,49 @@ class Field:
         if self.use_vocab:
             self.vocab.finalize()
 
-    def _numericalize_tokens(self, tokens):
-        """Numericalizes an iterable of tokens.
-        If use_vocab is True, numericalization of the vocab is used. Else
-        the custom_numericalize hook is used.
+    def numericalize(self, data):
+        """Numericalize the already preprocessed data point based either on
+        the vocab that was previously built, or on a custom numericalization
+        function, if the field doesn't use a vocab.
 
         Parameters
         ----------
-        tokens : iterable(hashable)
-            Iterable of hashable objects to be numericalized.
+        data : (hashable, iterable(hashable))
+            Tuple of (raw, tokenized) of preprocessed input data. If the field
+            is sequential, 'raw' is ignored and can be None. Otherwise,
+            'sequential' is ignored and can be None.
 
         Returns
         -------
         numpy array
-            Array of numericalized representations of the tokens.
+            Array of stoi indexes of the tokens, if data exists.
+            None, if data is missing and missing data is allowed.
 
+        Raises
+        ------
+        ValueError
+            If data is None and missing data is not allowed in this field.
         """
-        if isinstance(tokens, (list, tuple)):
-            if self.use_vocab:
-                return self.vocab.numericalize(tokens)
+        _, tokenized = data
+
+        if tokenized is None:
+            if not self.allow_missing_data:
+                error_msg = f"Missing value found in field {self.name}."
+                log_and_raise_error(ValueError, _LOGGER, error_msg)
 
             else:
-                # custom numericalization for non-vocab data
-                # (such as floating point data Fields)
-                return np.array([self.custom_numericalize(tok) for tok in tokens])
+                return None
+
+        if self.numericalizer is None:
+            # data can not be numericalized, return tokenized as-is
+            return tokenized
+
+        tokens = tokenized if isinstance(tokenized, (list, tuple)) else [tokenized]
+
+        if self.use_vocab:
+            return self.vocab.numericalize(tokens)
         else:
-            if self.use_vocab:
-                return np.array((self.vocab[tokens]))
-
-            else:
-                # custom numericalization for non-vocab data
-                # (such as floating point data Fields)
-                return np.array([self.custom_numericalize(tok) for tok in tokens])
+            return np.array([self.numericalizer(t) for t in tokens])
 
     def get_default_value(self):
         """Method obtains default field value for missing data.
@@ -626,114 +641,6 @@ class Field:
 
         else:
             return None
-
-    def numericalize(self, data):
-        """Numericalize the already preprocessed data point based either on
-        the vocab that was previously built, or on a custom numericalization
-        function, if the field doesn't use a vocab.
-
-        Parameters
-        ----------
-        data : (hashable, iterable(hashable))
-            Tuple of (raw, tokenized) of preprocessed input data. If the field
-            is sequential, 'raw' is ignored and can be None. Otherwise,
-            'sequential' is ignored and can be None.
-
-        Returns
-        -------
-        numpy array
-            Array of stoi indexes of the tokens, if data exists.
-            None, if data is missing and missing data is allowed.
-
-        Raises
-        ------
-        ValueError
-            If data is None and missing data is not allowed in this field.
-        """
-        raw, tokenized = data
-
-        if tokenized is None:
-            if not self.allow_missing_data:
-                error_msg = f"Missing value found in field {self.name}."
-                log_and_raise_error(ValueError, _LOGGER, error_msg)
-
-            else:
-                return None
-
-        # raw data is just a string, so we need to wrap it into an iterable
-        tokens = tokenized if self.tokenize or self.store_as_tokenized else [raw] # TODO CONTINUE HERE
-
-        if self.is_numericalizable:
-            return self._numericalize_tokens(tokens)
-
-        else:
-            return tokens
-
-    def pad_to_length(self, row, length, custom_pad_symbol=None,
-                      pad_left=False, truncate_left=False):
-        """Either pads the given row with pad symbols, or truncates the row
-        to be of given length. The vocab provides the pad symbol for all
-        fields that have vocabs, otherwise the pad symbol has to be given as
-        a parameter.
-
-        Parameters
-        ----------
-        row : np.ndarray
-            The row of numericalized data that is to be padded / truncated.
-        length : int
-            The desired length of the row.
-        custom_pad_symbol : int
-            The pad symbol that is to be used if the field doesn't have a
-            vocab. If the field has a vocab, this parameter is ignored and can
-            be None.
-        pad_left : bool
-            If True padding will be done on the left side, otherwise on the
-            right side. Default: False.
-        truncate_left : bool
-            If True field will be trucated on the left side, otherwise on the
-            right side. Default: False.
-
-        Raises
-        ------
-        ValueError
-            If the field doesn't use a vocab and no custom pad symbol was
-            given.
-        """
-        if len(row) > length:
-            # truncating
-
-            if truncate_left:
-                row = row[len(row) - length:]
-            else:
-                row = row[:length]
-
-        elif len(row) < length:
-            # padding
-
-            if self.use_vocab:
-                pad_symbol = self.vocab.padding_index()
-
-            elif self.custom_numericalize is not None:
-                pad_symbol = self.padding_token
-
-            else:
-                pad_symbol = custom_pad_symbol
-
-            if pad_symbol is None:
-                error_msg = 'Must provide a custom pad symbol if the ' \
-                            'field has no vocab.'
-                log_and_raise_error(ValueError, _LOGGER, error_msg)
-
-            diff = length - len(row)
-
-            if pad_left:
-                row = np.pad(row, (diff, 0), 'constant',
-                             constant_values=pad_symbol)
-            else:
-                row = np.pad(row, (0, diff), 'constant',
-                             constant_values=pad_symbol)
-
-        return row
 
     def get_numericalization_for_example(self, example, cache=True):
         """Returns the numericalized data of this field for the provided example.
@@ -766,6 +673,116 @@ class Field:
 
         return numericalization
 
+    def to_batch(self, examples):
+        numericalizations = []
+
+        for example in examples:
+            numericalization = self.get_numericalization_for_example(example)
+            numericalizations.append(numericalization)
+
+        # casting to matrix can only be attempted if all values are either
+        # None or np.ndarray
+        possible_cast_to_matrix = not any(
+            x is not None and not isinstance(x, (np.ndarray, int, float))
+            for x in numericalizations
+        )
+        if len(numericalizations) > 0 \
+                and not self.disable_batch_matrix \
+                and possible_cast_to_matrix:
+            return self._arrays_to_matrix(numericalizations)
+
+        else:
+            return numericalizations
+
+    def _arrays_to_matrix(self, arrays):
+        pad_length = self._get_pad_length(arrays)
+        padded_arrays = [self._pad_to_length(a, pad_length) for a in arrays]
+        return np.array(padded_arrays)
+
+    def _get_pad_length(self, numericalizations):
+        # the fixed_length attribute of Field has priority over the max length
+        # of all the examples in the batch
+        if self.fixed_length is not None:
+            return self.fixed_length
+
+        # if fixed_length is None, then return the maximum length of all the
+        # examples in the batch
+        def num_length(n): return 1 if n is None else len(n)
+
+        return max(map(num_length, numericalizations))
+
+    def _pad_to_length(self, array, length, custom_pad_symbol=None,
+                       pad_left=False, truncate_left=False):
+        """Either pads the given row with pad symbols, or truncates the row
+        to be of given length. The vocab provides the pad symbol for all
+        fields that have vocabs, otherwise the pad symbol has to be given as
+        a parameter.
+
+        Parameters
+        ----------
+        array : np.ndarray
+            The row of numericalized data that is to be padded / truncated.
+        length : int
+            The desired length of the row.
+        custom_pad_symbol : int
+            The pad symbol that is to be used if the field doesn't have a
+            vocab. If the field has a vocab, this parameter is ignored and can
+            be None.
+        pad_left : bool
+            If True padding will be done on the left side, otherwise on the
+            right side. Default: False.
+        truncate_left : bool
+            If True field will be trucated on the left side, otherwise on the
+            right side. Default: False.
+
+        Raises
+        ------
+        ValueError
+            If the field doesn't use a vocab and no custom pad symbol was
+            given.
+        """
+        if array is None:
+            return np.full(shape=length, fill_value=self.missing_data_token)
+
+        if isinstance(array, (int, float)):
+            array = np.array([array])
+
+        if len(array) > length:
+            # truncating
+
+            if truncate_left:
+                array = array[len(array) - length:]
+            else:
+                array = array[:length]
+
+        elif len(array) < length:
+            # padding
+
+            if custom_pad_symbol is not None:
+                pad_symbol = custom_pad_symbol
+
+            elif self.use_vocab:
+                pad_symbol = self.vocab.padding_index()
+
+            else:
+                pad_symbol = self.padding_token
+
+            if pad_symbol is None:
+                error_msg = 'Must provide a custom pad symbol if the ' \
+                            'field has no vocab.'
+                log_and_raise_error(ValueError, _LOGGER, error_msg)
+
+            diff = length - len(array)
+
+            if pad_left:
+                array = np.pad(array, (diff, 0), 'constant',
+                               constant_values=pad_symbol)
+            else:
+                array = np.pad(array, (0, diff), 'constant',
+                               constant_values=pad_symbol)
+
+        return array
+
     def __getstate__(self):
         """Method obtains field state. It is used for pickling dataset data
         to file.
@@ -776,7 +793,8 @@ class Field:
             dataset state dictionary
         """
         state = self.__dict__.copy()
-        del state['tokenizer']
+        if self._tokenizer_arg_string is not None:
+            del state['tokenizer']
         return state
 
     def __setstate__(self, state):
@@ -789,11 +807,17 @@ class Field:
             dataset state dictionary
         """
         self.__dict__.update(state)
-        self.tokenizer = get_tokenizer(self._tokenizer_arg_string, self.language)
+        if self._tokenizer_arg_string is not None:
+            self.tokenizer = get_tokenizer(self._tokenizer_arg_string)
 
     def __repr__(self):
-        return "{}[name: {}, is_sequential: {}, is_target: {}]".format(
-            self.__class__.__name__, self.name, self.is_sequential, self.is_target)
+        if self.use_vocab:
+            return "{}[name: {}, is_target: {}, vocab: {}]".format(
+                self.__class__.__name__, self.name, self.is_target,
+                self.vocab)
+        else:
+            return "{}[name: {}, is_target: {}]".format(
+                self.__class__.__name__, self.name, self.is_target)
 
     def get_output_fields(self):
         """Returns an Iterable of the contained output fields.

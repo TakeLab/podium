@@ -4,9 +4,12 @@ import logging
 import random
 import copy
 from abc import ABC
+from typing import Callable, Any
+from collections import namedtuple
 
 from podium.storage.field import unpack_fields
 from podium.util import log_and_raise_error
+from podium.storage.example_factory import Example
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -246,7 +249,8 @@ class Dataset(ABC):
             for dataset in data_sources:
                 for example in dataset:
                     for field in fields_to_build:
-                        field.update_vocab(*getattr(example, field.name))
+                        _, tokenized = getattr(example, field.name)
+                        field.update_vocab(tokenized)
 
         for field in self.fields:
             field.finalize()
@@ -441,13 +445,43 @@ class Dataset(ABC):
                 Two objects containing the input and target batches over
                 the whole dataset.
         """
-        # Local import to avoid circular dependency
-        # TODO Remove local import and fix circular dependency
-        from podium.datasets.iterator import SingleBatchIterator
+        # dicts that will be used to create the InputBatch and TargetBatch
+        # objects
+        input_batch_dict = {}
+        target_batch_dict = {}
 
-        for x_batch, y_batch in SingleBatchIterator(dataset=self, shuffle=False):
-            # There will only ever be a single batch created
-            return x_batch, y_batch
+        input_batch_class = namedtuple(
+            "InputBatch",
+            [field.name for field in self.fields if not field.is_target]
+        )
+
+        target_batch_class = namedtuple(
+            "TargetBatch",
+            [field.name for field in self.fields if field.is_target]
+        )
+
+        for field in self.fields:
+            batched = field.to_batch(self.examples)
+            if field.is_target:
+                target_batch_dict[field.name] = batched
+            else:
+                input_batch_dict[field.name] = batched
+
+        input_batch = input_batch_class(**input_batch_dict)
+        target_batch = target_batch_class(**target_batch_dict)
+
+        return input_batch, target_batch
+
+    def sorted(self, key: Callable[[Example], Any], reverse=False) -> 'Dataset':
+        def index_key(i, _dataset=self):
+            return key(_dataset[i])
+
+        indices = list(range(len(self)))
+        indices.sort(key=index_key, reverse=reverse)
+        return self[indices]
+
+    def as_dataset(self):
+        return self
 
     def __repr__(self):
         fields = [field.name for field in self.fields]

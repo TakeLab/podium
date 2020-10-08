@@ -81,7 +81,7 @@ class Vocab:
 
     def __init__(self, max_size=None, min_freq=1,
                  specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD),
-                 keep_freqs=False, eager=False):
+                 keep_freqs=False, eager=True):
         """Vocab constructor. Specials are first in the vocabulary.
 
         Parameters
