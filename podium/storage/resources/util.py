@@ -49,10 +49,10 @@ def extract_zip_file(archive_file, destination_dir):
     Raises
     ------
     ValueError
-        If given archive file doesn't exists.
+        If given archive file doesn't exist.
     """
     if not os.path.exists(archive_file):
-        raise ValueError(f"Given archive file doesn't exists. Given {archive_file}.")
+        raise ValueError(f"Given archive file doesn't exist. Given {archive_file}.")
     zip_ref = zipfile.ZipFile(file=archive_file, mode="r")
     zip_ref.extractall(path=destination_dir)
     zip_ref.close()
@@ -72,9 +72,9 @@ def extract_tar_file(archive_file, destination_dir, encoding="uft-8"):
     Raises
     ------
     ValueError
-        If given archive file doesn't exists.
+        If given archive file doesn't exist.
     """
     if not os.path.exists(archive_file):
-        raise ValueError(f"Given archive file doesn't exists. Given {archive_file}.")
+        raise ValueError(f"Given archive file doesn't exist. Given {archive_file}.")
     with tarfile.open(name=archive_file, mode="r") as tar_ref:
         tar_ref.extractall(path=destination_dir)
