@@ -18,12 +18,11 @@ sys.path.insert(0, os.path.abspath('../../../podium'))
 # -- Project information -----------------------------------------------------
 
 project = 'Podium'
-copyright = '2019, TakeLab, FER, Zagreb'
+copyright = '2020, TakeLab, FER, Zagreb'
 author = 'TakeLab, FER, Zagreb'
 
 # The full version, including alpha/beta/rc tags
-release = '2019'
-
+release = '2020'
 
 # -- General configuration ---------------------------------------------------
 
@@ -48,12 +47,12 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'nature'
+html_theme = 'sphinx_rtd_theme'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-# html_static_path = ['_static']     # right now we don't use that
+html_static_path = ['_static']     # right now we don't use that
 
 
 # Napoleon settings
