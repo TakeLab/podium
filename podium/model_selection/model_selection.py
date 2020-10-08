@@ -78,13 +78,8 @@ def grid_search(
     best_train_params = None
     best_score = None
 
-    try:
-        trainer_grid_iter = ParameterGrid(trainer_param_grid)
-        model_grid_iter = ParameterGrid(model_param_grid)
-
-    except TypeError as err:
-        _LOGGER.error(str(err))
-        raise err
+    trainer_grid_iter = ParameterGrid(trainer_param_grid)
+    model_grid_iter = ParameterGrid(model_param_grid)
 
     if print_progress:
         pbar = tqdm(

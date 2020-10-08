@@ -43,6 +43,6 @@ class SimpleTrainer(AbstractTrainer):
         """
         if self.MAX_EPOCH_KEY not in kwargs:
             raise ValueError(
-                "Missing training parameter: {} "
-                "(used for determining stop criterion)".format(self.MAX_EPOCH_KEY)
+                f"Missing training parameter: {self.MAX_EPOCH_KEY} "
+                "(used for determining stop criterion)"
             )

@@ -3,8 +3,6 @@ import logging
 
 import spacy
 
-from podium.util import log_and_raise_error
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -54,8 +52,8 @@ def get_tokenizer(tokenizer, language="en"):
             spacy_tokenizer = spacy.load(language, disable=disable)
         except OSError:
             _LOGGER.warning(
-                "SpaCy model {} not found."
-                "Trying to download and install.".format(language)
+                f"""SpaCy model {language} not found. \
+                Trying to download and install."""
             )
 
             from spacy.cli.download import download
@@ -74,5 +72,4 @@ def get_tokenizer(tokenizer, language="en"):
         return str.split
 
     # if tokenizer not found
-    error_msg = f"Wrong value given for the tokenizer: {tokenizer}"
-    log_and_raise_error(ValueError, _LOGGER, error_msg)
+    raise ValueError(f"Wrong value given for the tokenizer: {tokenizer}")

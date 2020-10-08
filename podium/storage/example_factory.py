@@ -9,7 +9,6 @@ from enum import Enum
 from typing import Union
 
 from podium.storage.field import unpack_fields
-from podium.util import log_and_raise_error
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -55,9 +54,9 @@ class Example:
         attribute = [
             att for att in dir(self) if not att.startswith("__") and not att.endswith("_")
         ]
-        att_values = ["{}: {}".format(att, getattr(self, att, None)) for att in attribute]
+        att_values = [f"{att}: {getattr(self, att, None)}" for att in attribute]
         att_string = "; ".join(att_values)
-        return "{}[{}]".format(self.__class__.__name__, att_string)
+        return f"{type(self).__name__}[{att_string}]"
 
 
 class ExampleFactory:
@@ -88,7 +87,7 @@ class ExampleFactory:
         self.fieldnames = [field.name for field in unpack_fields(fields)]
 
         # add cache data fields
-        self.fieldnames += ["{}_".format(fieldname) for fieldname in self.fieldnames]
+        self.fieldnames += [f"{fieldname}_" for fieldname in self.fieldnames]
 
     def create_empty_example(self):
         """Method creates empty example with field names stored in example factory.
@@ -176,8 +175,9 @@ class ExampleFactory:
                 if root.tag == name:
                     node = root
                 else:
-                    error_msg = f"Specified name {name} was not found in the input data"
-                    log_and_raise_error(ValueError, _LOGGER, error_msg)
+                    raise ValueError(
+                        f"Specified name {name} was not found in the input data"
+                    )
 
             val = node.text
             set_example_attributes(example, field, val)
@@ -293,16 +293,14 @@ class ExampleFactory:
             format_str = format_tag.lower()
 
         else:
-            error_msg = (
-                "format_tag must be either an ExampleFormat or a string. "
-                f"Passed value is of type : '{type(format_tag).__name__}'"
+            raise TypeError(
+                f"""format_tag must be either an ExampleFormat or a string. \
+                Passed value is of type : '{type(format_tag).__name__}'"""
             )
-            log_and_raise_error(TypeError, _LOGGER, error_msg)
 
         factory_method = FACTORY_METHOD_DICT.get(format_str)
         if factory_method is None:
-            error_msg = f"Unsupported example format: '{format_str}'"
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError(f"Unsupported example format: '{format_str}'")
 
         return factory_method(data, self)
 

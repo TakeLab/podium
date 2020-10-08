@@ -107,7 +107,7 @@ class SNLISimple(Dataset):
         example_factory = ExampleFactory(fields)
         examples = []
 
-        _LOGGER.debug("Loading dataset from file {}".format(file_path))
+        _LOGGER.debug(f"Loading dataset from file {file_path}")
         with open(file=file_path, encoding="utf8") as in_file:
             for line in in_file:
                 examples.append(example_factory.from_json(line))

@@ -154,7 +154,7 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
     _LOGGER.info(prediction_filtered)
 
     f1 = multiclass_f1_metric(y_test_filtered, prediction_filtered, average="weighted")
-    info_msg = "F1: {}".format(f1)
+    info_msg = f"F1: {f1}"
     _LOGGER.info(info_msg)
 
 

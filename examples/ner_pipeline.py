@@ -54,10 +54,10 @@ class CroatianNER(Pipeline):
         if vector_path is None or not os.path.exists(vector_path):
             # provided path of {}, which does not exist
             err_msg = (
-                "Provided path {} is None or does not exist. "
+                f"Provided path {vector_path} is None or does not exist. "
                 "Path to word Croatian vectors must be defined. "
                 "You can use fastText vectors available at "
-                "https://fasttext.cc/docs/en/crawl-vectors.html".format(vector_path)
+                "https://fasttext.cc/docs/en/crawl-vectors.html"
             )
             _LOGGER.error(err_msg)
             raise ValueError
@@ -114,13 +114,13 @@ class CroatianNER(Pipeline):
 
         if model_kwargs is None:
             model_kwargs = self._define_model_params()
-            _LOGGER.debug("Using default model parameters {}".format(model_kwargs))
+            _LOGGER.debug(f"Using default model parameters {model_kwargs}")
 
         if trainer_kwargs is None:
             # use bucket iterator to minimize padding in batch
             iterator = BucketIterator(batch_size=32, sort_key=example_word_count)
             trainer_kwargs = {"max_epoch": 10, "iterator": iterator}
-            _LOGGER.debug("Using default trainer parameters {}".format(trainer_kwargs))
+            _LOGGER.debug(f"Using default trainer parameters {trainer_kwargs}")
 
         trainer = SimpleTrainer() if trainer is None else trainer
 
@@ -132,7 +132,7 @@ class CroatianNER(Pipeline):
             trainer_kwargs=trainer_kwargs,
             trainer=trainer,
         )
-        _LOGGER.info("Training took {} seconds".format(time.time() - start))
+        _LOGGER.info(f"Training took {time.time() - start} seconds")
 
     def predict_raw(self, raw_example, tokenizer=str.split):
         """

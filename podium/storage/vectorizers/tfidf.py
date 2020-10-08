@@ -8,8 +8,6 @@ import numpy as np
 import scipy.sparse as sp
 from sklearn.feature_extraction.text import TfidfTransformer
 
-from podium.util import log_and_raise_error
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -133,8 +131,7 @@ class CountVectorizer:
             If the vectorizer is not fitted before transforming.
         """
         if not self._fitted:
-            error_msg = "Vectorizer has not been fitted."
-            log_and_raise_error(RuntimeError, _LOGGER, error_msg)
+            raise RuntimeError("Vectorizer has not been fitted.")
 
     def fit(self, dataset, field):
         """Method initializes count vectorizer.
@@ -157,19 +154,16 @@ class CountVectorizer:
             If the vocab or fields vocab are None
         """
         if self._vocab is None and (field is None or field.vocab is None):
-            error_msg = (
+            raise ValueError(
                 "Vocab is not defined. User should define vocab in constructor "
                 "or by providing field with a non-empty vocab property."
             )
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         if field and field.allow_missing_data:
-            error_msg = (
-                "CountVectorizer doesn't support fields that "
-                "contain missing data: "
-                f"{dataset}, field: {field}"
+            raise ValueError(
+                f"""CountVectorizer doesn't support fields that \
+                contain missing data: {dataset}, field: {field}"""
             )
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         self._vocab = field.vocab if self._vocab is None else self._vocab
         self._init_special_indexes()
@@ -204,8 +198,7 @@ class CountVectorizer:
         field = kwargs["field"] if "field" in kwargs else None
 
         if examples is None:
-            error_msg = "Examples mustn't be None."
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError("Examples mustn't be None.")
         if not is_tokens_tensor and field is not None:
             return self._build_count_matrix(
                 data=examples, unpack_data=partial(self._get_example_values, field=field)
@@ -214,12 +207,11 @@ class CountVectorizer:
             return self._build_count_matrix(
                 data=examples, unpack_data=self._get_tensor_values
             )
-        error_msg = (
+        raise ValueError(
             "Invalid method arguments. Method expects tensors of numericalized "
             "tokens as examples or dataset as collection of examples from which "
             " with given field to extract data."
         )
-        log_and_raise_error(ValueError, _LOGGER, error_msg)
 
 
 class TfIdfVectorizer(CountVectorizer):
@@ -287,14 +279,12 @@ class TfIdfVectorizer(CountVectorizer):
         """
         super(TfIdfVectorizer, self).fit(dataset=dataset, field=field)
         if dataset is None or field is None:
-            error_msg = (
-                "dataset or field mustn't be None, given dataset: "
-                f"{dataset}, field: {field}"
+            raise ValueError(
+                f"""dataset or field mustn't be None, given dataset: \
+                {dataset}, field: {field}"""
             )
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
         if field.name not in dataset.field_dict:
-            error_msg = f"invalid field, given field: {field}"
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError(f"invalid field, given field: {field}")
         count_matrix = super(TfIdfVectorizer, self).transform(
             **{"examples": dataset, "is_tokens_tensor": False, "field": field}
         )
@@ -325,8 +315,7 @@ class TfIdfVectorizer(CountVectorizer):
         """
         self._check_fitted()
         if examples is None:
-            error_msg = "examples mustn't be None"
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError("examples mustn't be None")
         count_matrix = super(TfIdfVectorizer, self).transform(
             **{"examples": examples, "is_tokens_tensor": True, "field": None}
         )

@@ -3,7 +3,6 @@ import os
 
 from podium.storage import BasicVectorStorage, LargeResource
 from podium.storage.vectorizers.vectorizer import random_normal_default_vector
-from podium.util import log_and_raise_error
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -96,18 +95,16 @@ class GloVe(BasicVectorStorage):
             NAME_DIM_MAPPING dictionary.
         """
         if name not in GloVe.NAME_URL_MAPPING.keys():
-            error_msg = (
-                "Given name not supported, supported names are "
-                f"{GloVe.NAME_URL_MAPPING.keys()}"
+            raise ValueError(
+                f"""Given name not supported, supported names are \
+                {GloVe.NAME_URL_MAPPING.keys()}"""
             )
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
         if dim not in GloVe.NAME_DIM_MAPPING[name]:
-            error_msg = (
-                "Unsupported dimension for given glove instance, "
-                f"{name} GloVe instance has following supported dimensions "
-                f"{GloVe.NAME_DIM_MAPPING[name]}"
+            raise ValueError(
+                f"""Unsupported dimension for given glove instance, \
+                {name} GloVe instance has following supported dimensions \
+                {GloVe.NAME_DIM_MAPPING[name]}"""
             )
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         url = GloVe.NAME_URL_MAPPING[name]
         LargeResource(
@@ -118,7 +115,7 @@ class GloVe(BasicVectorStorage):
             }
         )
 
-        file_name = "{}.{}d.txt".format(GloVe._NAME_FILE_MAPPING[name], dim)
+        file_name = f"{GloVe._NAME_FILE_MAPPING[name]}.{dim}d.txt"
         path = os.path.join(LargeResource.BASE_RESOURCE_DIR, name, file_name)
 
         vectors_kwargs = {

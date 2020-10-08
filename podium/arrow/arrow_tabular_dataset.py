@@ -17,13 +17,13 @@ _LOGGER = logging.getLogger(__name__)
 
 try:
     import pyarrow as pa
-except ImportError as ie:
+except ImportError:
     msg = (
         "Error encountered while importing Pyarrow. If Pyarrow is not installed, "
         "please visit https://pypi.org/project/pyarrow/ for more information."
     )
     _LOGGER.error(msg)
-    raise ie
+    raise
 
 
 def _group(iterable, n):
@@ -281,25 +281,19 @@ class ArrowDataset:
             elif format == "json":
                 reader = f
             else:
-                error_msg = "Invalid format: {}".format(format)
-                _LOGGER.error(error_msg)
-                raise ValueError(error_msg)
+                raise ValueError(f"Invalid format: {format}")
 
             if skip_header:
                 if format == "json":
-                    error_msg = "When using a {} file, skip_header must be False.".format(
-                        format
+                    raise ValueError(
+                        f"When using a {format} file, skip_header must be False."
                     )
-                    _LOGGER.error(error_msg)
-                    raise ValueError(error_msg)
                 elif format in {"csv", "tsv"} and isinstance(fields, dict):
-                    error_msg = (
-                        "When using a dict to specify fields with a {}"
-                        " file, skip_header must be False and the file must "
-                        "have a header.".format(format)
+                    raise ValueError(
+                        f"""When using a dict to specify fields with a {format} \
+                        file, skip_header must be False and the file must \
+                        have a header."""
                     )
-                    _LOGGER.error(error_msg)
-                    raise ValueError(error_msg)
 
                 # skipping the header
                 next(reader)
@@ -488,17 +482,13 @@ class ArrowDataset:
                 error_part = "tokenized"
 
             if error_part is not None:
-                msg = (
-                    "Data type of the {} part of field '{}' cannot be inferred. "
+                raise RuntimeError(
+                    f"Data type of the {error_part} part of field '{field.name}' cannot be inferred. "
                     "Please provide the explicit "
                     "pyarrow datatype trough the 'data_type' argument. The data_type "
                     "format is "
-                    "{{field_name: (raw_dtype, tokenized_dtype)}}.".format(
-                        error_part, field.name
-                    )
+                    "{{field_name: (raw_dtype, tokenized_dtype)}}."
                 )
-                _LOGGER.error(msg)
-                raise RuntimeError(msg)
 
     @staticmethod
     def load_cache(cache_path) -> "ArrowDataset":
@@ -548,12 +538,10 @@ class ArrowDataset:
 
         """
         if cache_path == self.cache_path:
-            msg = (
-                "Cache path same as datasets cache path. "
-                "Dataset can't overwrite its own cache. Cache path: {}".format(cache_path)
+            raise ValueError(
+                f"""Cache path same as datasets cache path. \
+                Dataset can't overwrite its own cache. Cache path: {cache_path}"""
             )
-            _LOGGER.error(msg)
-            raise Exception(msg)
 
         if cache_path is None:
             cache_path = tempfile.mkdtemp(prefix=ArrowDataset.TEMP_CACHE_FILENAME_PREFIX)
@@ -742,9 +730,7 @@ class ArrowDataset:
             return ArrowDataset._field_values(self.table, fieldname)
 
         else:
-            error_msg = "Dataset has no field {}.".format(fieldname)
-            _LOGGER.error(error_msg)
-            raise AttributeError(error_msg)
+            raise AttributeError(f"Dataset has no field {fieldname}.")
 
     def filter(self, predicate: Callable[[Example], bool]) -> "ArrowDataset":
         """Creates a new ArrowDataset instance containing only Examples for which the

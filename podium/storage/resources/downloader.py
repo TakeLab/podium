@@ -107,8 +107,8 @@ class SCPDownloader(BaseDownloader):
         """
         if path is None or uri is None:
             raise ValueError(
-                "Path and url mustn't be None."
-                "Given path: {}, {}".format(str(path), str(uri))
+                f"""Path and url mustn't be None. \
+                Given path: {path}, {uri}"""
             )
         if cls.HOST_ADDR_KEY not in kwargs or not kwargs[cls.HOST_ADDR_KEY]:
             raise ValueError("Host address mustn't be None")
@@ -170,8 +170,8 @@ class HttpDownloader(BaseDownloader):
             raise ValueError("Response object and output file object mustn't" " be None.")
         if response.status_code >= 300:
             raise RuntimeError(
-                "Given file is not accessible because {},"
-                "HTTP response code {}".format(response.reason, response.status_code)
+                f"""Given file is not accessible because {response.reason}, \
+                HTTP response code {response.status_code}"""
             )
         copyfileobj_with_tqdm(
             response.raw,
@@ -193,8 +193,8 @@ class SimpleHttpDownloader(HttpDownloader):
     def download(cls, uri, path, overwrite=False, **kwargs):
         if path is None or uri is None:
             raise ValueError(
-                "Path and url mustn't be None."
-                "Given path: {}, {}".format(str(path), str(uri))
+                f"""Path and url mustn't be None. \
+                Given path: {path}, {uri}"""
             )
         if not overwrite and os.path.exists(path):
             return False

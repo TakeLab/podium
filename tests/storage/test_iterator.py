@@ -158,7 +158,7 @@ def test_lazy_numericalization_caching(tabular_dataset):
     # Check if caches are empty
     for example in tabular_dataset:
         for field in tabular_dataset.fields:
-            assert getattr(example, "{}_".format(field.name)) is None
+            assert getattr(example, f"{field.name}_") is None
 
     # Run one epoch to cause lazy numericalization
     for _ in Iterator(dataset=tabular_dataset, batch_size=10):
@@ -170,7 +170,7 @@ def test_lazy_numericalization_caching(tabular_dataset):
             example_data = getattr(example, field.name)
             numericalized_data = field.numericalize(example_data)
 
-            cached_data = getattr(example, "{}_".format(field.name))
+            cached_data = getattr(example, f"{field.name}_")
             assert np.all(numericalized_data == cached_data)
 
 
@@ -539,7 +539,7 @@ def test_hierarchial_dataset_iterator_numericalization_caching(hierarchical_data
     # Check if caches are empty
     for example in hierarchical_dataset:
         for field in hierarchical_dataset.fields:
-            assert getattr(example, "{}_".format(field.name)) is None
+            assert getattr(example, f"{field.name}_") is None
 
     # Run one epoch to cause lazy numericalization
     hit = HierarchicalDatasetIterator(
@@ -554,7 +554,7 @@ def test_hierarchial_dataset_iterator_numericalization_caching(hierarchical_data
             example_data = getattr(example, field.name)
             numericalized_data = field.numericalize(example_data)
 
-            cached_data = getattr(example, "{}_".format(field.name))
+            cached_data = getattr(example, f"{field.name}_")
             assert np.all(numericalized_data == cached_data)
 
 

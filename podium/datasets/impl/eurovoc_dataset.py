@@ -113,8 +113,7 @@ class EuroVocDataset(Dataset):
             # document filename format is NNXXXXX.xml, where XXXXX is document_id
             document_id = int(os.path.splitext(document.filename)[0].replace("NN", ""))
             if document_id not in mappings:
-                debug_msg = "Document {} not found in mappings".format(document_id)
-                _LOGGER.debug(debug_msg)
+                _LOGGER.debug(f"Document {document_id} not found in mappings")
                 continue
 
             labels = mappings[document_id]
@@ -127,8 +126,8 @@ class EuroVocDataset(Dataset):
                     crovoc_labels.append(label)
                 else:
                     debug_msg = (
-                        "Document {} has label {} which is not present in the"
-                        "given label hierarchies.".format(document_id, label)
+                        f"Document {document_id} has label {label} which is not present in the"
+                        "given label hierarchies."
                     )
                     _LOGGER.debug(debug_msg)
 
