@@ -6,7 +6,6 @@ import random
 from abc import ABC
 
 from podium.storage.field import unpack_fields
-from podium.util import log_and_raise_error
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -192,8 +191,7 @@ class Dataset(ABC):
             return attr_generator(self, attr)
 
         else:
-            error_msg = f"Dataset has no field {attr}."
-            log_and_raise_error(AttributeError, _LOGGER, error_msg)
+            raise AttributeError(f"Dataset has no field {attr}.")
 
     def filter(self, predicate, inplace=False):
         """Method filters examples with given predicate.
@@ -327,15 +325,13 @@ class Dataset(ABC):
             strata_field_name = self._get_strata_field_name(strata_field_name)
 
             if strata_field_name is None:
-                error_msg = (
+                raise ValueError(
                     "If strata_field_name is not provided, at least"
                     " one field has to have is_target equal to True."
                 )
-                log_and_raise_error(ValueError, _LOGGER, error_msg)
 
             if strata_field_name not in self.field_dict:
-                error_msg = f"Invalid strata field name: {strata_field_name}"
-                log_and_raise_error(ValueError, _LOGGER, error_msg)
+                raise ValueError(f"Invalid strata field name: {strata_field_name}")
 
             train_data, val_data, test_data = stratified_split(
                 self.examples,
@@ -458,9 +454,7 @@ class Dataset(ABC):
 
     def __repr__(self):
         fields = [field.name for field in self.fields]
-        return "{}[Size: {}, Fields: {}]".format(
-            self.__class__.__name__, len(self.examples), fields
-        )
+        return f"{type(self).__name__}[Size: {len(self.examples)}, Fields: {fields}]"
 
 
 def check_split_ratio(split_ratio):
@@ -495,8 +489,7 @@ def check_split_ratio(split_ratio):
     if isinstance(split_ratio, float):
         # Only the train set relative ratio is provided
         if not (0.0 < split_ratio < 1.0):
-            error_msg = f"Split ratio {split_ratio} not between 0 and 1"
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError(f"Split ratio {split_ratio} not between 0 and 1")
 
         train_ratio = split_ratio
         val_ratio = None
@@ -507,16 +500,16 @@ def check_split_ratio(split_ratio):
         length = len(split_ratio)
 
         if length not in {2, 3}:
-            error_msg = f"Split ratio list/tuple should be of length 2 or 3, got {length}"
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError(
+                f"Split ratio list/tuple should be of length 2 or 3, got {length}"
+            )
 
         for i, ratio in enumerate(split_ratio):
             if float(ratio) <= 0.0:
-                error_msg = (
-                    "Elements of ratio tuple/list must be > 0.0 "
-                    f"(got value {ratio} at index {i})."
+                raise ValueError(
+                    f"""Elements of ratio tuple/list must be > 0.0 \
+                    (got value {ratio} at index {i})."""
                 )
-                log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         # Normalize if necessary
         ratio_sum = sum(split_ratio)
@@ -531,10 +524,9 @@ def check_split_ratio(split_ratio):
             val_ratio = split_ratio[1]
             test_ratio = split_ratio[2]
     else:
-        error_msg = (
-            "Split ratio must be a float, a list or a tuple, " f"got {type(split_ratio)}"
+        raise ValueError(
+            f"Split ratio must be a float, a list or a tuple, but got {type(split_ratio)}"
         )
-        log_and_raise_error(ValueError, _LOGGER, error_msg)
 
     return train_ratio, val_ratio, test_ratio
 
@@ -584,8 +576,7 @@ def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
     # Due to possible rounding problems
     if val_ratio is None:
         if train_len == 0 or (N - train_len) == 0:
-            error_msg = "Bad ratio: both splits should have at least 1 element."
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError("Bad ratio: both splits should have at least 1 element.")
 
         indices_tuple = (indices[:train_len], [], indices[train_len:])
     else:
@@ -593,8 +584,7 @@ def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
         val_len = N - train_len - test_len
 
         if train_len * test_len * val_len == 0:
-            error_msg = "Bad ratio: all splits should have at least 1 element."
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError("Bad ratio: all splits should have at least 1 element.")
 
         indices_tuple = (
             indices[:train_len],  # Train

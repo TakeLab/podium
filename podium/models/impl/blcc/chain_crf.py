@@ -17,6 +17,7 @@ except ImportError:
         "library is not installed visit https://keras.io/ "
         "for more details."
     )
+    raise
 
 
 def path_energy(y, x, U, b_start=None, b_end=None, mask=None):

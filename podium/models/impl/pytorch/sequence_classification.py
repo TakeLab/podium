@@ -21,7 +21,7 @@ class RNNEncoder(nn.Module):
         super(RNNEncoder, self).__init__()
 
         self.bidirectional = bidirectional
-        assert rnn_type in RNNS, "Use one of the following: {}".format(str(RNNS))
+        assert rnn_type in RNNS, f"Use one of the following: {RNNS}"
         rnn_cell = getattr(nn, rnn_type)  # fetch constructor from torch.nn
         self.rnn = rnn_cell(
             embedding_dim,
@@ -86,7 +86,7 @@ class AttentionRNN(nn.Module):
         size = 0
         for p in self.parameters():
             size += p.nelement()
-        print("Total parameter size: {}".format(size))
+        print(f"Total parameter size: {size}")
 
     def forward(self, input):
         outputs, hidden = self.encoder(self.embedding(input))

@@ -6,8 +6,6 @@ import zipfile
 
 from tqdm import tqdm
 
-from podium.util import log_and_raise_error
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -54,8 +52,7 @@ def extract_zip_file(archive_file, destination_dir):
         If given archive file doesn't exists.
     """
     if not os.path.exists(archive_file):
-        error_msg = f"Given archive file doesn't exists. Given {archive_file}."
-        log_and_raise_error(ValueError, _LOGGER, error_msg)
+        raise ValueError(f"Given archive file doesn't exists. Given {archive_file}.")
     zip_ref = zipfile.ZipFile(file=archive_file, mode="r")
     zip_ref.extractall(path=destination_dir)
     zip_ref.close()
@@ -78,7 +75,6 @@ def extract_tar_file(archive_file, destination_dir, encoding="uft-8"):
         If given archive file doesn't exists.
     """
     if not os.path.exists(archive_file):
-        error_msg = "Given archive file doesn't exists. Given {archive_file}."
-        log_and_raise_error(ValueError, _LOGGER, error_msg)
+        raise ValueError(f"Given archive file doesn't exists. Given {archive_file}.")
     with tarfile.open(name=archive_file, mode="r") as tar_ref:
         tar_ref.extractall(path=destination_dir)

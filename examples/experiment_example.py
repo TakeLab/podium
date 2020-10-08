@@ -110,10 +110,10 @@ def experiment_example():
     )
 
     print(
-        "Accuracy = {}\n"
-        "Precision = {}\n"
-        "Recall = {}\n"
-        "F1 score = {}".format(accuracy, precision, recall, f1)
+        f"""Accuracy = {accuracy}\n\
+        Precision = {precision}\n\
+        Recall = {recall}\n\
+        F1 score = {f1}"""
     )
 
     experiment.fit(train_dataset)
@@ -132,13 +132,13 @@ def experiment_example():
         "dostava na vrijeme, ljubazno osoblje ...</Text></Example>"
     )
     prediction = pipeline.predict_raw(example_good)
-    print("Good example score: {}".format(prediction))
+    print(f"Good example score: {prediction}")
 
     example_bad = (
         "<Example><Text>Hrana kasnila, dostavljac neljubazan, " "uzas...</Text></Example>"
     )
     prediction = pipeline.predict_raw(example_bad)
-    print("Bad example score: {}".format(prediction))
+    print(f"Bad example score: {prediction}")
 
 
 if __name__ == "__main__":

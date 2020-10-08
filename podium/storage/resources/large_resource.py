@@ -7,7 +7,6 @@ import tempfile
 
 from podium.storage.resources import util
 from podium.storage.resources.downloader import SCPDownloader, SimpleHttpDownloader
-from podium.util import log_and_raise_error
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -98,12 +97,11 @@ class LargeResource:
             If configured archiving method is not supported.
         """
         if self.config[LargeResource.ARCHIVE] not in LargeResource.SUPPORTED_ARCHIVE:
-            error_msg = (
-                "Unsupported archive method. "
-                f"Given {self.config[LargeResource.ARCHIVE]}, expected one "
-                f"from {LargeResource.SUPPORTED_ARCHIVE}"
+            raise ValueError(
+                f"""Unsupported archive method. \
+                Given {self.config[LargeResource.ARCHIVE]}, expected one \
+                from {LargeResource.SUPPORTED_ARCHIVE}"""
             )
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
         if self.config[LargeResource.ARCHIVE] == "zip":
             util.extract_zip_file(
                 archive_file=archive_file, destination_dir=self.resource_location
@@ -139,8 +137,7 @@ class LargeResource:
         essential_arguments = [LargeResource.RESOURCE_NAME, LargeResource.URI]
         for arg in essential_arguments:
             if arg not in arguments or not arguments[arg]:
-                error_msg = f"Large resource argument {arg} is missing."
-                log_and_raise_error(ValueError, _LOGGER, error_msg)
+                raise ValueError(f"Large resource argument {arg} is missing.")
 
     def __repr__(self):
         return "{}[name: {}, uri: {}]".format(

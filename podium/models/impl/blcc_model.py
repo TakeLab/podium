@@ -157,14 +157,12 @@ class BLCCModel(AbstractSupervisedModel):
             self.params.get(self.FEATURE_OUTPUT_SIZES),
         )
         for name, input_size, output_size in custom_feature_properties:
-            feature_input = Input(
-                shape=(None,), dtype="int32", name="{}_input".format(name)
-            )
+            feature_input = Input(shape=(None,), dtype="int32", name=f"{name}_input")
 
             feature_embedding = Embedding(
                 input_dim=input_size,
                 output_dim=output_size,
-                name="{}_embeddings".format(name),
+                name=f"{name}_embeddings",
             )(feature_input)
 
             input_nodes.append(feature_input)
@@ -186,18 +184,18 @@ class BLCCModel(AbstractSupervisedModel):
                         dropout=self.params[self.DROPOUT][0],
                         recurrent_dropout=self.params[self.DROPOUT][1],
                     ),
-                    name="shared_varLSTM_{}".format(cnt),
+                    name=f"shared_varLSTM_{cnt}",
                 )(shared_layer)
             else:
                 # Naive dropout
                 shared_layer = Bidirectional(
-                    LSTM(size, return_sequences=True), name="shared_LSTM_{}".format(cnt)
+                    LSTM(size, return_sequences=True), name=f"shared_LSTM_{cnt}"
                 )(shared_layer)
 
                 if self.params[self.DROPOUT] > 0.0:
                     shared_layer = TimeDistributed(
                         Dropout(self.params[self.DROPOUT]),
-                        name="shared_dropout_{}".format(self.params[self.DROPOUT]),
+                        name=f"shared_dropout_{self.params[self.DROPOUT]}",
                     )(shared_layer)
             cnt += 1
 
@@ -218,7 +216,7 @@ class BLCCModel(AbstractSupervisedModel):
             output = crf(output)
             loss_fct = crf.sparse_loss
         else:
-            raise ValueError("Unsupported classifier: {}".format(classifier))
+            raise ValueError(f"Unsupported classifier: {classifier}")
 
         optimizerParams = {}
         if self.params.get(self.CLIPNORM, 0) > 0:
@@ -240,7 +238,7 @@ class BLCCModel(AbstractSupervisedModel):
         elif optimizer == "sgd":
             opt = SGD(lr=0.1, **optimizerParams)
         else:
-            raise ValueError("Unsupported optimizer: {}".format(optimizer))
+            raise ValueError(f"Unsupported optimizer: {optimizer}")
 
         model = Model(inputs=input_nodes, outputs=[output])
         model.compile(loss=loss_fct, optimizer=opt)

@@ -72,9 +72,7 @@ class CoNLLUDataset(Dataset):
             try:
                 yield from conllu.parse_incr(in_file)
             except Exception as e:
-                error_msg = "Error occured during parsing the file"
-                _LOGGER.error(error_msg)
-                raise ValueError(error_msg) from e
+                raise ValueError("Error occured during parsing the file") from e
 
         example_factory = ExampleFactory(fields)
 

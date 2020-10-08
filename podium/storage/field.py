@@ -7,7 +7,6 @@ import numpy as np
 
 from podium.preproc.tokenizers import get_tokenizer
 from podium.storage.vocab import Vocab
-from podium.util import log_and_raise_error
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -307,12 +306,11 @@ class Field:
         self.batch_as_matrix = batch_as_matrix
 
         if store_as_tokenized and tokenize:
-            error_msg = (
+            raise ValueError(
                 "Store_as_tokenized' and 'tokenize' both set to True."
                 " You can either store the data as tokenized, "
                 "tokenize it or do neither, but you can't do both."
             )
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         if not store_as_raw and not tokenize and not store_as_tokenized:
             warn_msg = (
@@ -326,22 +324,20 @@ class Field:
             store_as_raw = True
 
         if store_as_raw and store_as_tokenized:
-            error_msg = (
+            raise ValueError(
                 "'store_as_raw' and 'store_as_tokenized' both set to"
                 " True. You can't store the same value as raw and as "
                 "tokenized. Maybe you wanted to tokenize the raw "
                 "data? (the 'tokenize' parameter)"
             )
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         if not is_numericalizable and (
             custom_numericalize is not None or vocab is not None
         ):
-            error_msg = (
+            raise ValueError(
                 "Field that is not numericalizable can't have "
                 "custom_numericalize or vocab."
             )
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         self.is_sequential = (store_as_tokenized or tokenize) and is_numericalizable
         self.store_as_raw = store_as_raw
@@ -437,11 +433,10 @@ class Field:
             If field is declared as non numericalizable.
         """
         if not self.is_numericalizable:
-            error_msg = (
+            raise ValueError(
                 "Field is declared as non numericalizable. Posttokenization "
                 "hooks aren't used in such fields."
             )
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         self.posttokenize_pipeline.add_hook(hook)
 
@@ -518,8 +513,7 @@ class Field:
 
         if data is None:
             if not self.allow_missing_data:
-                error_msg = f"Missing data not allowed in field {self.name}"
-                log_and_raise_error(ValueError, _LOGGER, error_msg)
+                raise ValueError(f"Missing data not allowed in field {self.name}")
 
             else:
                 return ((self.name, (None, None)),)
@@ -646,8 +640,7 @@ class Field:
             If missing data is not allowed in this field.
         """
         if not self.allow_missing_data:
-            error_msg = f"Missing data not allowed in field {self.name}"
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError(f"Missing data not allowed in field {self.name}")
 
         if self.is_numericalizable:
             return self.missing_data_token
@@ -682,8 +675,7 @@ class Field:
 
         if raw is None and tokenized is None:
             if not self.allow_missing_data:
-                error_msg = f"Missing value found in field {self.name}."
-                log_and_raise_error(ValueError, _LOGGER, error_msg)
+                raise ValueError(f"Missing value found in field {self.name}.")
 
             else:
                 return None
@@ -749,10 +741,9 @@ class Field:
                 pad_symbol = custom_pad_symbol
 
             if pad_symbol is None:
-                error_msg = (
+                raise ValueError(
                     "Must provide a custom pad symbol if the " "field has no vocab."
                 )
-                log_and_raise_error(ValueError, _LOGGER, error_msg)
 
             diff = length - len(row)
 
@@ -783,7 +774,7 @@ class Field:
         numericalized data : numpy array
             The numericalized data.
         """
-        cache_field_name = "{}_".format(self.name)
+        cache_field_name = f"{self.name}_"
         numericalization = getattr(example, cache_field_name, None)
 
         if numericalization is None:
@@ -820,9 +811,8 @@ class Field:
         self.tokenizer = get_tokenizer(self._tokenizer_arg, self.language)
 
     def __repr__(self):
-        return "{}[name: {}, is_sequential: {}, is_target: {}]".format(
-            self.__class__.__name__, self.name, self.is_sequential, self.is_target
-        )
+        return f"""{type(self).__name__}[name: {self.name}, \
+                is_sequential: {self.is_sequential}, is_target: {self.is_target}]"""
 
     def get_output_fields(self):
         """Returns an Iterable of the contained output fields.
@@ -851,12 +841,11 @@ class LabelField(Field):
             vocab = Vocab(specials=())
 
         if vocab is not None and vocab.has_specials:
-            error_msg = (
+            raise ValueError(
                 "Vocab contains special symbols."
                 " Vocabs with special symbols cannot be used"
                 " with LabelFields."
             )
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         super().__init__(
             name,
@@ -991,12 +980,11 @@ class MultilabelField(TokenizedField):
         """
 
         if vocab is not None and vocab.has_specials:
-            error_msg = (
+            raise ValueError(
                 "Vocab contains special symbols."
                 " Vocabs with special symbols cannot be used"
                 " with multilabel fields."
             )
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
         self.num_of_classes = num_of_classes
         super().__init__(
@@ -1017,12 +1005,11 @@ class MultilabelField(TokenizedField):
             self.fixed_length = self.num_of_classes = len(self.vocab)
 
         if self.use_vocab and len(self.vocab) > self.num_of_classes:
-            error_msg = (
-                "Number of classes in data is greater than the declared number "
-                f"of classes. Declared: {self.num_of_classes}, "
-                f"Actual: {len(self.vocab)}"
+            raise ValueError(
+                f"""Number of classes in data is greater than the declared number \
+                of classes. Declared: {self.num_of_classes}, \
+                Actual: {len(self.vocab)}"""
             )
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
 
     def _numericalize_tokens(self, tokens):
         if self.use_vocab:

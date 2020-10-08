@@ -102,7 +102,7 @@ def mock_dataset_path():
 
 def create_examples(base_dir, examples):
     for i in range(len(examples)):
-        file_name = "comment{}.xml".format(i)
+        file_name = f"comment{i}.xml"
         create_mock_xml(base_dir=base_dir, file_name=file_name, example=examples[i])
 
 
@@ -115,9 +115,8 @@ def create_mock_xml(base_dir, file_name, example):
             '"http://www.w3.org/2001/XMLSchema">\n'
         )
         fpr.write(
-            "<Text>{}</Text>\n<Rating>{}</Rating>\n<Source>{}</Source>\n".format(
-                example["Text"], example["Rating"], example["Source"]
-            )
+            f"""<Text>{example['Text']}</Text>\n<Rating>{example['Rating']}</Rating>\n\
+            <Source>{example['Source']}</Source>\n"""
         )
         fpr.write("</CrawlItem>")
 
