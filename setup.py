@@ -39,6 +39,14 @@ DATASETS_REQUIRE = [
 ]
 
 
+PREPROC_REQUIRE = [
+    # for the normalization, tokenization and truecasing hooks
+    'sacremoses',
+    # for the text cleanup hook
+    'clean-text',
+]
+
+
 DOCS_REQUIRE = [
     'sphinx',
     'sphinx_rtd_theme',
@@ -51,14 +59,14 @@ DOCS_REQUIRE = [
 EXTRAS_REQUIRE = {
     # for blcc model
     'blcc': ['keras==2.2.4', 'tensorflow==1.15'],
-    # for training/evaluation PyTorch models
+    # for training and evaluation of PyTorch models
     'torch': ['torch'],
     # dependencies for all dataset implementations (including the ones in dataload)
     'datasets': DATASETS_REQUIRE,
 
     'docs': DOCS_REQUIRE,
     'quality': QUALITY_REQUIRE,
-    'tests': TESTS_REQUIRE + DATASETS_REQUIRE,
+    'tests': TESTS_REQUIRE + DATASETS_REQUIRE + PREPROC_REQUIRE,
 }
 EXTRAS_REQUIRE['dev'] = EXTRAS_REQUIRE['tests'] + QUALITY_REQUIRE
 
