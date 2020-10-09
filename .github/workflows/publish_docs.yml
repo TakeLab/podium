@@ -10,11 +10,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Check out the repo
+      - uses: actions/checkout@v2
+      # Now in root of repo, should be able to move to docs
       - name: Create docs
         run: |
           cd docs
           make clean && make html
-
+      # Do folder changes persist between steps?
       - name: Publish docs
         uses: garygrossgarten/github-action-scp@release
         with:
