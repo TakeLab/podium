@@ -29,11 +29,11 @@ jobs:
           cd docs
           make clean && make html
 
-      # Do folder changes persist between steps? Assumed yes RN
+      # Do folder changes persist between steps? They do not ):
       - name: Publish docs
         uses: garygrossgarten/github-action-scp@release
         with:
-          local: build/html/
+          local: docs/build/html/
           remote: ${{ secrets.DOC_FOLDER }}
           host: ${{ secrets.BUGA }}  
           username: ${{ secrets.USER }}
