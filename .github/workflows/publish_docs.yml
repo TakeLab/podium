@@ -22,7 +22,7 @@ jobs:
       - name: Install docs requirements
         run: |
           python -m pip install --upgrade pip
-          pip install sphinx datasets keras==2.2.4 tensorflow==1.15 sphinx_rtd_theme
+          pip install .[docs]
 
       - name: Create docs
         run: |
@@ -35,6 +35,6 @@ jobs:
         with:
           local: docs/build/html/
           remote: ${{ secrets.DOC_FOLDER }}
-          host: ${{ secrets.BUGA }}  
+          host: ${{ secrets.BUGA }}
           username: ${{ secrets.USER }}
           privateKey: ${{ secrets.SSH_PRIVATE_KEY }}
