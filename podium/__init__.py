@@ -1,7 +1,7 @@
 """
 Home of the TakeLab Podium project. Podium is a Python machine learning library
 that helps users to accelerate use of natural language processing models.
-GitHub repository: https://github.com/mtutek/takepod
+GitHub repository: https://github.com/mtutek/podium
 """
 import logging
 import logging.config
@@ -43,4 +43,4 @@ LOGGER.addHandler(logging.StreamHandler())
 LOGGER.setLevel(logging.WARNING)
 
 # More information about logging can be found on project github
-# https://github.com/mtutek/takepod/wiki/Logging
+# https://github.com/mtutek/podium/wiki/Logging
