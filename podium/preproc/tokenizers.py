@@ -1,8 +1,6 @@
 """Module contains text tokenizers."""
 import logging
 
-import spacy
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,6 +35,8 @@ def get_tokenizer(tokenizer, language="en"):
 
     Raises
     ------
+    ImportError
+        If the required package for the specified tokenizer is not installed.
     ValueError
         If the given tokenizer is not a callable or a string, or is a
         string that doesn't correspond to any of the premade tokenizers.
@@ -49,6 +49,7 @@ def get_tokenizer(tokenizer, language="en"):
     elif tokenizer == "spacy":
         disable = ["parser", "ner"]
         try:
+            import spacy
             spacy_tokenizer = spacy.load(language, disable=disable)
         except OSError:
             _LOGGER.warning(
@@ -70,6 +71,22 @@ def get_tokenizer(tokenizer, language="en"):
 
     elif tokenizer == "split":
         return str.split
+
+    elif tokenizer == "toktok":
+        from nltk.tokenize.toktok import ToktokTokenizer
+        toktok = ToktokTokenizer()
+        return toktok.tokenize
+
+    elif tokenizer == "moses":
+        try:
+            from sacremoses import MosesTokenizer
+            moses_tokenizer = MosesTokenizer()
+            return moses_tokenizer.tokenize
+        except ImportError:
+            _LOGGER.error("Please install SacreMoses. "
+                          "See the docs at https://github.com/alvations/sacremoses "
+                          "for more information.")
+            raise
 
     # if tokenizer not found
     raise ValueError(f"Wrong value given for the tokenizer: {tokenizer}")
