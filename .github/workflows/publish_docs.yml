@@ -1,0 +1,25 @@
+name: Publish docs
+
+# Run only on pushes to master
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create docs
+        run: |
+          cd docs
+          make clean && make html
+
+      - name: Publish docs
+        uses: garygrossgarten/github-action-scp@release
+        with:
+          local: build/html/
+          remote: ${{ secrets.DOC_FOLDER }}
+          host: ${{ secrets.BUGA }}  
+          username: ${{ secrets.USER }}
+          privateKey: ${{ secrets.SSH_PRIVATE_KEY }}
