@@ -406,11 +406,6 @@ class Field:
         ------
             If field is declared as non numericalizable.
         """
-        if not self.is_numericalizable:
-            error_msg = "Field is declared as non numericalizable. Posttokenization " \
-                        "hooks aren't used in such fields."
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
-
         self.posttokenize_pipeline.add_hook(hook)
 
     def remove_pretokenize_hooks(self):
@@ -1044,8 +1039,9 @@ class MultilabelField(Field):
         else:
             active_classes = np.array([self.numericalizer(t) for t in tokens])
 
-        multihot = np.full(shape=self.num_of_asses, fill_value=0, dtype=np.int)
-        multihot[active_classes] = 1
+        multihot = np.full(shape=self.num_of_classes, fill_value=0, dtype=np.int)
+        if len(active_classes) > 0:
+            multihot[active_classes] = 1
         return multihot
 
 

@@ -102,7 +102,7 @@ def _get_spacy_tokenizer(language):
         return [token.text for token in
                 spacy_tokenizer.tokenizer(string)]
 
-    return spacy_tokenizer_wrapper()
+    return spacy_tokenizer_wrapper
 
 
 @tokenizer_factory('split')
