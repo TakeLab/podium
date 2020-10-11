@@ -1,7 +1,7 @@
 # Podium Documentation
 
 ## Generating documentation from source
-First, make sure that your environment is set up as described in the [Getting started](https://github.com/mttk/podium/blob/master/README.md#getting-started) section. To install the dependencies required to successfully build the documentation, run the following command:
+First, make sure that your environment is set up as described in the [Getting started](../README.md#getting-started) section. To install the dependencies required to successfully build the documentation, run the following command:
 ```
 pip install .[docs]
 ```
