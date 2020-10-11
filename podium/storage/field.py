@@ -2,6 +2,7 @@
 import logging
 import itertools
 from collections import deque
+from collections.abc import Iterator
 
 import numpy as np
 
@@ -48,8 +49,7 @@ class PosttokenizationPipeline:
         for hook in self.hooks:
             processed_raw, processed_tokenized = hook(processed_raw, processed_tokenized)
 
-        if processed_tokenized is not None \
-                and not isinstance(processed_tokenized, (list, tuple)):
+        if isinstance(processed_tokenized, Iterator):
             processed_tokenized = list(processed_tokenized)
 
         return processed_raw, processed_tokenized
