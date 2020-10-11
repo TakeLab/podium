@@ -35,7 +35,7 @@ If the change you wish to make is substantial, e.g. adding a new feature or fixi
 
 Follow the steps below to submit a PR to Podium:
 
-1. Follow the steps in [Setup](https://github.com/mttk/podium/CONTRIBUTING.md#Setup) to build the project locally.
+1. Follow the steps in [Setup](https://github.com/mttk/podium/CONTRIBUTING.md#setup) to build the project locally.
 2. Create a branch to hold you development changes.
    ```
    git checkout -b descriptive-branch-name
@@ -63,5 +63,5 @@ Follow the steps below to submit a PR to Podium:
 
 ## Building documentation
 
-For details on how to build our documentation, refer to our [Documentation page](https://github.com/mttk/podium/docs/README.md).
+For details on how to build our documentation, refer to our [Documentation page](https://github.com/mttk/podium/docs).
 
