@@ -12,7 +12,6 @@ Our goal is to accelerate users' development of NLP models whichever aspect of t
   - [Use preprocessing from other libraries](#use-preprocessing-from-other-libraries)
 - [Contributing](#contributing)
   - [Building and running unit tests](#building-and-running-unit-tests)
-  - [Adding new dependencies](#adding-new-dependencies)
 - [Versioning](#versioning)
 - [Contributing](#contributing)
 - [Authors](#authors)
@@ -23,7 +22,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-For building this project system needs to have installed the following:
+For building this project, system needs to have installed the following:
 - [```git```](https://git-scm.com/)
 - [```python3.6```](https://www.python.org/downloads/release/python-360/) or higher
 - [```pip```](https://pypi.org/project/pip/)
@@ -136,7 +135,7 @@ Example[label: ('positive', None); subword: (None, ['a', 'slick', ',', 'eng', '#
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+To learn more about making a contribution to Podium, please see our [Contribution page](CONTRIBUTING.md)..
 
 ### Code style standards
 In this repository we use [numpydoc](https://numpydoc.readthedocs.io/en/latest/) as a standard for documentation and Black, Flake8 and isort for code sytle. Code style references are [Black](https://black.readthedocs.io/en/stable/), [Flake8](http://flake8.pycqa.org/en/latest/), [isort](https://pycqa.github.io/isort/) and [PEP8](https://www.python.org/dev/peps/pep-0008/).
@@ -165,11 +164,6 @@ If you intend to develop part of podium you should use following command to inst
 pip install -e .[dev]
 ```
 In other cases it should be enough to run ```pip install .``` for podium to be added to python environment.
-
-
-The project is packaged according to official Python packaging [guidelines](https://packaging.python.org/tutorials/packaging-projects/).
-
-We recommend use of [pytest](https://docs.pytest.org/en/latest/) and [pytest-mock](https://pypi.org/project/pytest-mock/) library for testing when developing new parts of the library.
 
 ## Versioning
 

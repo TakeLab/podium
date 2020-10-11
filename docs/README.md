@@ -1,9 +1,9 @@
 # Podium Documentation
 
 ## Generating documentation from source
-First, make sure that your environment is set up as described in the [Getting started](https://github.com/mttk/podium/blob/master/README.md#getting-started) section. Additionally, install Sphinx using e.g.
+First, make sure that your environment is set up as described in the [Getting started](https://github.com/mttk/podium/blob/master/README.md#getting-started) section. To install the dependencies required to successfully build the documentation, run the following command:
 ```
-pip install -U sphinx
+pip install .[docs]
 ```
 Finally, make sure you are positioned in the documentation root directory, i.e. `podium/docs`.
 
