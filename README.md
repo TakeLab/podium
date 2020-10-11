@@ -135,7 +135,7 @@ Example[label: ('positive', None); subword: (None, ['a', 'slick', ',', 'eng', '#
 
 ## Contributing
 
-To learn more about making a contribution to Podium, please see our [Contribution page](CONTRIBUTING.md)..
+To learn more about making a contribution to Podium, please see our [Contribution page](CONTRIBUTING.md).
 
 ### Code style standards
 In this repository we use [numpydoc](https://numpydoc.readthedocs.io/en/latest/) as a standard for documentation and Black, Flake8 and isort for code sytle. Code style references are [Black](https://black.readthedocs.io/en/stable/), [Flake8](http://flake8.pycqa.org/en/latest/), [isort](https://pycqa.github.io/isort/) and [PEP8](https://www.python.org/dev/peps/pep-0008/).
