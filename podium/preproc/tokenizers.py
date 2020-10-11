@@ -87,7 +87,7 @@ def _get_spacy_tokenizer(language):
 
     disable = ["parser", "ner"]
     try:
-        spacy_tokenizer = spacy.load(language, disable=disable)
+        loaded_spacy_tokenizer = spacy.load(language, disable=disable)
     except OSError:
         _LOGGER.warning("SpaCy model {} not found."
                         "Trying to download and install."
@@ -95,14 +95,14 @@ def _get_spacy_tokenizer(language):
 
         from spacy.cli.download import download
         download(language)
-        spacy_tokenizer = spacy.load(language, disable=disable)
+        loaded_spacy_tokenizer = spacy.load(language, disable=disable)
 
-    def spacy_tokenizer(string):
+    def spacy_tokenizer_wrapper(string, spacy_tokenizer=loaded_spacy_tokenizer):
         # need to wrap in a function to access .text
         return [token.text for token in
                 spacy_tokenizer.tokenizer(string)]
 
-    return spacy_tokenizer
+    return spacy_tokenizer_wrapper()
 
 
 @tokenizer_factory('split')

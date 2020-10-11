@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from unittest.mock import patch
 
-from podium.storage import Field, TokenizedField, MultilabelField, \
+from podium.storage import Field, MultilabelField, \
     Vocab, SpecialVocabSymbols, MultioutputField, LabelField
 
 ONE_TO_FIVE = [1, 2, 3, 4, 5]

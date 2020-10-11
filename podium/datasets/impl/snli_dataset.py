@@ -8,7 +8,7 @@ import os
 
 from podium.datasets import Dataset
 from podium.storage import LargeResource, ExampleFactory, Field, \
-    Vocab, LabelField, TokenizedField
+    Vocab, LabelField
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -153,12 +153,12 @@ class SNLISimple(Dataset):
         """
 
         gold_label = LabelField(name=SNLISimple.GOLD_LABEL_FIELD_NAME,
-                                vocab=Vocab(specials=()))
+                                numericalizer=Vocab(specials=()))
         sentence_vocab = Vocab()
-        sentence1 = Field(name=SNLISimple.SENTENCE1_FIELD_NAME, vocab=sentence_vocab,
-                          tokenizer="split", tokenize=True, keep_raw=False)
-        sentence2 = Field(name=SNLISimple.SENTENCE2_FIELD_NAME, vocab=sentence_vocab,
-                          tokenizer="split", tokenize=True, keep_raw=False)
+        sentence1 = Field(name=SNLISimple.SENTENCE1_FIELD_NAME, numericalizer=sentence_vocab,
+                          tokenizer="split", keep_raw=False)
+        sentence2 = Field(name=SNLISimple.SENTENCE2_FIELD_NAME, numericalizer=sentence_vocab,
+                          tokenizer="split", keep_raw=False)
         fields = {SNLISimple.GOLD_LABEL_FIELD_NAME: gold_label,
                   SNLISimple.SENTENCE1_FIELD_NAME: sentence1,
                   SNLISimple.SENTENCE2_FIELD_NAME: sentence2}
