@@ -6,8 +6,8 @@ from collections.abc import Iterator
 
 import numpy as np
 
-from podium.storage.vocab import Vocab
 from podium.preproc.tokenizers import get_tokenizer
+from podium.storage.vocab import Vocab
 from podium.util import log_and_raise_error
 
 _LOGGER = logging.getLogger(__name__)
@@ -93,7 +93,7 @@ class MultioutputField:
             spacy).
             Default is 'en'.
         """
-        # TODO rework MultioutputField
+
         self._tokenizer_arg = tokenizer
         self.pretokenization_pipeline = PretokenizationPipeline()
         self.tokenizer = get_tokenizer(tokenizer)
@@ -155,7 +155,8 @@ class MultioutputField:
 
     def preprocess(self, data):
         data = self._run_pretokenization_hooks(data)
-        tokens = self.tokenizer(data)
+        tokens = self.tokenizer(data) if self.tokenizer is not None \
+            else data
         return tuple(field._process_tokens(data, tokens) for field in self.output_fields)
 
     def get_output_fields(self):
@@ -316,10 +317,10 @@ class Field:
         self.padding_token = padding_token
         self.is_target = is_target
         self.fixed_length = fixed_length
-        self.allow_missing_data = allow_missing_data
-        self.missing_data_token = missing_data_token
         self.pretokenize_pipeline = PretokenizationPipeline()
         self.posttokenize_pipeline = PosttokenizationPipeline()
+        self.allow_missing_data = allow_missing_data
+        self.missing_data_token = missing_data_token
 
         if pretokenize_hooks is not None:
             if not isinstance(pretokenize_hooks, (list, tuple)):
@@ -497,32 +498,6 @@ class Field:
 
         return self._process_tokens(processed_raw, tokenized),
 
-    def _process_tokens(self, raw, tokens):
-        """Runs posttokenization processing on the provided data and tokens and updates
-        the vocab if needed. Used by Multioutput field.
-
-        Parameters
-        ----------
-        data
-            data processed by Pretokenization hooks
-
-        tokens : list
-            tokenized data
-
-        Returns
-        -------
-        name, (data, tokens)
-            Returns and tuple containing this both field's name and a tuple containing
-            the data and tokens processed by posttokenization hooks.
-        """
-
-        raw, tokenized = self._run_posttokenization_hooks(raw, tokens)
-        raw = raw if self.keep_raw else None
-
-        if self.eager and not self.vocab.finalized:
-            self.update_vocab(tokenized)
-        return self.name, (raw, tokenized)
-
     def update_vocab(self, tokenized):
         """Updates the vocab with a data point in its raw and tokenized form.
         If the field is sequential, the vocab is updated with the tokenized
@@ -568,6 +543,52 @@ class Field:
         if self.use_vocab:
             self.vocab.finalize()
 
+    def _process_tokens(self, raw, tokens):
+        """Runs posttokenization processing on the provided data and tokens and updates
+        the vocab if needed. Used by Multioutput field.
+
+        Parameters
+        ----------
+        data
+            data processed by Pretokenization hooks
+
+        tokens : list
+            tokenized data
+
+        Returns
+        -------
+        name, (data, tokens)
+            Returns and tuple containing this both field's name and a tuple containing
+            the data and tokens processed by posttokenization hooks.
+        """
+
+        raw, tokenized = self._run_posttokenization_hooks(raw, tokens)
+        raw = raw if self.keep_raw else None
+
+        if self.eager and not self.vocab.finalized:
+            self.update_vocab(tokenized)
+        return self.name, (raw, tokenized)
+
+    def get_default_value(self):
+        """Method obtains default field value for missing data.
+
+        Returns
+        -------
+        missing_symbol index or None
+            The index of the missing data token, if this field is numericalizable.
+            None value otherwise.
+
+        Raises
+        ------
+        ValueError
+            If missing data is not allowed in this field.
+        """
+        if not self.allow_missing_data:
+            error_msg = f"Missing data not allowed in field {self.name}"
+            log_and_raise_error(ValueError, _LOGGER, error_msg)
+
+        return self.missing_data_token
+
     def numericalize(self, data):
         """Numericalize the already preprocessed data point based either on
         the vocab that was previously built, or on a custom numericalization
@@ -612,96 +633,7 @@ class Field:
         else:
             return np.array([self.numericalizer(t) for t in tokens])
 
-    def get_default_value(self):
-        """Method obtains default field value for missing data.
-
-        Returns
-        -------
-        missing_symbol index or None
-            The index of the missing data token, if this field is numericalizable.
-            None value otherwise.
-
-        Raises
-        ------
-        ValueError
-            If missing data is not allowed in this field.
-        """
-        if not self.allow_missing_data:
-            error_msg = f"Missing data not allowed in field {self.name}"
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
-
-        return self.missing_data_token
-
-    def get_numericalization_for_example(self, example, cache=False):
-        """Returns the numericalized data of this field for the provided example.
-        The numericalized data is generated and cached in the example if 'cache' is true
-        and the cached data is not already present. If already cached, the cached data is
-        returned.
-
-        Parameters
-        ----------
-        example : Example
-            example to get numericalized data for.
-
-        cache : bool
-            whether to store the cache the calculated numericalization if not already
-            cached
-
-        Returns
-        -------
-        numericalized data : numpy array
-            The numericalized data.
-        """
-        cache_field_name = "{}_".format(self.name)
-        numericalization = getattr(example, cache_field_name, None)
-
-        if numericalization is None:
-            example_data = getattr(example, self.name)
-            numericalization = self.numericalize(example_data)
-            if cache:
-                setattr(example, cache_field_name, numericalization)
-
-        return numericalization
-
-    def to_batch(self, examples):
-        numericalizations = []
-
-        for example in examples:
-            numericalization = self.get_numericalization_for_example(example)
-            numericalizations.append(numericalization)
-
-        # casting to matrix can only be attempted if all values are either
-        # None or np.ndarray
-        possible_cast_to_matrix = not any(
-            x is not None and not isinstance(x, (np.ndarray, int, float))
-            for x in numericalizations
-        )
-        if len(numericalizations) > 0 \
-                and not self.disable_batch_matrix \
-                and possible_cast_to_matrix:
-            return self._arrays_to_matrix(numericalizations)
-
-        else:
-            return numericalizations
-
-    def _arrays_to_matrix(self, arrays):
-        pad_length = self._get_pad_length(arrays)
-        padded_arrays = [self._pad_to_length(a, pad_length) for a in arrays]
-        return np.array(padded_arrays)
-
-    def _get_pad_length(self, numericalizations):
-        # the fixed_length attribute of Field has priority over the max length
-        # of all the examples in the batch
-        if self.fixed_length is not None:
-            return self.fixed_length
-
-        # if fixed_length is None, then return the maximum length of all the
-        # examples in the batch
-        def num_length(n): return 1 if n is None else len(n)
-
-        return max(map(num_length, numericalizations))
-
-    def _pad_to_length(self, array, length, custom_pad_symbol=None,
+    def pad_to_length(self, array, length, custom_pad_symbol=None,
                        pad_left=False, truncate_left=False):
         """Either pads the given row with pad symbols, or truncates the row
         to be of given length. The vocab provides the pad symbol for all
@@ -732,7 +664,7 @@ class Field:
             given.
         """
         if array is None:
-            return np.full(shape=length, fill_value=self.missing_data_token)
+            return np.full(shape=length, fill_value=self.get_default_value())
 
         if isinstance(array, (int, float)):
             array = np.array([array])
@@ -772,6 +704,37 @@ class Field:
                                constant_values=pad_symbol)
 
         return array
+
+    def get_numericalization_for_example(self, example, cache=False):
+        """Returns the numericalized data of this field for the provided example.
+        The numericalized data is generated and cached in the example if 'cache' is true
+        and the cached data is not already present. If already cached, the cached data is
+        returned.
+
+        Parameters
+        ----------
+        example : Example
+            example to get numericalized data for.
+
+        cache : bool
+            whether to store the cache the calculated numericalization if not already
+            cached
+
+        Returns
+        -------
+        numericalized data : numpy array
+            The numericalized data.
+        """
+        cache_field_name = "{}_".format(self.name)
+        numericalization = getattr(example, cache_field_name, None)
+
+        if numericalization is None:
+            example_data = getattr(example, self.name)
+            numericalization = self.numericalize(example_data)
+            if cache:
+                setattr(example, cache_field_name, numericalization)
+
+        return numericalization
 
     def __getstate__(self):
         """Method obtains field state. It is used for pickling dataset data
@@ -1018,38 +981,12 @@ class MultilabelField(Field):
         ValueError
             If data is None and missing data is not allowed in this field.
         """
-        _, tokenized = data
+        active_classes = super(MultilabelField, self).numericalize(data)
 
-        if tokenized is None:
-            if not self.allow_missing_data:
-                error_msg = f"Missing value found in field {self.name}."
-                log_and_raise_error(ValueError, _LOGGER, error_msg)
-
-            else:
-                return None
-
-        if self.numericalizer is None:
-            # data can not be numericalized, return tokenized as-is
-            return tokenized
-
-        tokens = tokenized if isinstance(tokenized, (list, tuple)) else [tokenized]
-
-        if self.use_vocab:
-            active_classes = self.vocab.numericalize(tokens)
-        else:
-            active_classes = np.array([self.numericalizer(t) for t in tokens])
-
-        multihot = np.full(shape=self.num_of_classes, fill_value=0, dtype=np.int)
+        multihot = np.zeros(shape=self.num_of_classes, dtype=np.int)
         if len(active_classes) > 0:
             multihot[active_classes] = 1
         return multihot
-
-
-def numericalize_multihot(tokens, token_indexer, num_of_classes):
-    active_classes = list(map(token_indexer, tokens))
-    multihot_encoding = np.zeros(num_of_classes, dtype=np.bool)
-    multihot_encoding[active_classes] = 1
-    return multihot_encoding
 
 
 def unpack_fields(fields):

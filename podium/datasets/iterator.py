@@ -193,7 +193,6 @@ class Iterator:
             self.iterations += 1
             yield batch_dataset.batch()
 
-
         # prepare for new epoch
         self.iterations = 0
         self.epoch += 1
@@ -208,18 +207,27 @@ class Iterator:
         target_batch_dict = {}
 
         for field in dataset.fields:
-            batched = field.to_batch(examples)
-            if field.is_target:
-                target_batch_dict[field.name] = batched
+            numericalizations = []
+
+            for example in examples:
+                numericalization = field.get_numericalization_for_example(example)
+                numericalizations.append(numericalization)
+
+            # casting to matrix can only be attempted if all values are either
+            # None or np.ndarray
+            possible_cast_to_matrix = not any(
+                x is not None and not isinstance(x, (np.ndarray, int, float))
+                for x in numericalizations
+            )
+            if len(numericalizations) > 0 \
+                    and not field.disable_batch_matrix \
+                    and possible_cast_to_matrix:
+                return Iterator._arrays_to_matrix(field, numericalizations)
+
             else:
-                input_batch_dict[field.name] = batched
+                return numericalizations
 
-        input_batch = self.input_batch_class(**input_batch_dict)
-        target_batch = self.target_batch_class(**target_batch_dict)
-
-        return input_batch, target_batch
-
-                # for field in self._dataset.fields:
+        # for field in self.dataset.fields:
         #     if field.is_numericalizable and field.batch_as_matrix:
         #         # If this field is numericalizable, generate a possibly padded matrix
         #
@@ -338,12 +346,13 @@ class Iterator:
         self.shuffler.setstate(state)
 
     @staticmethod
-    def _arrays_to_matrix(arrays, width, padding_token, missing_data_token):
-        pass
+    def _arrays_to_matrix(field, arrays):
+        pad_length = Iterator._get_pad_length(arrays)
+        padded_arrays = [field.pad_to_length(a, pad_length) for a in arrays]
+        return np.array(padded_arrays)
 
     @staticmethod
     def _get_pad_length(field, numericalizations):
-
         # the fixed_length attribute of Field has priority over the max length
         # of all the examples in the batch
         if field.fixed_length is not None:
@@ -351,7 +360,8 @@ class Iterator:
 
         # if fixed_length is None, then return the maximum length of all the
         # examples in the batch
-        num_length = lambda n: 1 if n is None else len(n)
+        def num_length(n): return 1 if n is None else len(n)
+
         return max(map(num_length, numericalizations))
 
     def _data(self):
