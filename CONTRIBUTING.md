@@ -1,90 +1,67 @@
 # Contributing
 
-When contributing to this repository, please first discuss the change you wish to make via issue,
-email, or any other method with the owners of this repository before making a change. 
+Thank you for thinking about contributing to Podium. Everyone is more than welcome to file issues, to contribute code via pull requests, to help triage and fix bugs, to improve our documentation or to help out in any other way.
 
 Please note we have a code of conduct, please follow it in all your interactions with the project.
 
-## Pull Request Process
+## Setup
 
-1. Ensure any install or build dependencies are added to requirements.txt.
-2. Update the README.md if neccessary.
-3. Increase the version numbers in setup.py to the new version that this Pull Request would represent. The versioning scheme we use is [SemVer](http://semver.org/).
-4. Check if the changes are consistent with the [Coding Style](https://github.com/mttk/podium#code-style-standards).
-5. Run [Unit Tests](https://github.com/mttk/podium#building-and-running-unit-tests)
-6. You may merge the Pull Request in once you have the sign-off of one of the other developers, or if you do not have permission to do that, you may request the reviewer to merge it for you.
+To setup the project locally, follow the steps below:
 
-## Code of Conduct
+1. Fork the repository by clicking on the *Fork* button in the top-right corner on the repository's page. This creates a copy of the repository under you GitHub account.
 
-### Our Pledge
+2. Clone the forked repository and connect it with the base repository.
+   ```
+   git clone git@github.com:<your GitHub handle>/podium.git
+   cd podium
+   git remote add upstream git@github.com:mttk/podium.git
+   ```
 
-In the interest of fostering an open and welcoming environment, we as
-contributors and maintainers pledge to making participation in our project and
-our community a harassment-free experience for everyone, regardless of age, body
-size, disability, ethnicity, gender identity and expression, level of experience,
-nationality, personal appearance, race, religion, or sexual identity and
-orientation.
+3. Build the project in development mode.
 
-### Our Standards
+   To install the minimal set of dependencies, run:
+   ```
+   pip install -e .
+   ```
 
-Examples of behavior that contributes to creating a positive environment
-include:
+   To install the full set of dependencies for developing Podium, run:
+   ```
+   pip install -e .[dev]
+   ```
 
-* Using welcoming and inclusive language
-* Being respectful of differing viewpoints and experiences
-* Gracefully accepting constructive criticism
-* Focusing on what is best for the community
-* Showing empathy towards other community members
+## Submiting pull requests
 
-Examples of unacceptable behavior by participants include:
+If the change you wish to make is substantial, e.g. adding a new feature or fixing a bug, please file an issue first to discuss your proposal with the project maintainers. For smaller changes, e.g. fixing typos in documentation, you can submit a PR directly.
 
-* The use of sexualized language or imagery and unwelcome sexual attention or
-advances
-* Trolling, insulting/derogatory comments, and personal or political attacks
-* Public or private harassment
-* Publishing others' private information, such as a physical or electronic
-  address, without explicit permission
-* Other conduct which could reasonably be considered inappropriate in a
-  professional setting
+Follow the steps below to submit a PR to Podium:
 
-### Our Responsibilities
+1. Follow the steps in [Setup](#setup) to build the project locally.
+2. Create a branch to hold you development changes.
+   ```
+   git checkout -b descriptive-branch-name
+   ```
+3. Implement your changes.
+4. Apply the code style changes (for more details see our [Coding Style](README.md#code-style-standards)):
+   ```
+   make style 
+   ```
+5. Run tests:
+   ```
+   python -m pytest -sv tests
+   ```
+6. If everything goes well, commit your changes and push them to the forked repository:
+   ```
+   git add .
+   git commit -m "descriptive commit message"
+   git push -u origin descriptive-branch-name
+   ```
+   Optionally, to be up with the latest changes, sync up with the project repository beforehand: 
+   ```
+   git pull --rebase upstream master
+   ```
+7. Click on *Pull request* on the webpage of the forked repository to request merging your changes with the project's master branch.
 
-Project maintainers are responsible for clarifying the standards of acceptable
-behavior and are expected to take appropriate and fair corrective action in
-response to any instances of unacceptable behavior.
+## Building documentation
 
-Project maintainers have the right and responsibility to remove, edit, or
-reject comments, commits, code, wiki edits, issues, and other contributions
-that are not aligned to this Code of Conduct, or to ban temporarily or
-permanently any contributor for other behaviors that they deem inappropriate,
-threatening, offensive, or harmful.
+For details on how to build the Podium documentation, refer to our [Documentation page](docs/README.md).
 
-### Scope
-
-This Code of Conduct applies both within project spaces and in public spaces
-when an individual is representing the project or its community. Examples of
-representing a project or community include using an official project e-mail
-address, posting via an official social media account, or acting as an appointed
-representative at an online or offline event. Representation of a project may be
-further defined and clarified by project maintainers.
-
-### Enforcement
-
-Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the project team at takelab (AT) fer (DOT) hr. All
-complaints will be reviewed and investigated and will result in a response that
-is deemed necessary and appropriate to the circumstances. The project team is
-obligated to maintain confidentiality with regard to the reporter of an incident.
-Further details of specific enforcement policies may be posted separately.
-
-Project maintainers who do not follow or enforce the Code of Conduct in good
-faith may face temporary or permanent repercussions as determined by other
-members of the project's leadership.
-
-### Attribution
-
-This Code of Conduct is adapted from the [Contributor Covenant][homepage], version 1.4,
-available at [http://contributor-covenant.org/version/1/4][version]
-
-[homepage]: http://contributor-covenant.org
-[version]: http://contributor-covenant.org/version/1/4/

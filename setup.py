@@ -41,10 +41,10 @@ DATASETS_REQUIRE = [
 
 DOCS_REQUIRE = [
     'sphinx',
+    'sphinx_rtd_theme',
     'datasets',
     'keras==2.2.4',
     'tensorflow==1.15',
-    'sphinx_rtd_theme'
 ]
 
 
