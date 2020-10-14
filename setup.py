@@ -44,6 +44,7 @@ PREPROC_REQUIRE = [
     'sacremoses',
     # for the text cleanup hook
     'clean-text',
+    'truecase',
 ]
 
 

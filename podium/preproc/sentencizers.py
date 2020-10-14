@@ -1,13 +1,11 @@
 """Module contains text sentencizer."""
 import logging
 
-import spacy
-
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class Sentencizer:
+class SpacySentencizer:
     """Detects sentence boundaries and splits the input data on them.
     If the language model is not installed, an attempt is made to install it.
     """
@@ -23,15 +21,18 @@ class Sentencizer:
             see https://spacy.io/usage/models#languages.
             Default: "en".
         """
-        disable = ["tagger", "parser", "ner"]
         try:
+            import spacy
+
+            disable = ["tagger", "ner"]
             nlp = spacy.load(language, disable=disable)
         except OSError:
-            _LOGGER.warning(f"SpaCy model {language} not found."
-                            "Trying to download and install."
-                            )
+            _LOGGER.warning(
+                f"SpaCy model {language} not found." "Trying to download and install."
+            )
 
             from spacy.cli.download import download
+
             download(language)
             nlp = spacy.load(language, disable=disable)
 
@@ -50,4 +51,4 @@ class Sentencizer:
         list of str
             The input data split on sentences boundaries.
         """
-        return list(self._nlp(data).sents)
+        return [sent.text for sent in self._nlp(data).sents]

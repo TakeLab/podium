@@ -47,9 +47,10 @@ def get_tokenizer(tokenizer, language="en"):
         return tokenizer
 
     elif tokenizer == "spacy":
-        disable = ["parser", "ner"]
         try:
             import spacy
+
+            disable = ["parser", "ner"]
             spacy_tokenizer = spacy.load(language, disable=disable)
         except OSError:
             _LOGGER.warning(
@@ -74,18 +75,22 @@ def get_tokenizer(tokenizer, language="en"):
 
     elif tokenizer == "toktok":
         from nltk.tokenize.toktok import ToktokTokenizer
+
         toktok = ToktokTokenizer()
         return toktok.tokenize
 
     elif tokenizer == "moses":
         try:
             from sacremoses import MosesTokenizer
+
             moses_tokenizer = MosesTokenizer()
             return moses_tokenizer.tokenize
         except ImportError:
-            _LOGGER.error("Please install SacreMoses. "
-                          "See the docs at https://github.com/alvations/sacremoses "
-                          "for more information.")
+            _LOGGER.error(
+                "Please install SacreMoses. "
+                "See the docs at https://github.com/alvations/sacremoses "
+                "for more information."
+            )
             raise
 
     # if tokenizer not found
