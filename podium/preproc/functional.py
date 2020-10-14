@@ -16,9 +16,9 @@ def truecase(oov: str = "title") -> Callable[[str], str]:
     oov : str
         Defines how to handle out of vocabulary tokens not seen while training
         the truecasing model. 3 options are supported:
-            title: returns OOV tokens in 'title' format
-            lower: returns OOV tokens in lower case
-            as-is: returns OOV tokens as is
+        title - returns OOV tokens in 'title' format
+        lower - returns OOV tokens in lower case
+        as-is - returns OOV tokens as is
 
         Default is 'title'.
 
