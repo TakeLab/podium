@@ -58,6 +58,8 @@ def remove_stopwords(
     """Returns a posttokenization hook that removes stop words
     from the tokenized textual data. The raw part is left unchanged.
 
+    Stop words are obtained from the corresponding SpaCy language model.
+
     Parameters
     ----------
     language : str

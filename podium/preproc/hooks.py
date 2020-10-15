@@ -224,8 +224,8 @@ class TextCleanUp:
         raw : str
             Raw textual data.
 
-        Retuns
-        ------
+        Returns
+        -------
         str
             Cleaned up textual data.
         """
