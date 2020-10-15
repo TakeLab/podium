@@ -102,15 +102,15 @@ class Pipeline(Experiment):
         ):
             if not isinstance(fields, (list, tuple)):
                 raise TypeError(
-                    f"""If `example format` is LIST, CSV or NLTK, `fields` \
-                    must be either a list or tuple. \
-                    Type of `fields`: {type(fields)}"""
+                    "If `example format` is LIST, CSV or NLTK, `fields` "
+                    "must be either a list or tuple. "
+                    f"Type of `fields`: {type(fields)}"
                 )
         elif not isinstance(fields, dict):
             raise TypeError(
-                f"""If `example format` is DICT, XML or JSON, `fields` \
-                must be a dict. \
-                Type of `fields`: {type(fields)}"""
+                "If `example format` is DICT, XML or JSON, `fields` "
+                "must be a dict. "
+                f"Type of `fields`: {type(fields)}"
             )
 
         if isinstance(fields, (list, tuple)):

@@ -294,8 +294,8 @@ class ExampleFactory:
 
         else:
             raise TypeError(
-                f"""format_tag must be either an ExampleFormat or a string. \
-                Passed value is of type : '{type(format_tag).__name__}'"""
+                "format_tag must be either an ExampleFormat or a string. "
+                f"Passed value is of type : '{type(format_tag).__name__}'"
             )
 
         factory_method = FACTORY_METHOD_DICT.get(format_str)

@@ -98,9 +98,9 @@ class LargeResource:
         """
         if self.config[LargeResource.ARCHIVE] not in LargeResource.SUPPORTED_ARCHIVE:
             raise ValueError(
-                f"""Unsupported archive method. \
-                Given {self.config[LargeResource.ARCHIVE]}, expected one \
-                from {LargeResource.SUPPORTED_ARCHIVE}"""
+                "Unsupported archive method. "
+                f"Given {self.config[LargeResource.ARCHIVE]}, expected one "
+                f"from {LargeResource.SUPPORTED_ARCHIVE}"
             )
         if self.config[LargeResource.ARCHIVE] == "zip":
             util.extract_zip_file(

@@ -336,8 +336,10 @@ class EuroVocLoader:
             if label.rank != LabelRank.THESAURUS:
                 if label.thesaurus not in thesaurus_by_name:
                     # Error: thesaurus name does not exist (this shouldn't happen)
-                    debug_msg = f"""Label {label.id} has a non-existing thesaurus name \
-                        assigned: {label.thesaurus}"""
+                    debug_msg = (
+                        f"Label {label.id} has a non-existing thesaurus name "
+                        f"assigned: {label.thesaurus}"
+                    )
                     _LOGGER.debug(debug_msg)
                     label.thesaurus = None
                 else:
@@ -352,8 +354,10 @@ class EuroVocLoader:
             if label.rank == LabelRank.TERM:
                 if label.micro_thesaurus not in microthesaurus_by_name:
                     # Error: microthesaurus name does not exist (this shouldn't happen)
-                    debug_msg = f"""Label {label.id} has a non-existing microthesaurus name \
-                        assigned: {label.micro_thesaurus}"""
+                    debug_msg = (
+                        f"Label {label.id} has a non-existing microthesaurus name "
+                        f"assigned: {label.micro_thesaurus}"
+                    )
                     _LOGGER.debug(debug_msg)
                     label.micro_thesaurus = None
                 else:
@@ -498,16 +502,19 @@ class EuroVocLoader:
             filename = os.path.basename(doc)
             document_id = int(os.path.splitext(filename)[0].replace("NN", ""))
             if document_id not in document_mapping:
-                debug_msg = f"""{document_id} document id not found in document \
-                            mappings."""
+                debug_msg = (
+                    f"{document_id} document id not found in document " "mappings."
+                )
                 _LOGGER.debug(debug_msg)
                 continue
             parsed_doc = EuroVocLoader._parse_document(doc)
             # parsed_doc is None if there's been an error on document text extraction
             if parsed_doc:
                 parsed_documents.append(parsed_doc)
-        debug_msg = f"""Succesfully parsed documents: \
-                    {len(parsed_documents)}/{len(xml_documents)}"""
+        debug_msg = (
+            "Succesfully parsed documents: "
+            f"{len(parsed_documents)}/{len(xml_documents)}"
+        )
         _LOGGER.debug(debug_msg)
         return parsed_documents
 

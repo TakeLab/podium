@@ -507,8 +507,8 @@ def check_split_ratio(split_ratio):
         for i, ratio in enumerate(split_ratio):
             if float(ratio) <= 0.0:
                 raise ValueError(
-                    f"""Elements of ratio tuple/list must be > 0.0 \
-                    (got value {ratio} at index {i})."""
+                    f"Elements of ratio tuple/list must be > 0.0 "
+                    f"(got value {ratio} at index {i})."
                 )
 
         # Normalize if necessary
