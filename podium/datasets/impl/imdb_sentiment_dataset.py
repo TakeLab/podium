@@ -197,10 +197,11 @@ class IMDB(Dataset):
         fields : dict(str, Field)
             Dictionary mapping field name to field.
         """
-        text = Field(name=IMDB.TEXT_FIELD_NAME, vocab=Vocab(),
-                     tokenizer='spacy', language="en", tokenize=True,
+        text = Field(name=IMDB.TEXT_FIELD_NAME,
+                     numericalizer=Vocab(),
+                     tokenizer='spacy-en',
                      keep_raw=False)
         label = LabelField(name=IMDB.LABEL_FIELD_NAME,
-                           vocab=Vocab(specials=()))
+                           numericalizer=Vocab(specials=()))
         return {IMDB.TEXT_FIELD_NAME: text,
                 IMDB.LABEL_FIELD_NAME: label}

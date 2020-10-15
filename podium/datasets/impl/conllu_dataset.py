@@ -104,40 +104,39 @@ class CoNLLUDataset(Dataset):
         id = Field(name='id',
                    tokenizer=None,
                    keep_raw=True,
-                   is_numericalizable=False)
+                   numericalizer=None)
 
         form = Field(name='form',
-                     vocab=Vocab(specials=()),
+                     numericalizer=Vocab(specials=()),
                      tokenizer=None,
                      keep_raw=True)
 
         lemma = Field(name='lemma',
-                      vocab=Vocab(specials=()),
+                      numericalizer=Vocab(specials=()),
                       tokenizer=None,
                       keep_raw=True)
 
         upos = Field(name='upos',
-                     vocab=Vocab(specials=()),
+                     numericalizer=Vocab(specials=()),
                      tokenizer=None,
                      keep_raw=True,
                      allow_missing_data=True)
 
         xpos = Field(name='xpos',
-                     vocab=Vocab(specials=()),
+                     numericalizer=Vocab(specials=()),
                      tokenizer=None,
                      keep_raw=True,
                      allow_missing_data=True)
 
         feats = Field(name='feats',
                       tokenizer=None,
-                      store_as_tokenized=True,
-                      is_numericalizable=False,
+                      numericalizer=None,
                       allow_missing_data=True)
 
         head = Field(name='head',
                      tokenizer=None,
                      keep_raw=True,
-                     custom_numericalize=int,
+                     numericalizer=int,
                      allow_missing_data=True)
 
         deprel = Field(name='deprel',
@@ -147,14 +146,12 @@ class CoNLLUDataset(Dataset):
 
         deps = Field(name='deps',
                      tokenizer=None,
-                     store_as_tokenized=True,
-                     is_numericalizable=False,
+                     numericalizer=None,
                      allow_missing_data=True)
 
         misc = Field(name='misc',
                      tokenizer=None,
-                     store_as_tokenized=True,
-                     is_numericalizable=False,
+                     numericalizer=None,
                      allow_missing_data=True)
 
         return {

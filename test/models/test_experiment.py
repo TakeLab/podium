@@ -14,12 +14,12 @@ def get_dataset():
              "Score": 15}]
 
     name_field = Field("Name",
-                       vocab=Vocab(),
+                       numericalizer=Vocab(),
                        keep_raw=True,
                        tokenizer="split")
 
     score_field = Field("Score",
-                        custom_numericalize=int,
+                        numericalizer=int,
                         keep_raw=True,
                         tokenizer=None,
                         is_target=True)

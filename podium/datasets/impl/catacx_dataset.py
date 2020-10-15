@@ -144,50 +144,48 @@ class CatacxDataset(HierarchicalDataset):
         sentiment_field = Field("sentiment",
                                 keep_raw=True,
                                 tokenizer=None,
-                                custom_numericalize=float,
+                                numericalizer=float,
                                 allow_missing_data=True)
 
         likes_cnt_field = Field("likes_cnt",
                                 keep_raw=True,
                                 tokenizer=None,
-                                custom_numericalize=int)
+                                numericalizer=int)
 
         message_field = Field(name='message',
-                              vocab=Vocab(),
-                              tokenize=True,
+                              numericalizer=Vocab(),
                               keep_raw=False,
-                              tokenizer='split',
-                              language='hr')
+                              tokenizer='split')
 
         spam_field = Field("spam",
                            keep_raw=True,
                            tokenizer=None,
-                           custom_numericalize=int,
+                           numericalizer=int,
                            allow_missing_data=True)
 
         emotions_field = MultilabelField("emotions",
-                                         vocab=Vocab(specials=()),
+                                         numericalizer=Vocab(specials=()),
                                          allow_missing_data=True,
                                          num_of_classes=19)
 
         irony_field = Field("irony",
                             keep_raw=True,
                             tokenizer=None,
-                            custom_numericalize=int,
+                            numericalizer=int,
                             allow_missing_data=True)
 
         speech_acts_field = MultilabelField("speech_acts",
-                                            vocab=Vocab(specials=()),
+                                            numericalizer=Vocab(specials=()),
                                             allow_missing_data=True,
                                             num_of_classes=8)
 
         topics_field = MultilabelField("topics",
-                                       vocab=Vocab(specials=()),
+                                       numericalizer=Vocab(specials=()),
                                        allow_missing_data=True,
                                        num_of_classes=31)
 
         cs_field = MultilabelField("cs",
-                                   vocab=Vocab(specials=()),
+                                   numericalizer=Vocab(specials=()),
                                    allow_missing_data=True,
                                    num_of_classes=8)
 

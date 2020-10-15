@@ -234,15 +234,16 @@ class EuroVocDataset(Dataset):
         fields : dict(str, Field)
             Dictionary mapping field name to field.
         """
-        title = Field(name="title", vocab=Vocab(), tokenizer='split', language="hr",
-                      tokenize=True, keep_raw=False)
-        text = Field(name="text", vocab=Vocab(keep_freqs=True),
-                     tokenizer='split', tokenize=True, keep_raw=False)
+        title = Field(name="title", numericalizer=Vocab(),
+                      tokenizer='split', keep_raw=False)
+        text = Field(name="text", numericalizer=Vocab(keep_freqs=True),
+                     tokenizer='split', keep_raw=False)
         text.add_posttokenize_hook(functools.partial(remove_nonalpha_and_stopwords,
                                                      stop_words=set(CROATIAN_EXTENDED)))
         text.add_posttokenize_hook(get_croatian_lemmatizer_hook())
-        labels = MultilabelField(name="eurovoc_labels", vocab=Vocab(specials=()))
-        crovoc_labels = MultilabelField(name="crovoc_labels", vocab=Vocab(specials=()))
+        labels = MultilabelField(name="eurovoc_labels", numericalizer=Vocab(specials=()))
+        crovoc_labels = MultilabelField(name="crovoc_labels",
+                                        numericalizer=Vocab(specials=()))
         fields = {"title": title, "text": text, "eurovoc_labels": labels,
                   "crovoc_labels": crovoc_labels}
         return fields

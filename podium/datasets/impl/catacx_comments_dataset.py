@@ -137,11 +137,11 @@ class CatacxCommentsDataset(Dataset):
 
         id = Field(name='id', tokenizer=None, keep_raw=True)
 
-        likes_cnt = Field(name="likes_cnt", vocab=None,
+        likes_cnt = Field(name="likes_cnt",
                           tokenizer=None,
-                          custom_numericalize=int)
+                          numericalizer=int)
 
-        message = Field(name='message', tokenize=True,
+        message = Field(name='message',
                         tokenizer='split')
 
         author_id = Field(name='author_id', tokenizer=None,

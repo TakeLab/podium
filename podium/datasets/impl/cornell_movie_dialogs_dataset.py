@@ -89,10 +89,9 @@ class CornellMovieDialogsConversationalDataset(Dataset):
             Dictionary mapping field name to field.
         """
         vocabulary = Vocab()
-        statement = Field(name="statement", vocab=vocabulary, tokenizer="split",
-                          language="en", tokenize=True, keep_raw=False,
-                          is_target=False)
-        reply = Field(name="reply", vocab=vocabulary, tokenizer="split",
-                      language="en", tokenize=True, keep_raw=False, is_target=True)
+        statement = Field(name="statement", numericalizer=vocabulary, tokenizer="split",
+                          keep_raw=False, is_target=False)
+        reply = Field(name="reply", numericalizer=vocabulary, tokenizer="split",
+                      keep_raw=False, is_target=True)
         fields = {"statement": statement, "reply": reply}
         return fields

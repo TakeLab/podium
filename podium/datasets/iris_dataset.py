@@ -35,20 +35,20 @@ class IrisDataset(Dataset):
             return x
 
         sepal_len_field = Field("sepal_length", tokenizer=None,
-                                custom_numericalize=identity,
+                                numericalizer=identity,
                                 keep_raw=True)
         sepal_width_field = Field("sepal_width", tokenizer=None,
-                                  custom_numericalize=identity,
+                                  numericalizer=identity,
                                   keep_raw=True)
         petal_len_field = Field("petal_length", tokenizer=None,
-                                custom_numericalize=identity,
+                                numericalizer=identity,
                                 keep_raw=True)
         petal_width_field = Field("petal_width", tokenizer=None,
-                                  custom_numericalize=identity,
+                                  numericalizer=identity,
                                   keep_raw=True)
 
         species_field = Field("species", tokenizer=None, keep_raw=True,
-                              custom_numericalize=identity, is_target=True)
+                              numericalizer=identity, is_target=True)
 
         return sepal_len_field, sepal_width_field, \
             petal_len_field, petal_width_field, \

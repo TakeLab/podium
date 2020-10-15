@@ -120,6 +120,6 @@ def test_loaded_data(mock_dataset_path):
     for ex in train_dataset:
         real_example_data = {
             'text': ex.text[1],
-            'label': ex.label[0]
+            'label': ex.label[1]
         }
         assert real_example_data in expected_data

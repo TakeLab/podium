@@ -71,7 +71,7 @@ def test_load_dataset(mock_dataset_path):
 
     assert len(dataset) == 2
     for ex in dataset:
-        ex_data = {"gold_label": ex.gold_label[0],
+        ex_data = {"gold_label": ex.gold_label[1],
                    "sentence1": ex.sentence1[1],
                    "sentence2": ex.sentence2[1]}
         assert ex_data in EXPECTED_EXAMPLES_SIMPLE

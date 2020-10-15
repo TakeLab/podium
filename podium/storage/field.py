@@ -809,7 +809,7 @@ class LabelField(Field):
                          numericalizer=numericalizer,
                          is_target=is_target,
                          fixed_length=1,
-                         allow_missing_data=True,
+                         allow_missing_data=allow_missing_data,
                          missing_data_token=missing_data_token,
                          pretokenize_hooks=label_processing_hooks
                          )

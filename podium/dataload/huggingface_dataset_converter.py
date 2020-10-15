@@ -51,7 +51,8 @@ class _FeatureConverter:
         """
         if isinstance(feature, datasets.ClassLabel):
             field = LabelField(name=name,
-                               custom_numericalize=_identity)
+                               numericalizer=_identity,
+                               allow_missing_data=False)
             return field
 
         elif isinstance(feature, datasets.Value):
@@ -59,28 +60,28 @@ class _FeatureConverter:
 
             if dtype in {'bool', 'uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16',
                          'int32', 'int64', 'float16', 'float32', 'float64'}:
-                kwargs = {'tokenize': False,
-                          'store_as_raw': True,
-                          'custom_numericalize': _identity}
+                kwargs = {'tokenizer': None,
+                          'keep_raw': False,
+                          'numericalizer': _identity}
 
             elif dtype in {'string', 'utf8'}:
-                kwargs = {'vocab': Vocab()}
+                kwargs = {'numericalizer': Vocab()}
 
             else:
-                # some dtypes are not processed and stored as raw
+                # some dtypes are not processed and stored as-is
                 # for the full list see:
                 # https://arrow.apache.org/docs/python/api/datatypes.html#factory-functions
-                kwargs = {'tokenize': False,
-                          'store_as_raw': True,
-                          'is_numericalizable': False}
+                kwargs = {'tokenizer': None,
+                          'keep_raw': False,
+                          'numericalizer': None}
 
         elif isinstance(feature,
                         (dict, list, datasets.Sequence,
                          datasets.Translation,
                          datasets.TranslationVariableLanguages)):
-            kwargs = {'tokenize': False,
-                      'store_as_raw': True,
-                      'is_numericalizable': False}
+            kwargs = {'tokenizer': None,
+                      'keep_raw': False,
+                      'numericalizer': None}
 
         else:
             error_msg = f'Conversion for feature type {type(feature).__name__} ' \
