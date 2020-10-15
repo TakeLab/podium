@@ -20,6 +20,30 @@ podium.preproc.stop\_words module
    :no-undoc-members:
    :show-inheritance:
 
+podium.preproc.hooks module
+----------------------------------
+
+.. automodule:: podium.preproc.hooks
+   :members:
+   :no-undoc-members:
+   :show-inheritance:
+
+podium.preproc.functional module
+----------------------------------
+
+.. automodule:: podium.preproc.functional
+   :members:
+   :no-undoc-members:
+   :show-inheritance:
+
+podium.preproc.sentencizers module
+----------------------------------
+
+.. automodule:: podium.preproc.sentencizers
+   :members:
+   :no-undoc-members:
+   :show-inheritance:
+
 podium.preproc.tokenizers module
 ---------------------------------
 

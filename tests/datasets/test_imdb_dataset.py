@@ -1,4 +1,3 @@
-import ctypes
 import os
 import tempfile
 
@@ -9,27 +8,15 @@ from podium.datasets.dataset import Dataset
 from podium.datasets.impl.imdb_sentiment_dataset import IMDB
 from podium.storage.resources.large_resource import LargeResource
 
+from ..util import has_spacy_model, is_admin
 
-try:
-    spacy.load("en")
-    IS_MODEL_DOWNLOADED = True
-except OSError:
-    IS_MODEL_DOWNLOADED = False
 
-# on some systems/environments, admin privileges are required to download
-# a SpaCy model using the shorthand syntax
-# see: https://stackoverflow.com/questions/1026431/
-# cross-platform-way-to-check-admin-rights-in-a-python-script-under-windows
-if IS_MODEL_DOWNLOADED:
-    # if the SpaCy model is downloaded, skip the check
-    IS_ADMIN = None
-else:
-    try:
-        IS_ADMIN = os.getuid() == 0
-    except AttributeError:
-        IS_ADMIN = ctypes.windll.shell32.IsUserAnAdmin() != 0
-
-RUN_SPACY = IS_MODEL_DOWNLOADED or IS_ADMIN
+RUN_SPACY = is_admin or has_spacy_model("en")
+SKIP_SPACY_REASON = (
+    "requires already downloaded model or "
+    "admin privileges to download it "
+    "while executing"
+)
 
 
 TRAIN_EXAMPLES = {
@@ -119,9 +106,7 @@ def create_examples(base_dir, examples):
 
 @pytest.mark.skipif(
     not RUN_SPACY,
-    reason="requires already downloaded model or "
-    "admin privileges to download it "
-    "while executing",
+    reason=SKIP_SPACY_REASON,
 )
 def test_return_params(mock_dataset_path):
     data = IMDB.get_dataset_splits()
@@ -132,9 +117,7 @@ def test_return_params(mock_dataset_path):
 
 @pytest.mark.skipif(
     not RUN_SPACY,
-    reason="requires already downloaded model or "
-    "admin privileges to download it "
-    "while executing",
+    reason=SKIP_SPACY_REASON,
 )
 def test_default_fields():
     fields = IMDB.get_default_fields()
@@ -145,9 +128,7 @@ def test_default_fields():
 
 @pytest.mark.skipif(
     not RUN_SPACY,
-    reason="requires already downloaded model or "
-    "admin privileges to download it "
-    "while executing",
+    reason=SKIP_SPACY_REASON,
 )
 def test_loaded_data(mock_dataset_path):
     spacy_tokenizer = spacy.load("en", disable=["parser", "ner"])
