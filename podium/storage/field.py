@@ -3,6 +3,7 @@ import logging
 import itertools
 from collections import deque
 from collections.abc import Iterator
+from typing import Optional
 
 import numpy as np
 
@@ -705,7 +706,7 @@ class Field:
 
         return array
 
-    def get_numericalization_for_example(self, example, cache=False):
+    def get_numericalization_for_example(self, example, cache=True):
         """Returns the numericalized data of this field for the provided example.
         The numericalized data is generated and cached in the example if 'cache' is true
         and the cached data is not already present. If already cached, the cached data is
@@ -834,7 +835,7 @@ class LabelField(Field):
 #             name=name,
 #             vocab=vocab,
 #             keep_raw=False,
-#             tokenize=False,
+#             tokenizer=None,
 #             store_as_tokenized=True,
 #             eager=eager,
 #             custom_numericalize=custom_numericalize,

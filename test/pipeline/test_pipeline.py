@@ -25,7 +25,7 @@ mock_data = [
 
 def get_fields():
     name_field = Field("Name", custom_numericalize=name_dict.get, keep_raw=True)
-    score_field = Field("Score", tokenize=False, custom_numericalize=int,
+    score_field = Field("Score", tokenizer=None, custom_numericalize=int,
                         keep_raw=True)
     age_field = LabelField("Age", custom_numericalize=int)
 
@@ -281,7 +281,7 @@ def test_pipeline_nested_fields_no_targets():
 
     case_field.add_posttokenize_hook(get_case)
     age_field = Field(
-        "Age", tokenize=False, custom_numericalize=int, is_target=True
+        "Age", tokenizer=None, custom_numericalize=int, is_target=True
     )
 
     name_field.finalize()

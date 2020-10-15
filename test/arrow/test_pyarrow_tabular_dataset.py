@@ -28,7 +28,7 @@ def fields():
     number_field = Field('number',
                          store_as_raw=True,
                          custom_numericalize=int,
-                         tokenize=False,
+                         tokenizer=None,
                          is_target=True)
 
     token_field = Field('tokens',

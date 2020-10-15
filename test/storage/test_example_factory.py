@@ -7,13 +7,13 @@ name_field = Field("Name",
                    tokenizer="split")
 
 score_field = Field("Score",
-                    custom_numericalize=int,
+                    numericalizer=int,
                     keep_raw=True,
-                    tokenize=False)
+                    tokenizer=None)
 
 favorite_food_field = Field("Favorite_food",
                             keep_raw=True,
-                            tokenize=False)
+                            tokenizer=None)
 
 field_list = [name_field, score_field, favorite_food_field]
 

@@ -5,7 +5,6 @@ import random
 import copy
 from abc import ABC
 from typing import Callable, Any
-from collections import namedtuple
 
 from podium.storage.field import unpack_fields
 from podium.util import log_and_raise_error
@@ -447,30 +446,8 @@ class Dataset(ABC):
         """
         # dicts that will be used to create the InputBatch and TargetBatch
         # objects
-        input_batch_dict = {}
-        target_batch_dict = {}
-
-        input_batch_class = namedtuple(
-            "InputBatch",
-            [field.name for field in self.fields if not field.is_target]
-        )
-
-        target_batch_class = namedtuple(
-            "TargetBatch",
-            [field.name for field in self.fields if field.is_target]
-        )
-
-        for field in self.fields:
-            batched = field.to_batch(self.examples)
-            if field.is_target:
-                target_batch_dict[field.name] = batched
-            else:
-                input_batch_dict[field.name] = batched
-
-        input_batch = input_batch_class(**input_batch_dict)
-        target_batch = target_batch_class(**target_batch_dict)
-
-        return input_batch, target_batch
+        from podium.datasets import SingleBatchIterator
+        return next(iter(SingleBatchIterator(self, shuffle=False)))
 
     def sorted(self, key: Callable[[Example], Any], reverse=False) -> 'Dataset':
         def index_key(i, _dataset=self):

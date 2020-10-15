@@ -66,7 +66,7 @@ class MockVocab(Mock):
 # This is obsolete as the combination no longer raises an error
 # def test_field_store_raw_sequential_exception():
 #    with pytest.raises(ValueError):
-#        Field(name="F", store_as_raw=False, tokenize=False)
+#        Field(name="F", store_as_raw=False, tokenizer=None)
 
 
 def test_field_preprocess_eager():
@@ -186,7 +186,7 @@ def test_field_pad_to_length(row, length, expected_row, pad_left,
     vocab = MockVocab()
     f = Field(name="F", numericalizer=vocab)
 
-    received_row = f._pad_to_length(np.array(row), length, pad_left=pad_left,
+    received_row = f.pad_to_length(np.array(row), length, pad_left=pad_left,
                                     truncate_left=truncate_left)
 
     assert received_row.tolist() == expected_row
@@ -201,7 +201,7 @@ def test_field_pad_custom_numericalize():
     mock_numericalization = np.array([1, 2, 3, 4])
     expected_numericalization = np.array([1, 2, 3, 4] + [custom_padding_token] * 6)
 
-    padded = f._pad_to_length(mock_numericalization, 10, pad_left=False)
+    padded = f.pad_to_length(mock_numericalization, 10, pad_left=False)
     assert np.all(padded == expected_numericalization)
 
 
@@ -218,7 +218,7 @@ def test_field_pad_to_length_custom_pad(row, length, expected_row):
     f = Field(name="F", numericalizer=None)
 
     row_arr = np.array(row)
-    received_row = f._pad_to_length(row_arr, length,
+    received_row = f.pad_to_length(row_arr, length,
                                     custom_pad_symbol=CUSTOM_PAD)
 
     assert received_row.tolist() == expected_row
@@ -233,7 +233,7 @@ def test_field_pad_to_length_exception():
 
     custom_pad_symbol = None
     with pytest.raises(ValueError):
-        f._pad_to_length(row_arr, length, custom_pad_symbol=custom_pad_symbol)
+        f.pad_to_length(row_arr, length, custom_pad_symbol=custom_pad_symbol)
 
 
 def test_field_get_tokenizer_callable():

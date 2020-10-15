@@ -8,12 +8,12 @@ class PandoraDataset(ArrowDataset):
     def get_default_fields():
 
         fields = [
-            Field('author', tokenize=False, store_as_raw=True, is_numericalizable=False),
-            Field('author_flair_text', tokenize=False, store_as_raw=True,
+            Field('author', tokenizer=None, store_as_raw=True, is_numericalizable=False),
+            Field('author_flair_text', tokenizer=None, store_as_raw=True,
                   is_numericalizable=False),
             Field('body', tokenizer=str.split, vocab=Vocab()),
-            Field('downs', tokenize=False, store_as_raw=True, custom_numericalize=float),
-            Field('created_utc', tokenize=False, store_as_raw=True,
+            Field('downs', tokenizer=None, store_as_raw=True, custom_numericalize=float),
+            Field('created_utc', tokenizer=None, store_as_raw=True,
                   is_numericalizable=False)
             # TODO rest of fields
         ]

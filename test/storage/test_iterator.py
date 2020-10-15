@@ -132,7 +132,7 @@ def test_not_numericalizable_field(json_file_path):
     text_field = fields['text_with_missing_data']
     non_numericalizable_field = Field("non_numericalizable_field",
                                       tokenizer=custom_datatype_tokenizer,
-                                      is_numericalizable=False,
+                                      numericalizer=None,
                                       allow_missing_data=True,
                                       keep_raw=True)
 
@@ -309,7 +309,7 @@ def test_iterator_missing_data_in_batch(json_file_path):
     fields = tabular_dataset_fields()
     missing_value_field = Field("missing_value_field",
                                 tokenizer="split",
-                                vocab=Vocab(),
+                                numericalizer=Vocab(),
                                 allow_missing_data=True,
                                 keep_raw=True,
                                 missing_data_token=missing_data_default_value)
@@ -399,8 +399,8 @@ def test_bucket_iterator_set_dataset_on_init(tabular_dataset):
 
 def test_iterator_batch_as_list(tabular_dataset):
     raw_dataset = [("1 2 3 4",), ("2 3 4",), ("3 4",)]
-    field = Field("test_field", custom_numericalize=int,
-                  tokenizer='split', batch_as_matrix=False)
+    field = Field("test_field", numericalizer=int,
+                  tokenizer='split', disable_batch_matrix=True)
     fields = (field,)
     ef = ExampleFactory(fields)
     examples = list(map(ef.from_list, raw_dataset))
@@ -456,9 +456,9 @@ def np_arrays_equal(arr_1, arr_2):
 
 @pytest.fixture
 def hierarchical_dataset_fields():
-    name_field = Field(name="name", keep_raw=True, tokenize=False, vocab=Vocab())
-    number_field = Field(name="number", keep_raw=True, tokenize=False,
-                         custom_numericalize=int)
+    name_field = Field(name="name", keep_raw=True, tokenizer=None, numericalizer=Vocab())
+    number_field = Field(name="number", keep_raw=True, tokenizer=None,
+                         numericalizer=int)
 
     fields = {
         "name": name_field,

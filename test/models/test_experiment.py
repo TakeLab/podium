@@ -21,7 +21,7 @@ def get_dataset():
     score_field = Field("Score",
                         custom_numericalize=int,
                         keep_raw=True,
-                        tokenize=False,
+                        tokenizer=None,
                         is_target=True)
 
     fields = {"Name": name_field,

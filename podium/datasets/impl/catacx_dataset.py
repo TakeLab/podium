@@ -139,17 +139,17 @@ class CatacxDataset(HierarchicalDataset):
 
         # id_field = Field("id",
         #                  store_as_raw=True,
-        #                  tokenize=False)
+        #                  tokenizer=None)
 
         sentiment_field = Field("sentiment",
                                 keep_raw=True,
-                                tokenize=False,
+                                tokenizer=None,
                                 custom_numericalize=float,
                                 allow_missing_data=True)
 
         likes_cnt_field = Field("likes_cnt",
                                 keep_raw=True,
-                                tokenize=False,
+                                tokenizer=None,
                                 custom_numericalize=int)
 
         message_field = Field(name='message',
@@ -161,7 +161,7 @@ class CatacxDataset(HierarchicalDataset):
 
         spam_field = Field("spam",
                            keep_raw=True,
-                           tokenize=False,
+                           tokenizer=None,
                            custom_numericalize=int,
                            allow_missing_data=True)
 
@@ -172,7 +172,7 @@ class CatacxDataset(HierarchicalDataset):
 
         irony_field = Field("irony",
                             keep_raw=True,
-                            tokenize=False,
+                            tokenizer=None,
                             custom_numericalize=int,
                             allow_missing_data=True)
 

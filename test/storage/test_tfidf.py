@@ -189,7 +189,7 @@ def test_transform_before_fit_error():
 def test_vocab_none(tabular_dataset):
     tfidf = TfIdfVectorizer()
     with pytest.raises(ValueError):
-        tfidf.fit(dataset=tabular_dataset, field=Field("text", vocab=None))
+        tfidf.fit(dataset=tabular_dataset, field=Field("text", numericalizer=None))
 
 
 @pytest.mark.usefixtures("tabular_dataset")

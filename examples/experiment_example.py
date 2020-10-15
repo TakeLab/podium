@@ -27,7 +27,7 @@ def numericalize_pauza_rating(rating):
 def basic_pauza_hr_fields():
     """Function returns pauza-hr fields used for classification."""
     rating = Field(name="Rating", vocab=Vocab(specials=()),
-                   is_target=True, tokenize=False, keep_raw=True,
+                   is_target=True, tokenizer=None, keep_raw=True,
                    custom_numericalize=numericalize_pauza_rating)
 
     text = Field(name="Text", vocab=Vocab(), tokenizer='split',
