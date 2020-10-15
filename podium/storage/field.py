@@ -815,39 +815,6 @@ class LabelField(Field):
                          )
 
 
-# class TokenizedField(Field):
-#     """Tokenized version of the Field. Holds the preprocessing and
-#     numericalization logic for the pre-tokenized dataset fields.
-#     """
-#
-#     def __init__(self,
-#                  name,
-#                  vocab=None,
-#                  eager=True,
-#                  custom_numericalize=None,
-#                  batch_as_matrix=True,
-#                  padding_token=-999,
-#                  is_target=False,
-#                  fixed_length=None,
-#                  allow_missing_data=False,
-#                  missing_data_token=-1):
-#         super().__init__(
-#             name=name,
-#             vocab=vocab,
-#             keep_raw=False,
-#             tokenizer=None,
-#             store_as_tokenized=True,
-#             eager=eager,
-#             custom_numericalize=custom_numericalize,
-#             batch_as_matrix=batch_as_matrix,
-#             padding_token=padding_token,
-#             is_target=is_target,
-#             fixed_length=fixed_length,
-#             allow_missing_data=allow_missing_data,
-#             missing_data_token=missing_data_token
-#         )
-
-
 class MultilabelField(Field):
     """Class used for storing pre-tokenized labels.
     Used for multilabeled datasets.
