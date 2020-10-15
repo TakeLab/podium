@@ -610,15 +610,15 @@ class HierarchicalDatasetIterator(Iterator):
 
         if context_max_length is not None and context_max_length < 1:
             raise ValueError(
-                f"""'context_max_length' must not be less than 1. \
-                If you don't want context, try flattening the dataset. \
-                'context_max_length' : {context_max_length})"""
+                "'context_max_length' must not be less than 1. "
+                "If you don't want context, try flattening the dataset. "
+                f"'context_max_length' : {context_max_length})"
             )
 
         if context_max_depth is not None and context_max_depth < 0:
             raise ValueError(
-                f"""'context_max_depth' must not be negative. \
-                'context_max_depth' : {context_max_length}"""
+                "'context_max_depth' must not be negative. "
+                f"'context_max_depth' : {context_max_length}"
             )
 
         self._context_max_depth = context_max_depth

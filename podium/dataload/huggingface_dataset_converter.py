@@ -109,8 +109,8 @@ class _FeatureConverter:
 
         else:
             TypeError(
-                f"""Conversion for feature type {type(feature).__name__} \
-                is not supported"""
+                f"Conversion for feature type {type(feature).__name__} "
+                "is not supported"
             )
 
         # allow missing data for all fields except
@@ -164,8 +164,8 @@ class HuggingFaceDatasetConverter:
         """
         if not isinstance(dataset, datasets.Dataset):
             raise TypeError(
-                f"""Incorrect dataset type. Expected datasets.Dataset, \
-                but got {type(dataset).__name__}"""
+                "Incorrect dataset type. Expected datasets.Dataset, "
+                f"but got {type(dataset).__name__}"
             )
 
         self.dataset = dataset

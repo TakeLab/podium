@@ -110,10 +110,10 @@ def experiment_example():
     )
 
     print(
-        f"""Accuracy = {accuracy}\n\
-        Precision = {precision}\n\
-        Recall = {recall}\n\
-        F1 score = {f1}"""
+        f"Accuracy = {accuracy}\n"
+        f"Precision = {precision}\n"
+        f"Recall = {recall}\n"
+        f"F1 score = {f1}"
     )
 
     experiment.fit(train_dataset)

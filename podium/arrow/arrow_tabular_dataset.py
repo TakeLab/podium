@@ -290,9 +290,9 @@ class ArrowDataset:
                     )
                 elif format in {"csv", "tsv"} and isinstance(fields, dict):
                     raise ValueError(
-                        f"""When using a dict to specify fields with a {format} \
-                        file, skip_header must be False and the file must \
-                        have a header."""
+                        f"When using a dict to specify fields with a {format} "
+                        "file, skip_header must be False and the file must "
+                        "have a header."
                     )
 
                 # skipping the header
@@ -539,8 +539,8 @@ class ArrowDataset:
         """
         if cache_path == self.cache_path:
             raise ValueError(
-                f"""Cache path same as datasets cache path. \
-                Dataset can't overwrite its own cache. Cache path: {cache_path}"""
+                "Cache path same as datasets cache path. "
+                f"Dataset can't overwrite its own cache. Cache path: {cache_path}"
             )
 
         if cache_path is None:

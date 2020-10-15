@@ -96,14 +96,15 @@ class GloVe(BasicVectorStorage):
         """
         if name not in GloVe.NAME_URL_MAPPING.keys():
             raise ValueError(
-                f"""Given name not supported, supported names are \
-                {GloVe.NAME_URL_MAPPING.keys()}"""
+                "Given name not supported, supported names are "
+                f"{GloVe.NAME_URL_MAPPING.keys()}"
             )
         if dim not in GloVe.NAME_DIM_MAPPING[name]:
             raise ValueError(
-                f"""Unsupported dimension for given glove instance, \
-                {name} GloVe instance has following supported dimensions \
-                {GloVe.NAME_DIM_MAPPING[name]}"""
+                "Unsupported dimension for given glove instance, "
+                f"{name} GloVe instance has following supported dimensions "
+                f"{GloVe.NAME_DIM_MAPPING[name]}"
+                ""
             )
 
         url = GloVe.NAME_URL_MAPPING[name]

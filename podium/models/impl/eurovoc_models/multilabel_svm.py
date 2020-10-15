@@ -115,23 +115,19 @@ class MultilabelSVM(AbstractSupervisedModel):
         """
         if cutoff < 1:
             raise ValueError(
-                f"""cutoff must be a positive integer >= 1, but \
-                {cutoff} was given"""
+                "cutoff must be a positive integer >= 1, but " f"{cutoff} was given"
             )
         if n_jobs < -1 or n_jobs == 0:
             raise ValueError(
-                f"""n_jobs must be a postivive integer or -1, but \
-                {n_jobs} was given"""
+                "n_jobs must be a postivive integer or -1, but " f"{n_jobs} was given"
             )
         if n_splits < 1:
             raise ValueError(
-                f"""n_splits must be a positive integer >= 1, but \
-                {n_splits} was given"""
+                "n_splits must be a positive integer >= 1, but " f"{n_splits} was given"
             )
         if max_iter < 1:
             raise ValueError(
-                f"""max_iter must be a positive integer >= 1, but \
-                {max_iter} was given"""
+                "max_iter must be a positive integer >= 1, but " f"{max_iter} was given"
             )
 
         y = np.ndarray.transpose(y)  # Returns a transposed view of the y matrix
@@ -149,9 +145,9 @@ class MultilabelSVM(AbstractSupervisedModel):
                 self._missing_indexes.add(i)
 
                 _LOGGER.debug(
-                    f"""Label at index {i} doesn't have enough instances in the \
-                    train set, a model won't be trained for this label. \
-                    Number of instances: {num_examples}, cutoff {cutoff}"""
+                    f"Label at index {i} doesn't have enough instances in the "
+                    "train set, a model won't be trained for this label. "
+                    f"Number of instances: {num_examples}, cutoff {cutoff}"
                 )
                 continue
 

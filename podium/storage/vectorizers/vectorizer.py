@@ -34,8 +34,8 @@ def zeros_default_vector(token, dim):
     """
     if dim is None:
         raise ValueError(
-            f"""Can't create zeros default vector with dimension \
-            "equal to None. Given token= {token}, dim={dim}"""
+            "Can't create zeros default vector with dimension "
+            f"equal to None. Given token= {token}, dim={dim}"
         )
     return np.zeros(dim)
 
@@ -58,8 +58,8 @@ def random_normal_default_vector(token, dim):
     """
     if dim is None:
         raise ValueError(
-            f"""Can't create random normal vector with dimension \
-            "equal to None. Given token={token}, dim={dim}"""
+            "Can't create random normal vector with dimension "
+            f"equal to None. Given token={token}, dim={dim}"
         )
     return np.random.randn(dim)
 
@@ -380,10 +380,10 @@ class BasicVectorStorage(VectorStorage):
                 # https://radimrehurek.com/gensim/scripts/glove2word2vec.html
                 elif self._dim != len(vector_entry):
                     raise RuntimeError(
-                        f"""Vector for token {word} has {len(vector_entry)} \
-                        dimensions, but previously read vectors have \
-                        {self._dim} dimensions. All \
-                        vectors must have the same number of dimensions."""
+                        f"Vector for token {word} has {len(vector_entry)} "
+                        "dimensions, but previously read vectors have "
+                        f"{self._dim} dimensions. All "
+                        "vectors must have the same number of dimensions."
                     )
 
                 if self._binary:

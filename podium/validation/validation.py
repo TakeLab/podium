@@ -207,8 +207,8 @@ def k_fold_classification_metrics(
     """
     if average not in ("micro", "macro", "weighted", "binary"):
         raise ValueError(
-            f"""`average` parameter must be either `micro`, `macro`, `weighted` \
-            or `binary`. Provided value: '{average}'"""
+            "`average` parameter must be either `micro`, `macro`, `weighted` "
+            f"or `binary`. Provided value: '{average}'"
         )
 
     def scorer(y_true, y_pred):

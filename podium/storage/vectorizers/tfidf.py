@@ -161,8 +161,8 @@ class CountVectorizer:
 
         if field and field.allow_missing_data:
             raise ValueError(
-                f"""CountVectorizer doesn't support fields that \
-                contain missing data: {dataset}, field: {field}"""
+                "CountVectorizer doesn't support fields that "
+                f"contain missing data: {dataset}, field: {field}"
             )
 
         self._vocab = field.vocab if self._vocab is None else self._vocab
@@ -280,8 +280,8 @@ class TfIdfVectorizer(CountVectorizer):
         super(TfIdfVectorizer, self).fit(dataset=dataset, field=field)
         if dataset is None or field is None:
             raise ValueError(
-                f"""dataset or field mustn't be None, given dataset: \
-                {dataset}, field: {field}"""
+                "dataset or field mustn't be None, given dataset: "
+                f"{dataset}, field: {field}"
             )
         if field.name not in dataset.field_dict:
             raise ValueError(f"invalid field, given field: {field}")
