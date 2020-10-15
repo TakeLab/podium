@@ -3,7 +3,7 @@ import logging
 import itertools
 from collections import deque
 from collections.abc import Iterator
-from typing import Optional
+from typing import Optional, List, Tuple, Any, Union, Callable, Iterable
 
 import numpy as np
 
@@ -12,6 +12,13 @@ from podium.storage.vocab import Vocab
 from podium.util import log_and_raise_error
 
 _LOGGER = logging.getLogger(__name__)
+
+# Type definitions to make type hints more readable
+pretok_hook_type = Callable[[Any], Any]
+posttok_hook_type = Callable[[Any, List[str]], Tuple[Any, List[str]]]
+tokenizer_type = Callable[[Any], List[str]]
+tokenizer_arg_type = Optional[Union[str, tokenizer_type]]
+numericalizer_type = Callable[[str], Union[int, float]]
 
 
 class PretokenizationPipeline:
@@ -68,31 +75,25 @@ class MultioutputField:
     for posttokenization processing (posttokenization hooks and vocab updating)."""
 
     def __init__(self,
-                 output_fields,
-                 tokenizer='split'):
+                 output_fields: List["Field"],
+                 tokenizer: tokenizer_arg_type = 'split'):
         """Field that does pretokenization and tokenization once and passes it to its
         output fields. Output fields are any type of field. The output fields are used
         only for posttokenization processing (posttokenization hooks and vocab updating).
 
         Parameters
         ----------
-         output_fields : iterable
-            iterable containig the output fields. The pretokenization hooks and tokenizer
+         output_fields : List[Field],
+            List containig the output fields. The pretokenization hooks and tokenizer
             in these fields are ignored and only posttokenization hooks are used.
-         tokenizer : str | callable
+         tokenizer : Optional[Union[str, Callable]]
             The tokenizer that is to be used when preprocessing raw data
             (only if 'tokenize' is True). The user can provide his own
             tokenizer as a callable object or specify one of the premade
             tokenizers by a string. The available premade tokenizers are:
                 - 'split' - default str.split()
-                - 'spacy' - the spacy tokenizer, using the 'en' language
-                model by default (unless the user provides a different
-                'language' parameter)
-
-        language : str
-            The language argument for the tokenizer (if necessary, e. g. for
-            spacy).
-            Default is 'en'.
+                - 'spacy-lang' - the spacy tokenizer. The language model can be defined
+                by replacing `lang` with the language model name. For example `spacy-en`
         """
 
         self._tokenizer_arg = tokenizer
@@ -100,7 +101,7 @@ class MultioutputField:
         self.tokenizer = get_tokenizer(tokenizer)
         self.output_fields = deque(output_fields)
 
-    def add_pretokenize_hook(self, hook):
+    def add_pretokenize_hook(self, hook: pretok_hook_type):
         """Add a pre-tokenization hook to the MultioutputField.
         If multiple hooks are added to the field, the order of their execution
         will be the same as the order in which they were added to the field,
@@ -121,29 +122,29 @@ class MultioutputField:
 
         Parameters
         ----------
-        hook : callable
+        hook : Callable[[Any], Any]
             The pre-tokenization hook that we want to add to the field.
         """
         self.pretokenization_pipeline.add_hook(hook)
 
-    def _run_pretokenization_hooks(self, data):
+    def _run_pretokenization_hooks(self, data: Any) -> Any:
         """Runs pretokenization hooks on the raw data and returns the result.
 
         Parameters
         ----------
-        data : hashable
+        data : Any
             data to be processed
 
         Returns
         -------
-        hashable
+        Any
             processed data
 
         """
 
         return self.pretokenization_pipeline(data)
 
-    def add_output_field(self, field):
+    def add_output_field(self, field: "Field"):
         """
         Adds the passed field to this field's output fields.
 
@@ -154,19 +155,39 @@ class MultioutputField:
         """
         self.output_fields.append(field)
 
-    def preprocess(self, data):
+    def preprocess(self, data: Any) -> Iterable[Tuple[str, Tuple[Optional[Any], Any]]]:
+        """Preprocesses raw data, tokenizing it if required. The outputfields update their
+         vocabs if required and preserve the raw data if the output field's
+         'keep_raw' is true.
+
+        Parameters
+        ----------
+        data : Any
+            The raw data that needs to be preprocessed.
+
+        Returns
+        -------
+        Iterable[Tuple[str, Tuple[Optional[Any], Any]]]
+            An Iterable containing the raw and tokenized data of all the output fields.
+            The structure of the returned tuples is (name, (raw, tokenized)), where 'name'
+            is the name of the output field and raw and tokenized are processed data.
+
+        Raises
+        ------
+            If data is None and missing data is not allowed.
+        """
         data = self._run_pretokenization_hooks(data)
         tokens = self.tokenizer(data) if self.tokenizer is not None \
             else data
         return tuple(field._process_tokens(data, tokens) for field in self.output_fields)
 
-    def get_output_fields(self):
+    def get_output_fields(self) -> Iterable["Field"]:
         """
         Returns an Iterable of the contained output fields.
 
         Returns
         -------
-        Iterable :
+        Iterable[Field] :
             an Iterable of the contained output fields.
         """
         return self.output_fields
@@ -183,18 +204,19 @@ class Field:
     """
 
     def __init__(self,
-                 name,
-                 tokenizer='split',
-                 keep_raw=False,
-                 numericalizer=None,  # TODO Better arg name?
-                 is_target=False,
-                 fixed_length=None,
-                 allow_missing_data=False,
-                 disable_batch_matrix=False,
-                 padding_token=-999,
-                 missing_data_token=-1,
-                 pretokenize_hooks=(),
-                 posttokenize_hooks=()
+                 name: str,
+                 tokenizer: tokenizer_arg_type = 'split',
+                 keep_raw: bool = False,
+                 # TODO Better arg name?
+                 numericalizer: Optional[Union[Vocab, numericalizer_type]] = None,
+                 is_target: bool = False,
+                 fixed_length: Optional[int] = None,
+                 allow_missing_data: bool = False,
+                 disable_batch_matrix: bool = False,
+                 padding_token: Union[int, float] = -999,
+                 missing_data_token: Any = -1,
+                 pretokenize_hooks: Iterable[pretok_hook_type] = (),
+                 posttokenize_hooks: Iterable[posttok_hook_type] = ()
                  ):
         """Create a Field from arguments.
 
@@ -202,100 +224,79 @@ class Field:
         ----------
         name : str
             Field name, used for referencing data in the dataset.
+
         tokenizer : str | callable
-            The tokenizer that is to be used when preprocessing raw data
-            (only if 'tokenize' is True). The user can provide his own
-            tokenizer as a callable object or specify one of the premade
-            tokenizers by a string. The available premade tokenizers are:
-                - 'split' - default str.split()
-                - 'spacy' - the spacy tokenizer, using the 'en' language
-                model by default (unless the user provides a different
-                'language' parameter)
-        language : str
-            The language argument for the tokenizer (if necessary, e. g. for
-            spacy).
-            Default is 'en'.
-        vocab : Vocab
-            A vocab that this field will update after preprocessing and
-            use to numericalize data.
-            If None, the field won't use a vocab, in which case a custom
-            numericalization function has to be given.
-            Default is None.
-        tokenize : bool
-            Whether the data should be tokenized when being preprocessed.
-            If True, the raw data will be run through the pretokenize hooks,
-            tokenized using the tokenizer, run through the posttokenize hooks
-            and then stored in the 'tokenized' part of the example tuple.
-            If True, 'store_as_tokenized' must be False.
+            The tokenizer that is to be used when preprocessing raw data.
+            The user can provide his own tokenizer as a callable object or specify one of
+            the registered tokenizers by a string. The available pre-registered tokenizers
+             are:
+                - 'split' - default str.split(). Custom separator can be provided as
+                `split-sep` where `sep` is the separator string.
+                - 'spacy-lang' - the spacy tokenizer. The language model can be defined
+                by replacing `lang` with the language model name. For example `spacy-en`.
+            If None, the data will not be tokenized and post-tokenization hooks wont be
+            called. The provided data will be stored in the `tokenized` data field as-is.
+
         keep_raw : bool
             Whether to store untokenized preprocessed data.
             If True, the raw data will be run trough the provided pretokenize
             hooks and stored in the 'raw' part of the example tuple.
-            If True, 'store_as_tokenized' must be False.
-        store_as_tokenized : bool
-            Whether to store the data as tokenized.
-            If True, the raw data will be run through the provided posttokenize
-            hooks and stored in the 'tokenized' part of the example tuple.
-            If True, store_raw and tokenize must be False.
-        eager : bool
-            Whether to build the vocabulary online, each time the field
-            preprocesses raw data.
-        is_numericalizable : bool
-            Whether the output of tokenizer can be numericalized.
 
-            If true, the output of the tokenizer is presumed to be a list of tokens and
-            will be numericalized using the provided Vocab or custom_numericalize.
-            For numericalizable fields, Iterator will generate batch fields containing
-            numpy matrices.
+        numericalizer : callable
+            Object used to numericalize tokens.
+            Can either be a Vocab, a custom numericalization callable or None.
+            If it's a Vocab, this field will update it after preprocessing (or during
+            finalization if eager is False) and use it to numericalize data. Also, the
+            Vocab's padding token will be used instead of the Field's.
+            If it's a Callable, It will be used to numericalize data token by token.
+            If None, numericalization won't be attempted and batches will be created as
+            lists instead of numpy matrices.
 
-            If false, the output of the tokenizer is presumed to be a custom datatype.
-            Posttokenization hooks aren't allowed to be added as they can't be called
-            on custom datatypes. For non-numericalizable fields, Iterator will generate
-            batch fields containing lists of these custom data type instances returned
-            by the tokenizer.
-        custom_numericalize : callable
-            The numericalization function that will be called if the field
-            doesn't use a vocabulary. If using custom_numericalize and padding is
-            required, please ensure that the `missing_data_token` is of the same type
-            as the value returned by custom_numericalize.
-        batch_as_matrix: bool
-            Whether the batch created for this field will be compressed into a matrix.
-            This parameter is ignored if is_numericalizable is set to False.
-            If True, the batch returned by an Iterator or Dataset.batch() will contain
-            a matrix of numericalizations for all examples.
-            If False, a list of unpadded vectors will be returned instead. For missing
-            data, the value in the list will be None.
-        padding_token : int
-            If custom_numericalize is provided and padding the batch matrix is needed,
-            this token is used to pad the end of the matrix row.
-            If custom_numericalize is None, this is ignored.
-        is_target : bool
+         is_target : bool
             Whether this field is a target variable. Affects iteration over
-            batches. Default: False.
+            batches.
+
         fixed_length : int, optional
             To which length should the field be fixed. If it is not None every
-            example in the field will be truncated or padded to given length.
-            Default: None.
+            example in the field will be truncated or padded to given length
+            during batching. If the batched data is not a vector, this parameter is
+            ignored.
+
         allow_missing_data : bool
             Whether the field allows missing data. In the case 'allow_missing_data'
-            is false and None is sent to be preprocessed, an ValueError will be raised.
+            is False and None is sent to be preprocessed, an ValueError will be raised.
             If 'allow_missing_data' is True, if a None is sent to be preprocessed, it will
             be stored and later numericalized properly.
-            Default: False
-        missing_data_token : number
+
+        disable_batch_matrix: bool
+            Whether the batch created for this field will be compressed into a matrix.
+            If False, the batch returned by an Iterator or Dataset.batch() will contain
+            a matrix of numericalizations for all examples (if possible).
+            If True, a list of unpadded vectors(or other data type) will be returned
+            instead. For missing data, the value in the list will be None.
+
+        padding_token : int
+            Padding token used when numericalizer is a callable. If the numericalizer is
+            None or a Vocab, this value is ignored.
+
+        missing_data_token : Union[int, float]
             Token to use to mark batch rows as missing. If data for a field is missing,
             its matrix row will be filled with this value. For non-numericalizable fields,
             this parameter is ignored and the value will be None.
-            If using custom_numericalize and padding is required, please ensure that
-            the `missing_data_token` is of the same type as the value returned by
-            custom_numericalize.
-            Default: -1
+
+        pretokenize_hooks: Iterable[Callable[[Any], Any]]
+            Iterable containing pretokenization hooks. Providing hooks in this way is
+            identical to calling `add_pretokenize_hook`.
+
+        posttokenize_hooks: Iterable[Callable[[Any, List[str]], Tuple[Any, List[str]]]]
+            Iterable containing posttokenization hooks. Providing hooks in this way is
+            identical to calling `add_posttokenize_hook`.
 
         Raises
         ------
         ValueError
             If the given tokenizer is not a callable or a string, or is a
-            string that doesn't correspond to any of the premade tokenizers.
+            string that doesn't correspond to any of the registered tokenizers.
         """
 
         self.name = name
@@ -635,7 +636,7 @@ class Field:
             return np.array([self.numericalizer(t) for t in tokens])
 
     def pad_to_length(self, array, length, custom_pad_symbol=None,
-                       pad_left=False, truncate_left=False):
+                      pad_left=False, truncate_left=False):
         """Either pads the given row with pad symbols, or truncates the row
         to be of given length. The vocab provides the pad symbol for all
         fields that have vocabs, otherwise the pad symbol has to be given as
