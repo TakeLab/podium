@@ -3,7 +3,7 @@ import math
 import logging
 
 from random import Random
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 import numpy as np
 
 from podium.datasets.dataset import Dataset
@@ -190,8 +190,9 @@ class Iterator:
 
         for i in range(0, len(data), self.batch_size):
             batch_dataset = data[i: i + self.batch_size]
+            batch_dataset = batch_dataset.as_dataset()
+            yield self._create_batch(batch_dataset)
             self.iterations += 1
-            yield batch_dataset.batch()
 
         # prepare for new epoch
         self.iterations = 0
@@ -222,75 +223,20 @@ class Iterator:
             if len(numericalizations) > 0 \
                     and not field.disable_batch_matrix \
                     and possible_cast_to_matrix:
-                return Iterator._arrays_to_matrix(field, numericalizations)
+                batch = Iterator._arrays_to_matrix(field, numericalizations)
 
             else:
-                return numericalizations
+                batch = numericalizations
 
-        # for field in self.dataset.fields:
-        #     if field.is_numericalizable and field.batch_as_matrix:
-        #         # If this field is numericalizable, generate a possibly padded matrix
-        #
-        #         # the length to which all the rows are padded (or truncated)
-        #         pad_length = Iterator._get_pad_length(field, examples)
-        #
-        #         # the last batch can have < batch_size examples
-        #         n_rows = min(self.batch_size, len(examples))
-        #
-        #         # empty matrix to be filled with numericalized fields
-        #         matrix = None  # np.empty(shape=(n_rows, pad_length))
-        #
-        #         # non-sequential fields all have length = 1, no padding necessary
-        #         should_pad = True if field.is_sequential else False
-        #
-        #         for i, example in enumerate(examples):
-        #
-        #             # Get cached value
-        #             data = field.get_numericalization_for_example(example)
-        #
-        #             if data is None:
-        #                 # If data is missing, fill row with missing data symbol indexes
-        #                 missing_data_symbol_index = field.get_default_value()
-        #                 # TODO cache missing data
-        #                 #      row for batch to avoid multiple instantiations?
-        #
-        #                 if matrix is None:
-        #                     # Create matrix of the correct dtype
-        #                     matrix = np.empty(shape=(n_rows, pad_length),
-        #                                       dtype=type(missing_data_symbol_index))
-        #
-        #                 matrix[i] = missing_data_symbol_index
-        #
-        #             else:
-        #                 row = data
-        #                 if should_pad:
-        #                     row = field.pad_to_length(row, pad_length)
-        #
-        #                 if matrix is None:
-        #                     # Create matrix of the correct dtype
-        #                     matrix = np.empty(shape=(n_rows, pad_length),
-        #                                       dtype=row.dtype)
-        #
-        #                 # set the matrix row to the numericalized, padded array
-        #                 matrix[i] = row
-        #
-        #         batch_feature = matrix
-        #
-        #     else:
-        #         # if the field is not representable as a matrix return a list of
-        #         # "tokens", which can be any data structure
-        #         batch_feature = [field.get_numericalization_for_example(example)
-        #                          for example in examples]
-        #
-        #     if field.is_target:
-        #         target_batch_dict[field.name] = batch_feature
-        #     else:
-        #         input_batch_dict[field.name] = batch_feature
-        #
-        # input_batch = self.input_batch_class(**input_batch_dict)
-        # target_batch = self.target_batch_class(**target_batch_dict)
-        #
-        # return input_batch, target_batch
+            if field.is_target:
+                target_batch_dict[field.name] = batch
+            else:
+                input_batch_dict[field.name] = batch
+
+        input_batch = self.input_batch_class(**input_batch_dict)
+        target_batch = self.target_batch_class(**target_batch_dict)
+
+        return input_batch, target_batch
 
     def get_internal_random_state(self):
         """Returns the internal random state of the iterator.
@@ -347,7 +293,7 @@ class Iterator:
 
     @staticmethod
     def _arrays_to_matrix(field, arrays):
-        pad_length = Iterator._get_pad_length(arrays)
+        pad_length = Iterator._get_pad_length(field, arrays)
         padded_arrays = [field.pad_to_length(a, pad_length) for a in arrays]
         return np.array(padded_arrays)
 
@@ -431,11 +377,6 @@ class SingleBatchIterator(Iterator):
     def __len__(self):
         return 1
 
-    def __iter__(self):
-        yield self._dataset.batch()
-
-        self.epoch += 1
-
 
 class BucketIterator(Iterator):
     """Creates a bucket iterator that uses a look-ahead heuristic to try and
@@ -506,20 +447,20 @@ class BucketIterator(Iterator):
         iter
             Iterator that iterates over batches of examples in the dataset.
         """
-        data = self._data()
         step = self.batch_size * self.look_ahead_multiplier
+        dataset = self._dataset
+        if self.sort_key is not None:
+            dataset = dataset.sorted(key=self.sort_key
+                                     )
+        for i in range(0, len(dataset), step):
+            bucket = dataset[i: i + step]
 
-        for i in range(0, len(data), step):
             if self.bucket_sort_key is not None:
-                bucket = sorted(data[i: i + step], key=self.bucket_sort_key)
-            else:
-                # if bucket_sort_key is None, sort_key != None so the whole
-                # dataset was already sorted with sort_key
-                bucket = data[i: i + step]
+                bucket = bucket.sorted(key=self.bucket_sort_key)
 
             for j in range(0, len(bucket), self.batch_size):
-                examples = bucket[j: j + self.batch_size]
-                input_batch, target_batch = self._create_batch(examples)
+                batch_dataset = bucket[j: j + self.batch_size]
+                input_batch, target_batch = self._create_batch(batch_dataset)
 
                 yield input_batch, target_batch
                 self.iterations += 1
@@ -691,44 +632,23 @@ class HierarchicalDatasetIterator(Iterator):
 
         """
 
-        input_batch_dict, target_batch_dict = {}, {}
+        input_batch_dict, target_batch_dict = defaultdict(list), defaultdict(list)
 
-        for field in self._dataset.fields:
-            # list of matrices containing numericalized contexts for the current field
-            field_contextualized_example_matrices = []
+        for node in nodes:
+            # all examples that make up the current node's context
+            node_context_examples = self._get_node_context(node)
+            node_context_dataset = Dataset(node_context_examples,
+                                           self._dataset.fields)
+            input_sub_batch, target_sub_batch = \
+                super()._create_batch(node_context_dataset)
 
-            for node in nodes:
+            for key in input_sub_batch._fields:
+                value = getattr(input_sub_batch, key)
+                input_batch_dict[key].append(value)
 
-                # all examples that make up the current node's context
-                node_context_examples = self._get_node_context(node)
-
-                # the length to which all the rows are padded (or truncated)
-                pad_length = Iterator._get_pad_length(field, node_context_examples)
-
-                # empty matrix to be filled with numericalized fields
-                n_rows = len(node_context_examples)
-                matrix = np.empty(shape=(n_rows, pad_length))
-
-                # non-sequential fields all have length = 1, no padding necessary
-                should_pad = True if field.is_sequential else False
-
-                for i, example in enumerate(node_context_examples):
-                    # Get cached value
-                    row = field.get_numericalization_for_example(example)
-
-                    if should_pad:
-                        row = field.pad_to_length(row, pad_length)
-
-                    # set the matrix row to the numericalized, padded array
-                    matrix[i] = row
-
-                field_contextualized_example_matrices.append(matrix)
-
-            if field.is_target:
-                target_batch_dict[field.name] = field_contextualized_example_matrices
-
-            else:
-                input_batch_dict[field.name] = field_contextualized_example_matrices
+            for key in target_sub_batch._fields:
+                value = getattr(target_sub_batch, key)
+                target_batch_dict[key].append(value)
 
         input_batch = self.input_batch_class(**input_batch_dict)
         target_batch = self.target_batch_class(**target_batch_dict)
@@ -756,6 +676,18 @@ class HierarchicalDatasetIterator(Iterator):
             dataset_nodes.sort(key=lambda node: self.sort_key(node.example))
 
         return dataset_nodes
+
+    def __iter__(self):
+        dataset_nodes = self._data()
+
+        for i in range(0, len(dataset_nodes), self.batch_size):
+            batch_nodes = dataset_nodes[i: i + self.batch_size]
+            yield self._create_batch(batch_nodes)
+            self.iterations += 1
+
+        # prepare for new epoch
+        self.iterations = 0
+        self.epoch += 1
 
     def __repr__(self):
         return "{}[batch_size: {}, batch_to_matrix: {}, sort_key: {}, " \
