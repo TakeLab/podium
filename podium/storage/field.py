@@ -545,7 +545,7 @@ class Field:
             self.vocab.finalize()
 
     def _process_tokens(self, raw: Any, tokens: Union[Any, List[str]]) \
-            -> Tuple[str, Tuple[Any, Optional[Any, List[str]]]]:
+            -> Tuple[str, Tuple[Any, Optional[Union[Any, List[str]]]]]:
         """Runs posttokenization processing on the provided data and tokens and updates
         the vocab if needed. Used by Multioutput field.
 
@@ -592,7 +592,7 @@ class Field:
         return self.missing_data_token
 
     def numericalize(self, data: Tuple[Optional[Any], Optional[Union[Any, List[str]]]]) \
-            -> Optional[Any, np.ndarray]:
+            -> Optional[Union[Any, np.ndarray]]:
         """Numericalize the already preprocessed data point based either on
         the vocab that was previously built, or on a custom numericalization
         function, if the field doesn't use a vocab.
