@@ -225,7 +225,7 @@ class Field:
         name : str
             Field name, used for referencing data in the dataset.
 
-        tokenizer : str | callable
+        tokenizer : str | callable | optional
             The tokenizer that is to be used when preprocessing raw data.
             The user can provide his own tokenizer as a callable object or specify one of
             the registered tokenizers by a string. The available pre-registered tokenizers
@@ -794,14 +794,56 @@ class Field:
 
 
 class LabelField(Field):
+    """Field subclass used when no tokenization is required. For example, with a field
+    that has a single value denoting a label.
+    """
+
     def __init__(self,
-                 name,
-                 numericalizer=None,
-                 allow_missing_data=False,
-                 is_target=True,
-                 missing_data_token=-1,
-                 label_processing_hooks=()
+                 name: str,
+                 numericalizer: tokenizer_arg_type = None,
+                 allow_missing_data: bool = False,
+                 is_target: bool = True,
+                 missing_data_token: Union[int, float] = -1,
+                 label_processing_hooks: Iterable[pretok_hook_type] = ()
                  ):
+        """
+        Field subclass used when no tokenization is required. For example, with a field
+        that has a single value denoting a label.
+
+        Parameters
+        ----------
+        name : str
+            Field name, used for referencing data in the dataset.
+
+        numericalizer : callable
+            Object used to numericalize tokens.
+            Can either be a Vocab, a custom numericalization callable or None.
+            If it's a Vocab, this field will update it after preprocessing (or during
+            finalization if eager is False) and use it to numericalize data. Also, the
+            Vocab's padding token will be used instead of the Field's.
+            If it's a Callable, It will be used to numericalize data token by token.
+            If None, numericalization won't be attempted and batches will be created as
+            lists instead of numpy matrices.
+
+        allow_missing_data : bool
+            Whether the field allows missing data. In the case 'allow_missing_data'
+            is False and None is sent to be preprocessed, an ValueError will be raised.
+            If 'allow_missing_data' is True, if a None is sent to be preprocessed, it will
+            be stored and later numericalized properly.
+
+        is_target : bool
+            Whether this field is a target variable. Affects iteration over
+            batches.
+
+        missing_data_token : Union[int, float]
+            Token to use to mark batch rows as missing. If data for a field is missing,
+            its matrix row will be filled with this value. For non-numericalizable fields,
+            this parameter is ignored and the value will be None.
+
+        label_processing_hooks: Iterable[Callable[[Any], Any]]
+            Iterable containing pretokenization hooks. Providing hooks in this way is
+            identical to calling `add_pretokenize_hook`.
+        """
         if numericalizer is None:
             # Default to a vocabulary if custom numericalize is not set
             numericalizer = Vocab(specials=())
@@ -825,8 +867,8 @@ class LabelField(Field):
 
 
 class MultilabelField(Field):
-    """Class used for storing pre-tokenized labels.
-    Used for multilabeled datasets.
+    """Field subclass used to get multihot encoded vectors in batches.
+    Used in cases when a field can have multiple classes active at a time.
     """
 
     def __init__(self,
@@ -846,55 +888,55 @@ class MultilabelField(Field):
         name : str
             Field name, used for referencing data in the dataset.
 
+         tokenizer : str | callable | optional
+            The tokenizer that is to be used when preprocessing raw data.
+            The user can provide his own tokenizer as a callable object or specify one of
+            the registered tokenizers by a string. The available pre-registered tokenizers
+             are:
+                - 'split' - default str.split(). Custom separator can be provided as
+                `split-sep` where `sep` is the separator string.
+                - 'spacy-lang' - the spacy tokenizer. The language model can be defined
+                by replacing `lang` with the language model name. For example `spacy-en`.
+            If None, the data will not be tokenized and post-tokenization hooks wont be
+            called. The provided data will be stored in the `tokenized` data field as-is.
+
+        numericalizer : callable
+            Object used to numericalize tokens.
+            Can either be a Vocab, a custom numericalization callable or None.
+            If it's a Vocab, this field will update it after preprocessing (or during
+            finalization if eager is False) and use it to numericalize data. The Vocab
+            must not contain any special symbols (like PAD or UNK).
+            If it's a Callable, It will be used to numericalize data token by token.
+            If None, numericalization won't be attempted and batches will be created as
+            lists instead of numpy matrices.
+
         num_of_classes : int, optional
             Number of valid classes.
             Also defines size of the numericalized vector.
             If none, size of the vocabulary is used.
 
-        vocab : Vocab
-            A vocab that this field will update after preprocessing and
-            use to numericalize data.
-            If None, the field won't use a vocab, in which case a custom
-            numericalization function has to be given.
-            Default is None.
+         is_target : bool
+            Whether this field is a target variable. Affects iteration over
+            batches.
 
-        eager : bool
-            Whether to build the vocabulary online, each time the field
-            preprocesses raw data.
+         allow_missing_data : bool
+            Whether the field allows missing data. In the case 'allow_missing_data'
+            is False and None is sent to be preprocessed, an ValueError will be raised.
+            If 'allow_missing_data' is True, if a None is sent to be preprocessed, it will
+            be stored and later numericalized properly.
 
-        custom_numericalize : callable(str) -> int
-            Callable that takes a string and returns an int.
-            Used to index classes.
+        missing_data_token : Union[int, float]
+            Token to use to mark batch rows as missing. If data for a field is missing,
+            its matrix row will be filled with this value. For non-numericalizable fields,
+            this parameter is ignored and the value will be None.
 
-        batch_as_matrix: bool
-            Whether the batch created for this field will be compressed into a
-            matrix. This parameter is ignored if is_numericalizable is set to
-            False.
-            If True, the batch returned by an Iterator or Dataset.batch() will
-            contain a matrix of numericalizations for all examples.
-            If False, a list of unpadded vectors will be returned instead.
-            For missing data, the value in the list will be None.
+        pretokenize_hooks: Iterable[Callable[[Any], Any]]
+            Iterable containing pretokenization hooks. Providing hooks in this way is
+            identical to calling `add_pretokenize_hook`.
 
-        allow_missing_data : bool
-            Whether the field allows missing data.
-            In the case 'allow_missing_data'
-            is false and None is sent to be preprocessed, an ValueError
-            will be raised. If 'allow_missing_data' is True, if a None is sent to
-            be preprocessed, it will be stored and later numericalized properly.
-            If the field is sequential the numericalization
-            of a missing data field will be an empty numpy Array,
-            else the numericalization will be a numpy Array
-            containing a single np.Nan ([np.Nan])
-            Default: False
-
-        missing_data_token : number
-            Token to use to mark batch rows as missing. If data for a field is
-            missing, its matrix row will be filled with this value.
-            For non-numericalizable fields, this parameter is ignored and the
-            value will be None. If using custom_numericalize and padding is
-            required, please ensure that the `missing_data_token` is of the same
-            type as the value returned by custom_numericalize.
-            Default: -1
+        posttokenize_hooks: Iterable[Callable[[Any, List[str]], Tuple[Any, List[str]]]]
+            Iterable containing posttokenization hooks. Providing hooks in this way is
+            identical to calling `add_posttokenize_hook`.
 
         Raises
         ------
@@ -925,6 +967,8 @@ class MultilabelField(Field):
                          )
 
     def finalize(self):
+        """Signals that this field's vocab can be built.
+        """
         super().finalize()
         if self.num_of_classes is None:
             self.fixed_length = self.num_of_classes = len(self.vocab)
@@ -935,10 +979,12 @@ class MultilabelField(Field):
                         f"Actual: {len(self.vocab)}"
             log_and_raise_error(ValueError, _LOGGER, error_msg)
 
-    def numericalize(self, data):
+    def numericalize(self, data: Tuple[Optional[Any], Optional[Union[Any, List[str]]]]) \
+            -> np.ndarray:
         """Numericalize the already preprocessed data point based either on
         the vocab that was previously built, or on a custom numericalization
-        function, if the field doesn't use a vocab.
+        function, if the field doesn't use a vocab. Returns a numpy array containing
+        a multihot encoded vector of num_of_classes length.
 
         Parameters
         ----------
@@ -950,8 +996,7 @@ class MultilabelField(Field):
         Returns
         -------
         numpy array
-            Array of stoi indexes of the tokens, if data exists.
-            None, if data is missing and missing data is allowed.
+            One-hot encoded vector of `num_of_classes` length.
 
         Raises
         ------
