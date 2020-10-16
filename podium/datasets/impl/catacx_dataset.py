@@ -1,7 +1,7 @@
 import os
 
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
-from podium.storage import Field, MultilabelField, Vocab, ExampleFactory
+from podium.storage import ExampleFactory, Field, MultilabelField, Vocab
 
 
 class CatacxDataset(HierarchicalDataset):
@@ -65,7 +65,7 @@ class CatacxDataset(HierarchicalDataset):
         fields = fields if fields else CatacxDataset.get_default_fields()
         parser = CatacxDataset._get_catacx_parser()
 
-        with open(path, mode='r') as f:
+        with open(path, mode="r") as f:
             ds_str = f.read()
 
         return HierarchicalDataset.from_json(ds_str, fields, parser)
@@ -81,11 +81,11 @@ class CatacxDataset(HierarchicalDataset):
             # of a node depending on the depth of the parent node.
             if depth == 0:
                 # children of root nodes are stored in the 'comments' field
-                children = raw.get('comments')
+                children = raw.get("comments")
 
             elif depth == 1:
                 # children of comments are stored in the 'replies' field
-                children = raw.get('replies')
+                children = raw.get("replies")
 
             else:
                 # posts don't have any children, so return an unit tuple
@@ -141,79 +141,101 @@ class CatacxDataset(HierarchicalDataset):
         #                  store_as_raw=True,
         #                  tokenizer=None)
 
-        sentiment_field = Field("sentiment",
-                                keep_raw=True,
-                                tokenizer=None,
-                                numericalizer=float,
-                                allow_missing_data=True)
+        sentiment_field = Field(
+            "sentiment",
+            keep_raw=True,
+            tokenizer=None,
+            numericalizer=float,
+            allow_missing_data=True,
+        )
 
-        likes_cnt_field = Field("likes_cnt",
-                                keep_raw=True,
-                                tokenizer=None,
-                                numericalizer=int)
+        likes_cnt_field = Field(
+            "likes_cnt", keep_raw=True, tokenizer=None, numericalizer=int
+        )
 
-        message_field = Field(name='message',
-                              numericalizer=Vocab(),
-                              keep_raw=False,
-                              tokenizer='split')
+        message_field = Field(
+            name="message", numericalizer=Vocab(), keep_raw=False, tokenizer="split"
+        )
 
-        spam_field = Field("spam",
-                           keep_raw=True,
-                           tokenizer=None,
-                           numericalizer=int,
-                           allow_missing_data=True)
+        spam_field = Field(
+            "spam",
+            keep_raw=True,
+            tokenizer=None,
+            numericalizer=int,
+            allow_missing_data=True,
+        )
 
-        emotions_field = MultilabelField("emotions",
-                                         numericalizer=Vocab(specials=()),
-                                         allow_missing_data=True,
-                                         num_of_classes=19)
+        emotions_field = MultilabelField(
+            "emotions",
+            numericalizer=Vocab(specials=()),
+            allow_missing_data=True,
+            num_of_classes=19,
+        )
 
-        irony_field = Field("irony",
-                            keep_raw=True,
-                            tokenizer=None,
-                            numericalizer=int,
-                            allow_missing_data=True)
+        irony_field = Field(
+            "irony",
+            keep_raw=True,
+            tokenizer=None,
+            numericalizer=int,
+            allow_missing_data=True,
+        )
 
-        speech_acts_field = MultilabelField("speech_acts",
-                                            numericalizer=Vocab(specials=()),
-                                            allow_missing_data=True,
-                                            num_of_classes=8)
+        speech_acts_field = MultilabelField(
+            "speech_acts",
+            numericalizer=Vocab(specials=()),
+            allow_missing_data=True,
+            num_of_classes=8,
+        )
 
-        topics_field = MultilabelField("topics",
-                                       numericalizer=Vocab(specials=()),
-                                       allow_missing_data=True,
-                                       num_of_classes=31)
+        topics_field = MultilabelField(
+            "topics",
+            numericalizer=Vocab(specials=()),
+            allow_missing_data=True,
+            num_of_classes=31,
+        )
 
-        cs_field = MultilabelField("cs",
-                                   numericalizer=Vocab(specials=()),
-                                   allow_missing_data=True,
-                                   num_of_classes=8)
+        cs_field = MultilabelField(
+            "cs",
+            numericalizer=Vocab(specials=()),
+            allow_missing_data=True,
+            num_of_classes=8,
+        )
 
-        pos_tag_field = Field("pos_tags",
-                              keep_raw=False,
-                              tokenizer=CatacxDataset.get_sentence_tokenizer("pos_tag"))
+        pos_tag_field = Field(
+            "pos_tags",
+            keep_raw=False,
+            tokenizer=CatacxDataset.get_sentence_tokenizer("pos_tag"),
+        )
 
-        lemma_field = Field("lemmas",
-                            keep_raw=False,
-                            tokenizer=CatacxDataset.get_sentence_tokenizer("lemma"))
+        lemma_field = Field(
+            "lemmas",
+            keep_raw=False,
+            tokenizer=CatacxDataset.get_sentence_tokenizer("lemma"),
+        )
 
-        parent_ids_field = Field("parent_ids",
-                                 keep_raw=False,
-                                 tokenizer=CatacxDataset
-                                 .get_sentence_tokenizer("parent_id"))
+        parent_ids_field = Field(
+            "parent_ids",
+            keep_raw=False,
+            tokenizer=CatacxDataset.get_sentence_tokenizer("parent_id"),
+        )
 
-        tokens_field = Field("tokens",
-                             keep_raw=False,
-                             tokenizer=CatacxDataset.get_sentence_tokenizer("token"))
+        tokens_field = Field(
+            "tokens",
+            keep_raw=False,
+            tokenizer=CatacxDataset.get_sentence_tokenizer("token"),
+        )
 
-        dependency_tags_field = Field("dependency_tags",
-                                      keep_raw=False,
-                                      tokenizer=CatacxDataset.get_sentence_tokenizer(
-                                          "dependency_tag"))
+        dependency_tags_field = Field(
+            "dependency_tags",
+            keep_raw=False,
+            tokenizer=CatacxDataset.get_sentence_tokenizer("dependency_tag"),
+        )
 
-        token_id_field = Field("id_tags",
-                               keep_raw=False,
-                               tokenizer=CatacxDataset.get_sentence_tokenizer("id"))
+        token_id_field = Field(
+            "id_tags",
+            keep_raw=False,
+            tokenizer=CatacxDataset.get_sentence_tokenizer("id"),
+        )
 
         return {
             "sentiment": sentiment_field,
@@ -225,6 +247,12 @@ class CatacxDataset(HierarchicalDataset):
             "speech_acts": speech_acts_field,
             "topics": topics_field,
             "cs": cs_field,
-            "sentences": (pos_tag_field, lemma_field, parent_ids_field, tokens_field,
-                          dependency_tags_field, token_id_field)
+            "sentences": (
+                pos_tag_field,
+                lemma_field,
+                parent_ids_field,
+                tokens_field,
+                dependency_tags_field,
+                token_id_field,
+            ),
         }

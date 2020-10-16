@@ -1,13 +1,16 @@
 """Package contains modules for storing and loading datasets and vectors."""
 
 from .example_factory import ExampleFactory, ExampleFormat
-from .field import Field, MultilabelField, MultioutputField, \
-    unpack_fields, LabelField
-from .resources.downloader import (BaseDownloader, SCPDownloader, HttpDownloader,
-                                   SimpleHttpDownloader)
+from .field import Field, LabelField, MultilabelField, MultioutputField, unpack_fields
+from .resources.downloader import (
+    BaseDownloader,
+    HttpDownloader,
+    SCPDownloader,
+    SimpleHttpDownloader,
+)
 from .resources.large_resource import LargeResource, SCPLargeResource
-from .vectorizers.vectorizer import VectorStorage, BasicVectorStorage
 from .vectorizers.tfidf import TfIdfVectorizer
+from .vectorizers.vectorizer import BasicVectorStorage, VectorStorage
 from .vocab import SpecialVocabSymbols, Vocab
 
 
@@ -19,8 +22,24 @@ from .vocab import SpecialVocabSymbols, Vocab
 # Function imports follow the same convention, but behind class imports.
 
 
-__all__ = ["BaseDownloader", "SCPDownloader", "HttpDownloader", "SimpleHttpDownloader",
-           "Field", "TokenizedField", "LabelField", "MultilabelField", "MultioutputField",
-           "unpack_fields", "LargeResource", "SCPLargeResource",
-           "VectorStorage", "BasicVectorStorage", "SpecialVocabSymbols", "Vocab",
-           "ExampleFactory", "ExampleFormat", "TfIdfVectorizer"]
+__all__ = [
+    "BaseDownloader",
+    "SCPDownloader",
+    "HttpDownloader",
+    "SimpleHttpDownloader",
+    "Field",
+    "TokenizedField",
+    "LabelField",
+    "MultilabelField",
+    "MultioutputField",
+    "unpack_fields",
+    "LargeResource",
+    "SCPLargeResource",
+    "VectorStorage",
+    "BasicVectorStorage",
+    "SpecialVocabSymbols",
+    "Vocab",
+    "ExampleFactory",
+    "ExampleFormat",
+    "TfIdfVectorizer",
+]

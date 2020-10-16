@@ -6,16 +6,20 @@ import functools
 import logging
 import os
 
-from podium.preproc.util import (capitalize_target_like_source,
-                                 uppercase_target_like_source)
-from podium.storage.resources.large_resource import (init_scp_large_resource_from_kwargs,
-                                                     SCPLargeResource)
-from podium.util import log_and_raise_error
+from podium.preproc.util import (
+    capitalize_target_like_source,
+    uppercase_target_like_source,
+)
+from podium.storage.resources.large_resource import (
+    SCPLargeResource,
+    init_scp_large_resource_from_kwargs,
+)
+
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class CroatianLemmatizer():
+class CroatianLemmatizer:
     """Class for lemmatizing words and fetching word
     inflections for a given lemma
 
@@ -46,15 +50,20 @@ class CroatianLemmatizer():
         self.__lemma2word_dict = None
 
         CroatianLemmatizer.MOLEX14_LEMMA2WORD = os.path.join(
-            SCPLargeResource.BASE_RESOURCE_DIR, self.MOLEX14_LEMMA2WORD)
+            SCPLargeResource.BASE_RESOURCE_DIR, self.MOLEX14_LEMMA2WORD
+        )
         CroatianLemmatizer.MOLEX14_WORD2LEMMA = os.path.join(
-            SCPLargeResource.BASE_RESOURCE_DIR, self.MOLEX14_WORD2LEMMA)
+            SCPLargeResource.BASE_RESOURCE_DIR, self.MOLEX14_WORD2LEMMA
+        )
 
         # automatically downloads molex resources
         # defaults should work for linux and access to djurdja.fer.hr
         init_scp_large_resource_from_kwargs(
-            resource=self.BASE_FOLDER, uri="/storage/molex/molex.zip", user_dict=kwargs,
-            archive="zip", scp_host="djurdja.takelab.fer.hr"
+            resource=self.BASE_FOLDER,
+            uri="/storage/molex/molex.zip",
+            user_dict=kwargs,
+            archive="zip",
+            scp_host="djurdja.takelab.fer.hr",
         )
 
     @capitalize_target_like_source
@@ -78,7 +87,7 @@ class CroatianLemmatizer():
             the original word
         """
         try:
-            none_if_oov = kwargs['none_if_oov']
+            none_if_oov = kwargs["none_if_oov"]
         except KeyError:
             none_if_oov = False
 
@@ -111,14 +120,10 @@ class CroatianLemmatizer():
             words = self._lemma2word[lemma.lower()]
             is_lower = lemma.islower()
             return [
-                w
-                if is_lower
-                else uppercase_target_like_source(lemma, w)
-                for w in words
+                w if is_lower else uppercase_target_like_source(lemma, w) for w in words
             ]
         except KeyError:
-            error_msg = f"No words found for lemma {lemma}"
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError(f"No words found for lemma {lemma}")
 
     @property
     def _word2lemma(self):
@@ -136,7 +141,7 @@ class CroatianLemmatizer():
 
     def _get_word2lemma_dict(self):
         molex_dict = {}
-        with open(self.MOLEX14_WORD2LEMMA, encoding='utf-8') as fp_word:
+        with open(self.MOLEX14_WORD2LEMMA, encoding="utf-8") as fp_word:
             for line in fp_word.readlines():
                 word, lemma = line.split(" ")
                 molex_dict[word] = lemma.rstrip()
@@ -144,17 +149,16 @@ class CroatianLemmatizer():
 
     def _get_lemma2word_dict(self):
         molex_dict = {}
-        with open(self.MOLEX14_LEMMA2WORD, encoding='utf-8') as fp_lemma:
+        with open(self.MOLEX14_LEMMA2WORD, encoding="utf-8") as fp_lemma:
             for line in fp_lemma.readlines():
-                sline = line.split('#')
+                sline = line.split("#")
                 lemma, words = sline
-                words = words.rstrip().split(',')
+                words = words.rstrip().split(",")
                 molex_dict[lemma] = words
         return molex_dict
 
 
-def _lemmatizer_posttokenized_hook(
-        raw, tokenized, lemmatizer):
+def _lemmatizer_posttokenized_hook(raw, tokenized, lemmatizer):
     """Lemmatizer postokenized hook that can be used in field processing.
     It is intented for the user to use `get_croatian_lemmatizer_hook`
     instead of this function as it hides Lemmatizer initialization and ensures
@@ -185,5 +189,6 @@ def get_croatian_lemmatizer_hook(**kwargs):
     kwargs : dict
         Croatian lemmatizer arguments.
     """
-    return functools.partial(_lemmatizer_posttokenized_hook,
-                             lemmatizer=CroatianLemmatizer(**kwargs))
+    return functools.partial(
+        _lemmatizer_posttokenized_hook, lemmatizer=CroatianLemmatizer(**kwargs)
+    )

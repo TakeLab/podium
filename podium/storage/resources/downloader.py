@@ -5,8 +5,8 @@ protocol, their base class is HTTPDownloader and its simple implementation
 is SimpleHttpDownloader.
 
 """
-from abc import ABC, abstractclassmethod
 import os
+from abc import ABC, abstractclassmethod
 
 import paramiko
 import requests
@@ -15,10 +15,11 @@ from podium.storage.resources.util import copyfileobj_with_tqdm
 
 
 class BaseDownloader(ABC):
-    '''BaseDownloader interface for downloader classes.'''
+    """BaseDownloader interface for downloader classes."""
+
     @abstractclassmethod
     def download(cls, uri, path, overwrite=False, **kwargs):
-        '''Function downloades file from given URI to given path.
+        """Function downloades file from given URI to given path.
         If the overwrite variable is true and given path already exists
         it will be overwriten with new file.
 
@@ -43,7 +44,7 @@ class BaseDownloader(ABC):
         RuntimeError
             if there was an error while obtaining resource from uri
 
-        '''
+        """
         pass
 
 
@@ -66,6 +67,7 @@ class SCPDownloader(BaseDownloader):
         can be set to None
 
     """
+
     USER_NAME_KEY = "scp_user"
     PASSWORD_KEY = "scp_pass"
     HOST_ADDR_KEY = "scp_host"
@@ -105,8 +107,8 @@ class SCPDownloader(BaseDownloader):
         """
         if path is None or uri is None:
             raise ValueError(
-                "Path and url mustn't be None."
-                "Given path: {}, {}".format(str(path), str(uri)))
+                "Path and url mustn't be None. " f"Given path: {path}, {uri}"
+            )
         if cls.HOST_ADDR_KEY not in kwargs or not kwargs[cls.HOST_ADDR_KEY]:
             raise ValueError("Host address mustn't be None")
 
@@ -122,10 +124,12 @@ class SCPDownloader(BaseDownloader):
         client.load_system_host_keys()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        client.connect(hostname=kwargs[cls.HOST_ADDR_KEY],
-                       username=kwargs[cls.USER_NAME_KEY],
-                       password=kwargs[cls.PASSWORD_KEY],
-                       key_filename=kwargs[cls.PRIVATE_KEY_FILE_KEY])
+        client.connect(
+            hostname=kwargs[cls.HOST_ADDR_KEY],
+            username=kwargs[cls.USER_NAME_KEY],
+            password=kwargs[cls.PASSWORD_KEY],
+            key_filename=kwargs[cls.PRIVATE_KEY_FILE_KEY],
+        )
 
         sftp = client.open_sftp()
         sftp.get(localpath=path, remotepath=uri)
@@ -136,7 +140,8 @@ class SCPDownloader(BaseDownloader):
 
 
 class HttpDownloader(BaseDownloader):
-    '''Interface for downloader that uses http protocol for data transfer.'''
+    """Interface for downloader that uses http protocol for data transfer."""
+
     @classmethod
     def _process_response(cls, response, output_file, chunk_length=1024 * 16):
         """Function process given HTTP response and copies it to the given
@@ -161,36 +166,39 @@ class HttpDownloader(BaseDownloader):
             If given HTTP response wasn't successful (response code >= 300).
         """
         if response is None or output_file is None:
-            raise ValueError("Response object and output file object mustn't"
-                             " be None.")
+            raise ValueError("Response object and output file object mustn't" " be None.")
         if response.status_code >= 300:
-            raise RuntimeError("Given file is not accessible because {},"
-                               "HTTP response code {}"
-                               .format(response.reason, response.status_code))
-        copyfileobj_with_tqdm(response.raw, output_file,
-                              total_size=int(response.headers.get(
-                                  'Content-length', 0)),
-                              buffer_size=chunk_length)
+            raise RuntimeError(
+                f"Given file is not accessible because {response.reason}, "
+                f"HTTP response code {response.status_code}"
+            )
+        copyfileobj_with_tqdm(
+            response.raw,
+            output_file,
+            total_size=int(response.headers.get("Content-length", 0)),
+            buffer_size=chunk_length,
+        )
         return True
 
 
 class SimpleHttpDownloader(HttpDownloader):
-    '''Downloader that uses HTTP protocol for downloading. It doesn't offer
+    """Downloader that uses HTTP protocol for downloading. It doesn't offer
     content confirmation (as needed for example in google drive)
     or any kind of authentication.
 
-    '''
+    """
+
     @classmethod
     def download(cls, uri, path, overwrite=False, **kwargs):
         if path is None or uri is None:
             raise ValueError(
-                "Path and url mustn't be None."
-                "Given path: {}, {}".format(str(path), str(uri)))
+                "Path and url mustn't be None. " f"Given path: {path}, {uri}"
+            )
         if not overwrite and os.path.exists(path):
             return False
 
-        with requests.get(url=uri, headers={'User-Agent': 'Mozilla/5.0'},
-                          stream=True) as response, \
-                open(path, 'wb') as output_file:
+        with requests.get(
+            url=uri, headers={"User-Agent": "Mozilla/5.0"}, stream=True
+        ) as response, open(path, "wb") as output_file:
             success = cls._process_response(response, output_file)
             return success

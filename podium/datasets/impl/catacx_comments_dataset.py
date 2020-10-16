@@ -52,16 +52,19 @@ class CatacxCommentsDataset(Dataset):
 
         raise NotImplementedError("Downloading is not implemented yet")
 
-        LargeResource(**{
-            LargeResource.RESOURCE_NAME: CatacxCommentsDataset.NAME,
-            LargeResource.ARCHIVE: "zip",
-            LargeResource.URI: CatacxCommentsDataset.URL
-        })
+        LargeResource(
+            **{
+                LargeResource.RESOURCE_NAME: CatacxCommentsDataset.NAME,
+                LargeResource.ARCHIVE: "zip",
+                LargeResource.URI: CatacxCommentsDataset.URL,
+            }
+        )
 
         filepath = os.path.join(
             LargeResource.BASE_RESOURCE_DIR,
             CatacxCommentsDataset.DATASET_DIR,
-            CatacxCommentsDataset.DATASET_FILE_NAME)
+            CatacxCommentsDataset.DATASET_FILE_NAME,
+        )
 
         return CatacxCommentsDataset(filepath, fields=fields)
 
@@ -132,25 +135,20 @@ class CatacxCommentsDataset(Dataset):
         # created_time - JSON date
         # cs
 
-        author_name = Field(name='author_name', tokenizer=None,
-                            keep_raw=True)
+        author_name = Field(name="author_name", tokenizer=None, keep_raw=True)
 
-        id = Field(name='id', tokenizer=None, keep_raw=True)
+        id = Field(name="id", tokenizer=None, keep_raw=True)
 
-        likes_cnt = Field(name="likes_cnt",
-                          tokenizer=None,
-                          numericalizer=int)
+        likes_cnt = Field(name="likes_cnt", tokenizer=None, numericalizer=int)
 
-        message = Field(name='message',
-                        tokenizer='split')
+        message = Field(name="message", tokenizer="split")
 
-        author_id = Field(name='author_id', tokenizer=None,
-                          keep_raw=True)
+        author_id = Field(name="author_id", tokenizer=None, keep_raw=True)
 
         return {
             "author_name": author_name,
             "author_id": author_id,
             "id": id,
             "likes_cnt": likes_cnt,
-            "message": message
+            "message": message,
         }

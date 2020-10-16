@@ -1,11 +1,11 @@
 """Module contains storage utility methods."""
-import os
 import logging
-import zipfile
+import os
 import tarfile
+import zipfile
+
 from tqdm import tqdm
 
-from podium.util import log_and_raise_error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ def copyfileobj_with_tqdm(finput, foutput, total_size, buffer_size=16 * 1024):
     buffer_size : int
         constant used for determining maximal buffer size
     """
-    with tqdm(total=total_size, unit='B', unit_scale=1) as progress:
+    with tqdm(total=total_size, unit="B", unit_scale=1) as progress:
         buffer = finput.read(buffer_size)
         while buffer:
             foutput.write(buffer)
@@ -49,17 +49,16 @@ def extract_zip_file(archive_file, destination_dir):
     Raises
     ------
     ValueError
-        If given archive file doesn't exists.
+        If given archive file doesn't exist.
     """
     if not os.path.exists(archive_file):
-        error_msg = f"Given archive file doesn't exists. Given {archive_file}."
-        log_and_raise_error(ValueError, _LOGGER, error_msg)
-    zip_ref = zipfile.ZipFile(file=archive_file, mode='r')
+        raise ValueError(f"Given archive file doesn't exist. Given {archive_file}.")
+    zip_ref = zipfile.ZipFile(file=archive_file, mode="r")
     zip_ref.extractall(path=destination_dir)
     zip_ref.close()
 
 
-def extract_tar_file(archive_file, destination_dir, encoding='uft-8'):
+def extract_tar_file(archive_file, destination_dir, encoding="uft-8"):
     """Method extracts tar archive to destination, including those archives
     that are created using gzip, bz2 and lzma compression.
 
@@ -73,10 +72,9 @@ def extract_tar_file(archive_file, destination_dir, encoding='uft-8'):
     Raises
     ------
     ValueError
-        If given archive file doesn't exists.
+        If given archive file doesn't exist.
     """
     if not os.path.exists(archive_file):
-        error_msg = "Given archive file doesn't exists. Given {archive_file}."
-        log_and_raise_error(ValueError, _LOGGER, error_msg)
-    with tarfile.open(name=archive_file, mode='r') as tar_ref:
+        raise ValueError(f"Given archive file doesn't exist. Given {archive_file}.")
+    with tarfile.open(name=archive_file, mode="r") as tar_ref:
         tar_ref.extractall(path=destination_dir)

@@ -1,0 +1,40 @@
+name: Publish docs
+
+# Run only on pushes to master
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Check out the repo
+      - uses: actions/checkout@v2
+
+      # Now in root of repo
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+
+      - name: Install docs requirements
+        run: |
+          python -m pip install --upgrade pip
+          pip install .[docs]
+
+      - name: Create docs
+        run: |
+          cd docs
+          make clean && make html
+
+      # Do folder changes persist between steps? They do not ):
+      - name: Publish docs
+        uses: garygrossgarten/github-action-scp@release
+        with:
+          local: docs/build/html/
+          remote: ${{ secrets.DOC_FOLDER }}
+          host: ${{ secrets.BUGA }}
+          username: ${{ secrets.USER }}
+          privateKey: ${{ secrets.SSH_PRIVATE_KEY }}

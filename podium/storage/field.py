@@ -1,15 +1,15 @@
 """Module contains dataset's field definition and methods for construction."""
-import logging
 import itertools
+import logging
 from collections import deque
 from collections.abc import Iterator
-from typing import Optional, List, Tuple, Any, Union, Callable, Iterable
+from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 
 from podium.preproc.tokenizers import get_tokenizer
 from podium.storage.vocab import Vocab
-from podium.util import log_and_raise_error
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,7 +22,6 @@ numericalizer_type = Callable[[str], Union[int, float]]
 
 
 class PretokenizationPipeline:
-
     def __init__(self, hooks=()):
         self.hooks = deque(hooks)
 
@@ -74,9 +73,9 @@ class MultioutputField:
     output fields. Output fields are any type of field. The output fields are used only
     for posttokenization processing (posttokenization hooks and vocab updating)."""
 
-    def __init__(self,
-                 output_fields: List["Field"],
-                 tokenizer: tokenizer_arg_type = 'split'):
+    def __init__(
+        self, output_fields: List["Field"], tokenizer: tokenizer_arg_type = "split"
+    ):
         """Field that does pretokenization and tokenization once and passes it to its
         output fields. Output fields are any type of field. The output fields are used
         only for posttokenization processing (posttokenization hooks and vocab updating).
@@ -177,8 +176,7 @@ class MultioutputField:
             If data is None and missing data is not allowed.
         """
         data = self._run_pretokenization_hooks(data)
-        tokens = self.tokenizer(data) if self.tokenizer is not None \
-            else data
+        tokens = self.tokenizer(data) if self.tokenizer is not None else data
         return tuple(field._process_tokens(data, tokens) for field in self.output_fields)
 
     def get_output_fields(self) -> Iterable["Field"]:
@@ -193,8 +191,7 @@ class MultioutputField:
         return self.output_fields
 
     def remove_pretokenize_hooks(self):
-        """Remove all the pre-tokenization hooks that were added to the MultioutputField.
-        """
+        """Remove all the pre-tokenization hooks that were added to the MultioutputField."""
         self.pretokenization_pipeline.clear()
 
 
@@ -203,21 +200,22 @@ class Field:
     field of a dataset.
     """
 
-    def __init__(self,
-                 name: str,
-                 tokenizer: tokenizer_arg_type = 'split',
-                 keep_raw: bool = False,
-                 # TODO Better arg name?
-                 numericalizer: Optional[Union[Vocab, numericalizer_type]] = None,
-                 is_target: bool = False,
-                 fixed_length: Optional[int] = None,
-                 allow_missing_data: bool = False,
-                 disable_batch_matrix: bool = False,
-                 padding_token: Union[int, float] = -999,
-                 missing_data_token: Union[int, float] = -1,
-                 pretokenize_hooks: Iterable[pretok_hook_type] = (),
-                 posttokenize_hooks: Iterable[posttok_hook_type] = ()
-                 ):
+    def __init__(
+        self,
+        name: str,
+        tokenizer: tokenizer_arg_type = "split",
+        keep_raw: bool = False,
+        # TODO Better arg name?
+        numericalizer: Optional[Union[Vocab, numericalizer_type]] = None,
+        is_target: bool = False,
+        fixed_length: Optional[int] = None,
+        allow_missing_data: bool = False,
+        disable_batch_matrix: bool = False,
+        padding_token: Union[int, float] = -999,
+        missing_data_token: Union[int, float] = -1,
+        pretokenize_hooks: Iterable[pretok_hook_type] = (),
+        posttokenize_hooks: Iterable[posttok_hook_type] = (),
+    ):
         """Create a Field from arguments.
 
         Parameters
@@ -421,13 +419,11 @@ class Field:
         self.posttokenize_pipeline.add_hook(hook)
 
     def remove_pretokenize_hooks(self):
-        """Remove all the pre-tokenization hooks that were added to the Field.
-        """
+        """Remove all the pre-tokenization hooks that were added to the Field."""
         self.pretokenize_pipeline.clear()
 
     def remove_posttokenize_hooks(self):
-        """Remove all the post-tokenization hooks that were added to the Field.
-        """
+        """Remove all the post-tokenization hooks that were added to the Field."""
         self.posttokenize_pipeline.clear()
 
     def _run_pretokenization_hooks(self, data: Any) -> Any:
@@ -446,8 +442,9 @@ class Field:
         """
         return self.pretokenize_pipeline(data)
 
-    def _run_posttokenization_hooks(self, data: Any, tokens: List[str]) \
-            -> Tuple[Any, List[str]]:
+    def _run_posttokenization_hooks(
+        self, data: Any, tokens: List[str]
+    ) -> Tuple[Any, List[str]]:
         """Runs posttokenization hooks on tokenized data.
 
         Parameters
@@ -467,8 +464,9 @@ class Field:
         """
         return self.posttokenize_pipeline(data, tokens)
 
-    def preprocess(self, data: Any) \
-            -> Iterable[Tuple[str, Tuple[Any, Optional[List[str]]]]]:
+    def preprocess(
+        self, data: Any
+    ) -> Iterable[Tuple[str, Tuple[Any, Optional[List[str]]]]]:
         """Preprocesses raw data, tokenizing it if required,
         updating the vocab if the vocab is eager and preserving the raw data
         if field's 'store_raw' is true.
@@ -493,19 +491,19 @@ class Field:
 
         if data is None:
             if not self.allow_missing_data:
-                error_msg = f"Missing data not allowed in field {self.name}"
-                log_and_raise_error(ValueError, _LOGGER, error_msg)
+                raise ValueError(f"Missing data not allowed in field {self.name}")
 
             else:
-                return (self.name, (None, None)),
+                return ((self.name, (None, None)),)
 
         # Preprocess the raw input
         # TODO keep unprocessed or processed raw?
         processed_raw = self._run_pretokenization_hooks(data)
-        tokenized = self.tokenizer(processed_raw) if self.tokenizer is not None \
-            else processed_raw
+        tokenized = (
+            self.tokenizer(processed_raw) if self.tokenizer is not None else processed_raw
+        )
 
-        return self._process_tokens(processed_raw, tokenized),
+        return (self._process_tokens(processed_raw, tokenized),)
 
     def update_vocab(self, tokenized: List[str]):
         """Updates the vocab with a data point in its tokenized form.
@@ -538,14 +536,14 @@ class Field:
         return True if self.vocab is None else self.vocab.finalized
 
     def finalize(self):
-        """Signals that this field's vocab can be built.
-        """
+        """Signals that this field's vocab can be built."""
 
         if self.use_vocab:
             self.vocab.finalize()
 
-    def _process_tokens(self, raw: Any, tokens: Union[Any, List[str]]) \
-            -> Tuple[str, Tuple[Any, Optional[Union[Any, List[str]]]]]:
+    def _process_tokens(
+        self, raw: Any, tokens: Union[Any, List[str]]
+    ) -> Tuple[str, Tuple[Any, Optional[Union[Any, List[str]]]]]:
         """Runs posttokenization processing on the provided data and tokens and updates
         the vocab if needed. Used by Multioutput field.
 
@@ -586,13 +584,13 @@ class Field:
             If missing data is not allowed in this field.
         """
         if not self.allow_missing_data:
-            error_msg = f"Missing data not allowed in field {self.name}"
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError(f"Missing data not allowed in field {self.name}")
 
         return self.missing_data_token
 
-    def numericalize(self, data: Tuple[Optional[Any], Optional[Union[Any, List[str]]]]) \
-            -> Optional[Union[Any, np.ndarray]]:
+    def numericalize(
+        self, data: Tuple[Optional[Any], Optional[Union[Any, List[str]]]]
+    ) -> Optional[Union[Any, np.ndarray]]:
         """Numericalize the already preprocessed data point based either on
         the vocab that was previously built, or on a custom numericalization
         function, if the field doesn't use a vocab.
@@ -619,8 +617,7 @@ class Field:
 
         if tokenized is None:
             if not self.allow_missing_data:
-                error_msg = f"Missing value found in field {self.name}."
-                log_and_raise_error(ValueError, _LOGGER, error_msg)
+                raise ValueError(f"Missing value found in field {self.name}.")
 
             else:
                 return None
@@ -636,9 +633,14 @@ class Field:
         else:
             return np.array([self.numericalizer(t) for t in tokens])
 
-    def pad_to_length(self, array: np.array, length: int,
-                      custom_pad_symbol: Optional[Union[int, float]] = None,
-                      pad_left: bool = False, truncate_left: bool = False):
+    def pad_to_length(
+        self,
+        array: np.array,
+        length: int,
+        custom_pad_symbol: Optional[Union[int, float]] = None,
+        pad_left: bool = False,
+        truncate_left: bool = False,
+    ):
         """Either pads the given row with pad symbols, or truncates the row
         to be of given length. The vocab provides the pad symbol for all
         fields that have vocabs, otherwise the pad symbol has to be given as
@@ -682,7 +684,7 @@ class Field:
             # truncating
 
             if truncate_left:
-                array = array[len(array) - length:]
+                array = array[len(array) - length :]
             else:
                 array = array[:length]
 
@@ -699,23 +701,22 @@ class Field:
                 pad_symbol = self.padding_token
 
             if pad_symbol is None:
-                error_msg = 'Must provide a custom pad symbol if the ' \
-                            'field has no vocab.'
-                log_and_raise_error(ValueError, _LOGGER, error_msg)
+                raise ValueError(
+                    "Must provide a custom pad symbol if the " "field has no vocab."
+                )
 
             diff = length - len(array)
 
             if pad_left:
-                array = np.pad(array, (diff, 0), 'constant',
-                               constant_values=pad_symbol)
+                array = np.pad(array, (diff, 0), "constant", constant_values=pad_symbol)
             else:
-                array = np.pad(array, (0, diff), 'constant',
-                               constant_values=pad_symbol)
+                array = np.pad(array, (0, diff), "constant", constant_values=pad_symbol)
 
         return array
 
-    def get_numericalization_for_example(self, example, cache: bool = True) \
-            -> Optional[Union[Any, np.ndarray]]:
+    def get_numericalization_for_example(
+        self, example, cache: bool = True
+    ) -> Optional[Union[Any, np.ndarray]]:
         """Returns the numericalized data of this field for the provided example.
         The numericalized data is generated and cached in the example if 'cache' is true
         and the cached data is not already present. If already cached, the cached data is
@@ -735,7 +736,7 @@ class Field:
         Union[numpy.ndarray, Any]
             The numericalized data.
         """
-        cache_field_name = "{}_".format(self.name)
+        cache_field_name = f"{self.name}_"
         numericalization = getattr(example, cache_field_name, None)
 
         if numericalization is None:
@@ -757,7 +758,7 @@ class Field:
         """
         state = self.__dict__.copy()
         if self._tokenizer_arg_string is not None:
-            del state['tokenizer']
+            del state["tokenizer"]
         return state
 
     def __setstate__(self, state):
@@ -776,11 +777,12 @@ class Field:
     def __repr__(self):
         if self.use_vocab:
             return "{}[name: {}, is_target: {}, vocab: {}]".format(
-                self.__class__.__name__, self.name, self.is_target,
-                self.vocab)
+                self.__class__.__name__, self.name, self.is_target, self.vocab
+            )
         else:
             return "{}[name: {}, is_target: {}]".format(
-                self.__class__.__name__, self.name, self.is_target)
+                self.__class__.__name__, self.name, self.is_target
+            )
 
     def get_output_fields(self) -> Iterable["Field"]:
         """Returns an Iterable of the contained output fields.
@@ -790,7 +792,7 @@ class Field:
         Iterable :
             an Iterable of the contained output fields.
         """
-        return self,
+        return (self,)
 
 
 class LabelField(Field):
@@ -798,14 +800,15 @@ class LabelField(Field):
     that has a single value denoting a label.
     """
 
-    def __init__(self,
-                 name: str,
-                 numericalizer: tokenizer_arg_type = None,
-                 allow_missing_data: bool = False,
-                 is_target: bool = True,
-                 missing_data_token: Union[int, float] = -1,
-                 label_processing_hooks: Iterable[pretok_hook_type] = ()
-                 ):
+    def __init__(
+        self,
+        name: str,
+        numericalizer: tokenizer_arg_type = None,
+        allow_missing_data: bool = False,
+        is_target: bool = True,
+        missing_data_token: Union[int, float] = -1,
+        label_processing_hooks: Iterable[pretok_hook_type] = (),
+    ):
         """
         Field subclass used when no tokenization is required. For example, with a field
         that has a single value denoting a label.
@@ -849,21 +852,23 @@ class LabelField(Field):
             numericalizer = Vocab(specials=())
 
         if isinstance(numericalizer, Vocab) and numericalizer.has_specials:
-            error_msg = "Vocab contains special symbols." \
-                        " Vocabs with special symbols cannot be used" \
-                        " with LabelFields."
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError(
+                "Vocab contains special symbols."
+                " Vocabs with special symbols cannot be used"
+                " with LabelFields."
+            )
 
-        super().__init__(name,
-                         tokenizer=None,
-                         keep_raw=False,
-                         numericalizer=numericalizer,
-                         is_target=is_target,
-                         fixed_length=1,
-                         allow_missing_data=allow_missing_data,
-                         missing_data_token=missing_data_token,
-                         pretokenize_hooks=label_processing_hooks
-                         )
+        super().__init__(
+            name,
+            tokenizer=None,
+            keep_raw=False,
+            numericalizer=numericalizer,
+            is_target=is_target,
+            fixed_length=1,
+            allow_missing_data=allow_missing_data,
+            missing_data_token=missing_data_token,
+            pretokenize_hooks=label_processing_hooks,
+        )
 
 
 class MultilabelField(Field):
@@ -871,16 +876,18 @@ class MultilabelField(Field):
     Used in cases when a field can have multiple classes active at a time.
     """
 
-    def __init__(self,
-                 name,
-                 tokenizer=None,
-                 numericalizer=None,
-                 num_of_classes=None,
-                 is_target=True,
-                 allow_missing_data=False,
-                 missing_data_token=-1,
-                 pretokenize_hooks=(),
-                 posttokenize_hooks=()):
+    def __init__(
+        self,
+        name,
+        tokenizer=None,
+        numericalizer=None,
+        num_of_classes=None,
+        is_target=True,
+        allow_missing_data=False,
+        missing_data_token=-1,
+        pretokenize_hooks=(),
+        posttokenize_hooks=(),
+    ):
         """Create a MultilabelField from arguments.
 
         Parameters
@@ -948,39 +955,42 @@ class MultilabelField(Field):
             numericalizer = Vocab(specials=())
 
         if isinstance(numericalizer, Vocab) and numericalizer.has_specials:
-            error_msg = "Vocab contains special symbols." \
-                        " Vocabs with special symbols cannot be used" \
-                        " with MultilabelFields."
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError(
+                "Vocab contains special symbols."
+                " Vocabs with special symbols cannot be used"
+                " with MultilabelFields."
+            )
 
         self.num_of_classes = num_of_classes
-        super().__init__(name,
-                         tokenizer=tokenizer,
-                         keep_raw=False,
-                         numericalizer=numericalizer,
-                         is_target=is_target,
-                         fixed_length=num_of_classes,
-                         allow_missing_data=allow_missing_data,
-                         missing_data_token=missing_data_token,
-                         pretokenize_hooks=pretokenize_hooks,
-                         posttokenize_hooks=posttokenize_hooks
-                         )
+        super().__init__(
+            name,
+            tokenizer=tokenizer,
+            keep_raw=False,
+            numericalizer=numericalizer,
+            is_target=is_target,
+            fixed_length=num_of_classes,
+            allow_missing_data=allow_missing_data,
+            missing_data_token=missing_data_token,
+            pretokenize_hooks=pretokenize_hooks,
+            posttokenize_hooks=posttokenize_hooks,
+        )
 
     def finalize(self):
-        """Signals that this field's vocab can be built.
-        """
+        """Signals that this field's vocab can be built."""
         super().finalize()
         if self.num_of_classes is None:
             self.fixed_length = self.num_of_classes = len(self.vocab)
 
         if self.use_vocab and len(self.vocab) > self.num_of_classes:
-            error_msg = "Number of classes in data is greater than the declared number " \
-                        f"of classes. Declared: {self.num_of_classes}, " \
-                        f"Actual: {len(self.vocab)}"
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError(
+                "Number of classes in data is greater than the declared number "
+                f"of classes. Declared: {self.num_of_classes}, "
+                f"Actual: {len(self.vocab)}"
+            )
 
-    def numericalize(self, data: Tuple[Optional[Any], Optional[Union[Any, List[str]]]]) \
-            -> np.ndarray:
+    def numericalize(
+        self, data: Tuple[Optional[Any], Optional[Union[Any, List[str]]]]
+    ) -> np.ndarray:
         """Numericalize the already preprocessed data point based either on
         the vocab that was previously built, or on a custom numericalization
         function, if the field doesn't use a vocab. Returns a numpy array containing

@@ -3,18 +3,22 @@ import logging
 
 from podium.models.model import AbstractSupervisedModel
 
+
 _LOGGER = logging.getLogger(__name__)
 
 try:
     from sklearn.svm import SVC, LinearSVC
 except ImportError:
-    _LOGGER.debug("Problem occured while trying to import sklearn. If the "
-                  "library is not installed visit https://scikit-learn.org"
-                  " for more details.")
+    _LOGGER.debug(
+        "Problem occured while trying to import sklearn. If the "
+        "library is not installed visit https://scikit-learn.org"
+        " for more details."
+    )
 
 
 class ScikitSVCModel(AbstractSupervisedModel):
     """Simple scikitlearn SVM model."""
+
     def __init__(self, **kwargs):
         self.reset(**kwargs)
 
@@ -31,5 +35,6 @@ class ScikitSVCModel(AbstractSupervisedModel):
 
 class ScikitLinearSVCModel(ScikitSVCModel):
     """Simple scikitlearn linear SVM model."""
+
     def reset(self, **kwargs):
         self._model = LinearSVC(**kwargs)

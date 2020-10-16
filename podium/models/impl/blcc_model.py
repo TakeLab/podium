@@ -1,24 +1,34 @@
-"""Module contains deep learning based sequence labelling model.."""
+"""Module contains deep learning based sequence labelling model."""
 import logging
-import numpy as np
 import tempfile
 
+import numpy as np
+
 from podium.models import AbstractSupervisedModel
-from podium.models.impl.blcc.chain_crf import (
-    ChainCRF, create_custom_objects
-)
+from podium.models.impl.blcc.chain_crf import ChainCRF, create_custom_objects
+
 
 _LOGGER = logging.getLogger(__name__)
 try:
     from keras import backend as K
-    from keras.layers import Bidirectional, concatenate, Dense, Dropout, Embedding
-    from keras.layers import Input, LSTM, TimeDistributed
-    from keras.models import load_model, Model
-    from keras.optimizers import Adadelta, Adagrad, Adam, Nadam, RMSprop, SGD
+    from keras.layers import (
+        LSTM,
+        Bidirectional,
+        Dense,
+        Dropout,
+        Embedding,
+        Input,
+        TimeDistributed,
+        concatenate,
+    )
+    from keras.models import Model, load_model
+    from keras.optimizers import SGD, Adadelta, Adagrad, Adam, Nadam, RMSprop
 except ImportError:
-    _LOGGER.debug("Problem occured while trying to import keras. If the "
-                  "library is not installed visit https://keras.io/ "
-                  "for more details.")
+    _LOGGER.debug(
+        "Problem occured while trying to import keras. If the "
+        "library is not installed visit https://keras.io/ "
+        "for more details."
+    )
 
 
 class BLCCModel(AbstractSupervisedModel):
@@ -62,56 +72,55 @@ class BLCCModel(AbstractSupervisedModel):
         a LSTM layer.
     """
 
-    EMBEDDING_SIZE = 'embedding_size'
-    OUTPUT_SIZE = 'output_size'
+    EMBEDDING_SIZE = "embedding_size"
+    OUTPUT_SIZE = "output_size"
 
-    FEATURE_NAMES = 'feature_names'
-    FEATURE_INPUT_SIZES = 'feature_input_sizes'
-    FEATURE_OUTPUT_SIZES = 'feature_output_sizes'
+    FEATURE_NAMES = "feature_names"
+    FEATURE_INPUT_SIZES = "feature_input_sizes"
+    FEATURE_OUTPUT_SIZES = "feature_output_sizes"
 
-    LEARNING_RATE = 'learning_rate'
-    CLIPNORM = 'clipnorm'
-    CLIPVALUE = 'clipvalue'
-    OPTIMIZER = 'optimizer'
-    CLASSIFIER = 'classifier'
-    LSTM_SIZE = 'LSTM-Size'
-    DROPOUT = 'dropout'
+    LEARNING_RATE = "learning_rate"
+    CLIPNORM = "clipnorm"
+    CLIPVALUE = "clipvalue"
+    OPTIMIZER = "optimizer"
+    CLASSIFIER = "classifier"
+    LSTM_SIZE = "LSTM-Size"
+    DROPOUT = "dropout"
 
     def __init__(self, **kwargs):
         self.reset(**kwargs)
 
     def __getstate__(self):
         model_str = ""
-        with tempfile.NamedTemporaryFile(suffix='.hdf5', delete=True) as fd:
+        with tempfile.NamedTemporaryFile(suffix=".hdf5", delete=True) as fd:
             self.model.save(fd.name, overwrite=True)
             model_str = fd.read()
             odict = self.__dict__.copy()
-            del odict['model']
-        return {'model_str': model_str, 'rest': odict}
+            del odict["model"]
+        return {"model_str": model_str, "rest": odict}
 
     def __setstate__(self, state):
-        with tempfile.NamedTemporaryFile(suffix='.hdf5', delete=True) as fd:
-            fd.write(state['model_str'])
+        with tempfile.NamedTemporaryFile(suffix=".hdf5", delete=True) as fd:
+            fd.write(state["model_str"])
             fd.flush()
             model = load_model(fd.name, custom_objects=create_custom_objects())
-        self.__dict__ = state['rest']
+        self.__dict__ = state["rest"]
         self.model = model
 
     def reset(self, **kwargs):
         default_hyperparameters = {
             self.EMBEDDING_SIZE: None,
             self.OUTPUT_SIZE: None,
-
             self.FEATURE_NAMES: (),
             self.FEATURE_INPUT_SIZES: (),
             self.FEATURE_OUTPUT_SIZES: (),
             self.DROPOUT: (0.5, 0.5),
-            self.CLASSIFIER: 'CRF',
+            self.CLASSIFIER: "CRF",
             self.LSTM_SIZE: (100,),
-            self.OPTIMIZER: 'adam',
+            self.OPTIMIZER: "adam",
             self.CLIPVALUE: 0.0,
             self.CLIPNORM: 1.0,
-            self.LEARNING_RATE: 0.01
+            self.LEARNING_RATE: 0.01,
         }
 
         if kwargs:
@@ -133,9 +142,9 @@ class BLCCModel(AbstractSupervisedModel):
 
         output_size = self.params.get(self.OUTPUT_SIZE)
 
-        tokens_input = Input(shape=(None, embedding_size),
-                             dtype='float32',
-                             name='embeddings_input')
+        tokens_input = Input(
+            shape=(None, embedding_size), dtype="float32", name="embeddings_input"
+        )
 
         input_nodes = [tokens_input]
         input_layers_to_concatenate = [tokens_input]
@@ -145,16 +154,16 @@ class BLCCModel(AbstractSupervisedModel):
         custom_feature_properties = zip(
             self.params.get(self.FEATURE_NAMES),
             self.params.get(self.FEATURE_INPUT_SIZES),
-            self.params.get(self.FEATURE_OUTPUT_SIZES)
+            self.params.get(self.FEATURE_OUTPUT_SIZES),
         )
         for name, input_size, output_size in custom_feature_properties:
-            feature_input = Input(shape=(None,), dtype='int32',
-                                  name="{}_input".format(name))
+            feature_input = Input(shape=(None,), dtype="int32", name=f"{name}_input")
 
             feature_embedding = Embedding(
                 input_dim=input_size,
                 output_dim=output_size,
-                name="{}_embeddings".format(name))(feature_input)
+                name=f"{name}_embeddings",
+            )(feature_input)
 
             input_nodes.append(feature_input)
             input_layers_to_concatenate.append(feature_embedding)
@@ -173,19 +182,20 @@ class BLCCModel(AbstractSupervisedModel):
                         size,
                         return_sequences=True,
                         dropout=self.params[self.DROPOUT][0],
-                        recurrent_dropout=self.params[self.DROPOUT][1]
+                        recurrent_dropout=self.params[self.DROPOUT][1],
                     ),
-                    name="shared_varLSTM_{}".format(cnt))(shared_layer)
+                    name=f"shared_varLSTM_{cnt}",
+                )(shared_layer)
             else:
                 # Naive dropout
                 shared_layer = Bidirectional(
-                    LSTM(size, return_sequences=True),
-                    name="shared_LSTM_{}".format(cnt))(shared_layer)
+                    LSTM(size, return_sequences=True), name=f"shared_LSTM_{cnt}"
+                )(shared_layer)
 
                 if self.params[self.DROPOUT] > 0.0:
                     shared_layer = TimeDistributed(
                         Dropout(self.params[self.DROPOUT]),
-                        name="shared_dropout_{}".format(self.params[self.DROPOUT])
+                        name=f"shared_dropout_{self.params[self.DROPOUT]}",
                     )(shared_layer)
             cnt += 1
 
@@ -193,20 +203,20 @@ class BLCCModel(AbstractSupervisedModel):
         output = shared_layer
         classifier = self.params[self.CLASSIFIER]
 
-        if classifier == 'Softmax':
+        if classifier == "Softmax":
             output = TimeDistributed(
-                Dense(n_class_labels, activation='softmax'),
-                name='Softmax')(output)
-            loss_fct = 'sparse_categorical_crossentropy'
-        elif classifier == 'CRF':
+                Dense(n_class_labels, activation="softmax"), name="Softmax"
+            )(output)
+            loss_fct = "sparse_categorical_crossentropy"
+        elif classifier == "CRF":
             output = TimeDistributed(
-                Dense(n_class_labels, activation=None),
-                name='hidden_lin_layer')(output)
-            crf = ChainCRF(name='CRF')
+                Dense(n_class_labels, activation=None), name="hidden_lin_layer"
+            )(output)
+            crf = ChainCRF(name="CRF")
             output = crf(output)
             loss_fct = crf.sparse_loss
         else:
-            raise ValueError("Unsupported classifier: {}".format(classifier))
+            raise ValueError(f"Unsupported classifier: {classifier}")
 
         optimizerParams = {}
         if self.params.get(self.CLIPNORM, 0) > 0:
@@ -215,20 +225,20 @@ class BLCCModel(AbstractSupervisedModel):
             optimizerParams[self.CLIPVALUE] = self.params[self.CLIPVALUE]
 
         optimizer = self.params[self.OPTIMIZER].lower()
-        if optimizer == 'adam':
+        if optimizer == "adam":
             opt = Adam(**optimizerParams)
-        elif optimizer == 'nadam':
+        elif optimizer == "nadam":
             opt = Nadam(**optimizerParams)
-        elif optimizer == 'rmsprop':
+        elif optimizer == "rmsprop":
             opt = RMSprop(**optimizerParams)
-        elif optimizer == 'adadelta':
+        elif optimizer == "adadelta":
             opt = Adadelta(**optimizerParams)
-        elif optimizer == 'adagrad':
+        elif optimizer == "adagrad":
             opt = Adagrad(**optimizerParams)
-        elif optimizer == 'sgd':
+        elif optimizer == "sgd":
             opt = SGD(lr=0.1, **optimizerParams)
         else:
-            raise ValueError("Unsupported optimizer: {}".format(optimizer))
+            raise ValueError(f"Unsupported optimizer: {optimizer}")
 
         model = Model(inputs=input_nodes, outputs=[output])
         model.compile(loss=loss_fct, optimizer=opt)

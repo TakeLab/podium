@@ -1,9 +1,29 @@
 """Package contains modules for preprocessing."""
 
-from .tokenizers import get_tokenizer
+from .functional import remove_stopwords, truecase
+from .hooks import (
+    MosesNormalizer,
+    NLTKStemmer,
+    RegexReplace,
+    SpacyLemmatizer,
+    TextCleanUp,
+)
 from .lemmatizer import CroatianLemmatizer
+from .sentencizers import SpacySentencizer
 from .stemmer import CroatianStemmer
+from .tokenizers import get_tokenizer
 
-__all__ = ["CroatianLemmatizer",
-           "CroatianStemmer",
-           "get_tokenizer"]
+
+__all__ = [
+    "CroatianLemmatizer",
+    "MosesNormalizer",
+    "NLTKStemmer",
+    "SpacyLemmatizer",
+    "RegexReplace",
+    "TextCleanUp",
+    "truecase",
+    "remove_stopwords",
+    "CroatianStemmer",
+    "SpacySentencizer",
+    "get_tokenizer",
+]

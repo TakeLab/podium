@@ -1,25 +1,25 @@
 import logging
-from typing import Callable, Optional, Union, List, Tuple
-
-from podium.datasets import Dataset
-from podium.validation import KFold
-from podium.models.experiment import Experiment
+from typing import Callable, List, Optional, Tuple, Union
 
 import numpy as np
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
-from podium.util import log_and_raise_error
+from podium.datasets import Dataset
+from podium.models.experiment import Experiment
+from podium.validation import KFold
+
 
 _LOGGER = logging.getLogger(__name__)
 
 
 def kfold_scores(
-        experiment: Experiment,
-        dataset: Dataset,
-        n_splits: int,
-        score_fun: Callable[[np.ndarray, np.ndarray], Union[np.ndarray, int, float]],
-        shuffle: Optional[bool] = False,
-        random_state: int = None) -> List[Union[np.ndarray, int, float]]:
+    experiment: Experiment,
+    dataset: Dataset,
+    n_splits: int,
+    score_fun: Callable[[np.ndarray, np.ndarray], Union[np.ndarray, int, float]],
+    shuffle: Optional[bool] = False,
+    random_state: int = None,
+) -> List[Union[np.ndarray, int, float]]:
     """Calculates a score for each train/test fold. The score for a fold is calculated by
     first fitting the experiment to the train split and then using the test split to
     calculate predictions and evaluate the score. This is repeated for every fold.
@@ -54,9 +54,7 @@ def kfold_scores(
     -------
         a List of scores provided by score_fun for every fold.
     """
-    kfold = KFold(n_splits=n_splits,
-                  shuffle=shuffle,
-                  random_state=random_state)
+    kfold = KFold(n_splits=n_splits, shuffle=shuffle, random_state=random_state)
     results = []
     for train_split, test_split in kfold.split(dataset):
         experiment.fit(train_split)
@@ -71,12 +69,14 @@ def kfold_scores(
     return results
 
 
-def k_fold_validation(experiment: Experiment,
-                      dataset: Dataset,
-                      n_splits: int,
-                      score_fun: Callable[[np.ndarray, np.ndarray], float],
-                      shuffle: Optional[bool] = False,
-                      random_state: int = None) -> Union[np.ndarray, int, float]:
+def k_fold_validation(
+    experiment: Experiment,
+    dataset: Dataset,
+    n_splits: int,
+    score_fun: Callable[[np.ndarray, np.ndarray], float],
+    shuffle: Optional[bool] = False,
+    random_state: int = None,
+) -> Union[np.ndarray, int, float]:
     # TODO add option to calculate statistical values (variance, p-value...)?
     """Convenience function for kfold_scores. Calculates scores for every fold and
     returns the mean of all scores.
@@ -111,26 +111,24 @@ def k_fold_validation(experiment: Experiment,
     -------
         The mean of all scores for every fold.
     """
-    results = kfold_scores(experiment,
-                           dataset,
-                           n_splits,
-                           score_fun,
-                           shuffle,
-                           random_state)
+    results = kfold_scores(
+        experiment, dataset, n_splits, score_fun, shuffle, random_state
+    )
 
     return sum(results) / len(results)
 
 
-def k_fold_classification_metrics(experiment: Experiment,
-                                  dataset: Dataset,
-                                  n_splits: int,
-                                  average: str = 'micro',
-                                  beta: float = 1.0,
-                                  labels: List[int] = None,
-                                  pos_label: int = 1,
-                                  shuffle: Optional[bool] = False,
-                                  random_state: int = None) \
-        -> Tuple[float, float, float, float]:
+def k_fold_classification_metrics(
+    experiment: Experiment,
+    dataset: Dataset,
+    n_splits: int,
+    average: str = "micro",
+    beta: float = 1.0,
+    labels: List[int] = None,
+    pos_label: int = 1,
+    shuffle: Optional[bool] = False,
+    random_state: int = None,
+) -> Tuple[float, float, float, float]:
     """Calculates the most often used classification metrics : accuracy, precision,
     recall and the F1 score. All scores are calculated for every fold and the mean
     of every score over all folds is returned.
@@ -207,34 +205,20 @@ def k_fold_classification_metrics(experiment: Experiment,
     ValueError
         If `average` is not one of: `micro`, `macro`, `weighted`, `binary`
     """
-    if average not in ('micro', 'macro', 'weighted', 'binary'):
-        error_msg = "`average` parameter must be either `micro`, `macro`, `weighted`" \
-                    f" or `binary`. Provided value: '{average}'"
-        log_and_raise_error(ValueError, _LOGGER, error_msg)
+    if average not in ("micro", "macro", "weighted", "binary"):
+        raise ValueError(
+            "`average` parameter must be either `micro`, `macro`, `weighted` "
+            f"or `binary`. Provided value: '{average}'"
+        )
 
     def scorer(y_true, y_pred):
         accuracy = accuracy_score(y_true, y_pred)
-        precision, recall, f1, _ = precision_recall_fscore_support(y_true,
-                                                                   y_pred,
-                                                                   labels=labels,
-                                                                   pos_label=pos_label,
-                                                                   average=average,
-                                                                   beta=beta)
-        return np.array([
-            accuracy,
-            precision,
-            recall,
-            f1
-        ])
+        precision, recall, f1, _ = precision_recall_fscore_support(
+            y_true, y_pred, labels=labels, pos_label=pos_label, average=average, beta=beta
+        )
+        return np.array([accuracy, precision, recall, f1])
 
-    results = kfold_scores(
-        experiment,
-        dataset,
-        n_splits,
-        scorer,
-        shuffle,
-        random_state
-    )
+    results = kfold_scores(experiment, dataset, n_splits, scorer, shuffle, random_state)
 
     results_avg = sum(results) / len(results)
     return tuple(results_avg)

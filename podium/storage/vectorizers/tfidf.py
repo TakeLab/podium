@@ -1,14 +1,13 @@
 """Module contains classes related to creating tfidf vectors from examples."""
 import array
-from collections import Counter
 import logging
+from collections import Counter
 from functools import partial
 
 import numpy as np
 import scipy.sparse as sp
 from sklearn.feature_extraction.text import TfidfTransformer
 
-from podium.util import log_and_raise_error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -18,6 +17,7 @@ class CountVectorizer:
     It is equivalent to scikit-learn CountVectorizer available at
     https://scikit-learn.org.
     """
+
     def __init__(self, vocab=None, specials=None):
         """Method initializes count vectorizer.
 
@@ -76,7 +76,8 @@ class CountVectorizer:
         count_matrix = sp.csr_matrix(
             (values, j_indices, indptr),
             shape=(len(indptr) - 1, len(self._vocab)),
-            dtype=np.int64)
+            dtype=np.int64,
+        )
         count_matrix.sort_indices()
         if self._special_indexes:
             keep_columns = list(set(range(count_matrix.shape[1])) - self._special_indexes)
@@ -130,8 +131,7 @@ class CountVectorizer:
             If the vectorizer is not fitted before transforming.
         """
         if not self._fitted:
-            error_msg = "Vectorizer has not been fitted."
-            log_and_raise_error(RuntimeError, _LOGGER, error_msg)
+            raise RuntimeError("Vectorizer has not been fitted.")
 
     def fit(self, dataset, field):
         """Method initializes count vectorizer.
@@ -154,15 +154,16 @@ class CountVectorizer:
             If the vocab or fields vocab are None
         """
         if self._vocab is None and (field is None or field.vocab is None):
-            error_msg = "Vocab is not defined. User should define vocab in constructor "\
-                        "or by providing field with a non-empty vocab property."
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError(
+                "Vocab is not defined. User should define vocab in constructor "
+                "or by providing field with a non-empty vocab property."
+            )
 
         if field and field.allow_missing_data:
-            error_msg = "CountVectorizer doesn't support fields that " \
-                        "contain missing data: " \
-                        f"{dataset}, field: {field}"
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError(
+                "CountVectorizer doesn't support fields that "
+                f"contain missing data: {dataset}, field: {field}"
+            )
 
         self._vocab = field.vocab if self._vocab is None else self._vocab
         self._init_special_indexes()
@@ -191,23 +192,26 @@ class CountVectorizer:
             provided and given examples are not in token tensor format.
         """
         self._check_fitted()
-        is_tokens_tensor = kwargs['is_tokens_tensor'] if 'is_tokens_tensor' in kwargs\
-            else True
-        field = kwargs['field'] if 'field' in kwargs else None
+        is_tokens_tensor = (
+            kwargs["is_tokens_tensor"] if "is_tokens_tensor" in kwargs else True
+        )
+        field = kwargs["field"] if "field" in kwargs else None
 
         if examples is None:
-            error_msg = "Examples mustn't be None."
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError("Examples mustn't be None.")
         if not is_tokens_tensor and field is not None:
             return self._build_count_matrix(
-                data=examples, unpack_data=partial(self._get_example_values, field=field))
+                data=examples, unpack_data=partial(self._get_example_values, field=field)
+            )
         elif is_tokens_tensor:
-            return self._build_count_matrix(data=examples,
-                                            unpack_data=self._get_tensor_values)
-        error_msg = "Invalid method arguments. Method expects tensors of numericalized "\
-                    "tokens as examples or dataset as collection of examples from which "\
-                    " with given field to extract data."
-        log_and_raise_error(ValueError, _LOGGER, error_msg)
+            return self._build_count_matrix(
+                data=examples, unpack_data=self._get_tensor_values
+            )
+        raise ValueError(
+            "Invalid method arguments. Method expects tensors of numericalized "
+            "tokens as examples or dataset as collection of examples from which "
+            " with given field to extract data."
+        )
 
 
 class TfIdfVectorizer(CountVectorizer):
@@ -216,8 +220,16 @@ class TfIdfVectorizer(CountVectorizer):
     https://scikit-learn.org.
     Class is dependant on TfidfTransformer defined in scikit-learn library.
     """
-    def __init__(self, vocab=None, norm='l2', use_idf=True,
-                 smooth_idf=True, sublinear_tf=False, specials=None):
+
+    def __init__(
+        self,
+        vocab=None,
+        norm="l2",
+        use_idf=True,
+        smooth_idf=True,
+        sublinear_tf=False,
+        specials=None,
+    ):
         """Constructor that initializes tfidf vectorizer. Parameters besides vocab
         are passed to TfidfTransformer, for further details on these parameters see
         scikit-learn documentation.
@@ -239,11 +251,10 @@ class TfIdfVectorizer(CountVectorizer):
             list of tokens for which tfidf is not calculated,
             if None vocab specials are used
         """
-        super(TfIdfVectorizer, self).__init__(
-            **{"vocab": vocab, "specials": specials})
-        self._tfidf = TfidfTransformer(norm=norm, use_idf=use_idf,
-                                       smooth_idf=smooth_idf,
-                                       sublinear_tf=sublinear_tf)
+        super(TfIdfVectorizer, self).__init__(**{"vocab": vocab, "specials": specials})
+        self._tfidf = TfidfTransformer(
+            norm=norm, use_idf=use_idf, smooth_idf=smooth_idf, sublinear_tf=sublinear_tf
+        )
         self._fitted = False
 
     def fit(self, dataset, field):
@@ -268,14 +279,15 @@ class TfIdfVectorizer(CountVectorizer):
         """
         super(TfIdfVectorizer, self).fit(dataset=dataset, field=field)
         if dataset is None or field is None:
-            error_msg = "dataset or field mustn't be None, given dataset: "\
-                        f"{dataset}, field: {field}"
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError(
+                "dataset or field mustn't be None, given dataset: "
+                f"{dataset}, field: {field}"
+            )
         if field.name not in dataset.field_dict:
-            error_msg = f"invalid field, given field: {field}"
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError(f"invalid field, given field: {field}")
         count_matrix = super(TfIdfVectorizer, self).transform(
-            **{'examples': dataset, 'is_tokens_tensor': False, 'field': field})
+            **{"examples": dataset, "is_tokens_tensor": False, "field": field}
+        )
         self._tfidf.fit(count_matrix)
         self._fitted = True
         return self
@@ -303,8 +315,8 @@ class TfIdfVectorizer(CountVectorizer):
         """
         self._check_fitted()
         if examples is None:
-            error_msg = "examples mustn't be None"
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError("examples mustn't be None")
         count_matrix = super(TfIdfVectorizer, self).transform(
-            **{'examples': examples, 'is_tokens_tensor': True, 'field': None})
+            **{"examples": examples, "is_tokens_tensor": True, "field": None}
+        )
         return self._tfidf.transform(count_matrix, copy=False)

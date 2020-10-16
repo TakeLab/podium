@@ -1,26 +1,11 @@
 """Module contains text tokenizers."""
 import logging
-from podium.util import log_and_raise_error
+
 
 _LOGGER = logging.getLogger(__name__)
 
-_registered_tokenizer_factories = {}
 
-
-def tokenizer_factory(tokenizer_name):
-
-    def register_tokenizer(tokenizer_factory_method):
-        _registered_tokenizer_factories[tokenizer_name] = tokenizer_factory_method
-        return tokenizer_factory_method
-
-    return register_tokenizer
-
-
-def list_tokenizers():
-    return list(_registered_tokenizer_factories.keys())
-
-
-def get_tokenizer(tokenizer):
+def get_tokenizer(tokenizer, language="en"):
     """Returns a tokenizer according to the parameters given.
 
     Parameters
@@ -46,6 +31,8 @@ def get_tokenizer(tokenizer):
 
     Raises
     ------
+    ImportError
+        If the required package for the specified tokenizer is not installed.
     ValueError
         If the given tokenizer is not a callable or a string, or is a
         string that doesn't correspond to any of the supported tokenizers.
@@ -56,57 +43,51 @@ def get_tokenizer(tokenizer):
         # if arg is already a function, just return it
         return tokenizer
 
-    elif isinstance(tokenizer, str):
-        tokenizer_split = tokenizer.split('-', 1)
-        if len(tokenizer_split) == 1:
-            tokenizer_name, tokenizer_args = tokenizer_split[0], None
-        else:
-            tokenizer_name, tokenizer_args = tokenizer_split
+    elif tokenizer == "spacy":
+        try:
+            import spacy
 
-        if tokenizer_name in _registered_tokenizer_factories:
-            return _registered_tokenizer_factories[tokenizer_name](tokenizer_args)
+            disable = ["parser", "ner"]
+            spacy_tokenizer = spacy.load(language, disable=disable)
+        except OSError:
+            _LOGGER.warning(
+                f"SpaCy model {language} not found. " "Trying to download and install."
+            )
 
-        else:
-            error_msg = f"Tokenizer {tokenizer_name} not registered in podium."
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            from spacy.cli.download import download
 
-    else:  # if tokenizer not found
-        error_msg = f"Wrong value given for the tokenizer: {tokenizer}"
-        log_and_raise_error(ValueError, _LOGGER, error_msg)
+            download(language)
+            spacy_tokenizer = spacy.load(language, disable=disable)
 
+        # closures instead of lambdas because they are serializable
+        def spacy_tokenize(string):
+            # need to wrap in a function to access .text
+            return [token.text for token in spacy_tokenizer.tokenizer(string)]
 
-@tokenizer_factory('spacy')
-def _get_spacy_tokenizer(language):
-    import spacy
-    if language is None or language == "":
-        warning_msg = "No language was provided for the spacy tokenizer. " \
-                      "Please provide a language in the tokenizer definition " \
-                      "as 'spacy-language'. Defaulting to 'en'."
-        _LOGGER.warning(warning_msg)
-        language = 'en'
+        return spacy_tokenize
 
-    disable = ["parser", "ner"]
-    try:
-        loaded_spacy_tokenizer = spacy.load(language, disable=disable)
-    except OSError:
-        _LOGGER.warning("SpaCy model {} not found."
-                        "Trying to download and install."
-                        .format(language))
+    elif tokenizer == "split":
+        return str.split
 
-        from spacy.cli.download import download
-        download(language)
-        loaded_spacy_tokenizer = spacy.load(language, disable=disable)
+    elif tokenizer == "toktok":
+        from nltk.tokenize.toktok import ToktokTokenizer
 
-    def spacy_tokenizer_wrapper(string, spacy_tokenizer=loaded_spacy_tokenizer):
-        # need to wrap in a function to access .text
-        return [token.text for token in
-                spacy_tokenizer.tokenizer(string)]
+        toktok = ToktokTokenizer()
+        return toktok.tokenize
 
-    return spacy_tokenizer_wrapper
+    elif tokenizer == "moses":
+        try:
+            from sacremoses import MosesTokenizer
 
+            moses_tokenizer = MosesTokenizer()
+            return moses_tokenizer.tokenize
+        except ImportError:
+            _LOGGER.error(
+                "Please install SacreMoses. "
+                "See the docs at https://github.com/alvations/sacremoses "
+                "for more information."
+            )
+            raise
 
-@tokenizer_factory('split')
-def _get_split_tokenizer(arg):
-    def split(s, sep=arg):
-        return s.split(sep)
-    return split
+    # if tokenizer not found
+    raise ValueError(f"Wrong value given for the tokenizer: {tokenizer}")

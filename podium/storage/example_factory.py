@@ -9,7 +9,7 @@ from enum import Enum
 from typing import Union
 
 from podium.storage.field import unpack_fields
-from podium.util import log_and_raise_error
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ FACTORY_METHOD_DICT = {
     "csv": lambda data, factory: factory.from_csv(data),
     "nltk": lambda data, factory: factory.from_fields_tree(data),
     "xml": lambda data, factory: factory.from_xml_str(data),
-    "json": lambda data, factory: factory.from_json(data)
+    "json": lambda data, factory: factory.from_json(data),
 }
 
 
@@ -51,11 +51,12 @@ class Example:
             setattr(self, fieldname, None)
 
     def __repr__(self):
-        attribute = [att for att in dir(self) if not att.startswith("__")
-                     and not att.endswith("_")]
-        att_values = ["{}: {}".format(att, getattr(self, att, None)) for att in attribute]
+        attribute = [
+            att for att in dir(self) if not att.startswith("__") and not att.endswith("_")
+        ]
+        att_values = [f"{att}: {getattr(self, att, None)}" for att in attribute]
         att_string = "; ".join(att_values)
-        return "{}[{}]".format(self.__class__.__name__, att_string)
+        return f"{type(self).__name__}[{att_string}]"
 
 
 class ExampleFactory:
@@ -75,17 +76,18 @@ class ExampleFactory:
 
         """
         if isinstance(fields, dict):
-            self.fields = {input_value_name: fields_
-                           for input_value_name, fields_
-                           in fields.items()
-                           if fields_ is not None}
+            self.fields = {
+                input_value_name: fields_
+                for input_value_name, fields_ in fields.items()
+                if fields_ is not None
+            }
         else:
             self.fields = fields
 
         self.fieldnames = [field.name for field in unpack_fields(fields)]
 
         # add cache data fields
-        self.fieldnames += ["{}_".format(fieldname) for fieldname in self.fieldnames]
+        self.fieldnames += [f"{fieldname}_" for fieldname in self.fieldnames]
 
     def create_empty_example(self):
         """Method creates empty example with field names stored in example factory.
@@ -173,8 +175,9 @@ class ExampleFactory:
                 if root.tag == name:
                     node = root
                 else:
-                    error_msg = f"Specified name {name} was not found in the input data"
-                    log_and_raise_error(ValueError, _LOGGER, error_msg)
+                    raise ValueError(
+                        f"Specified name {name} was not found in the input data"
+                    )
 
             val = node.text
             set_example_attributes(example, field, val)
@@ -236,7 +239,7 @@ class ExampleFactory:
             return self.from_dict(data_dict)
 
     def from_fields_tree(self, data, subtrees=False, label_transform=None):
-        """ Creates an Example (or multiple Examples) from a string
+        """Creates an Example (or multiple Examples) from a string
         representing an nltk tree and a list of corresponding values.
 
         Parameters
@@ -270,20 +273,18 @@ class ExampleFactory:
             subtree_lists = [tree_to_list(subtree) for subtree in tree.subtrees()]
             if label_transform is not None:
                 # This is perhaps inefficient but probably the best place to insert this
-                subtree_lists = [[text, label_transform(label)]
-                                 for text, label in subtree_lists]
+                subtree_lists = [
+                    [text, label_transform(label)] for text, label in subtree_lists
+                ]
             # an example is created for each subtree
-            return [self.from_list(subtree_list) for subtree_list in
-                    subtree_lists]
+            return [self.from_list(subtree_list) for subtree_list in subtree_lists]
         else:
             text, label = tree_to_list(tree)
             if label_transform is not None:
                 label = label_transform(label)
             return self.from_list([text, label])
 
-    def from_format(self,
-                    data,
-                    format_tag: Union[ExampleFormat, str]):
+    def from_format(self, data, format_tag: Union[ExampleFormat, str]):
 
         if isinstance(format_tag, ExampleFormat):
             format_str = format_tag.value
@@ -292,14 +293,14 @@ class ExampleFactory:
             format_str = format_tag.lower()
 
         else:
-            error_msg = "format_tag must be either an ExampleFormat or a string. " \
-                        f"Passed value is of type : '{type(format_tag).__name__}'"
-            log_and_raise_error(TypeError, _LOGGER, error_msg)
+            raise TypeError(
+                "format_tag must be either an ExampleFormat or a string. "
+                f"Passed value is of type : '{type(format_tag).__name__}'"
+            )
 
         factory_method = FACTORY_METHOD_DICT.get(format_str)
         if factory_method is None:
-            error_msg = f"Unsupported example format: '{format_str}'"
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError(f"Unsupported example format: '{format_str}'")
 
         return factory_method(data, self)
 
@@ -317,7 +318,7 @@ def tree_to_list(tree):
     tree_list : list
         tree represented as list with its label
     """
-    return [' '.join(tree.leaves()), tree.label()]
+    return [" ".join(tree.leaves()), tree.label()]
 
 
 def set_example_attributes(example, field, val):

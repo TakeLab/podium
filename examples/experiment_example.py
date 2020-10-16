@@ -2,18 +2,17 @@
 import os
 
 import numpy as np
-
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import StandardScaler
 
 from podium.datasets import Iterator
 from podium.datasets.impl.pauza_dataset import PauzaHRDataset
+from podium.model_selection import grid_search
+from podium.models import Experiment, FeatureTransformer, SklearnTensorTransformerWrapper
 from podium.models.impl.fc_model import ScikitMLPClassifier
 from podium.models.impl.simple_trainers import SimpleTrainer
-from podium.models import Experiment, FeatureTransformer, SklearnTensorTransformerWrapper
-from podium.model_selection import grid_search
 from podium.pipeline import Pipeline
-from podium.storage import Field, LargeResource, Vocab, ExampleFormat
+from podium.storage import ExampleFormat, Field, LargeResource, Vocab
 from podium.storage.vectorizers.impl import NlplVectorizer
 from podium.validation import k_fold_classification_metrics
 
@@ -26,13 +25,24 @@ def numericalize_pauza_rating(rating):
 
 def basic_pauza_hr_fields():
     """Function returns pauza-hr fields used for classification."""
-    rating = Field(name="Rating", vocab=Vocab(specials=()),
-                   is_target=True, tokenizer=None, keep_raw=True,
-                   custom_numericalize=numericalize_pauza_rating)
+    rating = Field(
+        name="Rating",
+        vocab=Vocab(specials=()),
+        is_target=True,
+        tokenizer=None,
+        keep_raw=True,
+        custom_numericalize=numericalize_pauza_rating,
+    )
 
-    text = Field(name="Text", vocab=Vocab(), tokenizer='split',
-                 language="hr", tokenize=True, keep_raw=False,
-                 fixed_length=100)
+    text = Field(
+        name="Text",
+        vocab=Vocab(),
+        tokenizer="split",
+        language="hr",
+        tokenize=True,
+        keep_raw=False,
+        fixed_length=100,
+    )
 
     return {"Text": text, "Rating": rating}
 
@@ -51,13 +61,13 @@ def experiment_example():
 
     num_of_classes = len(train_dataset.field_dict["Rating"].vocab.itos)
 
-    vector_cache_path = os.path.join(LargeResource.BASE_RESOURCE_DIR,
-                                     "experimet_example_nlpl_cache.txt")
+    vector_cache_path = os.path.join(
+        LargeResource.BASE_RESOURCE_DIR, "experimet_example_nlpl_cache.txt"
+    )
 
     vectorizer = NlplVectorizer(cache_path=vector_cache_path)
     vectorizer.load_vocab(vocab=fields["Text"].vocab)
-    embedding_matrix = vectorizer.get_embedding_matrix(
-        fields["Text"].vocab)
+    embedding_matrix = vectorizer.get_embedding_matrix(fields["Text"].vocab)
 
     def feature_transform_fn(x_batch):
         """Batch transform function that returns a mean of embedding vectors for every
@@ -71,56 +81,65 @@ def experiment_example():
     tensor_transformer = SklearnTensorTransformerWrapper(StandardScaler())
     feature_transformer = FeatureTransformer(feature_transform_fn, tensor_transformer)
 
-    experiment = Experiment(ScikitMLPClassifier,
-                            trainer=trainer,
-                            feature_transformer=feature_transformer,
-                            label_transform_fn=label_transform_fun)
+    experiment = Experiment(
+        ScikitMLPClassifier,
+        trainer=trainer,
+        feature_transformer=feature_transformer,
+        label_transform_fn=label_transform_fun,
+    )
 
-    _, model_params, train_params = \
-        grid_search(experiment,
-                    test_dataset,
-                    accuracy_score,
-                    model_param_grid={'classes': ([i for i in range(num_of_classes)],),
-                                      'hidden_layer_sizes': [(10,), (10, 10), (100,)]},
-                    trainer_param_grid={'max_epoch': [2, 3, 4],
-                                        'iterator': [Iterator(batch_size=32),
-                                                     Iterator(batch_size=64)]}
-                    )
+    _, model_params, train_params = grid_search(
+        experiment,
+        test_dataset,
+        accuracy_score,
+        model_param_grid={
+            "classes": ([i for i in range(num_of_classes)],),
+            "hidden_layer_sizes": [(10,), (10, 10), (100,)],
+        },
+        trainer_param_grid={
+            "max_epoch": [2, 3, 4],
+            "iterator": [Iterator(batch_size=32), Iterator(batch_size=64)],
+        },
+    )
 
     experiment.set_default_model_args(**model_params)
     experiment.set_default_trainer_args(**train_params)
 
-    accuracy, precision, recall, f1 = k_fold_classification_metrics(experiment,
-                                                                    test_dataset,
-                                                                    5,
-                                                                    average='macro')
+    accuracy, precision, recall, f1 = k_fold_classification_metrics(
+        experiment, test_dataset, 5, average="macro"
+    )
 
-    print("Accuracy = {}\n"
-          "Precision = {}\n"
-          "Recall = {}\n"
-          "F1 score = {}".format(accuracy, precision, recall, f1))
+    print(
+        f"Accuracy = {accuracy}\n"
+        f"Precision = {precision}\n"
+        f"Recall = {recall}\n"
+        f"F1 score = {f1}"
+    )
 
     experiment.fit(train_dataset)
 
-    dataset_fields = {
-        "Text": train_dataset.field_dict["Text"]
-    }
+    dataset_fields = {"Text": train_dataset.field_dict["Text"]}
 
-    pipeline = Pipeline(fields=dataset_fields,
-                        example_format=ExampleFormat.XML,
-                        model=experiment.model,
-                        feature_transformer=feature_transformer)
+    pipeline = Pipeline(
+        fields=dataset_fields,
+        example_format=ExampleFormat.XML,
+        model=experiment.model,
+        feature_transformer=feature_transformer,
+    )
 
-    example_good = "<Example><Text>Izvrstan, ogroman Zagrebački, " \
-                   "dostava na vrijeme, ljubazno osoblje ...</Text></Example>"
+    example_good = (
+        "<Example><Text>Izvrstan, ogroman Zagrebački, "
+        "dostava na vrijeme, ljubazno osoblje ...</Text></Example>"
+    )
     prediction = pipeline.predict_raw(example_good)
-    print("Good example score: {}".format(prediction))
+    print(f"Good example score: {prediction}")
 
-    example_bad = "<Example><Text>Hrana kasnila, dostavljac neljubazan, " \
-                  "uzas...</Text></Example>"
+    example_bad = (
+        "<Example><Text>Hrana kasnila, dostavljac neljubazan, " "uzas...</Text></Example>"
+    )
     prediction = pipeline.predict_raw(example_bad)
-    print("Bad example score: {}".format(prediction))
+    print(f"Bad example score: {prediction}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     experiment_example()

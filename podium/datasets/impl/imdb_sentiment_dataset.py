@@ -20,10 +20,10 @@ When using this dataset, please cite:
 import os
 
 from podium.datasets.dataset import Dataset
-from podium.storage.field import LabelField, Field
 from podium.storage.example_factory import ExampleFactory
-from podium.storage.vocab import Vocab
+from podium.storage.field import Field, LabelField
 from podium.storage.resources.large_resource import LargeResource
+from podium.storage.vocab import Vocab
 
 
 class IMDB(Dataset):
@@ -69,8 +69,8 @@ class IMDB(Dataset):
     TEXT_FIELD_NAME = "text"
     LABEL_FIELD_NAME = "label"
 
-    POSITIVE_LABEL = 'positive'
-    NEGATIVE_LABEL = 'negative'
+    POSITIVE_LABEL = "positive"
+    NEGATIVE_LABEL = "negative"
 
     def __init__(self, dir_path, fields):
         """Dataset constructor. User should use static method
@@ -84,13 +84,15 @@ class IMDB(Dataset):
         fields : dict(str, Field)
             dictionary that maps field name to the field
         """
-        LargeResource(**{
-            LargeResource.RESOURCE_NAME: IMDB.NAME,
-            LargeResource.ARCHIVE: IMDB.ARCHIVE_TYPE,
-            LargeResource.URI: IMDB.URL})
+        LargeResource(
+            **{
+                LargeResource.RESOURCE_NAME: IMDB.NAME,
+                LargeResource.ARCHIVE: IMDB.ARCHIVE_TYPE,
+                LargeResource.URI: IMDB.URL,
+            }
+        )
         examples = self._create_examples(dir_path=dir_path, fields=fields)
-        super(IMDB, self).__init__(
-            **{"examples": examples, "fields": fields})
+        super(IMDB, self).__init__(**{"examples": examples, "fields": fields})
 
     @staticmethod
     def _create_examples(dir_path, fields):
@@ -110,17 +112,15 @@ class IMDB(Dataset):
         examples : list(Example)
             list of examples from given dir_path
         """
-        dir_pos_path = os.path.join(
-            dir_path, IMDB.POSITIVE_LABEL_DIR)
-        dir_neg_path = os.path.join(
-            dir_path, IMDB.NEGATIVE_LABEL_DIR)
+        dir_pos_path = os.path.join(dir_path, IMDB.POSITIVE_LABEL_DIR)
+        dir_neg_path = os.path.join(dir_path, IMDB.NEGATIVE_LABEL_DIR)
         examples = []
         examples.extend(
-            IMDB._create_labeled_examples(
-                dir_pos_path, IMDB.POSITIVE_LABEL, fields))
+            IMDB._create_labeled_examples(dir_pos_path, IMDB.POSITIVE_LABEL, fields)
+        )
         examples.extend(
-            IMDB._create_labeled_examples(
-                dir_neg_path, IMDB.NEGATIVE_LABEL, fields))
+            IMDB._create_labeled_examples(dir_neg_path, IMDB.NEGATIVE_LABEL, fields)
+        )
         return examples
 
     @staticmethod
@@ -143,14 +143,13 @@ class IMDB(Dataset):
             list of examples from given dir_path
         """
         example_factory = ExampleFactory(fields)
-        files_list = [f for f in os.listdir(dir_path)
-                      if os.path.isfile(os.path.join(dir_path, f))]
+        files_list = [
+            f for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f))
+        ]
         examples = []
         for file_path in files_list:
-            with open(file=os.path.join(dir_path, file_path),
-                      encoding='utf8') as fpr:
-                data = {IMDB.TEXT_FIELD_NAME: fpr.read(),
-                        IMDB.LABEL_FIELD_NAME: label}
+            with open(file=os.path.join(dir_path, file_path), encoding="utf8") as fpr:
+                data = {IMDB.TEXT_FIELD_NAME: fpr.read(), IMDB.LABEL_FIELD_NAME: label}
                 examples.append(example_factory.from_dict(data))
         return examples
 
@@ -170,20 +169,17 @@ class IMDB(Dataset):
         (train_dataset, test_dataset) : (Dataset, Dataset)
             tuple containing train dataset and test dataset
         """
-        data_location = os.path.join(LargeResource.BASE_RESOURCE_DIR,
-                                     IMDB.DATASET_DIR)
+        data_location = os.path.join(LargeResource.BASE_RESOURCE_DIR, IMDB.DATASET_DIR)
         if not fields:
             fields = IMDB.get_default_fields()
 
         train_dataset = IMDB(
-            dir_path=os.path.join(
-                data_location, IMDB.TRAIN_DIR),
-            fields=fields)
+            dir_path=os.path.join(data_location, IMDB.TRAIN_DIR), fields=fields
+        )
 
         test_dataset = IMDB(
-            dir_path=os.path.join(
-                data_location, IMDB.TEST_DIR),
-            fields=fields)
+            dir_path=os.path.join(data_location, IMDB.TEST_DIR), fields=fields
+        )
 
         train_dataset.finalize_fields()
         return (train_dataset, test_dataset)
@@ -197,11 +193,11 @@ class IMDB(Dataset):
         fields : dict(str, Field)
             Dictionary mapping field name to field.
         """
-        text = Field(name=IMDB.TEXT_FIELD_NAME,
-                     numericalizer=Vocab(),
-                     tokenizer='spacy-en',
-                     keep_raw=False)
-        label = LabelField(name=IMDB.LABEL_FIELD_NAME,
-                           numericalizer=Vocab(specials=()))
-        return {IMDB.TEXT_FIELD_NAME: text,
-                IMDB.LABEL_FIELD_NAME: label}
+        text = Field(
+            name=IMDB.TEXT_FIELD_NAME,
+            numericalizer=Vocab(),
+            tokenizer="spacy",
+            keep_raw=False,
+        )
+        label = LabelField(name=IMDB.LABEL_FIELD_NAME, numericalizer=Vocab(specials=()))
+        return {IMDB.TEXT_FIELD_NAME: text, IMDB.LABEL_FIELD_NAME: label}

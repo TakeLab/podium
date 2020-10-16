@@ -1,7 +1,7 @@
 """Example how to use model on simple PauzaHR dataset."""
 
-from podium.datasets.iterator import Iterator
 from podium.datasets.impl.pauza_dataset import PauzaHRDataset
+from podium.datasets.iterator import Iterator
 from podium.models import FeatureTransformer
 from podium.models.impl.fc_model import ScikitMLPClassifier
 from podium.models.impl.simple_trainers import SimpleTrainer
@@ -28,12 +28,23 @@ def feature_extraction_fn(x_batch):
 
 def basic_pauza_hr_fields():
     """Function returns pauza-hr fields used for classification."""
-    rating = Field(name="Rating", vocab=Vocab(specials=()), keep_raw=True,
-                   is_target=True, tokenizer=None,
-                   custom_numericalize=numericalize_pauza_rating)
-    text = Field(name="Text", vocab=Vocab(), tokenizer='split',
-                 language="hr", tokenize=True, keep_raw=False,
-                 fixed_length=100)
+    rating = Field(
+        name="Rating",
+        vocab=Vocab(specials=()),
+        keep_raw=True,
+        is_target=True,
+        tokenizer=None,
+        custom_numericalize=numericalize_pauza_rating,
+    )
+    text = Field(
+        name="Text",
+        vocab=Vocab(),
+        tokenizer="split",
+        language="hr",
+        tokenize=True,
+        keep_raw=False,
+        fixed_length=100,
+    )
     return {"Text": text, "Rating": rating}
 
 
@@ -53,26 +64,30 @@ def pauza_mlp_example():
 
     model = ScikitMLPClassifier(
         classes=[i for i in range(len(fields["Rating"].vocab.itos))],
-        verbose=True, hidden_layer_sizes=(50, 20), solver="adam")
+        verbose=True,
+        hidden_layer_sizes=(50, 20),
+        solver="adam",
+    )
 
     # Define a FeatureTranformer used to extract and transform feature matrices
     # from feature batches
     feature_transformer = FeatureTransformer(feature_extraction_fn)
 
     trainer = SimpleTrainer()
-    trainer.train(model,
-                  train_set,
-                  iterator=train_iter,
-                  feature_transformer=feature_transformer,
-                  label_transform_fun=label_extraction_fun,
-                  **{trainer.MAX_EPOCH_KEY: 10})
+    trainer.train(
+        model,
+        train_set,
+        iterator=train_iter,
+        feature_transformer=feature_transformer,
+        label_transform_fun=label_extraction_fun,
+        **{trainer.MAX_EPOCH_KEY: 10},
+    )
 
     test_batch_x, test_batch_y = next(iter(train_iter(train_set)))
     x_test = feature_transformer.transform(test_batch_x)
     y_test = label_extraction_fun(test_batch_y)
     prediction = model.predict(X=x_test)
-    print("Expected:\t", y_test, "\n",
-          "Given:\t\t", prediction[model.PREDICTION_KEY])
+    print("Expected:\t", y_test, "\n", "Given:\t\t", prediction[model.PREDICTION_KEY])
 
 
 if __name__ == "__main__":

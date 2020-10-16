@@ -1,10 +1,10 @@
-import os
 import csv
 import logging
+import os
 
 from podium.datasets.dataset import Dataset
 from podium.storage.example_factory import ExampleFactory
-from podium.util import log_and_raise_error
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -14,8 +14,9 @@ class TabularDataset(Dataset):
     each row of the file is a single example.
     """
 
-    def __init__(self, path, format, fields, skip_header=False,
-                 delimiter=None, csv_reader_params={}, **kwargs):
+    def __init__(
+        self, path, format, fields, skip_header=False, csv_reader_params={}, **kwargs
+    ):
         """Creates a TabularDataset from a file containing the data rows and an
         object containing all the fields that we are interested in.
 
@@ -72,16 +73,13 @@ class TabularDataset(Dataset):
         format = format.lower()
 
         with open(os.path.expanduser(path), encoding="utf8") as f:
-            if format in ('csv', 'tsv'):
-                if delimiter is None:
-                    delimiter = ',' if format == "csv" else '\t'
-                reader = csv.reader(f, delimiter=delimiter,
-                                    **csv_reader_params)
+            if format in {"csv", "tsv"}:
+                delimiter = "," if format == "csv" else "\t"
+                reader = csv.reader(f, delimiter=delimiter, **csv_reader_params)
             elif format == "json":
                 reader = f
             else:
-                error_msg = f"Invalid format: {format}"
-                log_and_raise_error(ValueError, _LOGGER, error_msg)
+                raise ValueError(f"Invalid format: {format}")
 
             # create a list of examples
             examples = create_examples(reader, format, fields, skip_header)
@@ -125,13 +123,13 @@ def create_examples(reader, format, fields, skip_header):
 
     if skip_header:
         if format == "json":
-            error_msg = f"When using a {format} file, skip_header must be False."
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError(f"When using a {format} file, skip_header must be False.")
         elif format in {"csv", "tsv"} and isinstance(fields, dict):
-            error_msg = f"When using a dict to specify fields with a {format}" \
-                        " file, skip_header must be False and the file must " \
-                        "have a header."
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError(
+                f"When using a dict to specify fields with a {format} "
+                "file, skip_header must be False and the file must "
+                "have a header."
+            )
 
         # skipping the header
         next(reader)
@@ -151,7 +149,7 @@ def create_examples(reader, format, fields, skip_header):
     make_example_function = {
         "json": example_factory.from_json,
         "csv": example_factory.from_list,
-        "tsv": example_factory.from_list
+        "tsv": example_factory.from_list,
     }
 
     make_example = make_example_function[format]

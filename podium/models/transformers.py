@@ -11,9 +11,7 @@ class TensorTransformer(ABC):
     """
 
     @abstractmethod
-    def fit(self,
-            x: np.ndarray,
-            y: np.ndarray):
+    def fit(self, x: np.ndarray, y: np.ndarray):
         """Fits the transformer to the provided data.
 
         Parameters
@@ -27,9 +25,7 @@ class TensorTransformer(ABC):
         pass
 
     @abstractmethod
-    def transform(self,
-                  x: np.ndarray
-                  ) -> np.ndarray:
+    def transform(self, x: np.ndarray) -> np.ndarray:
         """Transforms the passed features.
 
         Parameters
@@ -61,9 +57,7 @@ class TensorTransformer(ABC):
 class SklearnTensorTransformerWrapper(TensorTransformer):
     """Wrapper class for Sklearn feature transformers."""
 
-    def __init__(self,
-                 feature_transformer,
-                 requires_fitting=True):
+    def __init__(self, feature_transformer, requires_fitting=True):
         """Creates a new SklearnTensorTransformerWrapper.
 
         Parameters
@@ -78,15 +72,11 @@ class SklearnTensorTransformerWrapper(TensorTransformer):
         self.feature_transformer = feature_transformer
         self.requires_fitting_flag = requires_fitting
 
-    def fit(self,
-            x: np.ndarray,
-            y: np.ndarray):
+    def fit(self, x: np.ndarray, y: np.ndarray):
         if self.requires_fitting():
             self.feature_transformer.fit(x, y)
 
-    def transform(self,
-                  x: np.array
-                  ) -> np.ndarray:
+    def transform(self, x: np.array) -> np.ndarray:
         return self.feature_transformer.transform(x)
 
     def requires_fitting(self) -> bool:
@@ -97,9 +87,11 @@ class FeatureTransformer:
     """Class used to transform Dataset batches into features used in model prediction and
     training."""
 
-    def __init__(self,
-                 feature_extraction_fn: Callable[[NamedTuple], np.ndarray],
-                 tensor_transformer: TensorTransformer = None):
+    def __init__(
+        self,
+        feature_extraction_fn: Callable[[NamedTuple], np.ndarray],
+        tensor_transformer: TensorTransformer = None,
+    ):
         """Creates a new FeatureTransformer.
 
         Parameters
@@ -115,9 +107,7 @@ class FeatureTransformer:
         self.feature_extraction_fn = feature_extraction_fn
         self.tensor_transformer = tensor_transformer
 
-    def fit(self,
-            x: NamedTuple,
-            y: np.ndarray):
+    def fit(self, x: NamedTuple, y: np.ndarray):
         """Fits this tensor transformer to the provided data.
 
         Parameters
@@ -134,8 +124,7 @@ class FeatureTransformer:
         x_tensor = self.feature_extraction_fn(x)
         self.tensor_transformer.fit(x_tensor, y)
 
-    def transform(self,
-                  x: NamedTuple) -> np.ndarray:
+    def transform(self, x: NamedTuple) -> np.ndarray:
         """Trasforms the provided podium feature batch into a numpy array.
 
         Parameters
@@ -180,5 +169,7 @@ class FeatureTransformer:
             else returns False.
 
         """
-        return self.tensor_transformer is not None \
+        return (
+            self.tensor_transformer is not None
             and self.tensor_transformer.requires_fitting()
+        )

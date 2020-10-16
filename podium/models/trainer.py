@@ -4,21 +4,24 @@ from typing import Callable, NamedTuple
 
 import numpy as np
 
-from podium.models import AbstractSupervisedModel, FeatureTransformer
 from podium.datasets import Dataset
+
+from .model import AbstractSupervisedModel
+from .transformers import FeatureTransformer
 
 
 class AbstractTrainer(ABC):
     """Interface for base trainer that can train the model."""
 
     @abstractmethod
-    def train(self,
-              model: AbstractSupervisedModel,
-              dataset: Dataset,
-              feature_transformer: FeatureTransformer,
-              label_transform_fun:
-                  Callable[[NamedTuple], np.ndarray],
-              **kwargs):
+    def train(
+        self,
+        model: AbstractSupervisedModel,
+        dataset: Dataset,
+        feature_transformer: FeatureTransformer,
+        label_transform_fun: Callable[[NamedTuple], np.ndarray],
+        **kwargs,
+    ):
 
         """Method trains a model with data from given Iterator.
 

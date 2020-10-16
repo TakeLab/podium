@@ -3,11 +3,10 @@ import logging
 from collections import Counter
 from enum import Enum
 from itertools import chain
-from typing import Union, Iterable
+from typing import Iterable, Union
 
 import numpy as np
 
-from podium.util import log_and_raise_error
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,9 +42,9 @@ class VocabDict(dict):
 
     def __missing__(self, key):
         if self._default_factory is None:
-            error_msg = "Default factory is not defined and key is not in " \
-                        "the dictionary."
-            log_and_raise_error(KeyError, _LOGGER, error_msg)
+            raise KeyError(
+                "Default factory is not defined and key is not in " "the dictionary."
+            )
         return self._default_factory()
 
 
@@ -59,6 +58,7 @@ class SpecialVocabSymbols(Enum):
     PAD : str
         TAG for padding symbol
     """
+
     UNK = "<unk>"
     PAD = "<pad>"
 
@@ -75,13 +75,16 @@ class Vocab:
         list of words
     stoi : dict
         mapping from word string to index
-    has_specials:
-        whether the dictionary contains special symbols
     """
 
-    def __init__(self, max_size=None, min_freq=1,
-                 specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD),
-                 keep_freqs=False, eager=True):
+    def __init__(
+        self,
+        max_size=None,
+        min_freq=1,
+        specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD),
+        keep_freqs=False,
+        eager=True,
+    ):
         """Vocab constructor. Specials are first in the vocabulary.
 
         Parameters
@@ -151,9 +154,10 @@ class Vocab:
             If unknown symbol is not present in the vocab.
         """
         if self._default_unk_index is None:
-            error_msg = "Unknown symbol is not present in the vocab but " \
-                        "the user asked for the word that isn't in the vocab."
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError(
+                "Unknown symbol is not present in the vocab but "
+                "the user asked for the word that isn't in the vocab."
+            )
         return self._default_unk_index
 
     def get_freqs(self):
@@ -171,9 +175,10 @@ class Vocab:
             and the vocab is finalized.
         """
         if self.finalized and not self._keep_freqs:
-            error_msg = "User specified that frequencies aren't kept in " \
-                        "vocabulary but the get_freqs method is called."
-            log_and_raise_error(RuntimeError, _LOGGER, error_msg)
+            raise RuntimeError(
+                "User specified that frequencies aren't kept in "
+                "vocabulary but the get_freqs method is called."
+            )
         return self._freqs
 
     def padding_index(self):
@@ -190,12 +195,10 @@ class Vocab:
             If the padding symbol is not present in the vocabulary.
         """
         if SpecialVocabSymbols.PAD not in self.stoi:
-            error_msg = "Padding symbol is not in the vocabulary."
-            log_and_raise_error(ValueError, _LOGGER, error_msg)
+            raise ValueError("Padding symbol is not in the vocabulary.")
         return self.stoi[SpecialVocabSymbols.PAD]
 
-    def __iadd__(self,
-                 values: Union['Vocab', Iterable]):
+    def __iadd__(self, values: Union["Vocab", Iterable]):
         """Adds additional values or another Vocab to this Vocab.
 
         Parameters
@@ -223,14 +226,14 @@ class Vocab:
             If the values cannot be iterated over.
         """
         if self.finalized:
-            error_msg = "Once finalized, vocabulary cannot be changed."
-            log_and_raise_error(RuntimeError, _LOGGER, error_msg)
+            raise RuntimeError("Once finalized, vocabulary cannot be changed.")
 
         if isinstance(values, str):
-            error_msg = "Vocabulary doesn't support adding a string. " \
-                        "If you need single word added to vocab," \
-                        " you should wrap it to an iterable."
-            log_and_raise_error(TypeError, _LOGGER, error_msg)
+            raise TypeError(
+                "Vocabulary doesn't support adding a string. "
+                "If you need single word added to vocab,"
+                " you should wrap it to an iterable."
+            )
             # if it is a string characters of a string will be added to counter
             # instead of whole string
 
@@ -238,11 +241,12 @@ class Vocab:
             other_vocab = values
 
             if other_vocab._freqs is None:
-                error_msg = "Error while adding Vocabs inplace. " \
-                            "RHS Vocab doesn't have word frequencies stored." \
-                            " Try adding a non-finalized vocab or or a Vocab with " \
-                            "`keep_freqs` enabled."
-                log_and_raise_error(RuntimeError, _LOGGER, error_msg)
+                raise RuntimeError(
+                    "Error while adding Vocabs inplace. "
+                    "RHS Vocab doesn't have word frequencies stored."
+                    " Try adding a non-finalized vocab or or a Vocab with "
+                    "`keep_freqs` enabled."
+                )
 
             # unique is used instead of set to somewhat preserve ordering
             self.specials = list(unique(chain(self.specials, other_vocab.specials)))
@@ -252,15 +256,14 @@ class Vocab:
 
         else:
             try:
-                self._freqs.update(value for value in values
-                                   if value not in self.specials)
+                self._freqs.update(
+                    value for value in values if value not in self.specials
+                )
             except TypeError:
-                error_msg = "Vocab supports only adding another Vocab or iterable."
-                log_and_raise_error(TypeError, _LOGGER, error_msg)
+                raise TypeError("Vocab supports only adding another Vocab or iterable.")
         return self
 
-    def __add__(self,
-                values: Union['Vocab', Iterable]):
+    def __add__(self, values: Union["Vocab", Iterable]):
         """Method allows a vocabulary to be added to current vocabulary or
         that a set of values is added to the vocabulary.
 
@@ -297,14 +300,21 @@ class Vocab:
             else:
                 max_size = self._max_size + other_vocab._max_size
 
-            new_vocab = Vocab(specials=specials,
-                              max_size=max_size,
-                              min_freq=min(self._min_freq, other_vocab._min_freq),
-                              keep_freqs=self._keep_freqs or other_vocab._keep_freqs)
+            new_vocab = Vocab(
+                specials=specials,
+                max_size=max_size,
+                min_freq=min(self._min_freq, other_vocab._min_freq),
+                keep_freqs=self._keep_freqs or other_vocab._keep_freqs,
+            )
 
-            if self.finalized and other_vocab.finalized \
-                    and self._keep_freqs and other_vocab._keep_freqs \
-                    or not self.finalized and not other_vocab.finalized:
+            if (
+                self.finalized
+                and other_vocab.finalized
+                and self._keep_freqs
+                and other_vocab._keep_freqs
+                or not self.finalized
+                and not other_vocab.finalized
+            ):
                 # If both have _freqs add them together
                 new_freqs = self._freqs + other_vocab._freqs
                 new_vocab._freqs = new_freqs
@@ -320,14 +330,17 @@ class Vocab:
                 return new_vocab
 
             else:
-                error_msg = "Vocab addition error. When adding up two Vocabs " \
-                            "both must be either finalized or not finalized."
-                log_and_raise_error(RuntimeError, _LOGGER, error_msg)
+                raise RuntimeError(
+                    "Vocab addition error. When adding up two Vocabs "
+                    "both must be either finalized or not finalized."
+                )
         else:
-            new_vocab = Vocab(specials=self.specials,
-                              max_size=self._max_size,
-                              min_freq=self._min_freq,
-                              keep_freqs=self._keep_freqs)
+            new_vocab = Vocab(
+                specials=self.specials,
+                max_size=self._max_size,
+                min_freq=self._min_freq,
+                keep_freqs=self._keep_freqs,
+            )
             new_vocab += self
             new_vocab += values
             if self.finalized:
@@ -344,14 +357,17 @@ class Vocab:
             If the vocab is already finalized.
         """
         if self.finalized:
-            _LOGGER.warning("Vocabulary is finalized already. "
-                            "This should be used only if multiple fields "
-                            "use same vocabulary.")
+            _LOGGER.warning(
+                "Vocabulary is finalized already. "
+                "This should be used only if multiple fields "
+                "use same vocabulary."
+            )
             return
 
         # construct stoi and itos, sort by frequency
-        words_and_freqs = sorted(self._freqs.items(), key=lambda tup: tup[1],
-                                 reverse=True)
+        words_and_freqs = sorted(
+            self._freqs.items(), key=lambda tup: tup[1], reverse=True
+        )
         if self._max_size is None:
             self._max_size = len(words_and_freqs) + len(self.itos)
             # vocab + specials
@@ -385,9 +401,10 @@ class Vocab:
             If the vocabulary is not finalized.
         """
         if not self.finalized:
-            error_msg = "Cannot numericalize if the vocabulary has not been " \
-                        "finalized because itos and stoi are not yet built."
-            log_and_raise_error(RuntimeError, _LOGGER, error_msg)
+            raise RuntimeError(
+                "Cannot numericalize if the vocabulary has not been "
+                "finalized because itos and stoi are not yet built."
+            )
         return np.array([self.stoi[token] for token in data])
 
     def reverse_numericalize(self, numericalized_data: Iterable):
@@ -410,14 +427,15 @@ class Vocab:
             If the vocabulary is not finalized.
         """
         if not self.finalized:
-            error_msg = "Cannot reverse numericalize if the vocabulary has not been " \
-                        "finalized because itos and stoi are not yet built."
-            log_and_raise_error(RuntimeError, _LOGGER, error_msg)
+            raise RuntimeError(
+                "Cannot reverse numericalize if the vocabulary has not been "
+                "finalized because itos and stoi are not yet built."
+            )
         return [self.itos[i] for i in numericalized_data]
 
     @property
     def has_specials(self):
-        """Method checks if the vocabulary contains special symbols.
+        """Property that checks if the vocabulary contains special symbols.
 
         Returns
         -------
@@ -480,8 +498,7 @@ class Vocab:
         return iter(self.itos)
 
     def __repr__(self):
-        return "{}[finalized: {}, size: {}]".format(
-            self.__class__.__name__, self.finalized, len(self))
+        return f"{type(self).__name__}[finalized: {self.finalized}, size: {len(self)}]"
 
     def __getitem__(self, token):
         """Returns the token index of the passed token. If the passed token has no index,
@@ -505,9 +522,9 @@ class Vocab:
         """
 
         if not self.finalized:
-            error_msg = "Cannot numericalize if the vocabulary has not been " \
-                        "finalized because itos and stoi are not yet built."
-            _LOGGER.error(error_msg)
-            raise RuntimeError(error_msg)
+            raise RuntimeError(
+                "Cannot numericalize if the vocabulary has not been "
+                "finalized because itos and stoi are not yet built."
+            )
 
         return self.stoi[token]
