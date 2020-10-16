@@ -714,7 +714,7 @@ class Field:
 
         return array
 
-    def get_numericalization_for_example(self, example: 'Example', cache: bool = True) \
+    def get_numericalization_for_example(self, example, cache: bool = True) \
             -> Optional[Union[Any, np.ndarray]]:
         """Returns the numericalized data of this field for the provided example.
         The numericalized data is generated and cached in the example if 'cache' is true
