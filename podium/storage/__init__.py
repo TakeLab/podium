@@ -28,7 +28,6 @@ __all__ = [
     "HttpDownloader",
     "SimpleHttpDownloader",
     "Field",
-    "TokenizedField",
     "LabelField",
     "MultilabelField",
     "MultioutputField",
