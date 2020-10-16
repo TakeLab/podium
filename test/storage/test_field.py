@@ -187,7 +187,7 @@ def test_field_pad_to_length(row, length, expected_row, pad_left,
     f = Field(name="F", numericalizer=vocab)
 
     received_row = f.pad_to_length(np.array(row), length, pad_left=pad_left,
-                                    truncate_left=truncate_left)
+                                   truncate_left=truncate_left)
 
     assert received_row.tolist() == expected_row
 
@@ -219,7 +219,7 @@ def test_field_pad_to_length_custom_pad(row, length, expected_row):
 
     row_arr = np.array(row)
     received_row = f.pad_to_length(row_arr, length,
-                                    custom_pad_symbol=CUSTOM_PAD)
+                                   custom_pad_symbol=CUSTOM_PAD)
 
     assert received_row.tolist() == expected_row
 
@@ -600,12 +600,12 @@ def test_multilabel_field_class_count():
 @pytest.mark.parametrize("tokens, expected_numericalization",
                          [
                              (
-                                     ["class1", "class2", "class3", "class4"],
-                                     np.array([1, 1, 1, 1, 0, 0])
+                                 ["class1", "class2", "class3", "class4"],
+                                 np.array([1, 1, 1, 1, 0, 0])
                              ),
                              (
-                                     [],
-                                     np.array([0, 0, 0, 0, 0, 0])
+                                 [],
+                                 np.array([0, 0, 0, 0, 0, 0])
                              )
                          ])
 def test_multilabel_field_custom_numericalization(tokens, expected_numericalization):

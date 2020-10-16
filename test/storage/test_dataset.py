@@ -859,7 +859,8 @@ def test_hierarchical_dataset_finalize_fields(hierarchical_dataset_parser):
     name_vocab = Vocab()
     number_vocab = Vocab()
     name_field = Field("name", keep_raw=True, tokenizer=None, numericalizer=name_vocab)
-    number_field = Field("number", keep_raw=True, tokenizer=None, numericalizer=number_vocab)
+    number_field = Field("number", keep_raw=True, tokenizer=None,
+                         numericalizer=number_vocab)
 
     fields = {
         "name": name_field,

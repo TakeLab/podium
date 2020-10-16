@@ -79,9 +79,9 @@ def get_tokenizer(tokenizer):
 def _get_spacy_tokenizer(language):
     import spacy
     if language is None or language == "":
-        warning_msg = f"No language was provided for the spacy tokenizer. " \
-                      f"Please provide a language in the tokenizer definition " \
-                      f"as 'spacy-language'. Defaulting to 'en'."
+        warning_msg = "No language was provided for the spacy tokenizer. " \
+                      "Please provide a language in the tokenizer definition " \
+                      "as 'spacy-language'. Defaulting to 'en'."
         _LOGGER.warning(warning_msg)
         language = 'en'
 

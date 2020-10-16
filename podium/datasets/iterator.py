@@ -306,7 +306,8 @@ class Iterator:
 
         # if fixed_length is None, then return the maximum length of all the
         # examples in the batch
-        def num_length(n): return 1 if n is None else len(n)
+        def num_length(n):
+            return 1 if n is None else len(n)
 
         return max(map(num_length, numericalizations))
 
@@ -473,9 +474,9 @@ class BucketIterator(Iterator):
         return "{}[batch_size: {}, batch_to_matrix: {}, sort_key: {}, " \
                "shuffle: {}, look_ahead_multiplier: {}, bucket_sort_key: {}]" \
             .format(
-            self.__class__.__name__, self.batch_size,
-            self.batch_to_matrix, self.sort_key, self.shuffle,
-            self.look_ahead_multiplier, self.bucket_sort_key)
+                self.__class__.__name__, self.batch_size,
+                self.batch_to_matrix, self.sort_key, self.shuffle,
+                self.look_ahead_multiplier, self.bucket_sort_key)
 
 
 class HierarchicalDatasetIterator(Iterator):
@@ -693,6 +694,6 @@ class HierarchicalDatasetIterator(Iterator):
         return "{}[batch_size: {}, batch_to_matrix: {}, sort_key: {}, " \
                "shuffle: {}, context_max_length: {}, context_max_depth: {}]" \
             .format(
-            self.__class__.__name__, self.batch_size,
-            self.batch_to_matrix, self.sort_key, self.shuffle,
-            self._context_max_size, self._context_max_depth)
+                self.__class__.__name__, self.batch_size,
+                self.batch_to_matrix, self.sort_key, self.shuffle,
+                self._context_max_size, self._context_max_depth)

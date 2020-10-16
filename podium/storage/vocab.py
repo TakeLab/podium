@@ -426,13 +426,6 @@ class Vocab:
         """
         return self._has_specials
 
-    def __getitem__(self, token):
-        if not self.finalized:
-            error_msg = "Cannot numericalize if the vocabulary has not been " \
-                        "finalized because itos and stoi are not yet built."
-            log_and_raise_error(RuntimeError, _LOGGER, error_msg)
-        return self.stoi[token]
-
     def __len__(self):
         """Method calculates vocab lengths including special symbols.
 
