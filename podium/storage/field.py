@@ -214,7 +214,7 @@ class Field:
                  allow_missing_data: bool = False,
                  disable_batch_matrix: bool = False,
                  padding_token: Union[int, float] = -999,
-                 missing_data_token: Any = -1,
+                 missing_data_token: Union[int, float] = -1,
                  pretokenize_hooks: Iterable[pretok_hook_type] = (),
                  posttokenize_hooks: Iterable[posttok_hook_type] = ()
                  ):
@@ -338,6 +338,15 @@ class Field:
 
     @property
     def eager(self):
+        """A flag that tells whether this field has a Vocab and whether that Vocab is
+        marked as eager.
+
+        Returns
+        -------
+        bool
+            whether this field has a Vocab and whether that Vocab is
+            marked as eager
+        """
         return self.vocab is not None and self.vocab.eager
 
     @property
@@ -352,7 +361,7 @@ class Field:
 
         return self.vocab is not None
 
-    def add_pretokenize_hook(self, hook):
+    def add_pretokenize_hook(self, hook: pretok_hook_type):
         """Add a pre-tokenization hook to the Field.
         If multiple hooks are added to the field, the order of their execution
         will be the same as the order in which they were added to the field,
@@ -378,7 +387,7 @@ class Field:
         """
         self.pretokenize_pipeline.add_hook(hook)
 
-    def add_posttokenize_hook(self, hook):
+    def add_posttokenize_hook(self, hook: posttok_hook_type):
         """Add a post-tokenization hook to the Field.
         If multiple hooks are added to the field, the order of their execution
         will be the same as the order in which they were added to the field,
@@ -421,7 +430,7 @@ class Field:
         """
         self.posttokenize_pipeline.clear()
 
-    def _run_pretokenization_hooks(self, data):
+    def _run_pretokenization_hooks(self, data: Any) -> Any:
         """Runs pretokenization hooks on the raw data and returns the result.
 
         Parameters
@@ -437,7 +446,8 @@ class Field:
         """
         return self.pretokenize_pipeline(data)
 
-    def _run_posttokenization_hooks(self, data, tokens):
+    def _run_posttokenization_hooks(self, data: Any, tokens: List[str]) \
+            -> Tuple[Any, List[str]]:
         """Runs posttokenization hooks on tokenized data.
 
         Parameters
@@ -457,8 +467,9 @@ class Field:
         """
         return self.posttokenize_pipeline(data, tokens)
 
-    def preprocess(self, data):
-        """Preprocesses raw data, tokenizing it if the field is sequential,
+    def preprocess(self, data: Any) \
+            -> Iterable[Tuple[str, Tuple[Any, Optional[List[str]]]]]:
+        """Preprocesses raw data, tokenizing it if required,
         updating the vocab if the vocab is eager and preserving the raw data
         if field's 'store_raw' is true.
 
@@ -466,18 +477,14 @@ class Field:
         ----------
         data : str or iterable(hashable)
             The raw data that needs to be preprocessed.
-            String if 'store_as_raw' and/or 'tokenize' attributes are True.
-            iterable(hashable) if store_as_tokenized attribute is True.
 
         Returns
         -------
-        (str, Iterable(hashable))
-            A tuple of (raw, tokenized). If the field's 'store_as_raw'
-            attribute is False, then 'raw' will be None (we don't preserve
-            the raw data). If field's 'tokenize' and 'store_as_tokenized'
-            attributes are False then 'tokenized' will be None.
-            The attributes 'store_as_raw', 'store_as_tokenized' and 'tokenize'
-            will never all be False, so the function will never return (None, None).
+        ((str, Iterable(hashable)), )
+            A tuple containing one tuple of the format (field_name, (raw, tokenized)).
+            Raw is set to None if `keep_raw` is disabled.
+            Both raw and tokenized will be set to none if None is passed as `data` and
+            `allow_missing_data` is enabled.
 
         Raises
         ------
@@ -500,23 +507,15 @@ class Field:
 
         return self._process_tokens(processed_raw, tokenized),
 
-    def update_vocab(self, tokenized):
-        """Updates the vocab with a data point in its raw and tokenized form.
-        If the field is sequential, the vocab is updated with the tokenized
-        form (and 'raw' can be None), otherwise the raw form is used to
-        update (and 'tokenized' can be None).
+    def update_vocab(self, tokenized: List[str]):
+        """Updates the vocab with a data point in its tokenized form.
+        If the field does not do tokenization,
 
         Parameters
         ----------
-        raw : hashable
-            The raw form of the data point that the vocab is to be updated
-            with. If the field is sequential, this parameter is ignored and
-            can be None.
-        tokenized : iterable(hashable)
+        tokenized : Union[Any, List(str)]
             The tokenized form of the data point that the vocab is to be
-            updated with. If the field is NOT sequential
-            ('store_as_tokenized' and 'tokenize' attributes are False),
-            this parameter is ignored and can be None.
+            updated with.
         """
 
         if not self.use_vocab:
@@ -545,16 +544,17 @@ class Field:
         if self.use_vocab:
             self.vocab.finalize()
 
-    def _process_tokens(self, raw, tokens):
+    def _process_tokens(self, raw: Any, tokens: Union[Any, List[str]]) \
+            -> Tuple[str, Tuple[Any, Optional[Any, List[str]]]]:
         """Runs posttokenization processing on the provided data and tokens and updates
         the vocab if needed. Used by Multioutput field.
 
         Parameters
         ----------
-        data
+        raw: Any
             data processed by Pretokenization hooks
 
-        tokens : list
+        tokens : List[str]
             tokenized data
 
         Returns
@@ -571,7 +571,7 @@ class Field:
             self.update_vocab(tokenized)
         return self.name, (raw, tokenized)
 
-    def get_default_value(self):
+    def get_default_value(self) -> Union[int, float]:
         """Method obtains default field value for missing data.
 
         Returns
@@ -591,7 +591,8 @@ class Field:
 
         return self.missing_data_token
 
-    def numericalize(self, data):
+    def numericalize(self, data: Tuple[Optional[Any], Optional[Union[Any, List[str]]]]) \
+            -> Optional[Any, np.ndarray]:
         """Numericalize the already preprocessed data point based either on
         the vocab that was previously built, or on a custom numericalization
         function, if the field doesn't use a vocab.
@@ -635,8 +636,9 @@ class Field:
         else:
             return np.array([self.numericalizer(t) for t in tokens])
 
-    def pad_to_length(self, array, length, custom_pad_symbol=None,
-                      pad_left=False, truncate_left=False):
+    def pad_to_length(self, array: np.array, length: int,
+                      custom_pad_symbol: Optional[Union[int, float]] = None,
+                      pad_left: bool = False, truncate_left: bool = False):
         """Either pads the given row with pad symbols, or truncates the row
         to be of given length. The vocab provides the pad symbol for all
         fields that have vocabs, otherwise the pad symbol has to be given as
@@ -644,7 +646,7 @@ class Field:
 
         Parameters
         ----------
-        array : np.ndarray
+        array : numpy.ndarray
             The row of numericalized data that is to be padded / truncated.
         length : int
             The desired length of the row.
@@ -658,6 +660,11 @@ class Field:
         truncate_left : bool
             If True field will be trucated on the left side, otherwise on the
             right side. Default: False.
+
+        Returns
+        -------
+        numpy.ndarray
+            Numpy array padded or truncated to `length`.
 
         Raises
         ------
@@ -707,7 +714,8 @@ class Field:
 
         return array
 
-    def get_numericalization_for_example(self, example, cache=True):
+    def get_numericalization_for_example(self, example: 'Example', cache: bool = True) \
+            -> Optional[Union[Any, np.ndarray]]:
         """Returns the numericalized data of this field for the provided example.
         The numericalized data is generated and cached in the example if 'cache' is true
         and the cached data is not already present. If already cached, the cached data is
@@ -724,7 +732,7 @@ class Field:
 
         Returns
         -------
-        numericalized data : numpy array
+        Union[numpy.ndarray, Any]
             The numericalized data.
         """
         cache_field_name = "{}_".format(self.name)
@@ -774,7 +782,7 @@ class Field:
             return "{}[name: {}, is_target: {}]".format(
                 self.__class__.__name__, self.name, self.is_target)
 
-    def get_output_fields(self):
+    def get_output_fields(self) -> Iterable["Field"]:
         """Returns an Iterable of the contained output fields.
 
         Returns
