@@ -61,14 +61,3 @@ def test_yake_en_wrapper_output():
 
     assert output_podium == output_original
 
-
-def test_yake_en_nondefault_wrapper_output():
-    yake_original = yake.KeywordExtractor(n=2)
-    yake_podium = YAKE(n=2)
-
-    output_original = [
-        kw for kw, _ in yake_original.extract_keywords(KEYWORD_DATA["text"])
-    ]
-    output_podium = yake_podium(KEYWORD_DATA["text"])
-
-    assert output_podium == output_original
