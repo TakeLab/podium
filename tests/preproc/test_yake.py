@@ -2,7 +2,6 @@ import pytest
 
 
 pytest.importorskip("podium.preproc.yake")
-import yake
 
 from podium.preproc.yake import YAKE
 
@@ -60,4 +59,3 @@ def test_yake_en_wrapper_output():
     output_podium = yake_podium(KEYWORD_DATA["text"])
 
     assert output_podium == output_original
-

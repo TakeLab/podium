@@ -1,11 +1,10 @@
 """Module contains text tokenizers."""
 import logging
 
-
 _LOGGER = logging.getLogger(__name__)
 
 
-def get_tokenizer(tokenizer, language="en"):
+def get_tokenizer(tokenizer):
     """Returns a tokenizer according to the parameters given.
 
     Parameters
@@ -43,10 +42,23 @@ def get_tokenizer(tokenizer, language="en"):
         # if arg is already a function, just return it
         return tokenizer
 
-    elif tokenizer == "spacy":
+    if not isinstance(tokenizer, str):
+        err_msg = f"Wrong type passed to `get_tokenizer`. Allowed types are callables " \
+                  f"and strings. The provided type is {type(tokenizer)}"
+        _LOGGER.error(err_msg)
+        raise ValueError(err_msg)
+
+    tokenizer_split = tokenizer.split("-", 1)
+    if len(tokenizer_split) == 1:
+        tokenizer, parameters = tokenizer_split[0], None
+    else:
+        tokenizer, parameters = tokenizer_split
+
+    if tokenizer == "spacy":
         try:
             import spacy
 
+            language = parameters or 'en'
             disable = ["parser", "ner"]
             spacy_tokenizer = spacy.load(language, disable=disable)
         except OSError:
@@ -67,7 +79,10 @@ def get_tokenizer(tokenizer, language="en"):
         return spacy_tokenize
 
     elif tokenizer == "split":
-        return str.split
+        def _split(string):
+            return string.split(sep=parameters)
+
+        return _split
 
     elif tokenizer == "toktok":
         from nltk.tokenize.toktok import ToktokTokenizer
@@ -88,6 +103,6 @@ def get_tokenizer(tokenizer, language="en"):
                 "for more information."
             )
             raise
-
-    # if tokenizer not found
-    raise ValueError(f"Wrong value given for the tokenizer: {tokenizer}")
+    else:
+        # if tokenizer not found
+        raise ValueError(f"Wrong value given for the tokenizer: {tokenizer}")
