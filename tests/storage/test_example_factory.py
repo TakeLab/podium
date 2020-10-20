@@ -204,7 +204,7 @@ def test_multiple_output_for_input_dict(expected_values):
     upper_case_name_field = Field("Uppercase_name", keep_raw=True)
     upper_case_name_field.add_pretokenize_hook(str.upper)
 
-    test_field_dict = dict(field_dict)
+    test_field_dict = field_dict.copy()
     test_field_dict["Name"] = (
         field_dict["Name"],
         lower_case_name_field,
@@ -291,9 +291,7 @@ def test_ignore_values_list(expected_values):
     example_factory = ExampleFactory(fields)
     example = example_factory.from_list(expected_values)
 
-    # one is original field and one is for cached value
     assert hasattr(example, "Favorite_food")
-    assert hasattr(example, "Favorite_food_")
 
     raw, _ = example.Favorite_food
     assert raw == expected_values[2]
@@ -312,14 +310,16 @@ def test_ignore_values_dict(expected_values):
     example_factory = ExampleFactory(fields)
     example = example_factory.from_dict(expected_values)
 
-    # one is original field and one is for cached value
     assert hasattr(example, "Name")
-    assert hasattr(example, "Name_")
 
     raw, _ = example.Name
     assert raw == expected_values["Name"]
 
 
+@pytest.mark.skip(
+    reason="cache attributes are no longer created by default, "
+    "instead they are created during numericalization"
+)
 @pytest.mark.parametrize(
     "expected_values",
     [
@@ -339,6 +339,10 @@ def test_cache_data_field_from_list(expected_values):
         assert hasattr(example, f"{field_name}_")
 
 
+@pytest.mark.skip(
+    reason="cache attributes are no longer created by default, "
+    "instead they are created during numericalization"
+)
 @pytest.mark.parametrize(
     "expected_values",
     [

@@ -155,11 +155,6 @@ def test_not_numericalizable_field(json_file_path):
 def test_lazy_numericalization_caching(tabular_dataset):
     tabular_dataset.finalize_fields()
 
-    # Check if caches are empty
-    for example in tabular_dataset:
-        for field in tabular_dataset.fields:
-            assert getattr(example, f"{field.name}_") is None
-
     # Run one epoch to cause lazy numericalization
     for _ in Iterator(dataset=tabular_dataset, batch_size=10):
         pass
@@ -534,11 +529,6 @@ def test_hierarchical_dataset_iteration_with_depth_limitation(hierarchical_datas
 
 
 def test_hierarchial_dataset_iterator_numericalization_caching(hierarchical_dataset):
-    # Check if caches are empty
-    for example in hierarchical_dataset:
-        for field in hierarchical_dataset.fields:
-            assert getattr(example, f"{field.name}_") is None
-
     # Run one epoch to cause lazy numericalization
     hit = HierarchicalDatasetIterator(
         dataset=hierarchical_dataset, batch_size=20, context_max_depth=2

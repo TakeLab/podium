@@ -745,10 +745,6 @@ def test_eager_tokenization():
     dataset_lazy = create_dataset()
     dataset_eager = create_dataset()
 
-    for example_eager in dataset_eager:
-        assert example_eager.text_ is None
-        assert example_eager.source_ is None
-
     dataset_eager.finalize_fields()
     # Numericalize eagerly
     dataset_eager.numericalize_examples()

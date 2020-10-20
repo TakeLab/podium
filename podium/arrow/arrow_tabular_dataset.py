@@ -447,9 +447,9 @@ class ArrowDataset:
         )
 
         for row in zip(*field_value_iterators):
-            example = Example(fieldnames)
+            example = Example()
             for fieldname, values in zip(fieldnames, row):
-                setattr(example, fieldname, values)
+                example[fieldname] = values
             yield example
 
     @staticmethod
