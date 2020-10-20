@@ -1,6 +1,8 @@
 import ctypes
 import os
 
+import pytest
+
 
 def is_admin():
     # on some systems/environments, admin privileges are required to download
@@ -24,3 +26,13 @@ def has_spacy_model(language):
         return False
 
     return True
+
+
+run_spacy = pytest.mark.skipif(
+    not (is_admin() or has_spacy_model("en")),
+    reason=(
+        "requires already downloaded model or "
+        "admin privileges to download it "
+        "while executing"
+    ),
+)

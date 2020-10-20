@@ -8,15 +8,7 @@ from podium.datasets.dataset import Dataset
 from podium.datasets.impl.imdb_sentiment_dataset import IMDB
 from podium.storage.resources.large_resource import LargeResource
 
-from ..util import has_spacy_model, is_admin
-
-
-RUN_SPACY = is_admin or has_spacy_model("en")
-SKIP_SPACY_REASON = (
-    "requires already downloaded model or "
-    "admin privileges to download it "
-    "while executing"
-)
+from ..util import run_spacy
 
 
 TRAIN_EXAMPLES = {
@@ -104,10 +96,7 @@ def create_examples(base_dir, examples):
             fpr.write(examples[i])
 
 
-@pytest.mark.skipif(
-    not RUN_SPACY,
-    reason=SKIP_SPACY_REASON,
-)
+@run_spacy
 def test_return_params(mock_dataset_path):
     data = IMDB.get_dataset_splits()
     assert len(data) == 2
@@ -115,10 +104,7 @@ def test_return_params(mock_dataset_path):
     assert isinstance(data[1], Dataset)
 
 
-@pytest.mark.skipif(
-    not RUN_SPACY,
-    reason=SKIP_SPACY_REASON,
-)
+@run_spacy
 def test_default_fields():
     fields = IMDB.get_default_fields()
     assert len(fields) == 2
@@ -126,10 +112,7 @@ def test_default_fields():
     assert all([name in fields for name in field_names])
 
 
-@pytest.mark.skipif(
-    not RUN_SPACY,
-    reason=SKIP_SPACY_REASON,
-)
+@run_spacy
 def test_loaded_data(mock_dataset_path):
     spacy_tokenizer = spacy.load("en", disable=["parser", "ner"])
 
