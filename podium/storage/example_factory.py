@@ -36,6 +36,7 @@ class Example(dict):
 
     Each key corresponds to one Field and holds (raw, tokenized) values produced by
     that Field.
+
     To access the attributes, you can use either the dictionary syntax (obj[key]) or
     the standard attribute access (obj.key) if the key is a valid Python identifier.
     """
@@ -60,6 +61,7 @@ class Example(dict):
         from the specific format.
         See podium.storage.ExampleFactory for the concrete list of functions
         that create Examples from diffent formats.
+
         Notes
         -----
         This is a convenience function. Use podium.storage.ExampleFactory
