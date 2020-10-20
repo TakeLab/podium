@@ -80,7 +80,7 @@ class SST(Dataset):
         if not fine_grained:
             # TODO @mttk: Perhaps issue warning if any of fields is eager
             def filter_neutral(example):
-                return example.label[0] != "neutral"
+                return example.label[1] != "neutral"
 
             self.filter(predicate=filter_neutral, inplace=True)
 

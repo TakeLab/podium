@@ -3,8 +3,6 @@ import tempfile
 
 import pytest
 
-
-pytestmark = pytest.mark.skip
 from podium.datasets.dataset import Dataset
 from podium.datasets.impl.sst_sentiment_dataset import SST
 from podium.storage.resources.large_resource import LargeResource
@@ -75,7 +73,7 @@ def test_load_dataset(mock_dataset_path):
     assert len(train_dataset.fields[1].vocab) == 2
     # The neutral example will be filtered
     for ex in train_dataset:
-        ex_data = {"text": ex.text[1], "label": ex.label[0]}
+        ex_data = {"text": ex.text[1], "label": ex.label[1]}
         assert ex_data in EXPECTED_TRAIN_EXAMPLES[:2]
 
 
@@ -89,7 +87,7 @@ def test_load_finegrained(mock_dataset_path):
     assert len(train_dataset) == 3
     assert len(train_dataset.fields[1].vocab) == 3
     for ex in train_dataset:
-        ex_data = {"text": ex.text[1], "label": ex.label[0]}
+        ex_data = {"text": ex.text[1], "label": ex.label[1]}
         assert ex_data in EXPECTED_TRAIN_EXAMPLES
 
 
