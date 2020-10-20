@@ -1,6 +1,7 @@
 """Module contains text tokenizers."""
 import logging
 
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -43,8 +44,10 @@ def get_tokenizer(tokenizer):
         return tokenizer
 
     if not isinstance(tokenizer, str):
-        err_msg = f"Wrong type passed to `get_tokenizer`. Allowed types are callables " \
-                  f"and strings. The provided type is {type(tokenizer)}"
+        err_msg = (
+            f"Wrong type passed to `get_tokenizer`. Allowed types are callables "
+            f"and strings. The provided type is {type(tokenizer)}"
+        )
         _LOGGER.error(err_msg)
         raise ValueError(err_msg)
 
@@ -58,7 +61,7 @@ def get_tokenizer(tokenizer):
         try:
             import spacy
 
-            language = parameters or 'en'
+            language = parameters or "en"
             disable = ["parser", "ner"]
             spacy_tokenizer = spacy.load(language, disable=disable)
         except OSError:
@@ -79,6 +82,7 @@ def get_tokenizer(tokenizer):
         return spacy_tokenize
 
     elif tokenizer == "split":
+
         def _split(string):
             return string.split(sep=parameters)
 

@@ -566,7 +566,7 @@ def test_multilabel_field_class_count():
     ((_, data_2),) = field.preprocess(example_2)
     field.finalize()
 
-    assert field.num_of_classes == 4
+    assert field._num_of_classes == 4
 
     numericalized = field.numericalize(data_1)
     assert len(numericalized) == 4

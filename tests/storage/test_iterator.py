@@ -74,18 +74,18 @@ def test_iterate_new_epoch(tabular_dataset):
     iterator = Iterator(dataset=tabular_dataset, batch_size=2)
 
     it = iter(iterator)
-    assert iterator.iterations == 0
+    assert iterator._iterations == 0
 
     for i in range(4):
         next(it)
-        assert iterator.epoch == 0
-        assert iterator.iterations == i
+        assert iterator._epoch == 0
+        assert iterator._iterations == i
 
     with pytest.raises(StopIteration):
         next(it)
 
-    assert iterator.epoch == 1
-    assert iterator.iterations == 0
+    assert iterator._epoch == 1
+    assert iterator._iterations == 0
 
 
 @pytest.mark.usefixtures("tabular_dataset")

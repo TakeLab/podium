@@ -454,8 +454,8 @@ class Dataset(ABC):
         return next(iter(SingleBatchIterator(self, shuffle=False)))
 
     def sorted(self, key: Callable[[Example], Any], reverse=False) -> "Dataset":
-        def index_key(i, _dataset=self):
-            return key(_dataset[i])
+        def index_key(i):
+            return key(self[i])
 
         indices = list(range(len(self)))
         indices.sort(key=index_key, reverse=reverse)

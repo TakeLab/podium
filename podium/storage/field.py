@@ -10,6 +10,7 @@ import numpy as np
 from podium.preproc.tokenizers import get_tokenizer
 from podium.storage.vocab import Vocab
 
+
 _LOGGER = logging.getLogger(__name__)
 
 # Type definitions to make type hints more readable
@@ -72,9 +73,7 @@ class MultioutputField:
     output fields. Output fields are any type of field. The output fields are used only
     for posttokenization processing (posttokenization hooks and vocab updating)."""
 
-    def __init__(
-            self, output_fields: List["Field"], tokenizer: TokenizerArg = "split"
-    ):
+    def __init__(self, output_fields: List["Field"], tokenizer: TokenizerArg = "split"):
         """Field that does pretokenization and tokenization once and passes it to its
         output fields. Output fields are any type of field. The output fields are used
         only for posttokenization processing (posttokenization hooks and vocab updating).
@@ -200,19 +199,19 @@ class Field:
     """
 
     def __init__(
-            self,
-            name: str,
-            tokenizer: TokenizerArg = "split",
-            keep_raw: bool = False,
-            numericalizer: Optional[Union[Vocab, Numericalizer]] = None,
-            is_target: bool = False,
-            fixed_length: Optional[int] = None,
-            allow_missing_data: bool = False,
-            disable_batch_matrix: bool = False,
-            padding_token: Union[int, float] = -999,
-            missing_data_token: Union[int, float] = -1,
-            pretokenize_hooks: Iterable[PretokHook] = (),
-            posttokenize_hooks: Iterable[PosttokHook] = (),
+        self,
+        name: str,
+        tokenizer: TokenizerArg = "split",
+        keep_raw: bool = False,
+        numericalizer: Optional[Union[Vocab, Numericalizer]] = None,
+        is_target: bool = False,
+        fixed_length: Optional[int] = None,
+        allow_missing_data: bool = False,
+        disable_batch_matrix: bool = False,
+        padding_token: Union[int, float] = -999,
+        missing_data_token: Union[int, float] = -1,
+        pretokenize_hooks: Iterable[PretokHook] = (),
+        posttokenize_hooks: Iterable[PosttokHook] = (),
     ):
         """Create a Field from arguments.
 
@@ -455,7 +454,7 @@ class Field:
         return self._pretokenize_pipeline(data)
 
     def _run_posttokenization_hooks(
-            self, data: Any, tokens: List[str]
+        self, data: Any, tokens: List[str]
     ) -> Tuple[Any, List[str]]:
         """Runs posttokenization hooks on tokenized data.
 
@@ -477,7 +476,7 @@ class Field:
         return self._posttokenize_pipeline(data, tokens)
 
     def preprocess(
-            self, data: Any
+        self, data: Any
     ) -> Iterable[Tuple[str, Tuple[Any, Optional[List[str]]]]]:
         """Preprocesses raw data, tokenizing it if required,
         updating the vocab if the vocab is eager and preserving the raw data
@@ -512,7 +511,9 @@ class Field:
         # TODO keep unprocessed or processed raw?
         processed_raw = self._run_pretokenization_hooks(data)
         tokenized = (
-            self._tokenizer(processed_raw) if self._tokenizer is not None else processed_raw
+            self._tokenizer(processed_raw)
+            if self._tokenizer is not None
+            else processed_raw
         )
 
         return (self._process_tokens(processed_raw, tokenized),)
@@ -554,7 +555,7 @@ class Field:
             self.vocab.finalize()
 
     def _process_tokens(
-            self, raw: Any, tokens: Union[Any, List[str]]
+        self, raw: Any, tokens: Union[Any, List[str]]
     ) -> Tuple[str, Tuple[Any, Optional[Union[Any, List[str]]]]]:
         """Runs posttokenization processing on the provided data and tokens and updates
         the vocab if needed. Used by Multioutput field.
@@ -601,7 +602,7 @@ class Field:
         return self._missing_data_token
 
     def numericalize(
-            self, data: Tuple[Optional[Any], Optional[Union[Any, List[str]]]]
+        self, data: Tuple[Optional[Any], Optional[Union[Any, List[str]]]]
     ) -> Optional[Union[Any, np.ndarray]]:
         """Numericalize the already preprocessed data point based either on
         the vocab that was previously built, or on a custom numericalization
@@ -646,12 +647,12 @@ class Field:
             return np.array([self._numericalizer(t) for t in tokens])
 
     def _pad_to_length(
-            self,
-            array: np.ndarray,
-            length: int,
-            custom_pad_symbol: Optional[Union[int, float]] = None,
-            pad_left: bool = False,
-            truncate_left: bool = False,
+        self,
+        array: np.ndarray,
+        length: int,
+        custom_pad_symbol: Optional[Union[int, float]] = None,
+        pad_left: bool = False,
+        truncate_left: bool = False,
     ):
         """Either pads the given row with pad symbols, or truncates the row
         to be of given length. The vocab provides the pad symbol for all
@@ -696,7 +697,7 @@ class Field:
             # truncating
 
             if truncate_left:
-                array = array[len(array) - length:]
+                array = array[len(array) - length :]
             else:
                 array = array[:length]
 
@@ -727,7 +728,7 @@ class Field:
         return array
 
     def get_numericalization_for_example(
-            self, example, cache: bool = True
+        self, example, cache: bool = True
     ) -> Optional[Union[Any, np.ndarray]]:
         """Returns the numericalized data of this field for the provided example.
         The numericalized data is generated and cached in the example if 'cache' is true
@@ -813,13 +814,13 @@ class LabelField(Field):
     """
 
     def __init__(
-            self,
-            name: str,
-            numericalizer: TokenizerArg = None,
-            allow_missing_data: bool = False,
-            is_target: bool = True,
-            missing_data_token: Union[int, float] = -1,
-            label_processing_hooks: Iterable[PretokHook] = (),
+        self,
+        name: str,
+        numericalizer: Numericalizer = None,
+        allow_missing_data: bool = False,
+        is_target: bool = True,
+        missing_data_token: Union[int, float] = -1,
+        pretokenize_hooks: Iterable[PretokHook] = (),
     ):
         """
         Field subclass used when no tokenization is required. For example, with a field
@@ -855,7 +856,7 @@ class LabelField(Field):
             its matrix row will be filled with this value. For non-numericalizable fields,
             this parameter is ignored and the value will be None.
 
-        label_processing_hooks: Iterable[Callable[[Any], Any]]
+        pretokenize_hooks: Iterable[Callable[[Any], Any]]
             Iterable containing pretokenization hooks. Providing hooks in this way is
             identical to calling `add_pretokenize_hook`.
         """
@@ -879,7 +880,7 @@ class LabelField(Field):
             fixed_length=1,
             allow_missing_data=allow_missing_data,
             missing_data_token=missing_data_token,
-            pretokenize_hooks=label_processing_hooks,
+            pretokenize_hooks=pretokenize_hooks,
         )
 
 
@@ -889,16 +890,16 @@ class MultilabelField(Field):
     """
 
     def __init__(
-            self,
-            name,
-            tokenizer=None,
-            numericalizer=None,
-            num_of_classes=None,
-            is_target=True,
-            allow_missing_data=False,
-            missing_data_token=-1,
-            pretokenize_hooks=(),
-            posttokenize_hooks=(),
+        self,
+        name: str,
+        tokenizer: TokenizerArg = None,
+        numericalizer: Numericalizer = None,
+        num_of_classes: Optional[int] = None,
+        is_target: bool = True,
+        allow_missing_data: bool = False,
+        missing_data_token: Union[int, float] = -1,
+        pretokenize_hooks: Iterable[PretokHook] = (),
+        posttokenize_hooks: Iterable[PosttokHook] = (),
     ):
         """Create a MultilabelField from arguments.
 
@@ -973,7 +974,7 @@ class MultilabelField(Field):
                 " with MultilabelFields."
             )
 
-        self.num_of_classes = num_of_classes
+        self._num_of_classes = num_of_classes
         super().__init__(
             name,
             tokenizer=tokenizer,
@@ -990,18 +991,18 @@ class MultilabelField(Field):
     def finalize(self):
         """Signals that this field's vocab can be built."""
         super().finalize()
-        if self.num_of_classes is None:
-            self.fixed_length = self.num_of_classes = len(self.vocab)
+        if self._num_of_classes is None:
+            self.fixed_length = self._num_of_classes = len(self.vocab)
 
-        if self.use_vocab and len(self.vocab) > self.num_of_classes:
+        if self.use_vocab and len(self.vocab) > self._num_of_classes:
             raise ValueError(
                 "Number of classes in data is greater than the declared number "
-                f"of classes. Declared: {self.num_of_classes}, "
+                f"of classes. Declared: {self._num_of_classes}, "
                 f"Actual: {len(self.vocab)}"
             )
 
     def numericalize(
-            self, data: Tuple[Optional[Any], Optional[Union[Any, List[str]]]]
+        self, data: Tuple[Optional[Any], Optional[Union[Any, List[str]]]]
     ) -> np.ndarray:
         """Numericalize the already preprocessed data point based either on
         the vocab that was previously built, or on a custom numericalization
@@ -1027,7 +1028,7 @@ class MultilabelField(Field):
         """
         active_classes = super(MultilabelField, self).numericalize(data)
 
-        multihot = np.zeros(shape=self.num_of_classes, dtype=np.int)
+        multihot = np.zeros(shape=self._num_of_classes, dtype=np.int)
         if len(active_classes) > 0:
             multihot[active_classes] = 1
         return multihot
