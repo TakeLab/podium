@@ -223,7 +223,7 @@ class Iterator:
             )
             if (
                 len(numericalizations) > 0
-                and not field.disable_batch_matrix
+                and not field._disable_batch_matrix
                 and possible_cast_to_matrix
             ):
                 batch = Iterator._arrays_to_matrix(field, numericalizations)
@@ -297,15 +297,15 @@ class Iterator:
     @staticmethod
     def _arrays_to_matrix(field, arrays):
         pad_length = Iterator._get_pad_length(field, arrays)
-        padded_arrays = [field.pad_to_length(a, pad_length) for a in arrays]
+        padded_arrays = [field._pad_to_length(a, pad_length) for a in arrays]
         return np.array(padded_arrays)
 
     @staticmethod
     def _get_pad_length(field, numericalizations):
         # the fixed_length attribute of Field has priority over the max length
         # of all the examples in the batch
-        if field.fixed_length is not None:
-            return field.fixed_length
+        if field._fixed_length is not None:
+            return field._fixed_length
 
         # if fixed_length is None, then return the maximum length of all the
         # examples in the batch

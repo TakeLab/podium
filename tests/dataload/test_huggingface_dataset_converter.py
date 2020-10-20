@@ -46,15 +46,15 @@ def complex_dataset():
 def test_simple_feature_conversion(simple_dataset):
     fields = convert_features_to_fields(simple_dataset.features)
 
-    assert not fields["id"].keep_raw
-    assert not fields["rating"].keep_raw
-    assert not fields["related_movies"].keep_raw
+    assert not fields["id"]._keep_raw
+    assert not fields["rating"]._keep_raw
+    assert not fields["related_movies"]._keep_raw
 
-    assert fields["id"].allow_missing_data
-    assert fields["name"].allow_missing_data
-    assert fields["review"].allow_missing_data
-    assert fields["rating"].allow_missing_data
-    assert fields["related_movies"].allow_missing_data
+    assert fields["id"]._allow_missing_data
+    assert fields["name"]._allow_missing_data
+    assert fields["review"]._allow_missing_data
+    assert fields["rating"]._allow_missing_data
+    assert fields["related_movies"]._allow_missing_data
 
 
 def test_simple_data(simple_dataset):
@@ -78,11 +78,11 @@ def test_simple_data(simple_dataset):
 def test_complex_feature_conversion(complex_dataset):
     fields = convert_features_to_fields(complex_dataset.features)
 
-    assert not fields["translation"].keep_raw
+    assert not fields["translation"]._keep_raw
     assert fields["sentiment"].is_target
 
-    assert fields["translation"].allow_missing_data
-    assert not fields["sentiment"].allow_missing_data
+    assert fields["translation"]._allow_missing_data
+    assert not fields["sentiment"]._allow_missing_data
 
 
 def test_complex_data(complex_dataset):

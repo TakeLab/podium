@@ -475,7 +475,7 @@ class ArrowDataset:
             raw_dtype, tokenized_dtype = data_types.get(field.name, (None, None))
 
             error_part = None
-            if raw_dtype is None and field.keep_raw:
+            if raw_dtype is None and field._keep_raw:
                 error_part = "raw"
 
             if tokenized_dtype is None:

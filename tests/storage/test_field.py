@@ -138,7 +138,7 @@ def test_field_pickle_tokenized(
         assert raw_value == expected_raw_value
         assert tokenized_value == expected_tokenized_value
         assert loaded_fld.name == "F"
-        assert loaded_fld.keep_raw == store_raw
+        assert loaded_fld._keep_raw == store_raw
 
 
 @pytest.mark.parametrize("vocab, expected_value", [(MockVocab(), True), (None, False)])
@@ -185,7 +185,7 @@ def test_field_pad_to_length(row, length, expected_row, pad_left, truncate_left)
     vocab = MockVocab()
     f = Field(name="F", numericalizer=vocab)
 
-    received_row = f.pad_to_length(
+    received_row = f._pad_to_length(
         np.array(row), length, pad_left=pad_left, truncate_left=truncate_left
     )
 
@@ -203,7 +203,7 @@ def test_field_pad_custom_numericalize():
     mock_numericalization = np.array([1, 2, 3, 4])
     expected_numericalization = np.array([1, 2, 3, 4] + [custom_padding_token] * 6)
 
-    padded = f.pad_to_length(mock_numericalization, 10, pad_left=False)
+    padded = f._pad_to_length(mock_numericalization, 10, pad_left=False)
     assert np.all(padded == expected_numericalization)
 
 
@@ -220,7 +220,7 @@ def test_field_pad_to_length_custom_pad(row, length, expected_row):
     f = Field(name="F", numericalizer=None)
 
     row_arr = np.array(row)
-    received_row = f.pad_to_length(row_arr, length, custom_pad_symbol=CUSTOM_PAD)
+    received_row = f._pad_to_length(row_arr, length, custom_pad_symbol=CUSTOM_PAD)
 
     assert received_row.tolist() == expected_row
 
@@ -234,7 +234,7 @@ def test_field_pad_to_length_exception():
 
     custom_pad_symbol = None
     with pytest.raises(ValueError):
-        f.pad_to_length(row_arr, length, custom_pad_symbol=custom_pad_symbol)
+        f._pad_to_length(row_arr, length, custom_pad_symbol=custom_pad_symbol)
 
 
 def test_field_get_tokenizer_callable():
