@@ -294,6 +294,12 @@ class Field:
             string that doesn't correspond to any of the registered tokenizers.
         """
 
+        if not isinstance(name, str):
+            error_msg = (
+                f"Name must be a string," f" got type '{type(name).__name__}' instead."
+            )
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
         self._name = name
         self._disable_batch_matrix = disable_batch_matrix
         self._tokenizer_arg_string = tokenizer if isinstance(tokenizer, str) else None
@@ -311,12 +317,38 @@ class Field:
             self._numericalizer = numericalizer
 
         self._keep_raw = keep_raw
+
+        if not isinstance(padding_token, (int, float)):
+            error_msg = (
+                f"Padding token of Field '{name}' is of type"
+                f" '{type(padding_token).__name__}'. Must be int or float"
+            )
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
         self._padding_token = padding_token
+
         self._is_target = is_target
+
+        if fixed_length is not None and not isinstance(fixed_length, int):
+            error_msg = (
+                f"`fixed_length` of Field `{name}` is of type"
+                f" {type(fixed_length).__name__}. Must be None or int."
+            )
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
         self._fixed_length = fixed_length
+
         self._pretokenize_pipeline = PretokenizationPipeline()
         self._posttokenize_pipeline = PosttokenizationPipeline()
         self._allow_missing_data = allow_missing_data
+
+        if not isinstance(missing_data_token, (int, float)):
+            error_msg = (
+                f"Missing data token of Field '{name}' is of type"
+                f" '{type(missing_data_token).__name__}'. Must be int or float"
+            )
+            _LOGGER.error(error_msg)
+            raise ValueError(error_msg)
         self._missing_data_token = missing_data_token
 
         if pretokenize_hooks is not None:
