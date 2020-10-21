@@ -1,6 +1,6 @@
 import pytest
 
-from podium.storage import ExampleFactory, ExampleFormat, Field
+from podium.storage import Example, ExampleFactory, ExampleFormat, Field
 
 
 name_field = Field("Name", keep_raw=True, tokenizer="split")
@@ -380,3 +380,12 @@ def test_from_format():
     assert example.Score[0] == dict_data["Score"]
     assert example.Favorite_food[0] == dict_data["Favorite_food"]
     # TODO extend testing to other formats?
+
+
+def test_example_with_fields():
+    values = ["Mark Dark", 5, "Hawaiian pizza"]
+    example = Example.with_fields(field_list).from_list(values)
+
+    assert example["Name"][0] == values[0]
+    assert example["Score"][0] == values[1]
+    assert example["Favorite_food"][0] == values[2]

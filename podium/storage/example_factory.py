@@ -56,7 +56,7 @@ class Example(dict):
 
     @staticmethod
     def with_fields(fields):
-        """Create the Example instance from the given fields. This function
+        """Create an Example instance from the given fields. This function
         should be used in conjuction with the function that creates an Example
         from the specific format.
         See podium.storage.ExampleFactory for the concrete list of functions
