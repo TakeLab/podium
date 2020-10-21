@@ -225,18 +225,6 @@ def test_field_pad_to_length_custom_pad(row, length, expected_row):
     assert received_row.tolist() == expected_row
 
 
-def test_field_pad_to_length_exception():
-    # set vocab to be None
-    f = Field(name="F", numericalizer=None, padding_token=None)
-
-    row_arr = np.array(ONE_TO_FIVE)
-    length = 7
-
-    custom_pad_symbol = None
-    with pytest.raises(ValueError):
-        f._pad_to_length(row_arr, length, custom_pad_symbol=custom_pad_symbol)
-
-
 def test_field_get_tokenizer_callable():
     vocab = MockVocab()
 
