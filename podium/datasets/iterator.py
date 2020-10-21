@@ -9,7 +9,6 @@ import numpy as np
 from podium.datasets.dataset import Dataset
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
 
-
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -90,6 +89,10 @@ class Iterator:
         self._epoch = 0
         self._iterations = 0
 
+        # set of fieldnames for which numericalization format warnings were issued
+        # used to avoid spamming warnings between iterations
+        self._numericalization_format_warned_fieldnames = set()
+
         if dataset is not None:
             self.set_dataset(dataset)
 
@@ -110,10 +113,12 @@ class Iterator:
         else:
             self._shuffler = None
 
+    @property
     def epoch(self):
         """The current epoch of the Iterator"""
         return self._epoch
 
+    @property
     def iterations(self):
         return self._iterations
 
@@ -227,6 +232,19 @@ class Iterator:
                 x is None or isinstance(x, (np.ndarray, int, float))
                 for x in numericalizations
             )
+
+            if (
+                not possible_cast_to_matrix
+                and not field._disable_batch_matrix
+                and field.name not in self._numericalization_format_warned_fieldnames
+            ):
+                warning_msg = (
+                    f"The batch for Field '{field.name}' can't be cast to "
+                    f"matrix but `disable_batch_matrix` is set to False."
+                )
+                _LOGGER.warning(warning_msg)
+                self._numericalization_format_warned_fieldnames.add(field.name)
+
             if (
                 len(numericalizations) > 0
                 and not field._disable_batch_matrix

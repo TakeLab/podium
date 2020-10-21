@@ -20,7 +20,7 @@ def get_tokenizer(tokenizer):
 
             - 'spacy' - the spacy tokenizer, using the 'en' language
               model by default (unless the user provides a different
-              language trough args). If spacy model is used for the first time
+              language through args). If spacy model is used for the first time
               user should download it by using command similar to the following
               `python -m spacy download en`. More details can be found in spacy
               documentation https://spacy.io/usage/models
