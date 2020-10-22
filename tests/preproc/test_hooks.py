@@ -1,3 +1,5 @@
+import inspect
+
 import pytest
 
 from podium.preproc.functional import remove_stopwords, truecase
@@ -10,21 +12,10 @@ from podium.preproc.hooks import (
 )
 from podium.storage import ExampleFactory, Field
 
-from ..util import has_spacy_model, is_admin
+from ..util import run_spacy
 
 
-RUN_SPACY = is_admin or has_spacy_model("en")
-SKIP_SPACY_REASON = (
-    "requires already downloaded model or "
-    "admin privileges to download it "
-    "while executing"
-)
-
-
-@pytest.mark.skipif(
-    not RUN_SPACY,
-    reason=SKIP_SPACY_REASON,
-)
+@run_spacy
 def test_remove_stopwords():
     data = "I'll tell you a joke"
     field = Field(name="data")
@@ -63,12 +54,17 @@ def test_moses_normalizer():
     [
         NLTKStemmer("en"),
         pytest.param(
-            SpacyLemmatizer("en"),
-            marks=pytest.mark.skipif(not RUN_SPACY, reason=SKIP_SPACY_REASON),
+            lambda: SpacyLemmatizer("en"),
+            marks=run_spacy,
         ),
     ],
 )
 def test_lemmatization_and_stemming(hook):
+    # we need this to postpone initialization
+    # in pytest.mark.parametrize
+    if inspect.isfunction(hook):
+        hook = hook()
+
     data = "stemming playing books"
     field = Field(name="data")
     field.add_posttokenize_hook(hook)
