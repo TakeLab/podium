@@ -1,13 +1,13 @@
 import pytest
+
+
+datasets = pytest.importorskip("datasets")
 from datasets import ClassLabel, Features, Translation
 
 from podium.dataload.huggingface_dataset_converter import (
     HuggingFaceDatasetConverter,
     convert_features_to_fields,
 )
-
-datasets = pytest.importorskip("datasets")
-
 from podium.datasets import Dataset
 
 

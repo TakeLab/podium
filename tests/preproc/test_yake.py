@@ -1,5 +1,6 @@
 import pytest
 
+
 pytest.importorskip("podium.preproc.yake")
 
 from podium.preproc.yake import YAKE
