@@ -32,10 +32,10 @@ __all__ = [
     "CornellMovieDialogsConversationalDataset",
     "EuroVocDataset",
     "PauzaHRDataset",
+    "SNLIDataset",
+    "SNLISimple",
     "Iterator",
     "SingleBatchIterator",
     "BucketIterator",
     "HierarchicalDatasetIterator",
-    "SNLIDataset",
-    "SNLISimple",
 ]

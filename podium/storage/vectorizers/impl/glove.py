@@ -1,8 +1,8 @@
 import logging
 import os
 
-from podium.storage import BasicVectorStorage, LargeResource
-from podium.storage.vectorizers.vectorizer import random_normal_default_vector
+from ... import LargeResource
+from ..vectorizer import BasicVectorStorage, random_normal_default_vector
 
 
 _LOGGER = logging.getLogger(__name__)

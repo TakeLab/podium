@@ -9,6 +9,7 @@ from .resources.downloader import (
     SimpleHttpDownloader,
 )
 from .resources.large_resource import LargeResource, SCPLargeResource
+from .vectorizers.impl import GloVe, NlplVectorizer
 from .vectorizers.tfidf import TfIdfVectorizer
 from .vectorizers.vectorizer import BasicVectorStorage, VectorStorage
 from .vocab import SpecialVocabSymbols, Vocab
@@ -41,4 +42,6 @@ __all__ = [
     "ExampleFactory",
     "ExampleFormat",
     "TfIdfVectorizer",
+    "GloVe",
+    "NlplVectorizer",
 ]

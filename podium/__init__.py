@@ -19,6 +19,26 @@ from . import (
     validation,
 )
 
+from .storage import (
+    Field,
+    LabelField,
+    MultilabelField,
+    MultioutputField,
+    Vocab,
+)
+
+from .datasets import (
+    Dataset,
+    TabularDataset,
+    HierarchicalDataset,
+    Iterator,
+    SingleBatchIterator,
+    BucketIterator,
+    HierarchicalDatasetIterator,
+)
+
+from .dataload import HuggingFaceDatasetConverter
+
 
 __name__ = "podium"
 
@@ -33,6 +53,20 @@ __all__ = [
     "validation",
     "model_selection",
     "pipeline",
+    "Field",
+    "Field",
+    "LabelField",
+    "MultilabelField",
+    "MultioutputField",
+    "Vocab",
+    "Dataset",
+    "TabularDataset",
+    "HierarchicalDataset",
+    "Iterator",
+    "SingleBatchIterator",
+    "BucketIterator",
+    "HierarchicalDatasetIterator",
+    "HuggingFaceDatasetConverter",
 ]
 
 

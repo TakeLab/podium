@@ -8,6 +8,7 @@ from .imdb_sentiment_dataset import IMDB
 from .pauza_dataset import PauzaHRDataset
 from .snli_dataset import SNLIDataset, SNLISimple
 from .sst_sentiment_dataset import SST
+from .iris_dataset import IrisDataset
 
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "SNLIDataset",
     "SNLISimple",
     "SST",
+    "IrisDataset",
 ]
