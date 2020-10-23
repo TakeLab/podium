@@ -1,6 +1,6 @@
 """Package contains modules for storing and loading datasets and vectors."""
 
-from .example_factory import ExampleFactory, ExampleFormat
+from .example_factory import Example, ExampleFactory, ExampleFormat
 from .field import Field, LabelField, MultilabelField, MultioutputField, unpack_fields
 from .resources.downloader import (
     BaseDownloader,
@@ -39,6 +39,7 @@ __all__ = [
     "BasicVectorStorage",
     "SpecialVocabSymbols",
     "Vocab",
+    "Example",
     "ExampleFactory",
     "ExampleFormat",
     "TfIdfVectorizer",
