@@ -32,22 +32,6 @@ def unique(values: Iterable):
         yield element
 
 
-class VocabDict(dict):
-    """Vocab dictionary class that is used like default dict but without adding missing
-    key to the dictionary."""
-
-    def __init__(self, default_factory=None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._default_factory = default_factory
-
-    def __missing__(self, key):
-        if self._default_factory is None:
-            raise KeyError(
-                "Default factory is not defined and key is not in " "the dictionary."
-            )
-        return self._default_factory()
-
-
 class SpecialVocabSymbols(Enum):
     """Class for special vocabular symbols
 
@@ -84,6 +68,7 @@ class Vocab:
         specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD),
         keep_freqs=False,
         eager=True,
+        filter_unk=False
     ):
         """Vocab constructor. Specials are first in the vocabulary.
 
@@ -99,6 +84,12 @@ class Vocab:
         keep_freqs : bool
             if true word frequencies will be saved for later use on
             the finalization
+        eager : bool
+            flag indicating whether the Vocab should be built eagerly
+        filter_unk : bool
+            flag indicating whether unknown tokens should be kept
+            when performing numericalization or filtered out.
+            By default, the unknown tokens are kept.
         """
         self._freqs = Counter()
         self._keep_freqs = keep_freqs
@@ -111,11 +102,11 @@ class Vocab:
 
         self.itos = list(self.specials)
         self._default_unk_index = self._init_default_unk_index(self.specials)
-        self.stoi = VocabDict(self._default_unk)
-        self.stoi.update({k: v for v, k in enumerate(self.itos)})
+        self.stoi = {k: v for v, k in enumerate(self.itos)}
 
         self._max_size = max_size
         self.eager = eager
+        self.filter_unk = filter_unk
         self.finalized = False  # flag to know if we're ready to numericalize
         _LOGGER.debug("Vocabulary has been created and initialized.")
 
@@ -140,26 +131,6 @@ class Vocab:
             ind += 1
         return None
 
-    def _default_unk(self):
-        """Method obtains default unknown symbol index. Used for stoi.
-
-        Returns
-        -------
-        index: int
-            index of default unknown symbol
-
-        Raises
-        ------
-        ValueError
-            If unknown symbol is not present in the vocab.
-        """
-        if self._default_unk_index is None:
-            raise ValueError(
-                "Unknown symbol is not present in the vocab but "
-                "the user asked for the word that isn't in the vocab."
-            )
-        return self._default_unk_index
-
     def get_freqs(self):
         """Method obtains vocabulary frequencies.
 
@@ -181,6 +152,28 @@ class Vocab:
             )
         return self._freqs
 
+    @property
+    def unk_index(self):
+        """Method returns default unknown symbol index.
+
+        Returns
+        -------
+        index: int
+            index of default unknown symbol
+
+        Raises
+        ------
+        ValueError
+            If unknown symbol is not present in the vocab.
+        """
+        if self._default_unk_index is None:
+            raise ValueError(
+                "Unknown symbol is not present in the vocab but "
+                "the user queried a word that isn't in the vocab."
+            )
+        return self._default_unk_index
+
+    @property
     def padding_index(self):
         """Method returns padding symbol index.
 
@@ -405,7 +398,13 @@ class Vocab:
                 "Cannot numericalize if the vocabulary has not been "
                 "finalized because itos and stoi are not yet built."
             )
-        return np.array([self.stoi[token] for token in data])
+        if self.filter_unk:
+            # Filter out words that are not present in the vocabulary
+            return np.array([self.stoi[token] for token in data if token in self.stoi])
+        else:
+            # Keep unknown specials
+            return np.array([self.stoi[token] if token in self.stoi else self.unk_index
+                             for token in data])
 
     def reverse_numericalize(self, numericalized_data: Iterable):
         """Transforms an iterable containing numericalized data into a list of tokens.
