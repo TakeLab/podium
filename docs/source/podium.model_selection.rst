@@ -1,9 +1,6 @@
 podium.model\_selection package
 ================================
 
-Submodules
-----------
-
 podium.model\_selection.grid\_search module
 --------------------------------------------
 

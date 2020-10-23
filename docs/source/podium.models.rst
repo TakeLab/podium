@@ -8,8 +8,6 @@ Subpackages
 
    podium.models.impl
 
-Submodules
-----------
 
 podium.models.batch\_transform\_functions module
 -------------------------------------------------

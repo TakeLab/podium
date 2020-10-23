@@ -1,9 +1,6 @@
 podium.models.impl.blcc package
 ================================
 
-Submodules
-----------
-
 podium.models.impl.blcc.chain\_crf module
 ------------------------------------------
 

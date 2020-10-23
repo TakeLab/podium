@@ -1,8 +1,6 @@
 podium.storage.vectorizers package
 ===================================
 
-Submodules
-----------
 
 podium.storage.vectorizers.tfidf module
 ----------------------------------------

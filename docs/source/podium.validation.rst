@@ -1,8 +1,6 @@
 podium.validation package
 ==========================
 
-Submodules
-----------
 
 podium.validation.kfold module
 -------------------------------

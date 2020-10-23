@@ -6,12 +6,22 @@
 Welcome to Podium's documentation!
 ==================================
 
+.. image:: _static/podium.png
+   :width: 600
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-   
-   modules/modules.rst 
 
+   self
+   podium.storage
+   podium.datasets
+   podium.dataload
+   podium.preproc
+   podium.metrics
+   podium.model_selection
+   podium.models
+   podium.validation
 
 Indices and tables
 ==================

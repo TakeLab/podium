@@ -1,9 +1,6 @@
 podium.models.impl.eurovoc\_models package
 ===========================================
 
-Submodules
-----------
-
 podium.models.impl.eurovoc\_models.multilabel\_svm module
 ----------------------------------------------------------
 

@@ -1,9 +1,6 @@
 podium.dataload package
 ========================
 
-Submodules
-----------
-
 podium.dataload.cornell\_movie\_dialogs module
 -----------------------------------------------
 

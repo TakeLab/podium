@@ -8,9 +8,6 @@ Subpackages
 
    podium.datasets.impl
 
-Submodules
-----------
-
 podium.datasets.dataset module
 -------------------------------
 

@@ -9,8 +9,6 @@ Subpackages
    podium.models.impl.blcc
    podium.models.impl.eurovoc_models
 
-Submodules
-----------
 
 podium.models.impl.fc\_model module
 ------------------------------------

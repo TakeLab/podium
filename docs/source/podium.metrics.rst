@@ -1,9 +1,6 @@
 podium.metrics package
 =======================
 
-Submodules
-----------
-
 podium.metrics.metrics module
 ------------------------------
 

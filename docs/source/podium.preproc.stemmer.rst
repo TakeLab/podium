@@ -1,9 +1,6 @@
 podium.preproc.stemmer package
 ===============================
 
-Submodules
-----------
-
 podium.preproc.stemmer.croatian\_stemmer module
 ------------------------------------------------
 

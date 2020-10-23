@@ -1,9 +1,6 @@
 podium.datasets.impl package
 =============================
 
-Submodules
-----------
-
 podium.datasets.impl.catacx\_comments\_dataset module
 ------------------------------------------------------
 

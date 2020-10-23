@@ -1,9 +1,6 @@
 podium.preproc.lemmatizer package
 ==================================
 
-Submodules
-----------
-
 podium.preproc.lemmatizer.croatian\_lemmatizer module
 ------------------------------------------------------
 
