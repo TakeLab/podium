@@ -5,10 +5,10 @@ from .conllu_dataset import CoNLLUDataset
 from .cornell_movie_dialogs_dataset import CornellMovieDialogsConversationalDataset
 from .eurovoc_dataset import EuroVocDataset
 from .imdb_sentiment_dataset import IMDB
+from .iris_dataset import IrisDataset
 from .pauza_dataset import PauzaHRDataset
 from .snli_dataset import SNLIDataset, SNLISimple
 from .sst_sentiment_dataset import SST
-from .iris_dataset import IrisDataset
 
 
 __all__ = [

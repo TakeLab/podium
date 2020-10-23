@@ -5,9 +5,10 @@ from .tfidf import TfIdfVectorizer
 from .vectorizer import (
     BasicVectorStorage,
     VectorStorage,
-    zeros_default_vector,
     random_normal_default_vector,
+    zeros_default_vector,
 )
+
 
 __all__ = [
     "VectorStorage",
