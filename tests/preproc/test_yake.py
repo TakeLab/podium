@@ -1,10 +1,8 @@
 import pytest
 
-from podium.preproc.yake import YAKE
-
-
 pytest.importorskip("podium.preproc.yake")
 
+from podium.preproc.yake import YAKE
 
 
 TEXT = """Sources tell us that Google is acquiring Kaggle, a platform that hosts
