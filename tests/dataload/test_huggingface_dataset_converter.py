@@ -5,11 +5,10 @@ from podium.dataload.huggingface_dataset_converter import (
     HuggingFaceDatasetConverter,
     convert_features_to_fields,
 )
-from podium.datasets import Dataset
-
 
 datasets = pytest.importorskip("datasets")
 
+from podium.datasets import Dataset
 
 
 SIMPLE_DATA = {
