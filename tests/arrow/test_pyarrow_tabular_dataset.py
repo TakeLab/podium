@@ -210,7 +210,7 @@ def test_to_dataset(pyarrow_dataset):
 
 def test_from_dataset(data, fields):
     example_factory = ExampleFactory(fields)
-    examples = list(map(example_factory.from_list, data))
+    examples = [example_factory.from_list(raw_example) for raw_example in data]
     dataset = Dataset(examples, fields)
     pyarrow_dataset = ArrowDataset.from_dataset(dataset)
 

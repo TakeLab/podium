@@ -169,7 +169,7 @@ def test_pipeline_multioutputfield_without_target():
     )
 
     def get_case(raw, tokenized):
-        return raw, list(map(str.islower, tokenized))
+        return raw, [token.islower() for token in tokenized]
 
     case_field.add_posttokenize_hook(get_case)
     age_field = LabelField("Age", custom_numericalize=int)
@@ -252,7 +252,7 @@ def test_pipeline_nested_fields_no_targets():
     )
 
     def get_case(raw, tokenized):
-        return raw, list(map(str.islower, tokenized))
+        return raw, [token.islower() for token in tokenized]
 
     case_field.add_posttokenize_hook(get_case)
     age_field = Field("Age", tokenize=False, custom_numericalize=int, is_target=True)
@@ -306,7 +306,7 @@ def test_pipeline_label_and_tokenized_fields():
     case_field = TokenizedField("Case", custom_numericalize={True: 1, False: 0}.get)
 
     def get_case(raw, tokenized):
-        return raw, list(map(str.islower, tokenized))
+        return raw, [token.islower() for token in tokenized]
 
     case_field.add_posttokenize_hook(get_case)
 

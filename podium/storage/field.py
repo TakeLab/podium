@@ -1024,7 +1024,7 @@ class MultilabelField(TokenizedField):
 
 
 def numericalize_multihot(tokens, token_indexer, num_of_classes):
-    active_classes = list(map(token_indexer, tokens))
+    active_classes = [token_indexer(token) for token in tokens]
     multihot_encoding = np.zeros(num_of_classes, dtype=np.bool)
     multihot_encoding[active_classes] = 1
     return multihot_encoding
