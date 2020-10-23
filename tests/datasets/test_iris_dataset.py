@@ -1,6 +1,6 @@
 from sklearn.datasets import load_iris
 
-from podium.datasets.iris_dataset import IrisDataset
+from podium.datasets.impl.iris_dataset import IrisDataset
 
 
 def test_iris_dataset():
