@@ -761,10 +761,10 @@ def test_multioutput_field_posttokenization():
     lowercase_field = Field("lowercase_field", store_as_raw=True)
 
     def post_tokenization_all_upper(raw, tokenized):
-        return raw, list(map(str.upper, tokenized))
+        return raw, [token.upper() for token in tokenized]
 
     def post_tokenization_all_lower(raw, tokenized):
-        return raw, list(map(str.lower, tokenized))
+        return raw, [token.lower() for token in tokenized]
 
     uppercase_field.add_posttokenize_hook(post_tokenization_all_upper)
     lowercase_field.add_posttokenize_hook(post_tokenization_all_lower)
@@ -789,7 +789,7 @@ def test_multioutput_field_remove_pretokenization():
             else:
                 return token[0].lower() + token[1:]
 
-        return raw, list(map(f, tokenized))
+        return raw, [f(token) for token in tokenized]
 
     output_field_2.add_posttokenize_hook(first_lower)
 
@@ -814,7 +814,7 @@ def test_posttokenize_hooks_in_tokenized_field_single_execution(mocker):
             else:
                 return "uppercase"
 
-        return data, list(map(caseness, tokenized))
+        return data, [caseness(token) for token in tokenized]
 
     patched_hook = mocker.spy(hk, "__call__")
 
