@@ -13,6 +13,7 @@ from ner_example import (
     label_transform_fun,
     ner_dataset_classification_fields,
 )
+
 from podium.dataload.ner_croatian import convert_sequence_to_entities
 from podium.datasets.impl.croatian_ner_dataset import CroatianNERDataset
 from podium.datasets.iterator import BucketIterator
