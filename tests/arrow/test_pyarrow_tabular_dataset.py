@@ -30,17 +30,13 @@ def data():
 @pytest.fixture
 def fields():
     number_field = Field(
-        "number",
-        store_as_raw=True,
-        custom_numericalize=int,
-        tokenize=False,
-        is_target=True,
+        "number", keep_raw=True, numericalizer=int, tokenizer=None, is_target=True
     )
 
     token_field = Field(
         "tokens",
-        store_as_raw=True,
-        vocab=Vocab(keep_freqs=True),
+        keep_raw=True,
+        numericalizer=Vocab(keep_freqs=True),
         tokenizer=partial(str.split, sep=" "),
     )
 
@@ -66,7 +62,7 @@ def test_from_examples(data, fields):
 
     for (raw, tokenized), (num, _) in zip(ad.number, data):
         assert raw == num
-        assert tokenized is None
+        assert tokenized is num
 
     for (raw, tokenized), (_, tok) in zip(ad.tokens, data):
         assert raw == tok
@@ -239,7 +235,7 @@ def test_from_tabular(data, fields):
 def test_missing_datatype_exception(data, fields):
     data_null = [(*d, None) for d in data]
     null_field = Field(
-        "null_field", store_as_raw=True, allow_missing_data=True, vocab=Vocab()
+        "null_field", keep_raw=True, allow_missing_data=True, numericalizer=Vocab()
     )
     fields_null = [*fields, null_field]
 
@@ -253,7 +249,7 @@ def test_missing_datatype_exception(data, fields):
 def test_datatype_definition(data, fields):
     data_null = [(*d, None) for d in data]
     null_field = Field(
-        "null_field", store_as_raw=True, allow_missing_data=True, vocab=Vocab()
+        "null_field", keep_raw=True, allow_missing_data=True, numericalizer=Vocab()
     )
     fields_null = [*fields, null_field]
 

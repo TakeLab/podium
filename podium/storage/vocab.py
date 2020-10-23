@@ -83,6 +83,7 @@ class Vocab:
         min_freq=1,
         specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD),
         keep_freqs=False,
+        eager=True,
     ):
         """Vocab constructor. Specials are first in the vocabulary.
 
@@ -114,6 +115,7 @@ class Vocab:
         self.stoi.update({k: v for v, k in enumerate(self.itos)})
 
         self._max_size = max_size
+        self.eager = eager
         self.finalized = False  # flag to know if we're ready to numericalize
         _LOGGER.debug("Vocabulary has been created and initialized.")
 

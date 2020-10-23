@@ -17,13 +17,13 @@ def test_dataset_loading():
     assert dataset[0].author_name[0] == "Comment author No.1 name"
     assert dataset[0].author_id[0] == "Comment_author_No_1_id"
     assert dataset[0].message[1] == "Comment No.1 text".split()
-    assert dataset[0].likes_cnt[0] == 0
+    assert dataset[0].likes_cnt[0] is None
     assert dataset[0].id[0] == "Comment_No_1_id"
 
     assert dataset[2].author_name[0] == "Comment author No.3 name"
     assert dataset[2].author_id[0] == "Comment_author_No_3_id"
     assert dataset[2].message[1] == "Comment No.3 text".split()
-    assert dataset[2].likes_cnt[0] == 2
+    assert dataset[2].likes_cnt[0] is None
     assert dataset[2].id[0] == "Comment_No_3_id"
 
     ex = dataset[0]

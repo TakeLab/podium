@@ -135,17 +135,15 @@ class CatacxCommentsDataset(Dataset):
         # created_time - JSON date
         # cs
 
-        author_name = Field(name="author_name", tokenize=False, store_as_raw=True)
+        author_name = Field(name="author_name", tokenizer=None, keep_raw=True)
 
-        id = Field(name="id", tokenize=False, store_as_raw=True)
+        id = Field(name="id", tokenizer=None, keep_raw=True)
 
-        likes_cnt = Field(
-            name="likes_cnt", vocab=None, tokenize=False, custom_numericalize=int
-        )
+        likes_cnt = Field(name="likes_cnt", tokenizer=None, numericalizer=int)
 
-        message = Field(name="message", tokenize=True, tokenizer="split")
+        message = Field(name="message", tokenizer="split")
 
-        author_id = Field(name="author_id", tokenize=False, store_as_raw=True)
+        author_id = Field(name="author_id", tokenizer=None, keep_raw=True)
 
         return {
             "author_name": author_name,

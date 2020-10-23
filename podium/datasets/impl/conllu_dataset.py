@@ -105,66 +105,54 @@ class CoNLLUDataset(Dataset):
 
         # numericalization of id is not allowed because
         # numericalization of integer ranges is undefined
-        id = Field(name="id", tokenize=False, store_as_raw=True, is_numericalizable=False)
+        id = Field(name="id", tokenizer=None, keep_raw=True, numericalizer=None)
 
         form = Field(
-            name="form", vocab=Vocab(specials=()), tokenize=False, store_as_raw=True
+            name="form", numericalizer=Vocab(specials=()), tokenizer=None, keep_raw=True
         )
 
         lemma = Field(
-            name="lemma", vocab=Vocab(specials=()), tokenize=False, store_as_raw=True
+            name="lemma", numericalizer=Vocab(specials=()), tokenizer=None, keep_raw=True
         )
 
         upos = Field(
             name="upos",
-            vocab=Vocab(specials=()),
-            tokenize=False,
-            store_as_raw=True,
+            numericalizer=Vocab(specials=()),
+            tokenizer=None,
+            keep_raw=True,
             allow_missing_data=True,
         )
 
         xpos = Field(
             name="xpos",
-            vocab=Vocab(specials=()),
-            tokenize=False,
-            store_as_raw=True,
+            numericalizer=Vocab(specials=()),
+            tokenizer=None,
+            keep_raw=True,
             allow_missing_data=True,
         )
 
         feats = Field(
-            name="feats",
-            tokenize=False,
-            store_as_tokenized=True,
-            is_numericalizable=False,
-            allow_missing_data=True,
+            name="feats", tokenizer=None, numericalizer=None, allow_missing_data=True
         )
 
         head = Field(
             name="head",
-            tokenize=False,
-            store_as_raw=True,
-            custom_numericalize=int,
+            tokenizer=None,
+            keep_raw=True,
+            numericalizer=int,
             allow_missing_data=True,
         )
 
         deprel = Field(
-            name="deprel", tokenize=False, store_as_raw=True, allow_missing_data=True
+            name="deprel", tokenizer=None, keep_raw=True, allow_missing_data=True
         )
 
         deps = Field(
-            name="deps",
-            tokenize=False,
-            store_as_tokenized=True,
-            is_numericalizable=False,
-            allow_missing_data=True,
+            name="deps", tokenizer=None, numericalizer=None, allow_missing_data=True
         )
 
         misc = Field(
-            name="misc",
-            tokenize=False,
-            store_as_tokenized=True,
-            is_numericalizable=False,
-            allow_missing_data=True,
+            name="misc", tokenizer=None, numericalizer=None, allow_missing_data=True
         )
 
         return {

@@ -74,18 +74,18 @@ def test_iterate_new_epoch(tabular_dataset):
     iterator = Iterator(dataset=tabular_dataset, batch_size=2)
 
     it = iter(iterator)
-    assert iterator.iterations == 0
+    assert iterator._iterations == 0
 
     for i in range(4):
         next(it)
-        assert iterator.epoch == 0
-        assert iterator.iterations == i
+        assert iterator._epoch == 0
+        assert iterator._iterations == i
 
     with pytest.raises(StopIteration):
         next(it)
 
-    assert iterator.epoch == 1
-    assert iterator.iterations == 0
+    assert iterator._epoch == 1
+    assert iterator._iterations == 0
 
 
 @pytest.mark.usefixtures("tabular_dataset")
@@ -129,9 +129,9 @@ def test_not_numericalizable_field(json_file_path):
     non_numericalizable_field = Field(
         "non_numericalizable_field",
         tokenizer=custom_datatype_tokenizer,
-        is_numericalizable=False,
+        numericalizer=None,
         allow_missing_data=True,
-        store_as_raw=True,
+        keep_raw=True,
     )
 
     fields["text_with_missing_data"] = (text_field, non_numericalizable_field)
@@ -317,9 +317,9 @@ def test_iterator_missing_data_in_batch(json_file_path):
     missing_value_field = Field(
         "missing_value_field",
         tokenizer="split",
-        vocab=Vocab(),
+        numericalizer=Vocab(),
         allow_missing_data=True,
-        store_as_raw=True,
+        keep_raw=True,
         missing_data_token=missing_data_default_value,
     )
     fields["text_with_missing_data"] = missing_value_field
@@ -422,7 +422,7 @@ def test_bucket_iterator_set_dataset_on_init(tabular_dataset):
 def test_iterator_batch_as_list():
     raw_dataset = [("1 2 3 4",), ("2 3 4",), ("3 4",)]
     field = Field(
-        "test_field", custom_numericalize=int, tokenizer="split", batch_as_matrix=False
+        "test_field", numericalizer=int, tokenizer="split", disable_batch_matrix=True
     )
     fields = (field,)
     ef = ExampleFactory(fields)
@@ -469,10 +469,8 @@ def run_n_epochs(iterator, num_epochs):
 
 @pytest.fixture
 def hierarchical_dataset_fields():
-    name_field = Field(name="name", store_as_raw=True, tokenize=False, vocab=Vocab())
-    number_field = Field(
-        name="number", store_as_raw=True, tokenize=False, custom_numericalize=int
-    )
+    name_field = Field(name="name", keep_raw=True, tokenizer=None, numericalizer=Vocab())
+    number_field = Field(name="number", keep_raw=True, tokenizer=None, numericalizer=int)
 
     fields = {"name": name_field, "number": number_field}
     return fields

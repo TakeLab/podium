@@ -76,7 +76,7 @@ class SklearnTensorTransformerWrapper(TensorTransformer):
         if self.requires_fitting():
             self.feature_transformer.fit(x, y)
 
-    def transform(self, x: np.array) -> np.ndarray:
+    def transform(self, x: np.ndarray) -> np.ndarray:
         return self.feature_transformer.transform(x)
 
     def requires_fitting(self) -> bool:

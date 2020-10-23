@@ -59,10 +59,11 @@ TABULAR_SOURCES = (
 
 
 class MockField:
-    def __init__(self, name, eager, sequential=True, is_target=False):
+    def __init__(self, name, eager, keep_raw=True, tokenize=True, is_target=False):
         self.name = name
         self.eager = eager
-        self.sequential = sequential
+        self.keep_raw = keep_raw
+        self.tokenize = True
 
         self.finalized = False
         self.updated_count = 0
@@ -72,13 +73,12 @@ class MockField:
         self.is_target = is_target
 
     def preprocess(self, data):
-        return (
-            ((self.name, (data, [data])),)
-            if self.sequential
-            else ((self.name, (data, None)),)
-        )
+        raw = data if self.keep_raw else None
+        tokenized = [data] if self.tokenize else data
 
-    def update_vocab(self, raw, tokenized):
+        return ((self.name, (raw, tokenized)),)
+
+    def update_vocab(self, tokenized):
         assert not self.eager
         self.updated_count += 1
 
@@ -659,8 +659,8 @@ def data_for_stratified():
 def tabular_dataset_fields(use_dict):
     TEXT = MockField("text", eager=True)
     CHARS = MockField("chars", eager=True)
-    RATING = MockField("rating", sequential=False, eager=True)
-    SOURCE = MockField("source", sequential=False, eager=False)
+    RATING = MockField("rating", tokenize=False, eager=True)
+    SOURCE = MockField("source", tokenize=False, eager=False)
 
     if use_dict:
         fields = {"text": (TEXT, CHARS), "rating": RATING, "source": SOURCE}
@@ -682,7 +682,7 @@ def create_dataset(data, field_list):
 
 
 def create_tabular_dataset(fields, file_format, file_path, use_dict, sort_key=None):
-    skip_header = (file_format in {"csv", "tsv"}) and (not use_dict)
+    skip_header = file_format in {"csv", "tsv"} and not use_dict
 
     return TabularDataset(
         file_path, file_format, fields, skip_header=skip_header, sort_key=sort_key
@@ -730,8 +730,8 @@ def test_eager_tokenization():
     def create_dataset():
 
         fields = (
-            Field("text", vocab=Vocab()),
-            Field("source", vocab=Vocab(), tokenizer=list),
+            Field("text", numericalizer=Vocab()),
+            Field("source", numericalizer=Vocab(), tokenizer=list),
         )
         example_factory = ExampleFactory(fields)
 
@@ -768,8 +768,8 @@ def test_eager_tokenization():
 
 @pytest.fixture
 def hierarchical_dataset_fields():
-    name_field = Field("name", store_as_raw=True, tokenize=False)
-    number_field = Field("number", store_as_raw=True, tokenize=False)
+    name_field = Field("name", keep_raw=True, tokenizer=None)
+    number_field = Field("number", keep_raw=True, tokenizer=None)
 
     fields = {"name": name_field, "number": number_field}
     return fields
@@ -839,8 +839,10 @@ def test_hierarchical_dataset_example_indexing(hierarchical_dataset):
 def test_hierarchical_dataset_finalize_fields(hierarchical_dataset_parser):
     name_vocab = Vocab()
     number_vocab = Vocab()
-    name_field = Field("name", store_as_raw=True, tokenize=False, vocab=name_vocab)
-    number_field = Field("number", store_as_raw=True, tokenize=False, vocab=number_vocab)
+    name_field = Field("name", keep_raw=True, tokenizer=None, numericalizer=name_vocab)
+    number_field = Field(
+        "number", keep_raw=True, tokenizer=None, numericalizer=number_vocab
+    )
 
     fields = {"name": name_field, "number": number_field}
     dataset = HierarchicalDataset.from_json(

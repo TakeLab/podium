@@ -5,7 +5,7 @@ import logging
 _LOGGER = logging.getLogger(__name__)
 
 
-def get_tokenizer(tokenizer, language="en"):
+def get_tokenizer(tokenizer):
     """Returns a tokenizer according to the parameters given.
 
     Parameters
@@ -13,21 +13,17 @@ def get_tokenizer(tokenizer, language="en"):
     tokenizer : str | callable
         If a callable object is given, it will just be returned.
         Otherwise, a string can be given to create one of the premade
-        tokenizers.
+        tokenizers. The string must be of format 'tokenizer' or `tokenizer-args`
 
         The available premade tokenizers are:
             - 'split' - default str.split()
 
             - 'spacy' - the spacy tokenizer, using the 'en' language
               model by default (unless the user provides a different
-              'language' parameter). If spacy model is used for the first time
+              language through args). If spacy model is used for the first time
               user should download it by using command similar to the following
               `python -m spacy download en`. More details can be found in spacy
               documentation https://spacy.io/usage/models
-
-    language : str
-        The language argument for the tokenizer (if necessary, e. g. for
-        spacy). Default is 'en'.
 
     Returns
     -------
@@ -39,17 +35,33 @@ def get_tokenizer(tokenizer, language="en"):
         If the required package for the specified tokenizer is not installed.
     ValueError
         If the given tokenizer is not a callable or a string, or is a
-        string that doesn't correspond to any of the premade tokenizers.
+        string that doesn't correspond to any of the supported tokenizers.
     """
+
     # Add every new tokenizer to this "factory" method
     if callable(tokenizer):
         # if arg is already a function, just return it
         return tokenizer
 
-    elif tokenizer == "spacy":
+    if not isinstance(tokenizer, str):
+        err_msg = (
+            f"Wrong type passed to `get_tokenizer`. Allowed types are callables "
+            f"and strings. The provided type is {type(tokenizer)}"
+        )
+        _LOGGER.error(err_msg)
+        raise ValueError(err_msg)
+
+    tokenizer_split = tokenizer.split("-", 1)
+    if len(tokenizer_split) == 1:
+        tokenizer, parameters = tokenizer_split[0], None
+    else:
+        tokenizer, parameters = tokenizer_split
+
+    if tokenizer == "spacy":
         try:
             import spacy
 
+            language = parameters or "en"
             disable = ["parser", "ner"]
             spacy_tokenizer = spacy.load(language, disable=disable)
         except OSError:
@@ -70,7 +82,11 @@ def get_tokenizer(tokenizer, language="en"):
         return spacy_tokenize
 
     elif tokenizer == "split":
-        return str.split
+
+        def _split(string):
+            return string.split(sep=parameters)
+
+        return _split
 
     elif tokenizer == "toktok":
         from nltk.tokenize.toktok import ToktokTokenizer
@@ -91,6 +107,6 @@ def get_tokenizer(tokenizer, language="en"):
                 "for more information."
             )
             raise
-
-    # if tokenizer not found
-    raise ValueError(f"Wrong value given for the tokenizer: {tokenizer}")
+    else:
+        # if tokenizer not found
+        raise ValueError(f"Wrong value given for the tokenizer: {tokenizer}")

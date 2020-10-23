@@ -31,9 +31,9 @@ def basic_pauza_hr_fields():
     rating = Field(
         name="Rating",
         vocab=Vocab(specials=()),
-        store_as_raw=True,
+        keep_raw=True,
         is_target=True,
-        tokenize=False,
+        tokenizer=None,
         custom_numericalize=numericalize_pauza_rating,
     )
     text = Field(
@@ -42,7 +42,7 @@ def basic_pauza_hr_fields():
         tokenizer="split",
         language="hr",
         tokenize=True,
-        store_as_raw=False,
+        keep_raw=False,
         fixed_length=100,
     )
     return {"Text": text, "Rating": rating}

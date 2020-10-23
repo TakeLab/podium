@@ -16,7 +16,7 @@ class MockTensorTransformer(TensorTransformer):
     def fit(self, x: np.ndarray, y: np.ndarray):
         pass
 
-    def transform(self, x: np.array) -> np.ndarray:
+    def transform(self, x: np.ndarray) -> np.ndarray:
         return [3, 4]
 
     def requires_fitting(self) -> bool:

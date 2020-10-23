@@ -1,14 +1,7 @@
 """Package contains modules for storing and loading datasets and vectors."""
 
 from .example_factory import ExampleFactory, ExampleFormat
-from .field import (
-    Field,
-    LabelField,
-    MultilabelField,
-    MultioutputField,
-    TokenizedField,
-    unpack_fields,
-)
+from .field import Field, LabelField, MultilabelField, MultioutputField, unpack_fields
 from .resources.downloader import (
     BaseDownloader,
     HttpDownloader,
@@ -35,7 +28,6 @@ __all__ = [
     "HttpDownloader",
     "SimpleHttpDownloader",
     "Field",
-    "TokenizedField",
     "LabelField",
     "MultilabelField",
     "MultioutputField",

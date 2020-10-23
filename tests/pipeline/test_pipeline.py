@@ -4,13 +4,7 @@ import numpy as np
 
 from podium.models import AbstractSupervisedModel, FeatureTransformer
 from podium.pipeline import Pipeline
-from podium.storage import (
-    ExampleFormat,
-    Field,
-    LabelField,
-    MultioutputField,
-    TokenizedField,
-)
+from podium.storage import ExampleFormat, Field, LabelField, MultioutputField
 
 
 name_dict = {"Marko": 1, "Darko": 2, "Ivana": 3}
@@ -19,11 +13,9 @@ mock_data = [["Marko", 50, 20], ["Darko", 60, 30], ["Ivana", 45, 40]]
 
 
 def get_fields():
-    name_field = Field("Name", custom_numericalize=name_dict.get, store_as_raw=True)
-    score_field = Field(
-        "Score", tokenize=False, custom_numericalize=int, store_as_raw=True
-    )
-    age_field = LabelField("Age", custom_numericalize=int)
+    name_field = Field("Name", numericalizer=name_dict.get, keep_raw=True)
+    score_field = Field("Score", tokenizer=None, numericalizer=int, keep_raw=True)
+    age_field = LabelField("Age", numericalizer=int)
 
     name_field.finalize()
     score_field.finalize()
@@ -163,16 +155,14 @@ def test_output_transform_fn():
 
 def test_pipeline_multioutputfield_without_target():
     # case where name is used to generate two fields => name and case
-    name_field = Field("Name", custom_numericalize=name_dict.get, store_as_raw=True)
-    case_field = Field(
-        "Case", custom_numericalize={True: 1, False: 0}.get, store_as_raw=True
-    )
+    name_field = Field("Name", numericalizer=name_dict.get, keep_raw=True)
+    case_field = Field("Case", numericalizer={True: 1, False: 0}.get, keep_raw=True)
 
     def get_case(raw, tokenized):
         return raw, [token.islower() for token in tokenized]
 
     case_field.add_posttokenize_hook(get_case)
-    age_field = LabelField("Age", custom_numericalize=int)
+    age_field = LabelField("Age", numericalizer=int)
 
     name_field.finalize()
     case_field.finalize()
@@ -195,10 +185,8 @@ def test_pipeline_multioutputfield_without_target():
 def test_pipeline_multioutputfield_with_some_target():
     mask_dict = {"XXXXX": 1, "XXXX": 2}
     text_dict = {"Marko": 1, "radi": 2}
-    mask_field = Field("Masked", custom_numericalize=mask_dict.get, store_as_raw=True)
-    text_field = Field(
-        "Text", custom_numericalize=text_dict.get, is_target=True, store_as_raw=True
-    )
+    mask_field = Field("Masked", numericalizer=mask_dict.get, keep_raw=True)
+    text_field = Field("Text", numericalizer=text_dict.get, is_target=True, keep_raw=True)
     text_field.finalize()
 
     model = Mock()
@@ -220,12 +208,12 @@ def test_pipeline_multioutputfield_with_some_target():
 def test_pipeline_multioutputfield_with_all_targets():
     text_dict = {"Marko": 1, "radi": 2}
     mask_dict = {"XXXXX": 1, "XXXX": 2}
-    mask_field = Field("Mask", custom_numericalize=mask_dict.get)
+    mask_field = Field("Mask", numericalizer=mask_dict.get)
     text1_field = Field(
-        "Text1", custom_numericalize=text_dict.get, is_target=True, store_as_raw=True
+        "Text1", numericalizer=text_dict.get, is_target=True, keep_raw=True
     )
     text2_field = Field(
-        "Text2", custom_numericalize=text_dict.get, is_target=True, store_as_raw=True
+        "Text2", numericalizer=text_dict.get, is_target=True, keep_raw=True
     )
     mask_field.finalize()
 
@@ -246,16 +234,14 @@ def test_pipeline_multioutputfield_with_all_targets():
 
 
 def test_pipeline_nested_fields_no_targets():
-    name_field = Field("Name", custom_numericalize=name_dict.get, store_as_raw=True)
-    case_field = Field(
-        "Case", custom_numericalize={True: 1, False: 0}.get, store_as_raw=True
-    )
+    name_field = Field("Name", numericalizer=name_dict.get, keep_raw=True)
+    case_field = Field("Case", numericalizer={True: 1, False: 0}.get, keep_raw=True)
 
     def get_case(raw, tokenized):
         return raw, [token.islower() for token in tokenized]
 
     case_field.add_posttokenize_hook(get_case)
-    age_field = Field("Age", tokenize=False, custom_numericalize=int, is_target=True)
+    age_field = Field("Age", tokenizer=None, numericalizer=int, is_target=True)
 
     name_field.finalize()
 
@@ -277,12 +263,12 @@ def test_pipeline_nested_fields_no_targets():
 def test_pipeline_nested_fields_all_targets():
     text_dict = {"Marko": 1, "radi": 2}
     mask_dict = {"XXXXX": 1, "XXXX": 2}
-    text_field = Field("Text", custom_numericalize=text_dict.get, store_as_raw=True)
+    text_field = Field("Text", numericalizer=text_dict.get, keep_raw=True)
     mask1_field = Field(
-        "Masked1", custom_numericalize=mask_dict.get, is_target=True, store_as_raw=True
+        "Masked1", numericalizer=mask_dict.get, is_target=True, keep_raw=True
     )
     mask2_field = Field(
-        "Masked2", custom_numericalize=mask_dict.get, is_target=True, store_as_raw=True
+        "Masked2", numericalizer=mask_dict.get, is_target=True, keep_raw=True
     )
     text_field.finalize()
 
@@ -302,8 +288,8 @@ def test_pipeline_nested_fields_all_targets():
 
 def test_pipeline_label_and_tokenized_fields():
     # case where name is used to generate two fields => name and case
-    name_field = TokenizedField("Name", custom_numericalize=name_dict.get)
-    case_field = TokenizedField("Case", custom_numericalize={True: 1, False: 0}.get)
+    name_field = Field("Name", tokenizer=None, numericalizer=name_dict.get)
+    case_field = Field("Case", tokenizer=None, numericalizer={True: 1, False: 0}.get)
 
     def get_case(raw, tokenized):
         return raw, [token.islower() for token in tokenized]
@@ -312,7 +298,7 @@ def test_pipeline_label_and_tokenized_fields():
 
     age_field = LabelField(
         "Age",
-        custom_numericalize=int,
+        numericalizer=int,
     )
 
     name_field.finalize()

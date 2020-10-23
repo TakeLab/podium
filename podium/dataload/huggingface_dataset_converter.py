@@ -52,7 +52,9 @@ class _FeatureConverter:
             If conversion of the given feature type is not supported.
         """
         if isinstance(feature, datasets.ClassLabel):
-            field = LabelField(name=name, custom_numericalize=_identity)
+            field = LabelField(
+                name=name, numericalizer=_identity, allow_missing_data=False
+            )
             return field
 
         elif isinstance(feature, datasets.Value):
@@ -73,23 +75,19 @@ class _FeatureConverter:
                 "float64",
             }:
                 kwargs = {
-                    "tokenize": False,
-                    "store_as_raw": True,
-                    "custom_numericalize": _identity,
+                    "tokenizer": None,
+                    "keep_raw": False,
+                    "numericalizer": _identity,
                 }
 
             elif dtype in {"string", "utf8"}:
-                kwargs = {"vocab": Vocab()}
+                kwargs = {"numericalizer": Vocab()}
 
             else:
-                # some dtypes are not processed and stored as raw
+                # some dtypes are not processed and stored as-is
                 # for the full list see:
                 # https://arrow.apache.org/docs/python/api/datatypes.html#factory-functions
-                kwargs = {
-                    "tokenize": False,
-                    "store_as_raw": True,
-                    "is_numericalizable": False,
-                }
+                kwargs = {"tokenizer": None, "keep_raw": False, "numericalizer": None}
 
         elif isinstance(
             feature,
@@ -101,11 +99,7 @@ class _FeatureConverter:
                 datasets.TranslationVariableLanguages,
             ),
         ):
-            kwargs = {
-                "tokenize": False,
-                "store_as_raw": True,
-                "is_numericalizable": False,
-            }
+            kwargs = {"tokenizer": None, "keep_raw": False, "numericalizer": None}
 
         else:
             TypeError(
