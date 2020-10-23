@@ -80,7 +80,7 @@ class SST(Dataset):
         if not fine_grained:
             # TODO @mttk: Perhaps issue warning if any of fields is eager
             def filter_neutral(example):
-                return example.label[0] != "neutral"
+                return example.label[1] != "neutral"
 
             self.filter(predicate=filter_neutral, inplace=True)
 
@@ -196,14 +196,13 @@ class SST(Dataset):
         """
         text = Field(
             name=SST.TEXT_FIELD_NAME,
-            vocab=Vocab(),
+            numericalizer=Vocab(eager=False),
             tokenizer="split",
-            language="en",
-            tokenize=True,
-            store_as_raw=False,
-            eager=False,
+            keep_raw=False,
         )
-        label = LabelField(name=SST.LABEL_FIELD_NAME, eager=False)
+        label = LabelField(
+            name=SST.LABEL_FIELD_NAME, numericalizer=Vocab(specials=(), eager=False)
+        )
         return {SST.TEXT_FIELD_NAME: text, SST.LABEL_FIELD_NAME: label}
 
 

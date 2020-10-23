@@ -159,7 +159,7 @@ class CountVectorizer:
                 "or by providing field with a non-empty vocab property."
             )
 
-        if field and field.allow_missing_data:
+        if field and field._allow_missing_data:
             raise ValueError(
                 "CountVectorizer doesn't support fields that "
                 f"contain missing data: {dataset}, field: {field}"

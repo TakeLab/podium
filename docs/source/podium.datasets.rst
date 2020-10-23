@@ -24,14 +24,6 @@ podium.datasets.hierarhical\_dataset module
    :no-undoc-members:
    :show-inheritance:
 
-podium.datasets.iris\_dataset module
--------------------------------------
-
-.. automodule:: podium.datasets.iris_dataset
-   :members:
-   :no-undoc-members:
-   :show-inheritance:
-
 podium.datasets.iterator module
 --------------------------------
 

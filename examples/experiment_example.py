@@ -29,8 +29,8 @@ def basic_pauza_hr_fields():
         name="Rating",
         vocab=Vocab(specials=()),
         is_target=True,
-        tokenize=False,
-        store_as_raw=True,
+        tokenizer=None,
+        keep_raw=True,
         custom_numericalize=numericalize_pauza_rating,
     )
 
@@ -40,7 +40,7 @@ def basic_pauza_hr_fields():
         tokenizer="split",
         language="hr",
         tokenize=True,
-        store_as_raw=False,
+        keep_raw=False,
         fixed_length=100,
     )
 

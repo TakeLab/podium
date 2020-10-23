@@ -30,7 +30,7 @@ def test_truecase():
     pytest.importorskip("truecase")
 
     data = "hey how are you"
-    field = Field(name="data", tokenize=False, store_as_raw=True)
+    field = Field(name="data", tokenizer=None, keep_raw=True)
     field.add_pretokenize_hook(truecase())
     example = ExampleFactory([field]).from_list([data])
 
@@ -41,12 +41,12 @@ def test_moses_normalizer():
     pytest.importorskip("sacremoses")
 
     data = "What's    up!"
-    field = Field(name="data", tokenize=False, store_as_raw=True)
+    field = Field(name="data", tokenizer=None, keep_raw=True)
     normalizer = MosesNormalizer()
     field.add_pretokenize_hook(normalizer)
     example = ExampleFactory([field]).from_list([data])
 
-    assert "What's up!" == example.data[0]
+    assert "What's up!" == example.data[1]
 
 
 @pytest.mark.parametrize(
@@ -77,13 +77,13 @@ def test_lemmatization_and_stemming(hook):
 
 def test_regex_replace():
     data = "This item costs 100$."
-    field = Field(name="data", tokenize=False, store_as_raw=True)
+    field = Field(name="data", tokenizer=None, keep_raw=True)
     regex_replace = RegexReplace([(r"\d+", "<NUMBER>"), (r"\s+", "<WHITESPACE>")])
     field.add_pretokenize_hook(regex_replace)
     example = ExampleFactory([field]).from_list([data])
 
     expected_raw = "This<WHITESPACE>item<WHITESPACE>costs<WHITESPACE><NUMBER>$."
-    assert expected_raw == example.data[0]
+    assert expected_raw == example.data[1]
 
 
 @pytest.mark.parametrize(
@@ -106,8 +106,8 @@ def test_regex_replace():
 def test_text_clean_up(kwargs, data, expected_output):
     pytest.importorskip("cleantext")
 
-    field = Field(name="data", tokenize=False, store_as_raw=True)
+    field = Field(name="data", tokenizer=None, keep_raw=True)
     field.add_pretokenize_hook(TextCleanUp(**kwargs))
     example = ExampleFactory([field]).from_list([data])
 
-    assert expected_output == example.data[0]
+    assert expected_output == example.data[1]

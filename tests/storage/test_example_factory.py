@@ -3,11 +3,11 @@ import pytest
 from podium.storage import ExampleFactory, ExampleFormat, Field
 
 
-name_field = Field("Name", store_as_raw=True, tokenizer="split")
+name_field = Field("Name", keep_raw=True, tokenizer="split")
 
-score_field = Field("Score", custom_numericalize=int, store_as_raw=True, tokenize=False)
+score_field = Field("Score", numericalizer=int, keep_raw=True, tokenizer=None)
 
-favorite_food_field = Field("Favorite_food", store_as_raw=True, tokenize=False)
+favorite_food_field = Field("Favorite_food", keep_raw=True, tokenizer=None)
 
 field_list = [name_field, score_field, favorite_food_field]
 
@@ -198,10 +198,10 @@ def test_create_from_tsv(expected_values, example_tsv_string):
     ],
 )
 def test_multiple_output_for_input_dict(expected_values):
-    lower_case_name_field = Field("Lowercase_name", store_as_raw=True)
+    lower_case_name_field = Field("Lowercase_name", keep_raw=True)
     lower_case_name_field.add_pretokenize_hook(str.lower)
 
-    upper_case_name_field = Field("Uppercase_name", store_as_raw=True)
+    upper_case_name_field = Field("Uppercase_name", keep_raw=True)
     upper_case_name_field.add_pretokenize_hook(str.upper)
 
     test_field_dict = dict(field_dict)
@@ -242,10 +242,10 @@ def test_multiple_output_for_input_dict(expected_values):
     ],
 )
 def test_multiple_output_for_input_list(expected_values):
-    lower_case_name_field = Field("Lowercase_name", store_as_raw=True)
+    lower_case_name_field = Field("Lowercase_name", keep_raw=True)
     lower_case_name_field.add_pretokenize_hook(str.lower)
 
-    upper_case_name_field = Field("Uppercase_name", store_as_raw=True)
+    upper_case_name_field = Field("Uppercase_name", keep_raw=True)
     upper_case_name_field.add_pretokenize_hook(str.upper)
 
     test_field_list = list(field_list)

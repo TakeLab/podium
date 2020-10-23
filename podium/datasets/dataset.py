@@ -4,7 +4,9 @@ import itertools
 import logging
 import random
 from abc import ABC
+from typing import Any, Callable
 
+from podium.storage.example_factory import Example
 from podium.storage.field import unpack_fields
 
 
@@ -244,7 +246,8 @@ class Dataset(ABC):
             for dataset in data_sources:
                 for example in dataset:
                     for field in fields_to_build:
-                        field.update_vocab(*getattr(example, field.name))
+                        _, tokenized = getattr(example, field.name)
+                        field.update_vocab(tokenized)
 
         for field in self.fields:
             field.finalize()
@@ -444,13 +447,22 @@ class Dataset(ABC):
                 Two objects containing the input and target batches over
                 the whole dataset.
         """
-        # Local import to avoid circular dependency
-        # TODO Remove local import and fix circular dependency
-        from podium.datasets.iterator import SingleBatchIterator
+        # dicts that will be used to create the InputBatch and TargetBatch
+        # objects
+        from podium.datasets import SingleBatchIterator
 
-        for x_batch, y_batch in SingleBatchIterator(dataset=self, shuffle=False):
-            # There will only ever be a single batch created
-            return x_batch, y_batch
+        return next(iter(SingleBatchIterator(self, shuffle=False)))
+
+    def sorted(self, key: Callable[[Example], Any], reverse=False) -> "Dataset":
+        def index_key(i):
+            return key(self[i])
+
+        indices = list(range(len(self)))
+        indices.sort(key=index_key, reverse=reverse)
+        return self[indices]
+
+    def as_dataset(self):
+        return self
 
     def __repr__(self):
         fields = [field.name for field in self.fields]

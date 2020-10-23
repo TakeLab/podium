@@ -1,8 +1,7 @@
 """Module contains Croatian NER dataset."""
 from podium.dataload.ner_croatian import NERCroatianXMLLoader
 from podium.datasets.dataset import Dataset
-from podium.storage import ExampleFactory
-from podium.storage.field import TokenizedField
+from podium.storage import ExampleFactory, Field
 from podium.storage.resources.large_resource import LargeResource
 from podium.storage.vocab import Vocab
 
@@ -115,8 +114,8 @@ class CroatianNERDataset(Dataset):
             Dictionary mapping field name to field.
         """
 
-        tokens = TokenizedField(name="tokens", vocab=Vocab())
-        labels = TokenizedField(name="labels", is_target=True)
+        tokens = Field(name="tokens", tokenizer=None, numericalizer=Vocab())
+        labels = Field(name="labels", tokenizer=None, is_target=True)
 
         fields = {"tokens": tokens, "labels": labels}
         return fields

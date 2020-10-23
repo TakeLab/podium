@@ -65,6 +65,13 @@ podium.datasets.impl.pauza\_dataset module
    :no-undoc-members:
    :show-inheritance:
 
+podium.datasets.impl.iris\_dataset module
+------------------------------------------
+
+.. automodule:: podium.datasets.impl.iris_dataset
+   :members:
+   :no-undoc-members:
+   :show-inheritance:
 
 Module contents
 ---------------

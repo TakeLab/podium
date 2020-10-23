@@ -60,19 +60,17 @@ def tabular_dataset(json_file_path):
 def tabular_dataset_fields(fixed_length=None):
     text = Field(
         "text",
-        eager=True,
-        vocab=Vocab(),
+        numericalizer=Vocab(eager=True),
         fixed_length=fixed_length,
         allow_missing_data=False,
     )
     text_missing = Field(
         "text_with_missing_data",
-        eager=True,
-        vocab=Vocab(),
+        numericalizer=Vocab(eager=True),
         fixed_length=fixed_length,
         allow_missing_data=True,
     )
-    rating = LabelField("rating", eager=False, custom_numericalize=float)
+    rating = LabelField("rating", numericalizer=float)
 
     fields = {"text": text, "text_with_missing_data": text_missing, "rating": rating}
 

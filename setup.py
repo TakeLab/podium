@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 
 INSTALL_REQUIRES = [
@@ -34,7 +34,7 @@ QUALITY_REQUIRE = [
 DATASETS_REQUIRE = [
     'conllu',
     'datasets',
-    'pyarrow',
+    'pyarrow>=1.0.0',
     'xlrd',
 ]
 

@@ -12,6 +12,10 @@
 #
 import os
 import sys
+
+# Quick fix for cross-reference warnings:
+from sphinx.domains.python import PythonDomain
+
 sys.path.insert(0, os.path.abspath('../../'))
 
 
@@ -76,8 +80,6 @@ napoleon_use_ivar = False
 napoleon_use_param = True
 napoleon_use_rtype = True
 
-# Quick fix for cross-reference warnings:
-from sphinx.domains.python import PythonDomain
 
 
 class PatchedPythonDomain(PythonDomain):

@@ -57,7 +57,7 @@ def keyword_extraction_main():
         tokenizer="split",
         vocab=None,
         tokenize=True,
-        store_as_raw=True,
+        keep_raw=True,
         store_as_tokenized=False,
     )
     kws = Field(
@@ -65,7 +65,7 @@ def keyword_extraction_main():
         tokenizer=YAKE("hr"),
         vocab=None,
         tokenize=True,
-        store_as_raw=True,
+        keep_raw=True,
         store_as_tokenized=False,
     )
     fields = {DummyDataset.TEXT_FIELD_NAME: (tokens, kws)}
