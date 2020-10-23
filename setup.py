@@ -34,7 +34,7 @@ QUALITY_REQUIRE = [
 DATASETS_REQUIRE = [
     'conllu',
     'datasets',
-    'pyarrow',
+    'pyarrow>=1.0.0',
     'xlrd',
 ]
 
