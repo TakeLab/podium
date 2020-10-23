@@ -2,18 +2,10 @@ import pytest
 
 from podium.preproc.sentencizers import SpacySentencizer
 
-from ..util import has_spacy_model, is_admin
+from ..util import run_spacy
 
 
-RUN_SPACY = is_admin or has_spacy_model("en")
-
-
-@pytest.mark.skipif(
-    not RUN_SPACY,
-    reason="requires already downloaded model or "
-    "admin privileges to download it "
-    "while executing",
-)
+@run_spacy
 @pytest.mark.parametrize(
     "test_sentences,split_on",
     [

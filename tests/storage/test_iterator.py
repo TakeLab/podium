@@ -426,7 +426,7 @@ def test_iterator_batch_as_list():
     )
     fields = (field,)
     ef = ExampleFactory(fields)
-    examples = list(map(ef.from_list, raw_dataset))
+    examples = [ef.from_list(raw_example) for raw_example in raw_dataset]
     ds = Dataset(examples, fields)
 
     for i, (input_batch, _) in enumerate(Iterator(ds, batch_size=2, shuffle=False)):

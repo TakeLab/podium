@@ -207,7 +207,7 @@ class Dataset(ABC):
             if True, do operation inplace and return None
         """
         if inplace:
-            self.examples = list(filter(predicate, self.examples))
+            self.examples = [example for example in self.examples if predicate(example)]
             return
 
         filtered_examples = [copy.deepcopy(ex) for ex in self.examples if predicate(ex)]
@@ -235,7 +235,7 @@ class Dataset(ABC):
         fields_to_build = [f for f in self.fields if not f.eager and f.use_vocab]
         if fields_to_build:
             # there can be multiple datasets we want to iterate over
-            data_sources = list(filter(lambda arg: isinstance(arg, Dataset), args))
+            data_sources = [arg for arg in args if isinstance(arg, Dataset)]
 
             # use self as a data source if no other given
             if not data_sources:

@@ -807,7 +807,9 @@ class ArrowDataset:
         fields_to_build = [f for f in self.fields if not f.eager and f.use_vocab]
         if fields_to_build:
             # there can be multiple datasets we want to iterate over
-            data_sources = list(filter(lambda arg: isinstance(arg, Dataset), datasets))
+            data_sources = [
+                dataset for dataset in datasets if isinstance(dataset, Dataset)
+            ]
 
             # use self as a data source if no other given
             if not data_sources:

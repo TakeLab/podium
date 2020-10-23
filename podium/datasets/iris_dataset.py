@@ -25,7 +25,7 @@ class IrisDataset(Dataset):
 
         data = ((*x_, y_) for x_, y_ in zip(x, y))
 
-        examples = list(map(example_factory.from_list, data))
+        examples = [example_factory.from_list(raw_example) for raw_example in data]
         super().__init__(examples, fields)
 
     @staticmethod
