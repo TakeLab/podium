@@ -54,7 +54,6 @@ __all__ = [
     "model_selection",
     "pipeline",
     "Field",
-    "Field",
     "LabelField",
     "MultilabelField",
     "MultioutputField",
