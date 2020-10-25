@@ -22,8 +22,8 @@ def test_remove_stopwords():
     field.add_posttokenize_hook(remove_stopwords("en"))
     example = ExampleFactory([field]).from_list(data)
 
-    assert "you" not in example.data[1]
-    assert "a" not in example.data[1]
+    assert "you" not in example["data"][1]
+    assert "a" not in example["data"][1]
 
 
 def test_truecase():
@@ -34,7 +34,7 @@ def test_truecase():
     field.add_pretokenize_hook(truecase())
     example = ExampleFactory([field]).from_list([data])
 
-    assert "Hey how are you" == example.data[0]
+    assert "Hey how are you" == example["data"][0]
 
 
 def test_moses_normalizer():
@@ -46,7 +46,7 @@ def test_moses_normalizer():
     field.add_pretokenize_hook(normalizer)
     example = ExampleFactory([field]).from_list([data])
 
-    assert "What's up!" == example.data[1]
+    assert "What's up!" == example["data"][1]
 
 
 @pytest.mark.parametrize(
@@ -72,7 +72,7 @@ def test_lemmatization_and_stemming(hook):
 
     # we don't check the exact results,
     # instead we expect some modifications
-    assert data != example.data[1]
+    assert data != example["data"][1]
 
 
 def test_regex_replace():
@@ -83,7 +83,7 @@ def test_regex_replace():
     example = ExampleFactory([field]).from_list([data])
 
     expected_raw = "This<WHITESPACE>item<WHITESPACE>costs<WHITESPACE><NUMBER>$."
-    assert expected_raw == example.data[1]
+    assert expected_raw == example["data"][1]
 
 
 @pytest.mark.parametrize(
@@ -110,4 +110,4 @@ def test_text_clean_up(kwargs, data, expected_output):
     field.add_pretokenize_hook(TextCleanUp(**kwargs))
     example = ExampleFactory([field]).from_list([data])
 
-    assert expected_output == example.data[1]
+    assert expected_output == example["data"][1]

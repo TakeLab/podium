@@ -3,7 +3,6 @@ from podium.storage import Field, Vocab
 
 
 class PandoraDataset(ArrowDataset):
-
     @staticmethod
     def get_default_fields():
 

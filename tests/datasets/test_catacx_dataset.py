@@ -24,31 +24,31 @@ def validate_example_catacx_dataset(dataset):
 
     root_example_1 = root_nodes[0].example
 
-    assert root_example_1.sentiment[0] == -1.0
-    assert root_example_1.likes_cnt[0] == 0
-    assert root_example_1.message[1] == ["Example", "post", "No.", "1"]
-    assert root_example_1.spam[0] is False
-    assert root_example_1.emotions[1] == ["interest"]
+    assert root_example_1["sentiment"][0] == -1.0
+    assert root_example_1["likes_cnt"][0] == 0
+    assert root_example_1["message"][1] == ["Example", "post", "No.", "1"]
+    assert root_example_1["spam"][0] is False
+    assert root_example_1["emotions"][1] == ["interest"]
 
     comment_1 = root_nodes[0].children[0].example
 
-    assert comment_1.likes_cnt[0] == 0
-    assert comment_1.message[1] == ["Comment", "No.1", "text"]
-    assert comment_1.cs[1] == ["answer"]
-    assert comment_1.irony == (None, None)
+    assert comment_1["likes_cnt"][0] == 0
+    assert comment_1["message"][1] == ["Comment", "No.1", "text"]
+    assert comment_1["cs"][1] == ["answer"]
+    assert comment_1["irony"] == (None, None)
 
     reply_1 = root_nodes[0].children[0].children[0].example
 
-    assert reply_1.speech_acts[1] == ["praising", "stating"]
-    assert reply_1.irony[0] is False
-    assert reply_1.emotions[1] == ["gratitude"]
-    assert reply_1.pos_tags[1] == ["pos_tag_1", "pos_tag_2", "pos_tag_3"]
-    assert reply_1.lemmas[1] == ["lemma_1", "lemma_2", "lemma_3"]
-    assert reply_1.parent_ids[1] == ["0", "1", "2"]
-    assert reply_1.tokens[1] == ["token_1", "token_2", "token_3"]
-    assert reply_1.dependency_tags[1] == ["dep_tag_1", "dep_tag_2", "dep_tag_3"]
-    assert reply_1.id_tags[1] == ["1", "2", "3"]
-    assert reply_1.topics[1] == ["opcenito podrska", "dijalog"]
+    assert reply_1["speech_acts"][1] == ["praising", "stating"]
+    assert reply_1["irony"][0] is False
+    assert reply_1["emotions"][1] == ["gratitude"]
+    assert reply_1["pos_tags"][1] == ["pos_tag_1", "pos_tag_2", "pos_tag_3"]
+    assert reply_1["lemmas"][1] == ["lemma_1", "lemma_2", "lemma_3"]
+    assert reply_1["parent_ids"][1] == ["0", "1", "2"]
+    assert reply_1["tokens"][1] == ["token_1", "token_2", "token_3"]
+    assert reply_1["dependency_tags"][1] == ["dep_tag_1", "dep_tag_2", "dep_tag_3"]
+    assert reply_1["id_tags"][1] == ["1", "2", "3"]
+    assert reply_1["topics"][1] == ["opcenito podrska", "dijalog"]
 
 
 def test_catacx_dataset_loading(example_catacx_dataset):

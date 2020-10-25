@@ -45,7 +45,7 @@ class Example(dict):
         if name in self:
             return self[name]
         raise AttributeError(
-            f"'{type(self).__name__}' object " f"has no attribute '{name}'"
+            f"'{type(self).__name__}' object has no attribute '{name}'"
         )
 
     def __repr__(self):

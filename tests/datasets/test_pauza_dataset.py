@@ -140,5 +140,9 @@ def test_loaded_data(mock_dataset_path):
     train_dataset, _ = data
 
     for ex in train_dataset:
-        ex_data = {"Rating": ex.Rating[0], "Text": ex.Text[1], "Source": ex.Source[0]}
+        ex_data = {
+            "Rating": ex["Rating"][0],
+            "Text": ex["Text"][1],
+            "Source": ex["Source"][0],
+        }
         assert ex_data in EXPECTED_TRAIN_EXAMPLES

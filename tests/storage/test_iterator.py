@@ -165,7 +165,7 @@ def test_lazy_numericalization_caching(tabular_dataset):
             example_data = example[field.name]
             numericalized_data = field.numericalize(example_data)
 
-            cached_data = example[field.name + "_"]
+            cached_data = example[f"{field.name}_"]
             assert np.all(numericalized_data == cached_data)
 
 
@@ -299,10 +299,10 @@ def test_shuffle_random_state_exception(tabular_dataset):
 
 
 def text_len_key(example):
-    if example.text[1] is None:
+    if example["text"][1] is None:
         return 0
     else:
-        return len(example.text[1])
+        return len(example["text"][1])
 
 
 @pytest.mark.usefixtures("json_file_path")
@@ -542,7 +542,7 @@ def test_hierarchial_dataset_iterator_numericalization_caching(hierarchical_data
             example_data = example[field.name]
             numericalized_data = field.numericalize(example_data)
 
-            cached_data = example[field.name + "_"]
+            cached_data = example[f"{field.name}_"]
             assert np.all(numericalized_data == cached_data)
 
 

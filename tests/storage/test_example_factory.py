@@ -271,7 +271,7 @@ def test_multiple_output_for_input_list(expected_values):
     assert raw == expected_values[0].upper()
     assert tokenized == expected_values[0].upper().split()
 
-    raw, tokenized = example.Score
+    raw, tokenized = example["Score"]
     assert raw == expected_values[1]
 
     raw, tokenized = example["Favorite_food"]

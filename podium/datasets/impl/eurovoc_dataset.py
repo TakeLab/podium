@@ -159,8 +159,8 @@ class EuroVocDataset(Dataset):
         """
         # the given label can be either in crovoc or in eurovoc label hierarchy, therefore
         # we need to check both hierarchies for ancestors
-        example_labels = example.eurovoc_labels[1]
-        example_labels.extend(example.crovoc_labels[1])
+        example_labels = example["eurovoc_labels"][1]
+        example_labels.extend(example["crovoc_labels"][1])
 
         for example_label_id in example_labels:
             if example_label_id in self._eurovoc_label_hierarchy:

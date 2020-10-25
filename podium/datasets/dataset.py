@@ -186,11 +186,11 @@ class Dataset(ABC):
 
         if attr in self.field_dict:
 
-            def attr_generator(dataset, attr):
-                for x in dataset.examples:
-                    yield getattr(x, attr)
+            def attr_generator(attr):
+                for x in self.examples:
+                    yield x[attr]
 
-            return attr_generator(self, attr)
+            return attr_generator(attr)
 
         else:
             raise AttributeError(f"Dataset has no field {attr}.")
@@ -246,7 +246,7 @@ class Dataset(ABC):
             for dataset in data_sources:
                 for example in dataset:
                     for field in fields_to_build:
-                        _, tokenized = getattr(example, field.name)
+                        _, tokenized = example[field.name]
                         field.update_vocab(tokenized)
 
         for field in self.fields:
@@ -647,7 +647,7 @@ def stratified_split(
     """
 
     # group the examples by the strata_field
-    strata = itertools.groupby(examples, key=lambda ex: getattr(ex, strata_field_name))
+    strata = itertools.groupby(examples, key=lambda ex: ex[strata_field_name])
     strata = (list(group) for _, group in strata)
 
     train_split, val_split, test_split = [], [], []
