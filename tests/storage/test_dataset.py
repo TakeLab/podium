@@ -108,9 +108,7 @@ class MockExample(dict):
         if item in self:
             return self[item]
 
-        raise AttributeError(
-            f"'{type(self).__name__}' object has no attribute '{item}'"
-        )
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{item}'")
 
 
 def test_finalize_fields(data, field_list):
@@ -758,11 +756,11 @@ def test_eager_tokenization():
         pass
 
     for example_eager, example_lazy in zip(dataset_eager, dataset_lazy):
-        assert example_eager['text_'] is not None
-        assert all(example_eager['text_'] == example_lazy.text_)
+        assert example_eager["text_"] is not None
+        assert all(example_eager["text_"] == example_lazy.text_)
 
-        assert example_eager['source_'] is not None
-        assert all(example_eager['source_'] == example_lazy.source_)
+        assert example_eager["source_"] is not None
+        assert all(example_eager["source_"] == example_lazy.source_)
 
 
 @pytest.fixture

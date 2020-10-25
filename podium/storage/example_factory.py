@@ -44,9 +44,7 @@ class Example(dict):
     def __getattr__(self, name):
         if name in self:
             return self[name]
-        raise AttributeError(
-            f"'{type(self).__name__}' object has no attribute '{name}'"
-        )
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
     def __repr__(self):
         attr_repr = "; ".join(
