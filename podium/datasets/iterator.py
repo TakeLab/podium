@@ -396,11 +396,11 @@ class SingleBatchIterator(Iterator):
             order of elements with the same value of sort_key)..
             Default is False.
         """
-        super().__init__(dataset=dataset, shuffle=shuffle)
+        super().__init__(dataset=dataset, batch_size=len(dataset), shuffle=shuffle)
 
     def set_dataset(self, dataset: Dataset):
         super().set_dataset(dataset)
-        self.batch_size = len(dataset)
+        self._batch_size = len(dataset)
 
     def __len__(self):
         return 1
@@ -497,11 +497,10 @@ class BucketIterator(Iterator):
 
     def __repr__(self):
         return (
-            "{}[batch_size: {}, batch_to_matrix: {}, sort_key: {}, "
+            "{}[batch_size: {}, sort_key: {}, "
             "shuffle: {}, look_ahead_multiplier: {}, bucket_sort_key: {}]".format(
                 self.__class__.__name__,
                 self._batch_size,
-                self.batch_to_matrix,
                 self._sort_key,
                 self._shuffle,
                 self.look_ahead_multiplier,
@@ -725,11 +724,10 @@ class HierarchicalDatasetIterator(Iterator):
 
     def __repr__(self):
         return (
-            "{}[batch_size: {}, batch_to_matrix: {}, sort_key: {}, "
+            "{}[batch_size: {}, sort_key: {}, "
             "shuffle: {}, context_max_length: {}, context_max_depth: {}]".format(
                 self.__class__.__name__,
                 self._batch_size,
-                self.batch_to_matrix,
                 self._sort_key,
                 self._shuffle,
                 self._context_max_size,
