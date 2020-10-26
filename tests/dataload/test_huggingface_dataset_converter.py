@@ -43,6 +43,11 @@ def complex_dataset():
     return datasets.Dataset.from_dict(COMPLEX_DATA, Features(features))
 
 
+@pytest.fixture
+def dataset_dict(simple_dataset, complex_dataset):
+    return {"simple": simple_dataset, "complex": complex_dataset}
+
+
 def test_simple_feature_conversion(simple_dataset):
     fields = convert_features_to_fields(simple_dataset.features)
 
@@ -106,3 +111,12 @@ def test_as_dataset(simple_dataset):
     podium_dataset = HuggingFaceDatasetConverter(simple_dataset).as_dataset()
     assert isinstance(podium_dataset, Dataset)
     assert len(podium_dataset) == 2
+
+
+def test_from_dataset_dict(dataset_dict):
+    dataset_dict_converted = HuggingFaceDatasetConverter.from_dataset_dict(dataset_dict)
+
+    assert isinstance(dataset_dict_converted, dict)
+    assert isinstance(
+        dataset_dict_converted["simple"], HuggingFaceDatasetConverter
+    ) and isinstance(dataset_dict_converted["complex"], HuggingFaceDatasetConverter)

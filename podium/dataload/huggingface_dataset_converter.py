@@ -1,8 +1,9 @@
 """Module contains the converter class for processing the HuggingFace Datasets."""
 import logging
+from typing import Dict, Iterator, Optional
 
 from podium.datasets import Dataset
-from podium.storage import ExampleFactory, Field, LabelField, Vocab
+from podium.storage import Example, ExampleFactory, Field, LabelField, Vocab
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -32,7 +33,7 @@ class _FeatureConverter:
     """
 
     @staticmethod
-    def convert(name, feature):
+    def convert(name: str, feature: datasets.features.FeatureType) -> Field:
         """Convert a feature to the podium.storage.Field.
 
         Parameters:
@@ -115,7 +116,9 @@ class _FeatureConverter:
         return field
 
 
-def convert_features_to_fields(features):
+def convert_features_to_fields(
+    features: Dict[str, datasets.features.FeatureType]
+) -> Dict[str, Field]:
     """Convert a dictionary that maps column names of the HuggingFace Dataset
     to the features into a dictionary that maps column names to the podium.storage.Fields.
 
@@ -138,7 +141,9 @@ def convert_features_to_fields(features):
 class HuggingFaceDatasetConverter:
     """Class for converting rows from the HuggingFace Datasets to podium.storage.Example."""
 
-    def __init__(self, dataset, fields=None):
+    def __init__(
+        self, dataset: datasets.Dataset, fields: Optional[Dict[str, Field]] = None
+    ) -> None:
         """HuggingFaceDatasetConverter constructor.
 
         Parameters
@@ -165,14 +170,14 @@ class HuggingFaceDatasetConverter:
         self.dataset = dataset
         self.fields = fields or convert_features_to_fields(dataset.features)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Example]:
         """Iterate through the dataset and convert the examples."""
         example_factory = ExampleFactory(self.fields)
 
         for raw_example in self.dataset:
             yield example_factory.from_dict(raw_example)
 
-    def as_dataset(self):
+    def as_dataset(self) -> Dataset:
         """Convert the original HuggingFace dataset to a podium.storage.Dataset.
 
         Returns
@@ -181,3 +186,36 @@ class HuggingFaceDatasetConverter:
             podium.storage.Dataset instance.
         """
         return Dataset(list(self), self.fields)
+
+    @staticmethod
+    def from_dataset_dict(
+        dataset_dict: Dict[str, datasets.Dataset]
+    ) -> Dict[str, "HuggingFaceDatasetConverter"]:
+        """Copies the keys of given dictionary and converts the corresponding
+        HuggingFace Datasets to the HuggingFaceDatasetConverter instances.
+
+        Parameters
+        ----------
+        dataset_dict : dict(str, datasets.Dataset)
+            Dictionary that maps dataset names to HuggingFace Datasets.
+
+        Returns
+        -------
+        dict(str, HuggingFaceDatasetConverter)
+            Dictionary that maps dataset names to HuggingFaceDatasetConverter instances.
+
+        Raises
+        ------
+        TypeError
+            If the given argument is not a dictionary.
+        """
+        if not isinstance(dataset_dict, dict):
+            raise TypeError(
+                "Incorrect argument type. Expected dict, "
+                f"but got {type(dataset_dict).__name__}"
+            )
+
+        return {
+            dataset_name: HuggingFaceDatasetConverter(dataset)
+            for dataset_name, dataset in dataset_dict.items()
+        }
