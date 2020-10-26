@@ -4,16 +4,16 @@ import itertools
 import logging
 import random
 from abc import ABC
-from typing import Any, Callable
+from typing import Any, Callable, Dict, List
 
 from podium.storage.example_factory import Example
-from podium.storage.field import unpack_fields
-
+from podium.storage.field import unpack_fields, Field
+from podium.datasets import DatasetABC
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class Dataset(ABC):
+class Dataset(DatasetABC):
     """A general purpose container for datasets.
     A dataset is a shallow wrapper for a list of `Example` classes which
     store the instance data as well as the corresponding `Field` classes,
@@ -42,53 +42,14 @@ class Dataset(ABC):
             together examples with similar lengths to minimize padding.
         """
 
-        self.examples = examples
+        self._examples = examples
 
         # we don't need the column -> field mappings with nested tuples
         # and None values, we just need a flat list of fields
-        self.fields = unpack_fields(fields)
+        self._fields = unpack_fields(fields)
+        self._sort_key = sort_key
 
-        self.field_dict = {field.name: field for field in self.fields}
-        self.sort_key = sort_key
-
-    def __getitem__(self, i):
-        """Returns an example or a new dataset containing the indexed examples.
-
-        If indexed with an int, only the example at that position will be returned.
-        If Indexed with a slice or iterable, all examples indexed by the object
-        will be collected and a new dataset containing only those examples will be
-        returned. The new dataset will contain copies of the old dataset's fields and
-        will be identical to the original dataset, with the exception of the example
-        number and ordering. See wiki for detailed examples.
-
-        Examples in the returned Dataset are the same ones present in the
-        original dataset. If a complete deep-copy of the dataset, or its slice,
-        is needed please refer to the `get` method.
-
-        Usage example:
-
-            example = dataset[1] # Indexing by single integer returns a single example
-
-            new_dataset = dataset[1:10] # Multi-indexing returns a new dataset containing
-                                        # the indexed examples.
-
-        Parameters
-        ----------
-        i : int or slice or iterable
-            Index used to index examples.
-
-        Returns
-        -------
-        single example or Dataset
-            If i is an int, a single example will be returned.
-            If i is a slice or iterable, a copy of this dataset containing
-            only the indexed examples will be returned.
-
-        """
-
-        return self.get(i, deep_copy=False)
-
-    def get(self, i, deep_copy=False):
+    def _get(self, i, deep_copy=False):
         """Returns an example or a new dataset containing the indexed examples.
 
         If indexed with an int, only the example at that position
@@ -195,6 +156,18 @@ class Dataset(ABC):
 
         else:
             raise AttributeError(f"Dataset has no field {attr}.")
+
+    def _fields_list(self) -> List[Field]:
+        return self._fields
+
+    def get_example_list(self) -> List[Example]:
+        return self._examples
+
+    def filtered(self, predicate: Callable[[Example], bool]) -> "DatasetABC":
+        filtered_examples = [ex for ex in self.examples if predicate(ex)]
+        return Dataset(
+            examples=filtered_examples, fields=self.fields, sort_key=self._sort_key
+        )
 
     def filter(self, predicate, inplace=False):
         """Method filters examples with given predicate.
@@ -437,30 +410,6 @@ class Dataset(ABC):
             random.seed(random_state)
 
         random.shuffle(self.examples)
-
-    def batch(self):
-        """Creates an input and target batch containing the whole dataset.
-        The format of the batch is the same as the batches returned by the
-
-        Returns
-        -------
-        input_batch, target_batch
-                Two objects containing the input and target batches over
-                the whole dataset.
-        """
-        # dicts that will be used to create the InputBatch and TargetBatch
-        # objects
-        from podium.datasets import SingleBatchIterator
-
-        return next(iter(SingleBatchIterator(self, shuffle=False)))
-
-    def sorted(self, key: Callable[[Example], Any], reverse=False) -> "Dataset":
-        def index_key(i):
-            return key(self[i])
-
-        indices = list(range(len(self)))
-        indices.sort(key=index_key, reverse=reverse)
-        return self[indices]
 
     def as_dataset(self):
         return self
