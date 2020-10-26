@@ -5,7 +5,12 @@ import pytest
 
 from podium.datasets import Dataset
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
-from podium.datasets.iterator import BucketIterator, HierarchicalDatasetIterator, Iterator
+from podium.datasets.iterator import (
+    BucketIterator,
+    HierarchicalDatasetIterator,
+    Iterator,
+    SingleBatchIterator,
+)
 from podium.storage import ExampleFactory, Field, Vocab
 
 from .conftest import (
@@ -329,6 +334,25 @@ def test_iterator_missing_data_in_batch(json_file_path):
         # test if the value we know is missing is correctly filled out
         missing_value_row = x_batch.missing_value_field[3]
         assert np.all(missing_value_row == missing_data_default_value)
+
+
+@pytest.mark.usefixtures("tabular_dataset")
+def test_single_batch_iterator(tabular_dataset):
+    single_batch_iterator = SingleBatchIterator(tabular_dataset)
+
+    assert len(single_batch_iterator) == 1
+    for i, (input_batch, target_batch) in enumerate(single_batch_iterator):
+        assert i == 0, "Multiple batches from SingleBatchIterator"
+        assert len(input_batch.text) == 7
+        assert len(target_batch.rating) == 7
+
+    sliced_dataset = tabular_dataset[:5]
+    for i, (input_batch, target_batch) in enumerate(
+        single_batch_iterator(sliced_dataset)
+    ):
+        assert i == 0, "Multiple batches from SingleBatchIterator"
+        assert len(input_batch.text) == 5
+        assert len(target_batch.rating) == 5
 
 
 @pytest.mark.parametrize(
