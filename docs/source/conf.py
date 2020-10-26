@@ -37,8 +37,12 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.napoleon',
               'sphinx.ext.doctest',
               'sphinx.ext.viewcode',
-              'sphinx.ext.autosummary'
+              'sphinx.ext.autosummary',
+              'recommonmark'
               ]
+
+source_suffix = ['.rst', '.md']
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -48,6 +52,7 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
+copybutton_prompt_text = ">>> "
 
 # -- Options for HTML output -------------------------------------------------
 
