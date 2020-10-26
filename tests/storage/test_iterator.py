@@ -340,6 +340,7 @@ def test_iterator_missing_data_in_batch(json_file_path):
 def test_single_batch_iterator(tabular_dataset):
     single_batch_iterator = SingleBatchIterator(tabular_dataset)
 
+    assert single_batch_iterator._batch_size == len(tabular_dataset)
     assert len(single_batch_iterator) == 1
     for i, (input_batch, target_batch) in enumerate(single_batch_iterator):
         assert i == 0, "Multiple batches from SingleBatchIterator"
@@ -351,6 +352,7 @@ def test_single_batch_iterator(tabular_dataset):
         single_batch_iterator(sliced_dataset)
     ):
         assert i == 0, "Multiple batches from SingleBatchIterator"
+        assert single_batch_iterator._batch_size == len(sliced_dataset)
         assert len(input_batch.text) == 5
         assert len(target_batch.rating) == 5
 
