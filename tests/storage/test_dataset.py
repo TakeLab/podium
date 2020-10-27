@@ -588,13 +588,13 @@ def test_dataset_deep_copy(data, field_list):
     original_dataset = create_dataset(data, field_list)
     original_examples = original_dataset.examples
 
-    dataset_no_deep_copy = original_dataset.get(slice(0, 5), deep_copy=False)
+    dataset_no_deep_copy = original_dataset._get(slice(0, 5), deep_copy=False)
     for original, copy in zip(original_dataset.fields, dataset_no_deep_copy.fields):
         assert copy is original
     for original, copy in zip(original_examples, dataset_no_deep_copy.examples):
         assert copy is original
 
-    dataset_deep_copy = original_dataset.get(slice(0, 5), deep_copy=True)
+    dataset_deep_copy = original_dataset._get(slice(0, 5), deep_copy=True)
 
     assert original_dataset.fields is not dataset_deep_copy.fields
     for original, copy in zip(original_dataset.fields, dataset_deep_copy.fields):
@@ -606,9 +606,9 @@ def test_dataset_deep_copy(data, field_list):
         assert copy["label"] == original["label"]
 
     original_example = original_examples[2]
-    no_copy_example = original_dataset.get(2, deep_copy=False)
+    no_copy_example = original_dataset._get(2, deep_copy=False)
     indexed_example = original_dataset[2]
-    deep_copied_example = original_dataset.get(2, deep_copy=True)
+    deep_copied_example = original_dataset._get(2, deep_copy=True)
 
     assert no_copy_example is original_example
     assert indexed_example is original_example
