@@ -3,11 +3,10 @@ import copy
 import itertools
 import logging
 import random
-from typing import Any, Callable, Dict, List
+from typing import Callable, List
 
 from podium.datasets.dataset_abc import DatasetABC
 from podium.storage.example_factory import Example
-from podium.storage.field import Field, unpack_fields
 
 
 _LOGGER = logging.getLogger(__name__)
