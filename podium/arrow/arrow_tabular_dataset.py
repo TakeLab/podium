@@ -6,7 +6,7 @@ import pickle
 import shutil
 import tempfile
 from collections import defaultdict
-from typing import Any, Callable, Dict, Iterable, Iterator, List, Tuple, Union
+from typing import Any, Dict, Iterable, Iterator, List, Tuple, Union
 
 from podium.datasets import Dataset, DatasetABC
 from podium.storage import ExampleFactory, Field, unpack_fields
