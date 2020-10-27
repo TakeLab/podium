@@ -159,11 +159,11 @@ def test_finalize_fields(data, fields, mocker):
         assert f.finalized
 
 
-def test_filter(data, pyarrow_dataset):
+def test_filtered(data, pyarrow_dataset):
     def filter_even(ex):
         return ex["number"][0] % 2 == 0
 
-    filtered_dataset = pyarrow_dataset.filter(filter_even)
+    filtered_dataset = pyarrow_dataset.filtered(filter_even)
     filtered_data = [d[0] for d in data if d[0] % 2 == 0]
 
     for (raw, _), d in zip(filtered_dataset.number, filtered_data):
