@@ -3,12 +3,11 @@ import copy
 import itertools
 import logging
 import random
-from abc import ABC
 from typing import Any, Callable, Dict, List
 
+from podium.datasets.dataset_abc import DatasetABC
 from podium.storage.example_factory import Example
-from podium.storage.field import unpack_fields, Field
-from podium.datasets import DatasetABC
+from podium.storage.field import Field, unpack_fields
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,11 +42,8 @@ class Dataset(DatasetABC):
         """
 
         self._examples = examples
-
-        # we don't need the column -> field mappings with nested tuples
-        # and None values, we just need a flat list of fields
-        self._fields = unpack_fields(fields)
-        self._sort_key = sort_key
+        self.sort_key = sort_key
+        super().__init__(fields)
 
     def _get(self, i, deep_copy=False):
         """Returns an example or a new dataset containing the indexed examples.
@@ -105,6 +101,9 @@ class Dataset(DatasetABC):
             indexed_examples = [self.examples[index] for index in i]
             return self._dataset_copy_with_examples(indexed_examples, deep_copy=deep_copy)
 
+    def _get_examples(self) -> List[Example]:
+        return self._examples
+
     def __len__(self):
         """Returns the number of examples in the dataset.
 
@@ -148,26 +147,17 @@ class Dataset(DatasetABC):
 
         if attr in self.field_dict:
 
-            def attr_generator(attr):
-                for x in self.examples:
-                    yield x[attr]
+            def attr_generator(dataset, attr):
+                for x in dataset.examples:
+                    yield getattr(x, attr)
 
-            return attr_generator(attr)
+            return attr_generator(self, attr)
 
         else:
             raise AttributeError(f"Dataset has no field {attr}.")
 
-    def _fields_list(self) -> List[Field]:
-        return self._fields
-
     def get_example_list(self) -> List[Example]:
         return self._examples
-
-    def filtered(self, predicate: Callable[[Example], bool]) -> "DatasetABC":
-        filtered_examples = [ex for ex in self.examples if predicate(ex)]
-        return Dataset(
-            examples=filtered_examples, fields=self.fields, sort_key=self._sort_key
-        )
 
     def filter(self, predicate, inplace=False):
         """Method filters examples with given predicate.
@@ -181,7 +171,7 @@ class Dataset(DatasetABC):
             if True, do operation inplace and return None
         """
         if inplace:
-            self.examples = [example for example in self.examples if predicate(example)]
+            self._examples = [example for example in self.examples if predicate(example)]
             return
 
         filtered_examples = [copy.deepcopy(ex) for ex in self.examples if predicate(ex)]
@@ -191,48 +181,13 @@ class Dataset(DatasetABC):
             examples=filtered_examples, fields=fields_copy, sort_key=self.sort_key
         )
 
-    def finalize_fields(self, *args):
-        """
-        Builds vocabularies of all the non-eager fields in the dataset,
-        from the Dataset objects given as \\*args and then finalizes all the
-        fields.
-
-        Parameters
-        ----------
-        \\*args
-            A variable number of Dataset objects from which to build the
-            vocabularies for non-eager fields. If none provided, the
-            vocabularies are built from this Dataset (self).
-        """
-
-        # if there are non-eager fields, we need to build their vocabularies
-        fields_to_build = [f for f in self.fields if not f.eager and f.use_vocab]
-        if fields_to_build:
-            # there can be multiple datasets we want to iterate over
-            data_sources = [arg for arg in args if isinstance(arg, Dataset)]
-
-            # use self as a data source if no other given
-            if not data_sources:
-                data_sources.append(self)
-
-            # for each example in each dataset,
-            # update _all_ non-eager fields
-            for dataset in data_sources:
-                for example in dataset:
-                    for field in fields_to_build:
-                        _, tokenized = example[field.name]
-                        field.update_vocab(tokenized)
-
-        for field in self.fields:
-            field.finalize()
-
     def split(
-        self,
-        split_ratio=0.7,
-        stratified=False,
-        strata_field_name=None,
-        random_state=None,
-        shuffle=True,
+            self,
+            split_ratio=0.7,
+            stratified=False,
+            strata_field_name=None,
+            random_state=None,
+            shuffle=True,
     ):
         """Creates train-(validation)-test splits from this dataset.
 
@@ -370,7 +325,7 @@ class Dataset(DatasetABC):
         self.__dict__ = state
 
     def _dataset_copy_with_examples(
-        self, examples: list, deep_copy: bool = False
+            self, examples: list, deep_copy: bool = False
     ) -> "Dataset":
         """Creates a new dataset with the same fields and sort_key. The new dataset
         contains only the fields passed to this function.Fields are deep-copied into
@@ -413,10 +368,6 @@ class Dataset(DatasetABC):
 
     def as_dataset(self):
         return self
-
-    def __repr__(self):
-        fields = [field.name for field in self.fields]
-        return f"{type(self).__name__}[Size: {len(self.examples)}, Fields: {fields}]"
 
 
 def check_split_ratio(split_ratio):
@@ -550,8 +501,8 @@ def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
 
         indices_tuple = (
             indices[:train_len],  # Train
-            indices[train_len : train_len + val_len],  # Validation
-            indices[train_len + val_len :],  # Test
+            indices[train_len: train_len + val_len],  # Validation
+            indices[train_len + val_len:],  # Test
         )
 
     # Create a tuple of 3 lists, the middle of which is empty if only the
@@ -562,7 +513,7 @@ def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
 
 
 def stratified_split(
-    examples, train_ratio, val_ratio, test_ratio, strata_field_name, shuffle
+        examples, train_ratio, val_ratio, test_ratio, strata_field_name, shuffle
 ):
     """Performs a stratified split on a list of examples according to the
     given ratios and the given strata field.
@@ -597,7 +548,7 @@ def stratified_split(
     """
 
     # group the examples by the strata_field
-    strata = itertools.groupby(examples, key=lambda ex: ex[strata_field_name])
+    strata = itertools.groupby(examples, key=lambda ex: getattr(ex, strata_field_name))
     strata = (list(group) for _, group in strata)
 
     train_split, val_split, test_split = [], [], []

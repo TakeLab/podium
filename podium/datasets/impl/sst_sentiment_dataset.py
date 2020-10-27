@@ -68,13 +68,13 @@ class SST(Dataset):
             }
         )
         # Assign these to enable filtering
-        self.examples = self._create_examples(
+        self._examples = self._create_examples(
             file_path=file_path,
             fields=fields,
             fine_grained=fine_grained,
             subtrees=subtrees,
         )
-        self.fields = fields
+        self._fields = fields
 
         # If not fine-grained, return binary task: filter out neutral instances
         if not fine_grained:
@@ -84,7 +84,7 @@ class SST(Dataset):
 
             self.filter(predicate=filter_neutral, inplace=True)
 
-        super(SST, self).__init__(**{"examples": self.examples, "fields": self.fields})
+        super(SST, self).__init__(**{"examples": self._examples, "fields": self._fields})
 
     @staticmethod
     def _create_examples(file_path, fields, fine_grained, subtrees):

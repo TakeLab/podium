@@ -1,14 +1,39 @@
 from abc import ABC, abstractmethod
-from typing import Union, Iterable, Iterator, List, Callable, Tuple, Dict, NamedTuple, Any
+from typing import Any, Callable, Dict, Iterable, Iterator, List, NamedTuple, Tuple, \
+    Union
 
-from podium.storage import Example, Field
-from podium.datasets import SingleBatchIterator
+from podium.storage import Example, Field, unpack_fields
+
+FieldArg = Union[Field, List[Field], None]
+DictFields = Dict[str, FieldArg]
+ListFields = List[FieldArg]
 
 
 class DatasetABC(ABC):
+
+    def __init__(self, fields: Union[DictFields, ListFields]):
+        self._fields = unpack_fields(fields)
+
+    # ==================== Properties =========================
+
+    @property
+    def fields(self) -> List[Field]:
+        """List containing all fields of this dataset."""
+        return self._fields
+
+    @property
+    def field_dict(self) -> Dict[str, Field]:
+        """Dictionary containing all field names mapping to their respective Fields."""
+        return {f.name: f for f in self.fields}
+
+    @property
+    def examples(self) -> List[Example]:
+        """List containing all Examples."""
+        return self.get_example_list()
+
     # ================= Default methods =======================
     def __getitem__(
-        self, i: Union[int, Iterable[int], slice]
+            self, i: Union[int, Iterable[int], slice]
     ) -> Union["DatasetABC", Example]:
         """Returns an example or a new dataset containing the indexed examples.
 
@@ -44,7 +69,7 @@ class DatasetABC(ABC):
 
         """
 
-        return self.get(i)
+        return self._get(i)
 
     def __iter__(self) -> Iterator[Example]:
         """Iterates over all examples in the dataset in order.
@@ -156,18 +181,24 @@ class DatasetABC(ABC):
         indices.sort(key=index_key, reverse=reverse)
         return self[indices]
 
-    @property
-    def fields(self) -> List[Field]:
-        """List containing all fields of this dataset."""
-        return self._fields_list()
+    def filtered(self, predicate: Callable[[Example], bool]) -> "DatasetABC":
+        """Method filters examples with given predicate and returns a new DatasetABC
+        instance containing those examples.
 
-    @property
-    def field_dict(self) -> Dict[str, Field]:
-        return {f.name: f for f in self.fields}
+        Parameters
+        ----------
+        predicate : callable
+            predicate should be a callable that accepts example as input and returns
+            true if the example shouldn't be filtered, otherwise returns false
+        """
+        indices = [i for i, example in enumerate(self) if predicate(example)]
+        return self[indices]
 
-    @property
-    def examples(self) -> List[Example]:
-        return self.get_example_list()
+    # TODO shuffled?
+
+    def __repr__(self):
+        fields = [field.name for field in self.fields]
+        return f"{type(self).__name__}[Size: {len(self.examples)}, Fields: {fields}]"
 
     # ================= Abstract methods =======================
 
@@ -176,33 +207,9 @@ class DatasetABC(ABC):
         pass
 
     @abstractmethod
-    def _fields_list(self) -> List[Field]:
-        """Returns a list of all Fields in this dataset.
-
-        Returns
-        -------
-        list of Fields
-            a list of all Fields in this Dataset
-        """
-        pass
-
-    @abstractmethod
     def _get(self, i: Union[int, Iterable[int], slice]) -> Union["DatasetABC", Example]:
         pass
 
     @abstractmethod
-    def get_example_list(self) -> List[Example]:
-        pass
-
-    @abstractmethod
-    def filtered(self, predicate: Callable[[Example], bool]) -> "DatasetABC":
-        """Method filters examples with given predicate and returns a new DatasetABC
-        instance containing those examples.
-
-                Parameters
-                ----------
-                predicate : callable
-                    predicate should be a callable that accepts example as input and returns
-                    true if the example shouldn't be filtered, otherwise returns false
-        """
+    def _get_examples(self) -> List[Example]:
         pass
