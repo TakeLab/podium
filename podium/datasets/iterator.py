@@ -213,7 +213,7 @@ class Iterator:
 
     def _create_batch(self, dataset):
 
-        examples = dataset.as_dataset().examples
+        examples = dataset.examples
 
         # dicts that will be used to create the InputBatch and TargetBatch
         # objects
