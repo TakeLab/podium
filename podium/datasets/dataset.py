@@ -9,6 +9,7 @@ from podium.datasets.dataset_abc import DatasetABC
 from podium.storage.example_factory import Example
 from podium.storage.field import Field, unpack_fields
 
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -84,7 +85,7 @@ class Dataset(DatasetABC):
         -------
         single example or Dataset
             If i is an int, a single example will be returned.
-            If i is a slice or iterable, a copy of this dataset containing
+            If i is a slice or iterable, a dataset containing
             only the indexed examples will be returned.
 
         """
@@ -101,10 +102,7 @@ class Dataset(DatasetABC):
             indexed_examples = [self.examples[index] for index in i]
             return self._dataset_copy_with_examples(indexed_examples, deep_copy=deep_copy)
 
-    def _get_examples(self) -> List[Example]:
-        return self._examples
-
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns the number of examples in the dataset.
 
         Returns
@@ -112,7 +110,10 @@ class Dataset(DatasetABC):
         int
             The number of examples in the dataset.
         """
-        return len(self.examples)
+        return len(self._examples)
+
+    def _get_examples(self) -> List[Example]:
+        return self._examples
 
     def __iter__(self):
         """Iterates over all examples in the dataset in order.
@@ -122,42 +123,7 @@ class Dataset(DatasetABC):
         example
             Yields examples in the dataset.
         """
-        for x in self.examples:
-            yield x
-
-    def __getattr__(self, attr):
-        """Returns an Iterator iterating over values of the field with the
-        given name for every example in the dataset.
-
-        Parameters
-        ----------
-        attr : str
-            The name of the field whose values are to be returned.
-
-        Returns
-        ------
-            an Iterator iterating over values of the field with the given name
-            for every example in the dataset.
-
-        Raises
-        ------
-        AttributeError
-            If there is no Field with the given name.
-        """
-
-        if attr in self.field_dict:
-
-            def attr_generator(dataset, attr):
-                for x in dataset.examples:
-                    yield getattr(x, attr)
-
-            return attr_generator(self, attr)
-
-        else:
-            raise AttributeError(f"Dataset has no field {attr}.")
-
-    def get_example_list(self) -> List[Example]:
-        return self._examples
+        yield from self._examples
 
     def filter(self, predicate, inplace=False):
         """Method filters examples with given predicate.
@@ -170,24 +136,26 @@ class Dataset(DatasetABC):
         inplace : bool, default False
             if True, do operation inplace and return None
         """
+        filtered_examples = [ex for ex in self.examples if predicate(ex)]
+
         if inplace:
-            self._examples = [example for example in self.examples if predicate(example)]
+            self._examples = filtered_examples
             return
+        else:
+            return Dataset(
+                examples=filtered_examples, fields=self.fields, sort_key=self.sort_key
+            )
 
-        filtered_examples = [copy.deepcopy(ex) for ex in self.examples if predicate(ex)]
-        fields_copy = copy.deepcopy(self.fields)
-
-        return Dataset(
-            examples=filtered_examples, fields=fields_copy, sort_key=self.sort_key
-        )
+    def filtered(self, predicate: Callable[[Example], bool]) -> "DatasetABC":
+        return self.filter(predicate, inplace=False)
 
     def split(
-            self,
-            split_ratio=0.7,
-            stratified=False,
-            strata_field_name=None,
-            random_state=None,
-            shuffle=True,
+        self,
+        split_ratio=0.7,
+        stratified=False,
+        strata_field_name=None,
+        random_state=None,
+        shuffle=True,
     ):
         """Creates train-(validation)-test splits from this dataset.
 
@@ -325,7 +293,7 @@ class Dataset(DatasetABC):
         self.__dict__ = state
 
     def _dataset_copy_with_examples(
-            self, examples: list, deep_copy: bool = False
+        self, examples: list, deep_copy: bool = False
     ) -> "Dataset":
         """Creates a new dataset with the same fields and sort_key. The new dataset
         contains only the fields passed to this function.Fields are deep-copied into
@@ -501,8 +469,8 @@ def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
 
         indices_tuple = (
             indices[:train_len],  # Train
-            indices[train_len: train_len + val_len],  # Validation
-            indices[train_len + val_len:],  # Test
+            indices[train_len : train_len + val_len],  # Validation
+            indices[train_len + val_len :],  # Test
         )
 
     # Create a tuple of 3 lists, the middle of which is empty if only the
@@ -513,7 +481,7 @@ def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
 
 
 def stratified_split(
-        examples, train_ratio, val_ratio, test_ratio, strata_field_name, shuffle
+    examples, train_ratio, val_ratio, test_ratio, strata_field_name, shuffle
 ):
     """Performs a stratified split on a list of examples according to the
     given ratios and the given strata field.
