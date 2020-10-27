@@ -38,11 +38,12 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.doctest',
               'sphinx.ext.viewcode',
               'sphinx.ext.autosummary',
-              'recommonmark'
+              'recommonmark',
+              'sphinx_copybutton'
               ]
 
 source_suffix = ['.rst', '.md']
-
+autodoc_typehints = 'none'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -59,6 +60,7 @@ copybutton_prompt_text = ">>> "
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
+
 html_theme = 'sphinx_rtd_theme'
 
 html_theme_options = {

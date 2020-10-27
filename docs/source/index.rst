@@ -27,26 +27,30 @@ The documentation is organized in four parts:
 
     installation
     basic_usage
+    faq
 
 .. toctree::
     :maxdepth: 2
-    :caption: Walkthrough
-
-    
+    :caption: In depth overview
 
 
 .. toctree::
    :maxdepth: 2
    :caption: Package Reference:
 
+   core_components
    podium.storage
    podium.datasets
    podium.dataload
-   podium.preproc
-   podium.metrics
-   podium.model_selection
    podium.models
-   podium.validation
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Under development
+
+   under_development
+
 
 Indices and tables
 ==================
