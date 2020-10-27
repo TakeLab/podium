@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, Iterable, Iterator, List, NamedTuple, Tuple, \
-    Union
+from typing import Any, Callable, Dict, Iterable, Iterator, List, NamedTuple, Tuple, Union
 
 from podium.storage import Example, Field, unpack_fields
+
 
 FieldArg = Union[Field, List[Field], None]
 DictFields = Dict[str, FieldArg]
@@ -10,9 +10,9 @@ ListFields = List[FieldArg]
 
 
 class DatasetABC(ABC):
-
     def __init__(self, fields: Union[DictFields, ListFields]):
         self._fields = unpack_fields(fields)
+        self._fields_dict = {f.name: f for f in self._fields}
 
     # ==================== Properties =========================
 
@@ -24,16 +24,17 @@ class DatasetABC(ABC):
     @property
     def field_dict(self) -> Dict[str, Field]:
         """Dictionary containing all field names mapping to their respective Fields."""
-        return {f.name: f for f in self.fields}
+        return self._fields_dict
 
     @property
     def examples(self) -> List[Example]:
         """List containing all Examples."""
-        return self.get_example_list()
+        return self._get_examples()
 
     # ================= Default methods =======================
+
     def __getitem__(
-            self, i: Union[int, Iterable[int], slice]
+        self, i: Union[int, Iterable[int], slice]
     ) -> Union["DatasetABC", Example]:
         """Returns an example or a new dataset containing the indexed examples.
 
@@ -101,8 +102,16 @@ class DatasetABC(ABC):
         AttributeError
             If there is no Field with the given name.
         """
-        for example in self:
-            return getattr(example, field_name)
+        if field_name in self.field_dict:
+
+            def attr_generator(_dataset, _field_name):
+                for x in _dataset:
+                    yield getattr(x, _field_name)
+
+            return attr_generator(self, field_name)
+
+        else:
+            raise AttributeError(f"Dataset has no field {field_name}.")
 
     def finalize_fields(self, *datasets: "DatasetABC") -> None:
         """
@@ -204,12 +213,57 @@ class DatasetABC(ABC):
 
     @abstractmethod
     def __len__(self) -> int:
+        """Returns the number of examples in the dataset.
+
+        Returns
+        -------
+        int
+            The number of examples in the dataset.
+        """
         pass
 
     @abstractmethod
     def _get(self, i: Union[int, Iterable[int], slice]) -> Union["DatasetABC", Example]:
+        """Returns an example or a new dataset containing the indexed examples.
+
+        If indexed with an int, only the example at that position
+        will be returned.
+        If Indexed with a slice or iterable, all examples indexed by the object
+        will be collected and a new dataset containing only those examples will be
+        returned. The new dataset will contain copies of the old dataset's fields
+        and will be identical to the original dataset, with the exception of the
+        example number and ordering. See wiki for detailed examples.
+
+        Example
+        -------
+            # Indexing by a single integers returns a single example
+            example = dataset.get(1)
+
+            # Same as the first example, but returns a deep_copy of the example
+            example_copy = dataset.get(1, deep_copy=True)
+
+            # Multi-indexing returns a new dataset containing the indexed examples
+            s = slice(1, 10)
+            new_dataset = dataset.get(s)
+
+            new_dataset_copy = dataset.get(s, deep_copy=True)
+
+        Parameters
+        ----------
+        i : int or slice or iterable
+            Index used to index examples.
+
+        Returns
+        -------
+        single example or DatasetABC
+            If i is an int, a single example will be returned.
+            If i is a slice or iterable, a dataset containing
+            only the indexed examples will be returned.
+
+        """
         pass
 
     @abstractmethod
     def _get_examples(self) -> List[Example]:
+        """Returns a list containing all examples of this dataset."""
         pass
