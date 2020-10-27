@@ -160,11 +160,6 @@ def test_not_numericalizable_field(json_file_path):
 def test_lazy_numericalization_caching(tabular_dataset):
     tabular_dataset.finalize_fields()
 
-    # Check if caches are empty
-    for example in tabular_dataset:
-        for field in tabular_dataset.fields:
-            assert getattr(example, f"{field.name}_") is None
-
     # Run one epoch to cause lazy numericalization
     for _ in Iterator(dataset=tabular_dataset, batch_size=10):
         pass
@@ -172,10 +167,10 @@ def test_lazy_numericalization_caching(tabular_dataset):
     # Test if cached data is equal to numericalized data
     for example in tabular_dataset:
         for field in tabular_dataset.fields:
-            example_data = getattr(example, field.name)
+            example_data = example[field.name]
             numericalized_data = field.numericalize(example_data)
 
-            cached_data = getattr(example, f"{field.name}_")
+            cached_data = example[f"{field.name}_"]
             assert np.all(numericalized_data == cached_data)
 
 
@@ -184,7 +179,7 @@ def test_sort_key(tabular_dataset):
     tabular_dataset.finalize_fields()
 
     def text_len_sort_key(example):
-        tokens = example.text[1]
+        tokens = example["text"][1]
         if tokens is None:
             return 0
         else:
@@ -309,10 +304,10 @@ def test_shuffle_random_state_exception(tabular_dataset):
 
 
 def text_len_key(example):
-    if example.text[1] is None:
+    if example["text"][1] is None:
         return 0
     else:
-        return len(example.text[1])
+        return len(example["text"][1])
 
 
 @pytest.mark.usefixtures("json_file_path")
@@ -520,51 +515,46 @@ def hierarchical_dataset(hierarchical_dataset_fields, hierarchical_dataset_parse
 
 def test_hierarchical_dataset_iteration(hierarchical_dataset):
     hit = HierarchicalDatasetIterator(dataset=hierarchical_dataset, batch_size=3)
-    batch_iter = hit.__iter__()
+    batch_iter = iter(hit)
 
-    input_batch_1, _ = batch_iter.__next__()
+    input_batch_1, _ = next(batch_iter)
     assert len(input_batch_1.number) == 3
     assert np.all(input_batch_1.number[0] == [[1]])
     assert np.all(input_batch_1.number[1] == [[1], [2]])
     assert np.all(input_batch_1.number[2] == [[1], [2], [3]])
 
-    input_batch_2, _ = batch_iter.__next__()
+    input_batch_2, _ = next(batch_iter)
     assert len(input_batch_2.number) == 3
     assert np.all(input_batch_2.number[0] == [[1], [2], [4]])
     assert np.all(input_batch_2.number[1] == [[5]])
     assert np.all(input_batch_2.number[2] == [[5], [6]])
 
-    input_batch_3, _ = batch_iter.__next__()
+    input_batch_3, _ = next(batch_iter)
     assert len(input_batch_1.number) == 3
     assert np.all(input_batch_3.number[0] == [[5], [6], [7]])
     assert np.all(input_batch_3.number[1] == [[5], [6], [7], [8]])
     assert np.all(input_batch_3.number[2] == [[5], [6], [7], [8], [9]])
 
-    input_batch_4, _ = batch_iter.__next__()
+    input_batch_4, _ = next(batch_iter)
     assert len(input_batch_4.number) == 1
     assert np.all(input_batch_4.number[0] == [[5], [6], [7], [8], [10]])
 
     with pytest.raises(StopIteration):
-        batch_iter.__next__()
+        next(batch_iter)
 
 
 def test_hierarchical_dataset_iteration_with_depth_limitation(hierarchical_dataset):
     hit = HierarchicalDatasetIterator(
         dataset=hierarchical_dataset, batch_size=20, context_max_depth=0
     )
-    batch_iter = hit.__iter__()
+    batch_iter = iter(hit)
 
-    input_batch, _ = batch_iter.__next__()
+    input_batch, _ = next(batch_iter)
     assert np.all(input_batch.number[2] == [[2], [3]])
     assert np.all(input_batch.number[8] == [[8], [9]])
 
 
 def test_hierarchial_dataset_iterator_numericalization_caching(hierarchical_dataset):
-    # Check if caches are empty
-    for example in hierarchical_dataset:
-        for field in hierarchical_dataset.fields:
-            assert getattr(example, f"{field.name}_") is None
-
     # Run one epoch to cause lazy numericalization
     hit = HierarchicalDatasetIterator(
         dataset=hierarchical_dataset, batch_size=20, context_max_depth=2
@@ -575,10 +565,10 @@ def test_hierarchial_dataset_iterator_numericalization_caching(hierarchical_data
     # Test if cached data is equal to numericalized data
     for example in hierarchical_dataset:
         for field in hierarchical_dataset.fields:
-            example_data = getattr(example, field.name)
+            example_data = example[field.name]
             numericalized_data = field.numericalize(example_data)
 
-            cached_data = getattr(example, f"{field.name}_")
+            cached_data = example[f"{field.name}_"]
             assert np.all(numericalized_data == cached_data)
 
 

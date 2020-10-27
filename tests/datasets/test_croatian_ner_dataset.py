@@ -83,8 +83,8 @@ def test_dataset_loading(base_download_dir):
 
     expected_tokens_0 = ["Kina", "je", "najveći", "svjetski", "izvoznik"]
     expected_labels_0 = ["B-LocationAsOrganization", "O", "O", "O", "O"]
-    assert dataset[0].tokens[1] == expected_tokens_0
-    assert dataset[0].labels[1] == expected_labels_0
+    assert dataset[0]["tokens"][1] == expected_tokens_0
+    assert dataset[0]["labels"][1] == expected_labels_0
 
     expected_tokens_1 = [
         "Ukupna",
@@ -118,5 +118,5 @@ def test_dataset_loading(base_download_dir):
         "I-Money",
         "O",
     ]
-    assert dataset[1].tokens[1] == expected_tokens_1
-    assert dataset[1].labels[1] == expected_labels_1
+    assert dataset[1]["tokens"][1] == expected_tokens_1
+    assert dataset[1]["labels"][1] == expected_labels_1

@@ -8,8 +8,6 @@ import xml.etree.ElementTree as ET
 from enum import Enum
 from typing import Union
 
-from podium.storage.field import unpack_fields
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,30 +31,41 @@ FACTORY_METHOD_DICT = {
 }
 
 
-class Example:
-    """Method models one example with fields that hold
-    (raw, tokenized) values and special fields with "_"
-    at the end that can cache numericalized values"""
+class Example(dict):
+    """Base class for data instances in Podium.
 
-    def __init__(self, fieldnames):
-        """Method initializes example with given list of
-        fieldnames
+    Each key corresponds to one Field and holds (raw, tokenized) values produced by
+    that Field.
 
-        Parameters
-        ----------
-        fieldnames : list(str)
-            list of field names
-        """
-        for fieldname in fieldnames:
-            setattr(self, fieldname, None)
+    To access the attributes, you can use either the dictionary syntax (obj[key]) or
+    the standard attribute access (obj.key) if the key is a valid Python identifier.
+    """
+
+    def __getattr__(self, name):
+        if name in self:
+            return self[name]
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
     def __repr__(self):
-        attribute = [
-            att for att in dir(self) if not att.startswith("__") and not att.endswith("_")
-        ]
-        att_values = [f"{att}: {getattr(self, att, None)}" for att in attribute]
-        att_string = "; ".join(att_values)
-        return f"{type(self).__name__}[{att_string}]"
+        attr_repr = "; ".join(
+            f"{key}: {value}" for key, value in self.items() if not key.endswith("_")
+        )
+        return f"{type(self).__name__}[{attr_repr}]"
+
+    @staticmethod
+    def with_fields(fields):
+        """Create an Example instance from the given fields. This function
+        should be used in conjuction with the function that creates an Example
+        from the specific format.
+        See podium.storage.ExampleFactory for the concrete list of functions
+        that create Examples from diffent formats.
+
+        Notes
+        -----
+        This is a convenience function. Use podium.storage.ExampleFactory
+        if performance is important.
+        """
+        return ExampleFactory(fields)
 
 
 class ExampleFactory:
@@ -69,10 +78,10 @@ class ExampleFactory:
         Parameters
         ----------
         fields : (dict | list)
-                Can be either a dict mapping column names to Fields
-                (or tuples of Fields), or a list of Fields (or tuples of Fields).
-                A Field value of None means the corresponding column will
-                be ignored.
+            Can be either a dict mapping column names to Fields
+            (or tuples of Fields), or a list of Fields (or tuples of Fields).
+            A Field value of None means the corresponding column will
+            be ignored.
 
         """
         if isinstance(fields, dict):
@@ -83,21 +92,6 @@ class ExampleFactory:
             }
         else:
             self.fields = fields
-
-        self.fieldnames = [field.name for field in unpack_fields(fields)]
-
-        # add cache data fields
-        self.fieldnames += [f"{fieldname}_" for fieldname in self.fieldnames]
-
-    def create_empty_example(self):
-        """Method creates empty example with field names stored in example factory.
-
-        Returns
-        -------
-        example : Example
-            empty Example instance with initialized field names
-        """
-        return Example(self.fieldnames)
 
     def from_dict(self, data):
         """Method creates example from data in dictionary format.
@@ -112,7 +106,7 @@ class ExampleFactory:
         example : Example
             example instance with given data saved to fields
         """
-        example = self.create_empty_example()
+        example = Example()
 
         for key, fields in self.fields.items():
             val = data.get(key)
@@ -134,7 +128,8 @@ class ExampleFactory:
         example : Example
             example instance with given data saved to fields
         """
-        example = self.create_empty_example()
+        example = Example()
+
         for value, field in filter(lambda el: el[1] is not None, zip(data, self.fields)):
             set_example_attributes(example, field, value)
 
@@ -162,7 +157,7 @@ class ExampleFactory:
         ParseError
             If there was a problem while parsing xml sting, invalid xml.
         """
-        example = self.create_empty_example()
+        example = Example()
 
         # we ignore columns with field mappings set to None
         items = filter(lambda el: el[1] is not None, self.fields.items())
@@ -336,7 +331,7 @@ def set_example_attributes(example, field, val):
 
     def set_example_attributes_for_single_field(example, field, val):
         for name, data in field.preprocess(val):
-            setattr(example, name, data)
+            example[name] = data
 
     if isinstance(field, tuple):
         for f in field:

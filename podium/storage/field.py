@@ -782,13 +782,13 @@ class Field:
             The numericalized data.
         """
         cache_field_name = f"{self.name}_"
-        numericalization = getattr(example, cache_field_name, None)
+        numericalization = example.get(cache_field_name)
 
         if numericalization is None:
-            example_data = getattr(example, self.name)
+            example_data = example[self.name]
             numericalization = self.numericalize(example_data)
             if cache:
-                setattr(example, cache_field_name, numericalization)
+                example[cache_field_name] = numericalization
 
         return numericalization
 

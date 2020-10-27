@@ -1,6 +1,6 @@
 import pytest
 
-from podium.storage import ExampleFactory, ExampleFormat, Field
+from podium.storage import Example, ExampleFactory, ExampleFormat, Field
 
 
 name_field = Field("Name", keep_raw=True, tokenizer="split")
@@ -26,13 +26,13 @@ def test_create_from_list(expected_values):
     example_factory = ExampleFactory(field_list)
     example = example_factory.from_list(expected_values)
 
-    raw, tokenized = example.Name
+    raw, tokenized = example["Name"]
     assert tokenized == expected_values[0].split()
 
-    raw, tokenized = example.Score
+    raw, tokenized = example["Score"]
     assert raw == expected_values[1]
 
-    raw, tokenized = example.Favorite_food
+    raw, tokenized = example["Favorite_food"]
     assert raw == expected_values[2]
 
 
@@ -48,14 +48,14 @@ def test_create_from_dict(expected_values):
     example_factory = ExampleFactory(field_dict)
     example = example_factory.from_dict(expected_values)
 
-    raw, tokenized = example.Name
+    raw, tokenized = example["Name"]
     assert raw == expected_values["Name"]
     assert tokenized == expected_values["Name"].split()
 
-    raw, tokenized = example.Score
+    raw, tokenized = example["Score"]
     assert raw == expected_values["Score"]
 
-    raw, tokenized = example.Favorite_food
+    raw, tokenized = example["Favorite_food"]
     assert raw == expected_values["Favorite_food"]
 
 
@@ -92,14 +92,14 @@ def test_create_from_xml_string(expected_values, example_xml_string):
     example_factory = ExampleFactory(field_dict)
     example = example_factory.from_xml_str(example_xml_string)
 
-    raw, tokenized = example.Name
+    raw, tokenized = example["Name"]
     assert raw == expected_values["Name"]
     assert tokenized == expected_values["Name"].split()
 
-    raw, tokenized = example.Score
+    raw, tokenized = example["Score"]
     assert raw == str(expected_values["Score"])
 
-    raw, tokenized = example.Favorite_food
+    raw, tokenized = example["Favorite_food"]
     assert raw == expected_values["Favorite_food"]
 
 
@@ -132,14 +132,14 @@ def test_create_from_json_string(expected_values, example_json_string):
     example_factory = ExampleFactory(field_dict)
     example = example_factory.from_json(example_json_string)
 
-    raw, tokenized = example.Name
+    raw, tokenized = example["Name"]
     assert raw == expected_values["Name"]
     assert tokenized == expected_values["Name"].split()
 
-    raw, tokenized = example.Score
+    raw, tokenized = example["Score"]
     assert raw == expected_values["Score"]
 
-    raw, tokenized = example.Favorite_food
+    raw, tokenized = example["Favorite_food"]
     assert raw == expected_values["Favorite_food"]
 
 
@@ -155,14 +155,14 @@ def test_create_from_csv(expected_values, example_csv_string):
     example_factory = ExampleFactory(field_list)
     example = example_factory.from_csv(example_csv_string)
 
-    raw, tokenized = example.Name
+    raw, tokenized = example["Name"]
     assert raw == expected_values[0]
     assert tokenized == expected_values[0].split()
 
-    raw, tokenized = example.Score
+    raw, tokenized = example["Score"]
     assert int(raw) == expected_values[1]
 
-    raw, tokenized = example.Favorite_food
+    raw, tokenized = example["Favorite_food"]
     assert raw == expected_values[2]
 
 
@@ -178,14 +178,14 @@ def test_create_from_tsv(expected_values, example_tsv_string):
     example_factory = ExampleFactory(field_list)
     example = example_factory.from_csv(example_tsv_string, delimiter="\t")
 
-    raw, tokenized = example.Name
+    raw, tokenized = example["Name"]
     assert raw == expected_values[0]
     assert tokenized == expected_values[0].split()
 
-    raw, tokenized = example.Score
+    raw, tokenized = example["Score"]
     assert int(raw) == expected_values[1]
 
-    raw, tokenized = example.Favorite_food
+    raw, tokenized = example["Favorite_food"]
     assert raw == expected_values[2]
 
 
@@ -204,7 +204,7 @@ def test_multiple_output_for_input_dict(expected_values):
     upper_case_name_field = Field("Uppercase_name", keep_raw=True)
     upper_case_name_field.add_pretokenize_hook(str.upper)
 
-    test_field_dict = dict(field_dict)
+    test_field_dict = field_dict.copy()
     test_field_dict["Name"] = (
         field_dict["Name"],
         lower_case_name_field,
@@ -214,22 +214,22 @@ def test_multiple_output_for_input_dict(expected_values):
     example_factory = ExampleFactory(test_field_dict)
     example = example_factory.from_dict(expected_values)
 
-    raw, tokenized = example.Name
+    raw, tokenized = example["Name"]
     assert raw == expected_values["Name"]
     assert tokenized == expected_values["Name"].split()
 
-    raw, tokenized = example.Lowercase_name
+    raw, tokenized = example["Lowercase_name"]
     assert raw == expected_values["Name"].lower()
     assert tokenized == expected_values["Name"].lower().split()
 
-    raw, tokenized = example.Uppercase_name
+    raw, tokenized = example["Uppercase_name"]
     assert raw == expected_values["Name"].upper()
     assert tokenized == expected_values["Name"].upper().split()
 
-    raw, tokenized = example.Score
+    raw, tokenized = example["Score"]
     assert raw == expected_values["Score"]
 
-    raw, tokenized = example.Favorite_food
+    raw, tokenized = example["Favorite_food"]
     assert raw == expected_values["Favorite_food"]
 
 
@@ -259,22 +259,22 @@ def test_multiple_output_for_input_list(expected_values):
     example_factory = ExampleFactory(test_field_list)
     example = example_factory.from_list(expected_values)
 
-    raw, tokenized = example.Name
+    raw, tokenized = example["Name"]
     assert raw == expected_values[0]
     assert tokenized == expected_values[0].split()
 
-    raw, tokenized = example.Lowercase_name
+    raw, tokenized = example["Lowercase_name"]
     assert raw == expected_values[0].lower()
     assert tokenized == expected_values[0].lower().split()
 
-    raw, tokenized = example.Uppercase_name
+    raw, tokenized = example["Uppercase_name"]
     assert raw == expected_values[0].upper()
     assert tokenized == expected_values[0].upper().split()
 
-    raw, tokenized = example.Score
+    raw, tokenized = example["Score"]
     assert raw == expected_values[1]
 
-    raw, tokenized = example.Favorite_food
+    raw, tokenized = example["Favorite_food"]
     assert raw == expected_values[2]
 
 
@@ -291,11 +291,10 @@ def test_ignore_values_list(expected_values):
     example_factory = ExampleFactory(fields)
     example = example_factory.from_list(expected_values)
 
-    # one is original field and one is for cached value
+    assert "Favorite_food" in example
     assert hasattr(example, "Favorite_food")
-    assert hasattr(example, "Favorite_food_")
 
-    raw, _ = example.Favorite_food
+    raw, _ = example["Favorite_food"]
     assert raw == expected_values[2]
 
 
@@ -312,11 +311,10 @@ def test_ignore_values_dict(expected_values):
     example_factory = ExampleFactory(fields)
     example = example_factory.from_dict(expected_values)
 
-    # one is original field and one is for cached value
+    assert "Name" in example
     assert hasattr(example, "Name")
-    assert hasattr(example, "Name_")
 
-    raw, _ = example.Name
+    raw, _ = example["Name"]
     assert raw == expected_values["Name"]
 
 
@@ -335,8 +333,8 @@ def test_cache_data_field_from_list(expected_values):
     for field in field_list:
         field_name = field.name
 
+        assert field_name in example
         assert hasattr(example, field_name)
-        assert hasattr(example, f"{field_name}_")
 
 
 @pytest.mark.parametrize(
@@ -354,8 +352,8 @@ def test_cache_data_field_from_dict(expected_values):
     for field in field_dict.values():
         field_name = field.name
 
+        assert field_name in example
         assert hasattr(example, field_name)
-        assert hasattr(example, f"{field_name}_")
 
 
 def test_from_format():
@@ -364,15 +362,24 @@ def test_from_format():
     list_data = ["Mark Dark", 5, "Hawaiian pizza"]
     example = list_example_factory.from_format(list_data, ExampleFormat.LIST)
 
-    assert example.Name[0] == list_data[0]
-    assert example.Score[0] == list_data[1]
-    assert example.Favorite_food[0] == list_data[2]
+    assert example["Name"][0] == list_data[0]
+    assert example["Score"][0] == list_data[1]
+    assert example["Favorite_food"][0] == list_data[2]
 
     dict_example_factory = ExampleFactory(field_dict)
     dict_data = {"Name": "Mark Dark", "Score": 5, "Favorite_food": "Hawaiian pizza"}
 
     example = dict_example_factory.from_format(dict_data, ExampleFormat.DICT)
-    assert example.Name[0] == dict_data["Name"]
-    assert example.Score[0] == dict_data["Score"]
-    assert example.Favorite_food[0] == dict_data["Favorite_food"]
+    assert example["Name"][0] == dict_data["Name"]
+    assert example["Score"][0] == dict_data["Score"]
+    assert example["Favorite_food"][0] == dict_data["Favorite_food"]
     # TODO extend testing to other formats?
+
+
+def test_example_with_fields():
+    values = ["Mark Dark", 5, "Hawaiian pizza"]
+    example = Example.with_fields(field_list).from_list(values)
+
+    assert example["Name"][0] == values[0]
+    assert example["Score"][0] == values[1]
+    assert example["Favorite_food"][0] == values[2]

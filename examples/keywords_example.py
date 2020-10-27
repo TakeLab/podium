@@ -70,7 +70,7 @@ def keyword_extraction_main():
     )
     fields = {DummyDataset.TEXT_FIELD_NAME: (tokens, kws)}
     dummy_dataset = DummyDataset(texts=sample_texts, fields=fields)
-    keywords = [ex.keywords[1] for ex in dummy_dataset]
+    keywords = [ex["keywords"][1] for ex in dummy_dataset]
     print(*keywords, sep="\n")
 
 

@@ -401,7 +401,7 @@ class ArrowDataset:
             field_tokenized_column = []
 
             for example in examples:
-                raw, tokenized = getattr(example, field.name)
+                raw, tokenized = example[field.name]
                 field_raw_column.append(raw)
                 field_tokenized_column.append(tokenized)
 
@@ -447,9 +447,9 @@ class ArrowDataset:
         )
 
         for row in zip(*field_value_iterators):
-            example = Example(fieldnames)
+            example = Example()
             for fieldname, values in zip(fieldnames, row):
-                setattr(example, fieldname, values)
+                example[fieldname] = values
             yield example
 
     @staticmethod
@@ -820,7 +820,7 @@ class ArrowDataset:
             for dataset in data_sources:
                 for example in dataset:
                     for field in fields_to_build:
-                        field.update_vocab(*getattr(example, field.name))
+                        field.update_vocab(*example[field.name])
 
         for field in self.fields:
             field.finalize()

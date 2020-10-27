@@ -282,10 +282,10 @@ def test_created_examples(default_dataset):
     dataset = default_dataset
     for ex in dataset:
         ex_data = {
-            "title": ex.title[1],
-            "text": ex.text[1],
-            "eurovoc_labels": ex.eurovoc_labels[1],
-            "crovoc_labels": ex.crovoc_labels[1],
+            "title": ex["title"][1],
+            "text": ex["text"][1],
+            "eurovoc_labels": ex["eurovoc_labels"][1],
+            "crovoc_labels": ex["crovoc_labels"][1],
         }
         assert ex_data in EXPECTED_EXAMPLES
 
@@ -381,10 +381,10 @@ def test_non_existing_label(patched_hook):
 
     for ex in dataset:
         ex_data = {
-            "title": ex.title[1],
-            "text": ex.text[1],
-            "eurovoc_labels": ex.eurovoc_labels[1],
-            "crovoc_labels": ex.crovoc_labels[1],
+            "title": ex["title"][1],
+            "text": ex["text"][1],
+            "eurovoc_labels": ex["eurovoc_labels"][1],
+            "crovoc_labels": ex["crovoc_labels"][1],
         }
         assert ex_data in EXPECTED_EXAMPLES
 
