@@ -106,7 +106,7 @@ class DatasetABC(ABC):
 
             def attr_generator(_dataset, _field_name):
                 for x in _dataset:
-                    yield getattr(x, _field_name)
+                    yield x[field_name]
 
             return attr_generator(self, field_name)
 
@@ -142,7 +142,7 @@ class DatasetABC(ABC):
             for dataset in data_sources:
                 for example in dataset:
                     for field in fields_to_build:
-                        _, tokenized = getattr(example, field.name)
+                        _, tokenized = example[field.name]
                         field.update_vocab(tokenized)
 
         for field in self.fields:
