@@ -1,16 +1,12 @@
 """Module contains base classes for datasets."""
 import copy
 import itertools
-import logging
 import random
 from abc import ABC
 from typing import Any, Callable
 
 from podium.storage.example_factory import Example
 from podium.storage.field import unpack_fields
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class Dataset(ABC):
@@ -250,7 +246,8 @@ class Dataset(ABC):
                         field.update_vocab(tokenized)
 
         for field in self.fields:
-            field.finalize()
+            if not field.finalized:
+                field.finalize()
 
     def split(
         self,

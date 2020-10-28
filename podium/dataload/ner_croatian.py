@@ -1,14 +1,10 @@
 """Simple NERCroatian dataset module."""
 import glob
-import logging
 import os
 import xml.etree.ElementTree as ET
 
 from podium.preproc.tokenizers import get_tokenizer
 from podium.storage.resources.large_resource import init_scp_large_resource_from_kwargs
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class NERCroatianXMLLoader:

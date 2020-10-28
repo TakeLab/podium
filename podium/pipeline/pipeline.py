@@ -1,4 +1,3 @@
-import logging
 from typing import Any, Callable, Dict, Iterable, List, NamedTuple, Type, Union
 
 import numpy as np
@@ -12,9 +11,6 @@ from podium.models import (
 )
 from podium.storage import ExampleFactory, ExampleFormat
 from podium.storage.field import Field, MultioutputField
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class Pipeline(Experiment):

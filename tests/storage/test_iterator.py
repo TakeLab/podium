@@ -144,16 +144,17 @@ def test_not_numericalizable_field(json_file_path):
     dataset = create_tabular_dataset_from_json(fields, json_file_path)
     dataset.finalize_fields()
 
-    for x_batch, _ in Iterator(dataset, batch_size=len(dataset), shuffle=False):
-        assert isinstance(x_batch.non_numericalizable_field, (list, tuple))
-        for i, batch_data, real_data in zip(
-            range(len(dataset)), x_batch.non_numericalizable_field, TABULAR_TEXT
-        ):
-            if i == 3:
-                assert batch_data is None
-            else:
-                assert isinstance(batch_data, MockCustomDataClass)
-                assert batch_data.data == real_data
+    with pytest.warns(UserWarning):
+        for x_batch, _ in Iterator(dataset, batch_size=len(dataset), shuffle=False):
+            assert isinstance(x_batch.non_numericalizable_field, (list, tuple))
+            for i, batch_data, real_data in zip(
+                range(len(dataset)), x_batch.non_numericalizable_field, TABULAR_TEXT
+            ):
+                if i == 3:
+                    assert batch_data is None
+                else:
+                    assert isinstance(batch_data, MockCustomDataClass)
+                    assert batch_data.data == real_data
 
 
 @pytest.mark.usefixtures("tabular_dataset")

@@ -54,7 +54,7 @@ class LargeResource:
             LargeResource.BASE_RESOURCE_DIR, self.config[LargeResource.RESOURCE_NAME]
         )
         self._check_files()
-        _LOGGER.debug(
+        _LOGGER.info(
             "Large resource %s initialized.", self.config[LargeResource.RESOURCE_NAME]
         )
 
@@ -62,9 +62,9 @@ class LargeResource:
         """Method checks if large resource files exists and if they don't it
         initiates downloading of resources."""
         if os.path.exists(self.resource_location):
-            _LOGGER.debug("Large resource alreadys exists, skipping download.")
+            _LOGGER.info("Large resource alreadys exists, skipping download.")
             return
-        _LOGGER.debug("Large resource doesn't exist, starting download.")
+        _LOGGER.info("Large resource doesn't exist, starting download.")
         if LargeResource.ARCHIVE in self.config and self.config[LargeResource.ARCHIVE]:
             self._download_unarchive()
             return

@@ -1,10 +1,10 @@
 import csv
 import itertools
-import logging
 import os
 import pickle
 import shutil
 import tempfile
+import warnings
 from collections import defaultdict
 from typing import Any, Callable, Dict, Iterable, Iterator, List, Tuple, Union
 
@@ -13,16 +13,13 @@ from podium.storage import ExampleFactory, Field, unpack_fields
 from podium.storage.example_factory import Example
 
 
-_LOGGER = logging.getLogger(__name__)
-
 try:
     import pyarrow as pa
 except ImportError:
-    msg = (
+    print(
         "Error encountered while importing Pyarrow. If Pyarrow is not installed, "
         "please visit https://pypi.org/project/pyarrow/ for more information."
     )
-    _LOGGER.error(msg)
     raise
 
 
@@ -782,8 +779,7 @@ class ArrowDataset:
             self.mmapped_file = None
 
         else:  # Do nothing
-            msg = "Attempted closing an already closed ArrowDataset."
-            _LOGGER.debug(msg)
+            warnings.warn("Attempted closing an already closed ArrowDataset.")
 
     def delete_cache(self):
         """ Deletes the cache directory."""

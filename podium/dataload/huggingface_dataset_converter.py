@@ -1,17 +1,14 @@
 """Module contains the converter class for processing the HuggingFace Datasets."""
-import logging
 from typing import Dict, Iterator, Optional
 
 from podium.datasets import Dataset
 from podium.storage import Example, ExampleFactory, Field, LabelField, Vocab
 
 
-_LOGGER = logging.getLogger(__name__)
-
 try:
     import datasets
 except ImportError:
-    _LOGGER.error(
+    print(
         "Problem occured while trying to import datasets. "
         "If the library is not installed visit "
         "https://huggingface.co/docs/datasets/ for more details."

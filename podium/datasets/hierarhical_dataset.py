@@ -1,12 +1,8 @@
 import json
-import logging
 
 from podium.datasets.dataset import Dataset
 from podium.storage.example_factory import ExampleFactory
 from podium.storage.field import unpack_fields
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class HierarchicalDataset:

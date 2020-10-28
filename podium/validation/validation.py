@@ -1,4 +1,3 @@
-import logging
 from typing import Callable, List, Optional, Tuple, Union
 
 import numpy as np
@@ -7,9 +6,6 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 from podium.datasets import Dataset
 from podium.models.experiment import Experiment
 from podium.validation import KFold
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 def kfold_scores(

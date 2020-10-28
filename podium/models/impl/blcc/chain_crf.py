@@ -1,18 +1,12 @@
 """Author: Philipp Gross
 https://github.com/phipleg/keras/blob/crf/keras/layers/crf.py
 """
-from __future__ import absolute_import
-
-import logging
-
-
-_LOGGER = logging.getLogger(__name__)
 try:
     from keras import backend as K
     from keras import constraints, initializers, regularizers
     from keras.engine import InputSpec, Layer
 except ImportError:
-    _LOGGER.error(
+    print(
         "Problem occured while trying to import keras. If the "
         "library is not installed visit https://keras.io/ "
         "for more details."
