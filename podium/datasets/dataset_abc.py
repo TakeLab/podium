@@ -206,8 +206,7 @@ class DatasetABC(ABC):
     # TODO shuffled?
 
     def __repr__(self):
-        fields = [field.name for field in self.fields]
-        return f"{type(self).__name__}[Size: {len(self.examples)}, Fields: {fields}]"
+        return f"{type(self).__name__}[Size: {len(self)}, Fields: {self.fields}]"
 
     # ================= Abstract methods =======================
 
