@@ -26,13 +26,14 @@ The documentation is organized in four parts:
     :caption: Getting started
 
     installation
-    basic_usage
+    walkthrough
     faq
 
 .. toctree::
     :maxdepth: 2
     :caption: In depth overview
 
+    advanced
 
 .. toctree::
    :maxdepth: 2

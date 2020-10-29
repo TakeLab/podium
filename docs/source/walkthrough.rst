@@ -1,20 +1,22 @@
 
-Basic usage
+Walkthrough
 ============
 
 The core component of Podium is the :class:`podium.Dataset` class, a shallow wrapper which contains instances of a machine learning dataset and the preprocessing pipeline for each data field. 
 
 Podium datasets come in three flavors:
 
-- **Predefined datasets**: Podium contains data load and download functionality for some commonly used datasets in separate classes.
-- **Tabular datasets**: Podium allows you to load datasets in standardized format through :class:`podium.TabularDataset` and :class:`podium.arrow.ArrowTabularDataset` classes.
-  - Regular tabular datasets are memory-backed, while the arrow version is disk-backed
-- **HuggingFace datasets**: Podium wraps the popular `huggingface/datasets <https://github.com/huggingface/datasets>`__ library and allows you to convert every 🤗 dataset to a Podium dataset.
+- **Built-in datasets**: Podium contains data load and download functionality for some commonly used datasets in separate classes. See how to load built-in datasets here: :ref:`builtin-loading`.
+- **Tabular datasets**: Podium allows you to load datasets in standardized format through :class:`podium.TabularDataset` and :class:`podium.arrow.ArrowTabularDataset` classes. See how to load tabular datasets here: :ref:`custom-loading`.
+  - Regular tabular datasets are memory-backed, while the arrow version is disk-backed.
+- **HuggingFace datasets**: Podium wraps the popular `huggingface/datasets <https://github.com/huggingface/datasets>`__ library and allows you to convert every 🤗 dataset to a Podium dataset. See how to load 🤗 datasets here: :ref:`hf-loading`.
 
-Loading predefined datasets
+.. _builtin-loading:
+
+Loading built-in datasets
 ----------------------------
 
-One predefined dataset available in Podium is the `Stanford Sentiment Treebank <https://nlp.stanford.edu/sentiment/treebank.html>`__. In order to load the dataset, it is enough to call the :meth:`get_dataset_splits` method.
+One built-in dataset available in Podium is the `Stanford Sentiment Treebank <https://nlp.stanford.edu/sentiment/treebank.html>`__. In order to load the dataset, it is enough to call the :meth:`get_dataset_splits` method.
 
 .. code-block:: python
 
@@ -25,7 +27,7 @@ One predefined dataset available in Podium is the `Stanford Sentiment Treebank <
   >>> print(sst_train[222]) # A short example
   Example[label: (None, 'positive'); text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])]
 
-Each predefined Podium dataset has a :meth:`get_dataset_splits` method, which returns the `train`, `test` and `validation` split of that dataset, if available.
+Each built-in Podium dataset has a :meth:`get_dataset_splits` method, which returns the `train`, `test` and `validation` split of that dataset, if available.
 
 Iterating over datasets
 ------------------------
@@ -50,10 +52,8 @@ Podium contains methods to iterate over data. Let's take a look at :class:`podiu
        [1]]))
 
 
-There are a couple of things we need to unpack here. Firstly, our textual input data and class labels were converted to indices. This happened without our intervention -- predefined datasets have a default preprocessing pipeline, which handles text tokenization and numericalization.
+There are a couple of things we need to unpack here. Firstly, our textual input data and class labels were converted to indices. This happened without our intervention -- built-in datasets have a default preprocessing pipeline, which handles text tokenization and numericalization.
 Secondly, while iterating we obtained two `namedtuple` instances: an :class:`InputBatch` and a :class:`TargetBatch`. By default, Podium Iterators group input and target data Fields during iteration. If your dataset contains multiple input or target fields, they will also be present as attributes of the namedtuples.
-
-Let us now take a closer look how Podium does the text to index conversion.
 
 The Vocabulary
 ---------------
@@ -80,23 +80,49 @@ You might want to limit the size of your Vocab for larger datasets. To do so, de
 .. code-block:: python
   
   >>> from podium import Vocab
-  >>> small_vocabulary = Vocab(max_size=5000, min_freq=3)
+  >>> small_vocabulary = Vocab(max_size=5000, min_freq=2)
 
-In order to use this new Vocab with a dataset, we need to get familiar with Fields.
+In order to use this new Vocab with a dataset, we first need to get familiar with Fields.
 
 
 Customizing the preprocessing pipeline with Fields
 --------------------------------------------------
 
-Data processing in Podium is wholly encapsulated in the flexible :class:`podium.storage.Field` class. Default Fields are already defined in the `get_dataset_splits` method of SST, but you can easily redefine and customize them.
+Data processing in Podium is wholly encapsulated in the flexible :class:`podium.storage.Field` class. Default Fields for the SST dataset are already defined in the :meth:`podium.datasets.impl.SST.get_dataset_splits` method, but you can easily redefine and customize them.
+
+The SST dataset has two textual data columns (fields): (1) the input text of the movie review and (2) the label. We need to define a ``podium.Field`` for each of these.
+
+.. code-block:: python
+
+  >>> from podium import Field, LabelField
+  >>> text = Field(name='text', numericalizer=small_vocabulary)
+  >>> label = LabelField(name='label')
+  >>> print(f"{text}\n{label}")
+  Field[name: text, is_target: False, vocab: Vocab[finalized: False, size: 0]]
+  LabelField[name: label, is_target: True, vocab: Vocab[finalized: False, size: 0]]
+
+That's it! We have defined our Fields. In order for them to be initialized, we need to `show` them a dataset. For built-in datasets, this is done behind the scenes in the ``get_dataset_splits`` method. We will elaborate how to do this yourself in :ref:`custom-loading`.
+
+.. code-block:: python
+
+  >>> fields = {'text': text, 'label':label}
+  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>> print(small_vocabulary)
+  Vocab[finalized: True, size: 5000]
+
+Voila!
 
 LabelField
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. _custom-loading:
 
 Loading your custom dataset
 ----------------------------
 
+.. hf-loading:
 
+Loading 🤗 datasets
+--------------------
 
 
