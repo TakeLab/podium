@@ -44,7 +44,7 @@ class DatasetABC(ABC):
         for i in range(len(self)):
             yield self[i]
 
-    def __getattr__(self, field_name: str) -> Iterator[Tuple[Any, Any]]:
+    def __getattr__(self, field: Union[str, Field]) -> Iterator[Tuple[Any, Any]]:
         """Returns an Iterator iterating over values of the field with the
         given name for every example in the dataset.
 
@@ -63,6 +63,8 @@ class DatasetABC(ABC):
         AttributeError
             If there is no Field with the given name.
         """
+        field_name = field.name if isinstance(field, Field) else field
+
         if field_name in self.field_dict:
 
             def attr_generator(_dataset, _field_name):
@@ -208,7 +210,7 @@ class DatasetABC(ABC):
 
         Parameters
         ----------
-        i : int or slice or iterable
+        i : int or slice or iterable of ints
             Index used to index examples.
 
         Returns
