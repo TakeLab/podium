@@ -3,7 +3,7 @@ import copy
 import itertools
 import logging
 import random
-from typing import Callable, List
+from typing import Callable, Iterable, List, Union
 
 from podium.datasets.dataset_abc import DatasetABC
 from podium.storage.example_factory import Example
@@ -45,7 +45,46 @@ class Dataset(DatasetABC):
         self.sort_key = sort_key
         super().__init__(fields)
 
-    def _get(self, i, deep_copy=False):
+    def __getitem__(
+        self, i: Union[int, Iterable[int], slice]
+    ) -> Union["DatasetABC", Example]:
+        """Returns an example or a new dataset containing the indexed examples.
+
+        If indexed with an int, only the example at that position will be returned.
+        If Indexed with a slice or iterable, all examples indexed by the object
+        will be collected and a new dataset containing only those examples will be
+        returned. The new dataset will contain copies of the old dataset's fields and
+        will be identical to the original dataset, with the exception of the example
+        number and ordering. See wiki for detailed examples.
+
+        Examples in the returned Dataset are the same ones present in the
+        original dataset. If a complete deep-copy of the dataset, or its slice,
+        is needed please refer to the `get` method.
+
+        Usage example:
+
+            example = dataset[1] # Indexing by single integer returns a single example
+
+            new_dataset = dataset[1:10] # Multi-indexing returns a new dataset containing
+                                        # the indexed examples.
+
+        Parameters
+        ----------
+        i : int or slice or iterable
+            Index used to index examples.
+
+        Returns
+        -------
+        single example or Dataset
+            If i is an int, a single example will be returned.
+            If i is a slice or iterable, a copy of this dataset containing
+            only the indexed examples will be returned.
+
+        """
+
+        return self.get(i)
+
+    def get(self, i, deep_copy=False):
         """Returns an example or a new dataset containing the indexed examples.
 
         If indexed with an int, only the example at that position

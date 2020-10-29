@@ -617,7 +617,7 @@ class ArrowDataset(DatasetABC):
 
         return zip(raw_values, tokenized_values)
 
-    def _get(
+    def __getitem__(
         self, item: Union[int, Iterable[int], slice]
     ) -> Union[Example, "ArrowDataset"]:
         """Returns an example or a new ArrowDataset containing the indexed examples.
