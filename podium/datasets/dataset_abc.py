@@ -33,45 +33,6 @@ class DatasetABC(ABC):
 
     # ================= Default methods =======================
 
-    def __getitem__(
-        self, i: Union[int, Iterable[int], slice]
-    ) -> Union["DatasetABC", Example]:
-        """Returns an example or a new dataset containing the indexed examples.
-
-        If indexed with an int, only the example at that position will be returned.
-        If Indexed with a slice or iterable, all examples indexed by the object
-        will be collected and a new dataset containing only those examples will be
-        returned. The new dataset will contain copies of the old dataset's fields and
-        will be identical to the original dataset, with the exception of the example
-        number and ordering. See wiki for detailed examples.
-
-        Examples in the returned Dataset are the same ones present in the
-        original dataset. If a complete deep-copy of the dataset, or its slice,
-        is needed please refer to the `get` method.
-
-        Usage example:
-
-            example = dataset[1] # Indexing by single integer returns a single example
-
-            new_dataset = dataset[1:10] # Multi-indexing returns a new dataset containing
-                                        # the indexed examples.
-
-        Parameters
-        ----------
-        i : int or slice or iterable
-            Index used to index examples.
-
-        Returns
-        -------
-        single example or Dataset
-            If i is an int, a single example will be returned.
-            If i is a slice or iterable, a copy of this dataset containing
-            only the indexed examples will be returned.
-
-        """
-
-        return self._get(i)
-
     def __iter__(self) -> Iterator[Example]:
         """Iterates over all examples in the dataset in order.
 
@@ -222,30 +183,28 @@ class DatasetABC(ABC):
         pass
 
     @abstractmethod
-    def _get(self, i: Union[int, Iterable[int], slice]) -> Union["DatasetABC", Example]:
+    def __getitem__(
+        self, i: Union[int, Iterable[int], slice]
+    ) -> Union["DatasetABC", Example]:
         """Returns an example or a new dataset containing the indexed examples.
 
-        If indexed with an int, only the example at that position
-        will be returned.
+        If indexed with an int, only the example at that position will be returned.
         If Indexed with a slice or iterable, all examples indexed by the object
         will be collected and a new dataset containing only those examples will be
-        returned. The new dataset will contain copies of the old dataset's fields
-        and will be identical to the original dataset, with the exception of the
-        example number and ordering. See wiki for detailed examples.
+        returned. The new dataset will contain copies of the old dataset's fields and
+        will be identical to the original dataset, with the exception of the example
+        number and ordering. See wiki for detailed examples.
 
-        Example
-        -------
-            # Indexing by a single integers returns a single example
-            example = dataset.get(1)
+        Examples in the returned Dataset are the same ones present in the
+        original dataset. If a complete deep-copy of the dataset, or its slice,
+        is needed please refer to the `get` method.
 
-            # Same as the first example, but returns a deep_copy of the example
-            example_copy = dataset.get(1, deep_copy=True)
+        Usage example:
 
-            # Multi-indexing returns a new dataset containing the indexed examples
-            s = slice(1, 10)
-            new_dataset = dataset.get(s)
+            example = dataset[1] # Indexing by single integer returns a single example
 
-            new_dataset_copy = dataset.get(s, deep_copy=True)
+            new_dataset = dataset[1:10] # Multi-indexing returns a new dataset containing
+                                        # the indexed examples.
 
         Parameters
         ----------
@@ -254,9 +213,9 @@ class DatasetABC(ABC):
 
         Returns
         -------
-        single example or DatasetABC
+        single example or Dataset
             If i is an int, a single example will be returned.
-            If i is a slice or iterable, a dataset containing
+            If i is a slice or iterable, a copy of this dataset containing
             only the indexed examples will be returned.
 
         """
