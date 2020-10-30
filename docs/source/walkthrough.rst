@@ -88,7 +88,15 @@ In order to use this new Vocab with a dataset, we first need to get familiar wit
 Customizing the preprocessing pipeline with Fields
 --------------------------------------------------
 
-Data processing in Podium is wholly encapsulated in the flexible :class:`podium.storage.Field` class. Default Fields for the SST dataset are already defined in the :meth:`podium.datasets.impl.SST.get_dataset_splits` method, but you can easily redefine and customize them.
+Data processing in Podium is wholly encapsulated in the flexible :class:`podium.storage.Field` class. Default Fields for the SST dataset are already defined in the :meth:`podium.datasets.impl.SST.get_dataset_splits` method, but you can easily redefine and customize them. We will only scratch the surface of customizing Fields in this section.
+
+Fields have a number of constructor arguments, only some of which we will enumerate here:
+
+  - :obj:`name` (str): The name under which the Field's data will be stored in the dataset's example attributes.
+  - :obj:`tokenizer` (str | callable | optional): The tokenizer for sequential data. You can pass a string to use some predefined tokenizers or pass a python callable which performs tokenization (e.g. a function or a class which implements ``__call__``). For predefined tokenizers, you can use ``'split'`` for ``str.split`` tokenizer or ``'spacy-lang'`` for the spacy tokenizer in ``lang`` language. For the spacy english tokenizer, this argument would be ``'spacy-en'``. If the data Field should not be tokenized, this argument should be None. Defaults to ``'split'``.
+  - :obj:`numericalizer` (Vocab | callable | optional): The method to convert tokens to indices. Traditionally, this argument should be a Vocab instance but users can define their own numericalization function and pass it as an argument. Custom numericalization can be used when you want to ensure that a certain token has a certain index for consistency with other work. If ``None``, numericalization won't e attempted.
+  - :obj:`is_target` (bool): Whether this data Field is a target field (will be used as a label during prediction). This flag serves merely as a convenience, to separate batches into input and target data during iteration.
+  - :obj:`fixed_length`: (int, optional): Usually, text batches are padded to the maximum length of an instance in batch (default behavior). However, if you are using a fixed-size model (e.g. CNN without pooling) you can use this argument to force each instance of this Field to be of ``fixed_length``. Longer instances will be right-truncated, shorter instances will be padded.
 
 The SST dataset has two textual data columns (fields): (1) the input text of the movie review and (2) the label. We need to define a ``podium.Field`` for each of these.
 
@@ -110,19 +118,74 @@ That's it! We have defined our Fields. In order for them to be initialized, we n
   >>> print(small_vocabulary)
   Vocab[finalized: True, size: 5000]
 
-Voila!
+Our new Vocab has been limited to the 5000 most frequent words. The remaining words will be replaced by the unknown (``<UNK>``) token, which is one of the default `special` tokens in the Vocab.
+
+You might have noticed that we used a different type of Field: :class:`podium.storage.LabelField` for the label. LabelField is one of the predefined custom Field classes with sensible default constructor arguments for its concrete use-case. We'll take a closer look at LabelFields in the following subsection.
+
 
 LabelField
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A common case in datasets is a data Field which contains a label, represented as a string (e.g. positive/negative, a news document category). For defining such a Field, you would need to set a number of its arguments which would lead to a lot of repetetive code.
+
+For convenience, ``LabelField`` sets the required defaults for you, and all you need to define is its name. LabelFields always have a ``fixed_length`` of 1, are not tokenized and are by default set as the target for batching.
+
 
 .. _custom-loading:
 
 Loading your custom dataset
 ----------------------------
 
-.. hf-loading:
+We have covered loading built-in datasets. However, it is often the case that you want to work on a dataset that you either constructed or we have not yet implemented the loading function for. If that dataset is in a simple tabular format, you can use :class:`podium.datasets.TabularDataset`.
+
+Let's take an example of a natural language inference (NLI) dataset. In NLI, datasets have two input fields: the `premise` and the `hypothesis` and a single, multi-class label. The first two rows of such a dataset written in comma-separated-values (`csv`) format could like as follows:
+
+.. code-block:: bash
+
+  premise,hypothesis,label
+  A man inspects the uniform of a figure in some East Asian country.,The man is sleeping,contradiction
+
+For this dataset, we need to define three Fields. We also might want the fields for `premise` and `hypothesis` to share their Vocab.
+
+
+.. code-block:: python
+
+  >>> from podium import TabularDataset, Vocab, Field, LabelField
+  >>> shared_vocab = Vocab()
+  >>> fields = {'premise':   Field('premise', numericalizer=shared_vocab, tokenizer="spacy-en"),
+  >>>         'hypothesis':Field('hypothesis', numericalizer=shared_vocab, tokenizer="spacy-en"),
+  >>>         'label':     LabelField('label')}
+  >>> dataset = TabularDataset('my_dataset.csv', format='csv', fields=fields)
+  >>> print(dataset)
+  TabularDataset[Size: 1, Fields: ['premise', 'hypothesis', 'label']]
+  >>> print(shared_vocab.itos)
+  [<SpecialVocabSymbols.UNK: '<unk>'>, <SpecialVocabSymbols.PAD: '<pad>'>, 'man', 'A', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.', 'The', 'is', 'sleeping']
+
+
+.. _hf-loading:
 
 Loading 🤗 datasets
 --------------------
 
+The recently released `huggingface/datasets <https://github.com/huggingface/datasets>`__ library implements a large number of NLP datasets. For your convenience (and not to reimplement data loading for each one of them), we have created a wrapper for 🤗/datasets, which allows you to map all of the 140+ datasets directly to your Podium pipeline.
+
+You can load a dataset in 🤗/datasets and then convert it to a Podium dataset as follows:
+
+.. code-block:: python
+
+  >>> from podium import HuggingFaceDatasetConverter as hfd
+  >>> import datasets
+  >>> # Loading a huggingface dataset returns an instance of DatasetDict
+  >>> # which contains the dataset splits (usually: train, valid, test, 
+  >>> # but other splits can also be contained such as in the case of IMDB)
+  >>> imdb = datasets.load_dataset('imdb')
+  >>> print(imdb.keys())
+  dict_keys(['train', 'test', 'unsupervised'])
+  >>> # We create an adapter for huggingface dataset schema to podium Fields.
+  >>> # These are not yet Podium datasets, but behave as such (you can iterate
+  >>> # over them as if they were).
+  >>> imdb = hfd.from_dataset_dict(imdb)
+  >>> imdb_train, imdb_test, imdb_unsupervised = hfd.from_dataset_dict(imdb).values()
+  >>> print(imdb_train.fields)
+  {'text': Field[name: text, is_target: False, vocab: Vocab[finalized: False, size: 0]], 'label': LabelField[name: label, is_target: True]}
 
