@@ -48,31 +48,6 @@ class VocabDict(dict):
         return self._default_factory()
 
 
-class EOS(Special):
-    def apply(self, sequence_or_token):
-        # Core special, handled by Vocab
-        if type(sequence_or_token) is str:
-            raise ValueError("EOS can only be applied to sequence")
-        elif type(sequence_or_token) is list:
-            # Extend with self
-            return sequence_or_token + [self.data]
-
-class UNK(Special):
-    def apply(self, sequence_or_token):
-        # Core special, handled by Vocab
-        pass
-
-class Special(str):
-    @abc.abstractmethod
-    def apply(self, sequence_or_token):
-        # Method is used ONLY in Vocab.numericalize
-        if type(sequence_or_token) is str:
-            # Apply to token
-            pass
-        elif type(sequence_or_token) in (list, tuple):
-            # Apply to sequence
-            pass
-
 class SpecialVocabSymbols(Enum):
     """Class for special vocabular symbols
 
