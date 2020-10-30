@@ -8,6 +8,7 @@ Podium datasets come in three flavors:
 
 - **Built-in datasets**: Podium contains data load and download functionality for some commonly used datasets in separate classes. See how to load built-in datasets here: :ref:`builtin-loading`.
 - **Tabular datasets**: Podium allows you to load datasets in standardized format through :class:`podium.TabularDataset` and :class:`podium.arrow.ArrowTabularDataset` classes. See how to load tabular datasets here: :ref:`custom-loading`.
+
   - Regular tabular datasets are memory-backed, while the arrow version is disk-backed.
 - **HuggingFace datasets**: Podium wraps the popular `huggingface/datasets <https://github.com/huggingface/datasets>`__ library and allows you to convert every 🤗 dataset to a Podium dataset. See how to load 🤗 datasets here: :ref:`hf-loading`.
 
@@ -88,12 +89,12 @@ In order to use this new Vocab with a dataset, we first need to get familiar wit
 Customizing the preprocessing pipeline with Fields
 --------------------------------------------------
 
-Data processing in Podium is wholly encapsulated in the flexible :class:`podium.storage.Field` class. Default Fields for the SST dataset are already defined in the :meth:`podium.datasets.impl.SST.get_dataset_splits` method, but you can easily redefine and customize them. We will only scratch the surface of customizing Fields in this section.
+Data processing in Podium is wholly encapsulated in the flexible :class:`podium.storage.Field` class. Default Fields for the SST dataset are defined in the :meth:`podium.datasets.impl.SST.get_dataset_splits` method, but you can easily redefine and customize them. We will only scratch the surface of customizing Fields in this section.
 
 Fields have a number of constructor arguments, only some of which we will enumerate here:
 
   - :obj:`name` (str): The name under which the Field's data will be stored in the dataset's example attributes.
-  - :obj:`tokenizer` (str | callable | optional): The tokenizer for sequential data. You can pass a string to use some predefined tokenizers or pass a python callable which performs tokenization (e.g. a function or a class which implements ``__call__``). For predefined tokenizers, you can use ``'split'`` for ``str.split`` tokenizer or ``'spacy-lang'`` for the spacy tokenizer in ``lang`` language. For the spacy english tokenizer, this argument would be ``'spacy-en'``. If the data Field should not be tokenized, this argument should be None. Defaults to ``'split'``.
+  - :obj:`tokenizer` (str | callable | optional): The tokenizer for sequential data. You can pass a string to use a predefined tokenizer or pass a python callable which performs tokenization (e.g. a function or a class which implements ``__call__``). For predefined tokenizers, you can use ``'split'`` for ``str.split`` tokenizer or ``'spacy-lang'`` for the spacy tokenizer in ``lang`` language. For the spacy english tokenizer, this argument would be ``'spacy-en'``. If the data Field should not be tokenized, this argument should be None. Defaults to ``'split'``.
   - :obj:`numericalizer` (Vocab | callable | optional): The method to convert tokens to indices. Traditionally, this argument should be a Vocab instance but users can define their own numericalization function and pass it as an argument. Custom numericalization can be used when you want to ensure that a certain token has a certain index for consistency with other work. If ``None``, numericalization won't e attempted.
   - :obj:`is_target` (bool): Whether this data Field is a target field (will be used as a label during prediction). This flag serves merely as a convenience, to separate batches into input and target data during iteration.
   - :obj:`fixed_length`: (int, optional): Usually, text batches are padded to the maximum length of an instance in batch (default behavior). However, if you are using a fixed-size model (e.g. CNN without pooling) you can use this argument to force each instance of this Field to be of ``fixed_length``. Longer instances will be right-truncated, shorter instances will be padded.

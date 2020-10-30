@@ -48,7 +48,7 @@ The documentation is organized in four parts:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Under development
+   :caption: Unstable
 
    under_development
 
