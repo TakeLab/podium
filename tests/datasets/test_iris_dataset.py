@@ -15,8 +15,8 @@ def test_iris_dataset():
 
         ex = iris_ds[i]
 
-        assert ex.sepal_length[0] == sepal_len
-        assert ex.sepal_width[0] == sepal_width
-        assert ex.petal_length[0] == petal_len
-        assert ex.petal_width[0] == petal_width
-        assert ex.species[0] == species
+        assert ex["sepal_length"][0] == sepal_len
+        assert ex["sepal_width"][0] == sepal_width
+        assert ex["petal_length"][0] == petal_len
+        assert ex["petal_width"][0] == petal_width
+        assert ex["species"][0] == species

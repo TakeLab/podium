@@ -8,7 +8,7 @@ from podium.datasets.dataset import Dataset
 from podium.preproc.lemmatizer.croatian_lemmatizer import get_croatian_lemmatizer_hook
 from podium.preproc.stop_words import CROATIAN_EXTENDED
 from podium.storage import Field, MultilabelField, Vocab
-from podium.storage.example_factory import ExampleFactory, set_example_attributes
+from podium.storage.example_factory import ExampleFactory
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -131,12 +131,13 @@ class EuroVocDataset(Dataset):
                     )
                     _LOGGER.debug(debug_msg)
 
-            example = example_factory.create_empty_example()
-            set_example_attributes(example, fields["title"], document.title)
-            set_example_attributes(example, fields["text"], document.text)
-            set_example_attributes(example, fields["eurovoc_labels"], eurovoc_labels)
-            set_example_attributes(example, fields["crovoc_labels"], crovoc_labels)
-            examples.append(example)
+            example_data = {
+                "title": document.title,
+                "text": document.text,
+                "eurovoc_labels": eurovoc_labels,
+                "crovoc_labels": crovoc_labels,
+            }
+            examples.append(example_factory.from_dict(example_data))
 
         return examples
 
@@ -158,8 +159,8 @@ class EuroVocDataset(Dataset):
         """
         # the given label can be either in crovoc or in eurovoc label hierarchy, therefore
         # we need to check both hierarchies for ancestors
-        example_labels = example.eurovoc_labels[1]
-        example_labels.extend(example.crovoc_labels[1])
+        example_labels = example["eurovoc_labels"][1]
+        example_labels.extend(example["crovoc_labels"][1])
 
         for example_label_id in example_labels:
             if example_label_id in self._eurovoc_label_hierarchy:
