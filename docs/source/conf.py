@@ -44,6 +44,7 @@ extensions = ['sphinx.ext.autodoc',
 
 source_suffix = ['.rst', '.md']
 autodoc_typehints = 'none'
+autoclass_content = 'both'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

@@ -127,13 +127,19 @@ Putting it all together
 
 We can see that our hooks worked: the raw data was lowercased prior to tokenization, and the punctuation is not present in the processed data. You can similarly define other hooks and pass them as arguments to your Fields. It is important to take care of the order in which you pass the hooks -- they will be executed in the same order as you passed them to the constructor, so take care that you don't modify some aspect of data crucial for your next hook.
 
+Defining a custom numericalization function
+===========================================
+
+It is often the case you want to do something very specific during numericalization which is not covered by our vocabulary. Examples of this could be mapping 
+
+
 Fields with multiple outputs
 ============================
-
 
 Handling datasets with missing data
 ===================================
 
-Defining a custom numericalization function
-===========================================
+Bucketing instances when iterating
+==================================
+
 
