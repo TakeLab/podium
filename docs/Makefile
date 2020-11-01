@@ -21,4 +21,4 @@ help:
 
 clean:
 	@echo "Removing everything under 'build'."
-	@rm -rf $(BUILDDIR)/html/ $(BUILDDIR)/doctrees 
+	@rm -rf $(BUILDDIR)/html/ $(BUILDDIR)/doctrees/
