@@ -4,10 +4,7 @@ import pytest
 datasets = pytest.importorskip("datasets")
 from datasets import ClassLabel, Features, Translation
 
-from podium.dataload.hf import (
-    HFDatasetConverter,
-    convert_features_to_fields,
-)
+from podium.dataload.hf import HFDatasetConverter, convert_features_to_fields
 from podium.datasets import Dataset
 
 

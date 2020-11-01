@@ -21,7 +21,7 @@ test:
 # Clean up the project
 clean:
 	@echo Cleaning up the project.
-    rm -rf .pytest_cache/
+	rm -rf .pytest_cache/
 	rm -rf podium.egg-info/
 	rm -rf dist/
 	rm -rf build/
