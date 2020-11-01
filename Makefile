@@ -1,4 +1,4 @@
-.PHONY: quality style test
+.PHONY: quality style test clean
 
 # Check code quality
 quality:
@@ -17,3 +17,13 @@ style:
 test:
 	@echo Running tests.
 	python -m pytest -sv tests
+
+# Clean up the project
+clean:
+	@echo Cleaning up the project.
+    rm -rf .pytest_cache/
+	rm -rf podium.egg-info/
+	rm -rf dist/
+	rm -rf build/
+	find . | grep -E '(__pycache__|\.pyc|\.pyo$$)' | xargs rm -rf
+	$(MAKE) -C docs clean

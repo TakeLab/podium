@@ -7,13 +7,12 @@ from functools import partial
 import numpy as np
 import pytest
 
+
+pa = pytest.importorskip("pyarrow")
+
 from podium.arrow import ArrowDataset
 from podium.datasets import Dataset
 from podium.storage import ExampleFactory, Field, Vocab
-
-
-# Try to import pyarrow
-pa = pytest.importorskip("pyarrow")
 
 
 @pytest.fixture

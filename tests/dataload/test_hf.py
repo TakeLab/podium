@@ -4,8 +4,8 @@ import pytest
 datasets = pytest.importorskip("datasets")
 from datasets import ClassLabel, Features, Translation
 
-from podium.dataload.huggingface_dataset_converter import (
-    HuggingFaceDatasetConverter,
+from podium.dataload.hf import (
+    HFDatasetConverter,
     convert_features_to_fields,
 )
 from podium.datasets import Dataset
@@ -63,7 +63,7 @@ def test_simple_feature_conversion(simple_dataset):
 
 
 def test_simple_data(simple_dataset):
-    converter_iter = iter(HuggingFaceDatasetConverter(simple_dataset))
+    converter_iter = iter(HFDatasetConverter(simple_dataset))
 
     example1 = next(converter_iter)
     assert example1["id"][1] == SIMPLE_DATA["id"][0]
@@ -91,7 +91,7 @@ def test_complex_feature_conversion(complex_dataset):
 
 
 def test_complex_data(complex_dataset):
-    converter_iter = iter(HuggingFaceDatasetConverter(complex_dataset))
+    converter_iter = iter(HFDatasetConverter(complex_dataset))
 
     example1 = next(converter_iter)
     assert example1["translation"][1] == COMPLEX_DATA["translation"][0]
@@ -104,19 +104,19 @@ def test_complex_data(complex_dataset):
 
 def test_invalid_dataset():
     with pytest.raises(TypeError):
-        HuggingFaceDatasetConverter({"data": [1, 2, 3]})
+        HFDatasetConverter({"data": [1, 2, 3]})
 
 
 def test_as_dataset(simple_dataset):
-    podium_dataset = HuggingFaceDatasetConverter(simple_dataset).as_dataset()
+    podium_dataset = HFDatasetConverter(simple_dataset).as_dataset()
     assert isinstance(podium_dataset, Dataset)
     assert len(podium_dataset) == 2
 
 
 def test_from_dataset_dict(dataset_dict):
-    dataset_dict_converted = HuggingFaceDatasetConverter.from_dataset_dict(dataset_dict)
+    dataset_dict_converted = HFDatasetConverter.from_dataset_dict(dataset_dict)
 
     assert isinstance(dataset_dict_converted, dict)
     assert isinstance(
-        dataset_dict_converted["simple"], HuggingFaceDatasetConverter
-    ) and isinstance(dataset_dict_converted["complex"], HuggingFaceDatasetConverter)
+        dataset_dict_converted["simple"], HFDatasetConverter
+    ) and isinstance(dataset_dict_converted["complex"], HFDatasetConverter)
