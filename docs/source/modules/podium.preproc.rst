@@ -1,14 +1,6 @@
 podium.preproc package
 =======================
 
-Subpackages
------------
-
-.. toctree::
-
-   podium.preproc.lemmatizer
-   podium.preproc.stemmer
-
 Submodules
 ----------
 

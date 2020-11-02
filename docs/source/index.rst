@@ -17,7 +17,7 @@ The documentation is organized in four parts:
 
 - **Getting started**: a quick walkthrough of installation and basic usage examples.
 - **Walkthrough**: an overview of the scope of the library.
-- **Advanced**: examples of advanced usage of Podium.
+- **In-depth overview**: examples of advanced usage of Podium.
 - **Package reference**: full documentation of all methods and classes present in Podium.
 
 
@@ -39,18 +39,16 @@ The documentation is organized in four parts:
    :maxdepth: 2
    :caption: Core package Reference:
 
-   core_components
-   podium.storage
-   podium.datasets
-   podium.dataload
-   podium.models
-
+   vocab_and_fields
+   datasets
+   iterators
 
 .. toctree::
    :maxdepth: 2
    :caption: Unstable
 
    under_development
+   podium.models
 
 
 Indices and tables

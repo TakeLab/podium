@@ -219,9 +219,8 @@ When iterating over NLP datasets, it is common that instances in a batch do not 
 For this reason, usage of :class:`podium.datasets.BucketIterator` is recommended. The ``BucketIterator`` uses a lookahead heuristic and sorts the instances based on a user-defined sort function. Let's take a look at a short example:
 
 .. code-block:: python
-  :emphasize-lines: 8
+  :emphasize-lines: 7 
 
-  >>> # Data loading
   >>> from podium.datasets import SST, IMDB
   >>> from podium import Vocab, Field, LabelField
   >>> vocab = Vocab()
@@ -253,7 +252,8 @@ The :attr:`podium.datasets.BucketIterator.bucket_sort_key` function defines how 
   >>>   for batch_x, batch_y in iterator:
   >>>       total_padding += count_padding(batch_x.text, padding_index)
   >>>       total_size += batch_x.text.size
-  >>>   print(f"For {iterator.__class__.__name__}, padding = {total_padding} out of {total_size}")
+  >>>       print(f"For {iterator.__class__.__name__}, padding = {total_padding}"
+  >>>             f" out of {total_size} = {total_padding/total_size*100}%")
   For Iterator, padding = 148141 out of 281696 = 52.588961149608096%
   For BucketIterator, padding = 2125 out of 135680 = 1.5661851415094339%
 
