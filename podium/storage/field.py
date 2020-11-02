@@ -73,7 +73,8 @@ class MultioutputField:
     output fields. Output fields are any type of field. The output fields are used only
     for posttokenization processing (posttokenization hooks and vocab updating)."""
 
-    def __init__(self, output_fields: List["Field"], tokenizer: TokenizerArg = "split"):
+    def __init__(self, output_fields: List["Field"], tokenizer: TokenizerArg = "split",
+                 pretokenize_hooks: Iterable[PretokHook] = ()):
         """Field that does pretokenization and tokenization once and passes it to its
         output fields. Output fields are any type of field. The output fields are used
         only for posttokenization processing (posttokenization hooks and vocab updating).
@@ -91,10 +92,20 @@ class MultioutputField:
                 - 'split' - default str.split()
                 - 'spacy-lang' - the spacy tokenizer. The language model can be defined
                 by replacing `lang` with the language model name. For example `spacy-en`
+        pretokenize_hooks: Iterable[Callable[[Any], Any]]
+            Iterable containing pretokenization hooks. Providing hooks in this way is
+            identical to calling `add_pretokenize_hook`.
         """
 
         self._tokenizer_arg = tokenizer
         self._pretokenization_pipeline = PretokenizationPipeline()
+
+        if pretokenize_hooks is not None:
+            if not isinstance(pretokenize_hooks, (list, tuple)):
+                pretokenize_hooks = (pretokenize_hooks,)
+            for hook in pretokenize_hooks:
+                self.add_pretokenize_hook(hook)
+
         self._tokenizer = get_tokenizer(tokenizer)
         self._output_fields = deque(output_fields)
 
