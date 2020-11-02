@@ -56,7 +56,7 @@ Pretokenization hooks have the following signature:
   >>>   raw = do_something(raw)
   >>>   return raw
 
-Each pretokenization hook accepts one argument, the raw data for that instance and returns one output, the modified raw data. The raw data is then updated accordingly in the Example instance. Posttokenization hooks follow a similar signature:
+Each pretokenization hook accepts one argument, the raw data for that instance, and returns one output, the modified raw data. The raw data is then updated accordingly in the Example instance. Posttokenization hooks follow a similar signature:
 
 .. code-block:: python
 
