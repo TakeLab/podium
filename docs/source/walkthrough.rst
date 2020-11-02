@@ -40,7 +40,7 @@ Podium contains methods to iterate over data. Let's take a look at :class:`podiu
   >>> from podium import Iterator
   >>> train_iter = Iterator(sst_train, batch_size=2)
   >>> batch_x, batch_y = next(iter(train_iter))
-  >>> print(f"{batch_x}\n{batch_y}")
+  >>> print(batch_x, batch_y, sep='\n')
   InputBatch(text=array([[ 1390,   193,  3035,    12,     4,   652, 13874,   310,    11,
           101, 13875,    12,    31,    14,   729,  1733,     5,     9,
           144,  7287,     8,  3656,   193,  7357,   700,     2,     1,
@@ -65,7 +65,7 @@ We saw earlier that our dataset has two Fields: text and label. We will touch on
   :emphasize-lines: 3
 
   >>> text_field, label_field = sst_train.fields
-  >>> print(f"{text_field}\n{label_field}")
+  >>> print(text_field, label_field, sep='\n')
   Field[name: text, is_target: False, vocab: Vocab[finalized: True, size: 16284]]
   LabelField[name: label, is_target: True, vocab: Vocab[finalized: True, size: 2]]
 
@@ -106,7 +106,7 @@ The SST dataset has two textual data columns (fields): (1) the input text of the
   >>> from podium import Field, LabelField
   >>> text = Field(name='text', numericalizer=small_vocabulary)
   >>> label = LabelField(name='label')
-  >>> print(f"{text}\n{label}")
+  >>> print(text, label, sep='\n')
   Field[name: text, is_target: False, vocab: Vocab[finalized: False, size: 0]]
   LabelField[name: label, is_target: True, vocab: Vocab[finalized: False, size: 0]]
 

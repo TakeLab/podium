@@ -48,7 +48,7 @@ Be aware that you will get a dataset as a matrix by default -- meaning that all 
   (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])
   (None, ['A', ' ', 's', 'l', 'i', 'c', 'k', ' ', ',', ' ', 'e', 'n', 'g', 'r', 'o', 's', 's', 'i', 'n', 'g', ' ', 'm', 'e', 'l', 'o', 'd', 'r', 'a', 'm', 'a', ' ', '.'])
 
-In case your outputs can share the same tokenizer, you should use :class:`podium.storage.MultioutputField` for efficiency:
+In case your outputs can share the same tokenizer, you should use :class:`podium.storage.MultioutputField` for efficiency. As an illustrative example, we could 
 
 .. code-block:: python
 

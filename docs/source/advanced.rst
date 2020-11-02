@@ -1,5 +1,3 @@
-
-
 The Podium data flow
 ====================
 
@@ -87,7 +85,7 @@ We will first implement a pretokenization hook which will lowercase our raw data
 
 .. code-block:: python
 
-  >>> def lowercase(raw: str) -> str:
+  >>> def lowercase(raw):
   >>>   """Lowercases the input string"""
   >>>   return raw.lower()
 
@@ -127,14 +125,88 @@ Putting it all together
 
 We can see that our hooks worked: the raw data was lowercased prior to tokenization, and the punctuation is not present in the processed data. You can similarly define other hooks and pass them as arguments to your Fields. It is important to take care of the order in which you pass the hooks -- they will be executed in the same order as you passed them to the constructor, so take care that you don't modify some aspect of data crucial for your next hook.
 
-Defining a custom numericalization function
+Using a custom numericalization function
 ===========================================
 
-It is often the case you want to do something very specific during numericalization which is not covered by our vocabulary. Examples of this could be mapping 
+It is often the case you want to use a predefined numericalization function, be it a Vocabulary obtained from another repository or one with functionality which our Vocab doesn't cover.
+
+To do that, you should pass your own callable function as the ``numericalizer`` for the corresponding Field. Please also beware that in this case, you also need to define the padding token index in order for Podium to be able to batch your data. A common example, where you want to use a tokenizer and a numericalization function from a pretrained BERT model using the ``huggingface/transformers`` library can be implemented as follows:
+
+.. code-block:: python
+
+  >>> from transformers import BertTokenizer
+  >>> tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+  >>> pad_index = tokenizer.convert_tokens_to_ids(tokenizer.pad_token)
+  >>> subword_field = Field("text",
+  >>>                       padding_token=pad_index,
+  >>>                       tokenizer=tokenizer.tokenize,
+  >>>                       numericalizer=tokenizer.convert_tokens_to_ids)
+  >>> label = LabelField('label')
+  >>> fields = {'text': subword_field, 'label':label}
+  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>> print(sst_train[222])
+  (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.'])
 
 
 Fields with multiple outputs
 ============================
+
+We have so far covered the case where you have a single input column, tokenize and numericalize it and then use it in your model. What if you want to obtain multiple outputs from the same input text? A common example is obtaining both words and characters for an input sequence. Let's see how we would implement this in Podium:
+
+.. code-block:: python
+
+  >>> from podium.datasets import SST
+  >>> from podium import Vocab, Field, LabelField
+  >>> char = Field(name='char', numericalizer=Vocab(), tokenizer=list)
+  >>> text = Field(name='word', numericalizer=Vocab())
+  >>> label = LabelField(name='label')
+  >>> fields = {'text':(char, text), 'label':label}
+  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>> print(sst_train[222].word, sst_train[222].char, sep='\n')
+  (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])
+  (None, ['A', ' ', 's', 'l', 'i', 'c', 'k', ' ', ',', ' ', 'e', 'n', 'g', 'r', 'o', 's', 's', 'i', 'n', 'g', ' ', 'm', 'e', 'l', 'o', 'd', 'r', 'a', 'm', 'a', ' ', '.'])
+
+You can pass a tuple of Fields under the same input data column key, and all of the Fields will use data from input column with that name. If your output Fields share the (potentially expensive) tokenizer, we have implemented a class that optimized that part of preprocessing for you: the :class:`podium.storage.MultioutputField`.
+
+The MultioutputField
+---------------------
+
+Multioutput Fields are `fake` Fields which simply handle the shared pretokenization and tokenization part of the Field processing pipeline and then forward the data to the respective output Fields.
+
+One example of such a use-case would be extracting both word tokens as well as their corresponding part-of-speech tags, both to be used as inputs to a model. For this example, we will still use the SST dataset as a demo, but we will use the spacy tokenizer.
+
+.. code-block:: python
+
+  >>> from podium import MultioutputField
+  >>> import spacy
+  >>>
+  >>> # Define hooks to extract raw text and POS tags
+  >>> # from spacy token objects
+  >>> def extract_text_hook(raw, tokenized):
+  >>>   return raw, [token.text for token in tokenized]
+  >>> def extract_pos_hook(raw, tokenized):
+  >>>   return raw, [token.pos_ for token in tokenized]
+  >>>
+  >>> # Define the output Fields and the MultioutputField
+  >>> word = Field(name='word', numericalizer=Vocab(), posttokenize_hooks=(extract_text_hook,))
+  >>> pos = Field(name='pos', numericalizer=Vocab(), posttokenize_hooks=(extract_pos_hook,))
+  >>> spacy_tokenizer = spacy.load('en', disable=['parser', 'ner'])
+  >>> text = MultioutputField([word, pos], tokenizer=spacy_tokenizer)
+  >>> label = LabelField(name='label')
+  >>> fields = {'text': text, 'label':label}
+  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>> print(sst_train[222].word, sst_train[222].pos, sep='\n')
+  (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])
+  (None, ['DET', 'ADJ', 'PUNCT', 'VERB', 'NOUN', 'PUNCT'])
+
+
+MultioutputFields accept three parameters upon construction, which encapsulate the first half of the Field processing cycle:
+
+  - :obj:`output_fields` (List[Field]): a sequence of Fields.
+  - :obj:`tokenizer` (callable): the tokenizer to use.
+  - :obj:`pretokenization_hooks` (tuple(callable)): a sequence of pretokenization hooks to apply to raw data.
+
+After tokenization, the processed data will be sent to all of the output Fields. Note that only the post-tokenization part of those fields will be used!
 
 Handling datasets with missing data
 ===================================
