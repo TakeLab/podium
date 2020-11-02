@@ -168,7 +168,7 @@ We have so far covered the case where you have a single input column, tokenize a
 
 You can pass a tuple of Fields under the same input data column key, and all of the Fields will use data from input column with that name. If your output Fields share the (potentially expensive) tokenizer, we have implemented a class that optimized that part of preprocessing for you: the :class:`podium.storage.MultioutputField`.
 
-The MultioutputField
+The Multioutput Field
 ---------------------
 
 Multioutput Fields are `fake` Fields which simply handle the shared pretokenization and tokenization part of the Field processing pipeline and then forward the data to the respective output Fields.
@@ -213,5 +213,61 @@ Handling datasets with missing data
 
 Bucketing instances when iterating
 ==================================
+
+When iterating over NLP datasets, it is common that instances in a batch do not have the same length. This is traditionally solved by padding all instances in a batch to the length of the longest instance. Iterating naively over instances with large variance in length will add a lot of padding.
+
+For this reason, usage of :class:`podium.datasets.BucketIterator` is recommended. The ``BucketIterator`` uses a lookahead heuristic and sorts the instances based on a user-defined sort function. Let's take a look at a short example:
+
+.. code-block:: python
+  :emphasize-lines: 8
+
+  >>> # Data loading
+  >>> from podium.datasets import SST, IMDB
+  >>> from podium import Vocab, Field, LabelField
+  >>> vocab = Vocab()
+  >>> text = Field(name='text', numericalizer=vocab)
+  >>> label = LabelField(name='label')
+  >>> fields = {'text':text, 'label':label}
+  >>> train, test, valid = SST.get_dataset_splits(fields=fields)
+  >>> # Define the iterators and our sort key
+  >>> from podium import Iterator, BucketIterator
+  >>> def instance_length(instance):
+  >>>   # Use the text Field
+  >>>   raw, tokenized = instance.text
+  >>>   return len(tokenized)
+  >>> bucket_iter = BucketIterator(train, batch_size=32, bucket_sort_key=instance_length)
+
+The :attr:`podium.datasets.BucketIterator.bucket_sort_key` function defines how the instances in the dataset should be sorted. The method accepts an instance of the dataset, and should return a value which will be used as a sort key in the ``BucketIterator``. It might be interesting (and surprising) to see how much space (and time) do we earn by bucketing. We will define a naive iterator on the same dataset and measure the total amount of padding used when iterating over a dataset.
+
+.. code-block:: python
+
+  >>> import numpy as np
+  >>> vanilla_iter = Iterator(train, batch_size=32)
+  >>> def count_padding(batch, padding_idx):
+  >>>   return np.count_nonzero(batch == padding_idx)
+  >>> padding_index = vocab.padding_index()
+  >>> 
+  >>> for iterator in (vanilla_iter, bucket_iter):
+  >>>   total_padding = 0
+  >>>   total_size = 0
+  >>>   for batch_x, batch_y in iterator:
+  >>>       total_padding += count_padding(batch_x.text, padding_index)
+  >>>       total_size += batch_x.text.size
+  >>>   print(f"For {iterator.__class__.__name__}, padding = {total_padding} out of {total_size}")
+  For Iterator, padding = 148141 out of 281696 = 52.588961149608096%
+  For BucketIterator, padding = 2125 out of 135680 = 1.5661851415094339%
+
+As we can see, the difference between using a regular Iterator and a BucketIterator is massive. Not only do we reduce the amount of padding, we have reduced the total amount of tokens processed by about 50%. The SST dataset, however, is a relatively small dataset so this experiment might be a bit biased. Let's take a look at the same statistics for the :class:`podium.datasets.impl.IMDB` dataset. After changing the highligted data loading line in the first snippet to:
+
+.. code-block:: python
+
+  >>> train, test = IMDB.get_dataset_splits(fields=fields)
+
+And re-running the code, we obtain the following:
+
+.. code-block:: python
+
+  For Iterator, padding = 13569936 out of 19414616 = 69.89546432440385%
+  For BucketIterator, padding = 259800 out of 6104480 = 4.255890755641758%
 
 

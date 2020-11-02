@@ -37,7 +37,7 @@ The documentation is organized in four parts:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Package Reference:
+   :caption: Core package Reference:
 
    core_components
    podium.storage
