@@ -125,7 +125,7 @@ Putting it all together
 
 We can see that our hooks worked: the raw data was lowercased prior to tokenization, and the punctuation is not present in the processed data. You can similarly define other hooks and pass them as arguments to your Fields. It is important to take care of the order in which you pass the hooks -- they will be executed in the same order as you passed them to the constructor, so take care that you don't modify some aspect of data crucial for your next hook.
 
-Using a custom numericalization function
+Custom numericalization functions
 ===========================================
 
 It is often the case you want to use a predefined numericalization function, be it a Vocabulary obtained from another repository or one with functionality which our Vocab doesn't cover.
@@ -200,13 +200,13 @@ One example of such a use-case would be extracting both word tokens as well as t
   (None, ['DET', 'ADJ', 'PUNCT', 'VERB', 'NOUN', 'PUNCT'])
 
 
-MultioutputFields accept three parameters upon construction, which encapsulate the first half of the Field processing cycle:
+MultioutputFields accept three parameters upon construction, which encapsulate the first part of the Field processing cycle:
 
-  - :obj:`output_fields` (List[Field]): a sequence of Fields.
-  - :obj:`tokenizer` (callable): the tokenizer to use.
-  - :obj:`pretokenization_hooks` (tuple(callable)): a sequence of pretokenization hooks to apply to raw data.
+  - :obj:`output_fields` ``(List[Field])``: a sequence of Fields which will map tokenized data to outputs by applying posttokenization hooks and numericalization.
+  - :obj:`tokenizer` ``(Callable)``: the tokenizer to use. The same tokenizer will be used prior to passing data to all output Fields.
+  - :obj:`pretokenization_hooks` ``(tuple(Callable))``: a sequence of pretokenization hooks to apply to the raw data.
 
-After tokenization, the processed data will be sent to all of the output Fields. Note that only the post-tokenization part of those fields will be used!
+After tokenization, the processed data will be sent to all of the output Fields. Note that only the post-tokenization part of the output fields will be used.
 
 Handling datasets with missing data
 ===================================
