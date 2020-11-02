@@ -73,8 +73,12 @@ class MultioutputField:
     output fields. Output fields are any type of field. The output fields are used only
     for posttokenization processing (posttokenization hooks and vocab updating)."""
 
-    def __init__(self, output_fields: List["Field"], tokenizer: TokenizerArg = "split",
-                 pretokenize_hooks: Iterable[PretokHook] = ()):
+    def __init__(
+        self,
+        output_fields: List["Field"],
+        tokenizer: TokenizerArg = "split",
+        pretokenize_hooks: Iterable[PretokHook] = (),
+    ):
         """Field that does pretokenization and tokenization once and passes it to its
         output fields. Output fields are any type of field. The output fields are used
         only for posttokenization processing (posttokenization hooks and vocab updating).
