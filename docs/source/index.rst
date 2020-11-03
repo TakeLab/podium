@@ -34,6 +34,7 @@ The documentation is organized in four parts:
     :caption: In depth overview
 
     advanced
+    coming_soon
 
 .. toctree::
    :maxdepth: 2

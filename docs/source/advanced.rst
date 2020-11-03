@@ -32,6 +32,7 @@ What are the ``None`` s? This is the `raw` data, which by default isn't stored i
   >>> text = Field(name='text', numericalizer=Vocab(), keep_raw=True)
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label':label}
+  >>>
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222].text)
   ('A slick , engrossing melodrama .', ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])
@@ -119,6 +120,7 @@ Putting it all together
   >>>        )
   >>> label = LabelField(name='label')
   >>> fields = {'text':text, 'label':label}
+  >>>
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222])
   ('a slick , engrossing melodrama .', ['a', 'slick', 'engrossing', 'melodrama'])
@@ -137,12 +139,14 @@ To do that, you should pass your own callable function as the ``numericalizer`` 
   >>> from transformers import BertTokenizer
   >>> tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
   >>> pad_index = tokenizer.convert_tokens_to_ids(tokenizer.pad_token)
+  >>>
   >>> subword_field = Field("text",
   >>>                       padding_token=pad_index,
   >>>                       tokenizer=tokenizer.tokenize,
   >>>                       numericalizer=tokenizer.convert_tokens_to_ids)
   >>> label = LabelField('label')
   >>> fields = {'text': subword_field, 'label':label}
+  >>>
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222])
   (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.'])
@@ -161,6 +165,7 @@ We have so far covered the case where you have a single input column, tokenize a
   >>> text = Field(name='word', numericalizer=Vocab())
   >>> label = LabelField(name='label')
   >>> fields = {'text':(char, text), 'label':label}
+  >>>
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222].word, sst_train[222].char, sep='\n')
   (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])
@@ -190,10 +195,13 @@ One example of such a use-case would be extracting both word tokens as well as t
   >>> # Define the output Fields and the MultioutputField
   >>> word = Field(name='word', numericalizer=Vocab(), posttokenize_hooks=(extract_text_hook,))
   >>> pos = Field(name='pos', numericalizer=Vocab(), posttokenize_hooks=(extract_pos_hook,))
+  >>>
   >>> spacy_tokenizer = spacy.load('en', disable=['parser', 'ner'])
   >>> text = MultioutputField([word, pos], tokenizer=spacy_tokenizer)
+  >>>
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label':label}
+  >>>
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222].word, sst_train[222].pos, sep='\n')
   (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])
@@ -207,9 +215,6 @@ MultioutputFields accept three parameters upon construction, which encapsulate t
   - :obj:`pretokenization_hooks` ``(tuple(Callable))``: a sequence of pretokenization hooks to apply to the raw data.
 
 After tokenization, the processed data will be sent to all of the output Fields. Note that only the post-tokenization part of the output fields will be used.
-
-Handling datasets with missing data
-===================================
 
 Bucketing instances when iterating
 ==================================
@@ -227,8 +232,10 @@ For this reason, usage of :class:`podium.datasets.BucketIterator` is recommended
   >>> text = Field(name='text', numericalizer=vocab)
   >>> label = LabelField(name='label')
   >>> fields = {'text':text, 'label':label}
+  >>>
   >>> train, test, valid = SST.get_dataset_splits(fields=fields)
   >>> # Define the iterators and our sort key
+  >>>
   >>> from podium import Iterator, BucketIterator
   >>> def instance_length(instance):
   >>>   # Use the text Field
@@ -242,6 +249,7 @@ The :attr:`podium.datasets.BucketIterator.bucket_sort_key` function defines how 
 
   >>> import numpy as np
   >>> vanilla_iter = Iterator(train, batch_size=32)
+  >>>
   >>> def count_padding(batch, padding_idx):
   >>>   return np.count_nonzero(batch == padding_idx)
   >>> padding_index = vocab.padding_index()
@@ -249,6 +257,7 @@ The :attr:`podium.datasets.BucketIterator.bucket_sort_key` function defines how 
   >>> for iterator in (vanilla_iter, bucket_iter):
   >>>   total_padding = 0
   >>>   total_size = 0
+  >>>
   >>>   for batch_x, batch_y in iterator:
   >>>       total_padding += count_padding(batch_x.text, padding_index)
   >>>       total_size += batch_x.text.size

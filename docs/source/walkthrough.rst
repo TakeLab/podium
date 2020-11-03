@@ -155,6 +155,7 @@ The output of the function call is a numpy matrix of word embeddings which you c
   >>> glove = GloVe()
   >>> embeddings = glove.load_vocab(vocab)
   >>> print(f"For vocabulary of size: {len(vocab)} loaded embedding matrix of shape: {embeddings.shape}")
+  >>>
   >>> # We can obtain vectors for a single word (given the word is loaded) like this:
   >>> word = "sport"
   >>> print(f"Vector for {word}: {glove.token_to_vector(word)}")
@@ -195,6 +196,7 @@ Now our vectorizer has seen the dataset as well as the vocabulary and has all th
   >>> # Obtain the whole dataset as a batch
   >>> x, y = sst_train.batch()
   >>> tfidf_batch = tfidf_vectorizer.transform(x.text)
+  >>>
   >>> print(type(tfidf_batch), tfidf_batch.shape)
   >>> print(tfidf_batch[222])
   <class 'scipy.sparse.csr.csr_matrix'> (6920, 4998)
@@ -231,6 +233,7 @@ For this dataset, we need to define three Fields. We also might want the fields 
   >>> fields = {'premise':   Field('premise', numericalizer=shared_vocab, tokenizer="spacy-en"),
   >>>         'hypothesis':Field('hypothesis', numericalizer=shared_vocab, tokenizer="spacy-en"),
   >>>         'label':     LabelField('label')}
+  >>>
   >>> dataset = TabularDataset('my_dataset.csv', format='csv', fields=fields)
   >>> print(dataset)
   TabularDataset[Size: 1, Fields: ['premise', 'hypothesis', 'label']]
@@ -257,11 +260,13 @@ You can load a dataset in 🤗/datasets and then convert it to a Podium dataset 
   >>> imdb = datasets.load_dataset('imdb')
   >>> print(imdb.keys())
   dict_keys(['train', 'test', 'unsupervised'])
+  >>>
   >>> # We create an adapter for huggingface dataset schema to podium Fields.
   >>> # These are not yet Podium datasets, but behave as such (you can iterate
   >>> # over them as if they were).
   >>> imdb = hfd.from_dataset_dict(imdb)
   >>> imdb_train, imdb_test, imdb_unsupervised = hfd.from_dataset_dict(imdb).values()
+  >>>
   >>> print(imdb_train.fields)
   {'text': Field[name: text, is_target: False, vocab: Vocab[finalized: False, size: 0]], 'label': LabelField[name: label, is_target: True]}
 
