@@ -11,8 +11,7 @@ ListFields = List[FieldArg]
 
 class DatasetABC(ABC):
     def __init__(self, fields: Union[DictFields, ListFields]):
-        self._fields = unpack_fields(fields)
-        self._fields_dict = {f.name: f for f in self._fields}
+        self._fields = tuple(unpack_fields(fields))
 
     # ==================== Properties =========================
 
@@ -24,7 +23,7 @@ class DatasetABC(ABC):
     @property
     def field_dict(self) -> Dict[str, Field]:
         """Dictionary containing all field names mapping to their respective Fields."""
-        return self._fields_dict
+        return {f.name: f for f in self.fields}
 
     @property
     def examples(self) -> List[Example]:
