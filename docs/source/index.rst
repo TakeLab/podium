@@ -42,14 +42,16 @@ The documentation is organized in four parts:
    vocab_and_fields
    datasets
    iterators
+   vectorizers
+   resources
 
 .. toctree::
    :maxdepth: 2
-   :caption: Unstable
+   :caption: Modules currently under development
 
    under_development
-   podium.models
-
+   model_implementations
+   metrics
 
 Indices and tables
 ==================

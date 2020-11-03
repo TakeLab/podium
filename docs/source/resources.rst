@@ -1,5 +1,5 @@
-podium.storage.resources package
-=================================
+Resource downloaders
+====================
 
 podium.storage.resources.downloader module
 -------------------------------------------
