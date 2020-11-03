@@ -1,6 +1,16 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, Iterable, Iterator, List, NamedTuple, Tuple, \
-    Union, overload
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    NamedTuple,
+    Tuple,
+    Union,
+    overload,
+)
 
 import numpy as np
 
@@ -204,15 +214,11 @@ class DatasetABC(ABC):
         pass
 
     @overload
-    def __getitem__(
-            self, i: int
-    ) -> Example:
+    def __getitem__(self, i: int) -> Example:
         ...
 
     @overload
-    def __getitem__(
-            self, i: Union[Iterable[int], slice]
-    ) -> "DatasetABC":
+    def __getitem__(self, i: Union[Iterable[int], slice]) -> "DatasetABC":
         ...
 
     @abstractmethod
