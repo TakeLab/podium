@@ -262,7 +262,7 @@ The :attr:`podium.datasets.BucketIterator.bucket_sort_key` function defines how 
   >>>       total_padding += count_padding(batch_x.text, padding_index)
   >>>       total_size += batch_x.text.size
   >>>       print(f"For {iterator.__class__.__name__}, padding = {total_padding}"
-  >>>             f" out of {total_size} = {total_padding/total_size*100}%")
+  >>>             f" out of {total_size} = {total_padding/total_size:.2%}")
   For Iterator, padding = 148141 out of 281696 = 52.588961149608096%
   For BucketIterator, padding = 2125 out of 135680 = 1.5661851415094339%
 

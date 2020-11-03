@@ -216,6 +216,7 @@ class Pipeline(Experiment):
         During fitting, the provided Iterator and Trainer are used.
         Each example must be of the format provided in the constructor as the
         `example_format` parameter.
+
         Parameters
         ----------
         examples : Iterable[Union[Dict, List]]

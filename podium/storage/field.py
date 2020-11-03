@@ -93,9 +93,11 @@ class MultioutputField:
             (only if 'tokenize' is True). The user can provide his own
             tokenizer as a callable object or specify one of the premade
             tokenizers by a string. The available premade tokenizers are:
-                - 'split' - default str.split()
-                - 'spacy-lang' - the spacy tokenizer. The language model can be defined
-                by replacing `lang` with the language model name. For example `spacy-en`
+
+            - 'split' - default str.split()
+            - 'spacy-lang' - the spacy tokenizer. The language model can be defined
+              by replacing `lang` with the language model name. For example `spacy-en`
+
         pretokenize_hooks: Iterable[Callable[[Any], Any]]
             Iterable containing pretokenization hooks. Providing hooks in this way is
             identical to calling `add_pretokenize_hook`.
@@ -239,11 +241,13 @@ class Field:
             The tokenizer that is to be used when preprocessing raw data.
             The user can provide his own tokenizer as a callable object or specify one of
             the registered tokenizers by a string. The available pre-registered tokenizers
-             are:
-                - 'split' - default str.split(). Custom separator can be provided as
-                `split-sep` where `sep` is the separator string.
-                - 'spacy-lang' - the spacy tokenizer. The language model can be defined
-                by replacing `lang` with the language model name. For example `spacy-en`.
+            are:
+
+            - 'split' - default str.split(). Custom separator can be provided as
+              `split-sep` where `sep` is the separator string.
+            - 'spacy-lang' - the spacy tokenizer. The language model can be defined
+              by replacing `lang` with the language model name. For example `spacy-en`.
+
             If None, the data will not be tokenized and post-tokenization hooks wont be
             called. The provided data will be stored in the `tokenized` data field as-is.
 
@@ -959,11 +963,13 @@ class MultilabelField(Field):
             The tokenizer that is to be used when preprocessing raw data.
             The user can provide his own tokenizer as a callable object or specify one of
             the registered tokenizers by a string. The available pre-registered tokenizers
-             are:
-                - 'split' - default str.split(). Custom separator can be provided as
-                `split-sep` where `sep` is the separator string.
-                - 'spacy-lang' - the spacy tokenizer. The language model can be defined
-                by replacing `lang` with the language model name. For example `spacy-en`.
+            are:
+
+            - 'split' - default str.split(). Custom separator can be provided as
+              `split-sep` where `sep` is the separator string.
+            - 'spacy-lang' - the spacy tokenizer. The language model can be defined
+              by replacing `lang` with the language model name. For example `spacy-en`.
+
             If None, the data will not be tokenized and post-tokenization hooks wont be
             called. The provided data will be stored in the `tokenized` data field as-is.
 

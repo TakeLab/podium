@@ -45,6 +45,7 @@ The documentation is organized in four parts:
    iterators
    vectorizers
    resources
+   preproc
 
 .. toctree::
    :maxdepth: 2
