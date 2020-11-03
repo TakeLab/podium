@@ -1,19 +1,17 @@
 name: Publish docs
 
-# Run only on pushes to master
 on:
   push:
-    branches: [ master ]
+    branches: 
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # Check out the repo
       - uses: actions/checkout@v2
 
-      # Now in root of repo
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
@@ -29,7 +27,6 @@ jobs:
           cd docs
           make clean && make html
 
-      # Do folder changes persist between steps? They do not ):
       - name: Publish docs
         uses: garygrossgarten/github-action-scp@release
         with:

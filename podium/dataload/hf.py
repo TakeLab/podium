@@ -138,13 +138,13 @@ def convert_features_to_fields(
     }
 
 
-class HuggingFaceDatasetConverter:
+class HFDatasetConverter:
     """Class for converting rows from the HuggingFace Datasets to podium.storage.Example."""
 
     def __init__(
         self, dataset: datasets.Dataset, fields: Optional[Dict[str, Field]] = None
     ) -> None:
-        """HuggingFaceDatasetConverter constructor.
+        """HFDatasetConverter constructor.
 
         Parameters
         ----------
@@ -190,9 +190,9 @@ class HuggingFaceDatasetConverter:
     @staticmethod
     def from_dataset_dict(
         dataset_dict: Dict[str, datasets.Dataset]
-    ) -> Dict[str, "HuggingFaceDatasetConverter"]:
+    ) -> Dict[str, "HFDatasetConverter"]:
         """Copies the keys of given dictionary and converts the corresponding
-        HuggingFace Datasets to the HuggingFaceDatasetConverter instances.
+        HuggingFace Datasets to the HFDatasetConverter instances.
 
         Parameters
         ----------
@@ -201,8 +201,8 @@ class HuggingFaceDatasetConverter:
 
         Returns
         -------
-        dict(str, HuggingFaceDatasetConverter)
-            Dictionary that maps dataset names to HuggingFaceDatasetConverter instances.
+        dict(str, HFDatasetConverter)
+            Dictionary that maps dataset names to HFDatasetConverter instances.
 
         Raises
         ------
@@ -216,6 +216,6 @@ class HuggingFaceDatasetConverter:
             )
 
         return {
-            dataset_name: HuggingFaceDatasetConverter(dataset)
+            dataset_name: HFDatasetConverter(dataset)
             for dataset_name, dataset in dataset_dict.items()
         }

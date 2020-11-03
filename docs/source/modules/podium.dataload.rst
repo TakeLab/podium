@@ -20,10 +20,10 @@ podium.dataload.eurovoc module
    :no-undoc-members:
    :show-inheritance:
 
-podium.dataload.huggingface\_dataset\_converter module
+podium.dataload.hf module
 -------------------------------------------------------
 
-.. automodule:: podium.dataload.huggingface_dataset_converter
+.. automodule:: podium.dataload.hf
    :members:
    :no-undoc-members:
    :show-inheritance:
