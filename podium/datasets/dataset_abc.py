@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, Iterable, Iterator, List, NamedTuple, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, Iterator, List, NamedTuple, Tuple, \
+    Union, overload
 
 import numpy as np
 
@@ -201,6 +202,18 @@ class DatasetABC(ABC):
             The number of examples in the dataset.
         """
         pass
+
+    @overload
+    def __getitem__(
+            self, i: int
+    ) -> Example:
+        ...
+
+    @overload
+    def __getitem__(
+            self, i: Union[Iterable[int], slice]
+    ) -> "DatasetABC":
+        ...
 
     @abstractmethod
     def __getitem__(
