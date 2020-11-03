@@ -566,18 +566,6 @@ class ArrowDataset(DatasetABC):
         the loaded Examples."""
         return list(ArrowDataset._recordbatch_to_examples(self.table, self.fields))
 
-    def as_dataset(self) -> Dataset:
-        """Loads this ArrowDataset into memory and returns an Dataset object containing
-        the loaded data.
-
-        Returns
-        -------
-        Dataset
-            Dataset containing all examples of this ArrowDataset.
-        """
-        examples = list(ArrowDataset._recordbatch_to_examples(self.table, self.fields))
-        return Dataset(examples, self.fields)
-
     @staticmethod
     def _field_values(
         record_batch: pa.RecordBatch, fieldname: str

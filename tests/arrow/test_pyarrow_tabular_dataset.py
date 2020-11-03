@@ -193,16 +193,6 @@ def test_batching(data, pyarrow_dataset):
             assert index == tokens_vocab[token]
 
 
-def test_to_dataset(pyarrow_dataset):
-    dataset = pyarrow_dataset.as_dataset()
-
-    assert isinstance(dataset, Dataset)
-    assert len(dataset) == len(pyarrow_dataset)
-    for arrow_ex, dataset_ex in zip(pyarrow_dataset, dataset):
-        assert arrow_ex.number == dataset_ex.number
-        assert arrow_ex.tokens == dataset_ex.tokens
-
-
 def test_from_dataset(data, fields):
     example_factory = ExampleFactory(fields)
     examples = [example_factory.from_list(raw_example) for raw_example in data]
