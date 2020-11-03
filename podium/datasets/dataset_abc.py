@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, Iterable, Iterator, List, NamedTuple, Tuple, Union
 
+import numpy as np
+
 from podium.storage import Example, Field, unpack_fields
 
 
@@ -16,7 +18,7 @@ class DatasetABC(ABC):
     # ==================== Properties =========================
 
     @property
-    def fields(self) -> List[Field]:
+    def fields(self) -> Tuple[Field]:
         """List containing all fields of this dataset."""
         return self._fields
 
@@ -153,7 +155,7 @@ class DatasetABC(ABC):
         return self[indices]
 
     def filtered(self, predicate: Callable[[Example], bool]) -> "DatasetABC":
-        """Method filters examples with given predicate and returns a new DatasetABC
+        """Filters examples with given predicate and returns a new DatasetABC
         instance containing those examples.
 
         Parameters
@@ -161,11 +163,28 @@ class DatasetABC(ABC):
         predicate : callable
             predicate should be a callable that accepts example as input and returns
             true if the example shouldn't be filtered, otherwise returns false
+
+        Returns
+        -------
+        DatasetABC
+            A new DatasetABC instance containing only the Examples for which `predicate`
+            returned True.
         """
         indices = [i for i, example in enumerate(self) if predicate(example)]
         return self[indices]
 
-    # TODO shuffled?
+    def shuffled(self):
+        """Creates a new DatasetABC instance containing all Examples, but in shuffled
+        order.
+
+        Returns
+        -------
+        DatasetABC
+            A new DatasetABC instance containing all Examples, but in shuffled
+            order.
+        """
+        shuffled_indices = np.random.permutation(len(self))
+        return self[shuffled_indices]
 
     def __repr__(self):
         return f"{type(self).__name__}[Size: {len(self)}, Fields: {self.fields}]"
