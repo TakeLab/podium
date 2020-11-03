@@ -173,7 +173,7 @@ class DatasetABC(ABC):
         indices = [i for i, example in enumerate(self) if predicate(example)]
         return self[indices]
 
-    def shuffled(self):
+    def shuffled(self) -> "DatasetABC":
         """Creates a new DatasetABC instance containing all Examples, but in shuffled
         order.
 
