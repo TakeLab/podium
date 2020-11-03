@@ -31,7 +31,6 @@ __all__ = [
     "SingleBatchIterator",
     "BucketIterator",
     "HierarchicalDatasetIterator",
-    # "HuggingFaceDatasetConverter",
 ]
 
 __name__ = "podium"
