@@ -372,9 +372,6 @@ class Dataset(DatasetABC):
 
         random.shuffle(self.examples)
 
-    def as_dataset(self):
-        return self
-
 
 def check_split_ratio(split_ratio):
     """Checks that the split ratio argument is not malformed and if not
