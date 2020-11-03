@@ -31,35 +31,4 @@ Be aware that you will get a dataset as a matrix by default -- meaning that all 
   <class 'list'> 6920
 
 
-**Q: I want to get multiple outputs from the same input text, is this possible?**
-
-**A:** Yes, you can process one input data column with multiple fields by passing a tuple of Fields as arguments, as follows:
-
-.. code-block:: python
-
-  >>> from podium.datasets import SST
-  >>> from podium import Vocab, Field, LabelField
-  >>> char = Field(name='char', numericalizer=Vocab(), tokenizer=list)
-  >>> text = Field(name='word', numericalizer=Vocab())
-  >>> label = LabelField(name='label')
-  >>> fields = {'text':(char, text), 'label':label}
-  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
-  >>> print(sst_train[222].word, sst_train[222].char, sep='\n')
-  (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])
-  (None, ['A', ' ', 's', 'l', 'i', 'c', 'k', ' ', ',', ' ', 'e', 'n', 'g', 'r', 'o', 's', 's', 'i', 'n', 'g', ' ', 'm', 'e', 'l', 'o', 'd', 'r', 'a', 'm', 'a', ' ', '.'])
-
-In case your outputs can share the same tokenizer, you should use :class:`podium.storage.MultioutputField` for efficiency. As an illustrative example, we could 
-
-.. code-block:: python
-
-  >>> from podium.datasets import SST
-  >>> from podium import Vocab, Field, LabelField
-  >>> char = Field(name='char', numericalizer=Vocab(), tokenizer=list)
-  >>> text = Field(name='word', numericalizer=Vocab())
-  >>> label = LabelField(name='label')
-  >>> fields = {'text':(char, text), 'label':label}
-  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
-  >>> print(sst_train[222].word, sst_train[222].char, sep='\n')
-  (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])
-  (None, ['A', ' ', 's', 'l', 'i', 'c', 'k', ' ', ',', ' ', 'e', 'n', 'g', 'r', 'o', 's', 's', 'i', 'n', 'g', ' ', 'm', 'e', 'l', 'o', 'd', 'r', 'a', 'm', 'a', ' ', '.'])
-
+**Your question here!**

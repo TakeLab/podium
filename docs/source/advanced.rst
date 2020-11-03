@@ -263,11 +263,11 @@ As we can see, the difference between using a regular Iterator and a BucketItera
 
   >>> train, test = IMDB.get_dataset_splits(fields=fields)
 
-And re-running the code, we obtain the following:
+And re-running the code, we obtain the following, still significant improvement:
 
 .. code-block:: python
 
   For Iterator, padding = 13569936 out of 19414616 = 69.89546432440385%
   For BucketIterator, padding = 259800 out of 6104480 = 4.255890755641758%
 
-
+Generally, using bucketing when iterating over your NLP dataset is preferred and will save you quite a bit of processing time.

@@ -22,7 +22,7 @@ ArrowDataset
 
 HuggingFaceDatasetConverter
 ---------------------------
-.. autoclass:: podium.dataload.HuggingFaceDatasetConverter
+.. autoclass:: podium.dataload.hf.HFDatasetConverter
    :members:
    :no-undoc-members:
 

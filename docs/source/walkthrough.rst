@@ -95,7 +95,7 @@ Fields have a number of constructor arguments, only some of which we will enumer
 
   - :obj:`name` (str): The name under which the Field's data will be stored in the dataset's example attributes.
   - :obj:`tokenizer` (str | callable | optional): The tokenizer for sequential data. You can pass a string to use a predefined tokenizer or pass a python callable which performs tokenization (e.g. a function or a class which implements ``__call__``). For predefined tokenizers, you can use ``'split'`` for ``str.split`` tokenizer or ``'spacy-lang'`` for the spacy tokenizer in ``lang`` language. For the spacy english tokenizer, this argument would be ``'spacy-en'``. If the data Field should not be tokenized, this argument should be None. Defaults to ``'split'``.
-  - :obj:`numericalizer` (Vocab | callable | optional): The method to convert tokens to indices. Traditionally, this argument should be a Vocab instance but users can define their own numericalization function and pass it as an argument. Custom numericalization can be used when you want to ensure that a certain token has a certain index for consistency with other work. If ``None``, numericalization won't e attempted.
+  - :obj:`numericalizer` (Vocab | callable | optional): The method to convert tokens to indices. Traditionally, this argument should be a Vocab instance but users can define their own numericalization function and pass it as an argument. Custom numericalization can be used when you want to ensure that a certain token has a certain index for consistency with other work. If ``None``, numericalization won't bse attempted.
   - :obj:`is_target` (bool): Whether this data Field is a target field (will be used as a label during prediction). This flag serves merely as a convenience, to separate batches into input and target data during iteration.
   - :obj:`fixed_length`: (int, optional): Usually, text batches are padded to the maximum length of an instance in batch (default behavior). However, if you are using a fixed-size model (e.g. CNN without pooling) you can use this argument to force each instance of this Field to be of ``fixed_length``. Longer instances will be right-truncated, shorter instances will be padded.
 
@@ -131,6 +131,81 @@ A common case in datasets is a data Field which contains a label, represented as
 
 For convenience, ``LabelField`` sets the required defaults for you, and all you need to define is its name. LabelFields always have a ``fixed_length`` of 1, are not tokenized and are by default set as the target for batching.
 
+
+Loading pretrained word vectors
+-------------------------------
+
+With most deep learning models, we want to use pre-trained word embeddings. In Podium, this process is very simple. If your field uses a vocabulary, it has already built an inventory of tokens for your dataset.
+
+A number of predefined vectorizers are available (:class:`podium.storage.vectorizers.GloVe`, :class:`podium.storage.vectorizers.NlplVectorizer`, :class:`podium.storage.vectorizers.TfIdfVectorizer`), as well as a standardized loader :class:`podium.storage.vectorizers.BasicVectorStorage` for loading word2vec-style format of word embeddings from disk.
+
+For example, we will use the `GloVe <https://nlp.stanford.edu/projects/glove/>`__ vectors. The procedure to load these vectors has two steps:
+
+1. Initialize the vector class, which sets all the required paths.
+   The vectors are not yet loaded from disk as you usually don't want to load the full file in memory.
+2. Obtain vectors for a pre-defined list of words by calling ``load_vocab``.
+   The argument can be a ``Vocab`` object (which is itself an `iterable` of strings), or any sequence of strings.
+
+The output of the function call is a numpy matrix of word embeddings which you can then pass to your model to initialize the embedding matrix or to be used otherwise. The word embeddings are in the same order as the tokens in the Vocab.
+
+.. code-block:: python
+
+  >>> from takepod.storage.vectorizers import GloVe
+  >>> vocab = fields['text'].vocab
+  >>> glove = GloVe()
+  >>> embeddings = glove.load_vocab(vocab)
+  >>> print(f"For vocabulary of size: {len(vocab)} loaded embedding matrix of shape: {embeddings.shape}")
+  >>> # We can obtain vectors for a single word (given the word is loaded) like this:
+  >>> word = "sport"
+  >>> print(f"Vector for {word}: {glove.token_to_vector(word)}")
+  For vocabulary of size: 21701 loaded embedding matrix of shape: (21701, 300)
+  Vector for sport: [ 0.34566    0.15934    0.48444   -0.13693    0.18737    0.2678
+   -0.39159    0.4931    -0.76111   -1.4586     0.41475    0.55837
+   ...
+   -0.050651  -0.041129   0.15092    0.22084    0.52252   -0.27224  ]
+
+Using TF-IDF or count vectorization
+-----------------------------------
+In the case you wish to use a standard shallow model, Podium also supports TF-IDF or count vectorization. We'll now briefly demonstrate how to obtain a TF-IDF matrix for your dataset. We will first load the SST dataset with a limited size Vocab in order to not blow up our RAM. 
+
+As we intend to use the whole dataset at once, we will also set ``disable_batch_matrix=True`` in the constructor for the text Field. This option will return our dataset as a list of numericalized instances during batching instead of a numpy matrix. The benefit here is that if returned as a numpy matrix, all of the instances have to be padded, using up a lot of memory.
+
+.. code-block:: python
+
+  >>> from podium.datasets import SST
+  >>> from podium import Vocab, Field, LabelField
+  >>> vocab = Vocab(max_size=5000)
+  >>> text = Field(name='text', numericalizer=vocab, disable_batch_matrix=True)
+  >>> label = LabelField(name='label')
+  >>> fields = {'text':text, 'label':label}
+  >>> sst_train, sst_test, sst_valid = SST.get_dataset_splits(fields=fields)
+
+Since the Tf-Idf vectorizer needs information from the dataset to compute the inverse document frequency, we first need to fit it on the dataset.
+
+.. code-block:: python
+
+  >>> from podium.storage.vectorizers.tfidf import TfIdfVectorizer
+  >>> tfidf_vectorizer = TfIdfVectorizer()
+  >>> tfidf_vectorizer.fit(dataset=sst_train, field=text)
+
+Now our vectorizer has seen the dataset as well as the vocabulary and has all the required information to compute Tf-Idf value for each instance. As is standard in using shallow models, we want to convert all of the instances in a dataset to a Tf-Idf matrix which can then be used with a support vector machine (SVM) model.
+
+.. code-block:: python
+
+  >>> # Obtain the whole dataset as a batch
+  >>> x, y = sst_train.batch()
+  >>> tfidf_batch = tfidf_vectorizer.transform(x.text)
+  >>> print(type(tfidf_batch), tfidf_batch.shape)
+  >>> print(tfidf_batch[222])
+  <class 'scipy.sparse.csr.csr_matrix'> (6920, 4998)
+  (0, 1658) 0.617113703893198
+  (0, 654)  0.5208201737884445
+  (0, 450)  0.5116152860290002
+  (0, 20) 0.2515101839877878
+  (0, 1)  0.12681755258500052
+  (0, 0)  0.08262419651916046
+
+The Tf-Idf counts are highly sparse since not all words from the vocabulary are present in every instance. To reduce the memory footprint of count-based numericalization, we store the values in a `SciPy <https://www.scipy.org/>`__ sparse matrix, which can be used in various `scikit-learn <https://scikit-learn.org/stable/>`__ models.
 
 .. _custom-loading:
 

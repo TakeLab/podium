@@ -6,19 +6,19 @@
 TakeLab Podium
 ==================================
 
-Data loading, preprocessing & batching library for natural language processing.
+Data loading & preprocessing library for natural language processing.
 Compatible with all deep learning frameworks, based in NumPy.
 
-Podium enforces a light amount of coupling between its preprocessing components which allows flexibility and hackability, but also accepts that the user might not want to use the full pipeline and enables him to at any point retrieve his data and use it with another library.
+Podium enforces a light amount of coupling between its preprocessing components which allows flexibility and hackability, but also accepts that the user might not want to use the full extent of Podium functionalities and enables them to at any point retrieve their data and use it with another library.
 
 Contents
 ---------------------------------
 The documentation is organized in four parts:
 
-- **Getting started**: a quick walkthrough of installation and basic usage examples.
-- **Walkthrough**: an overview of the scope of the library.
-- **In-depth overview**: examples of advanced usage of Podium.
-- **Package reference**: full documentation of all methods and classes present in Podium.
+- **Getting started**: an overview of the scope of the library,
+- **In-depth overview**: examples of advanced usage of Podium,
+- **Core package Reference**: documentation of methods and classes in Podium ready for use,
+- **Modules under development**: parts of the library which are either stale/outdated or pending major revision.
 
 
 .. toctree::
@@ -47,7 +47,7 @@ The documentation is organized in four parts:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Modules currently under development
+   :caption: Modules under development
 
    under_development
    model_implementations

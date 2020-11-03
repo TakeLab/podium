@@ -53,16 +53,16 @@ Use some of our pre-defined datasets:
 >>> print(sst_train)
 SST[Size: 6920, Fields: ['text', 'label']]
 >>> print(sst_train[222]) # A short example
-Example[label: ('positive', None); text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])]
+Example[text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']); label: (None, 'positive')]
 ```
 
 Load your own dataset from a standardized format (`csv`, `tsv` or `jsonl`):
 
 ```python
 >>> from podium.datasets import TabularDataset
->>> from podium.storage import Vocab, Field, LabelField
->>> fields = {'premise':   Field('premise', vocab=Vocab()),
-              'hypothesis':Field('hypothesis', vocab=Vocab()),
+>>> from podium import Vocab, Field, LabelField
+>>> fields = {'premise':   Field('premise', numericalizer=Vocab()),
+              'hypothesis':Field('hypothesis', numericalizer=Vocab()),
               'label':     LabelField('label')}
 >>> dataset = TabularDataset('my_dataset.csv', format='csv', fields=fields)
 >>> print(dataset)
@@ -76,7 +76,7 @@ Or define your own `Dataset` subclass (tutorial coming soon)
 We wrap dataset pre-processing in customizable `Field` classes. Each `Field` has an optional `Vocab` instance which automatically handles token-to-index conversion.
 
 ```python
->>> from podium.storage import Vocab, Field, LabelField
+>>> from podium import Vocab, Field, LabelField
 >>> vocab = Vocab(max_size=5000, min_freq=2)
 >>> text = Field(name='text', vocab=vocab)
 >>> label = LabelField(name='label')
@@ -123,11 +123,10 @@ A common use-case is to incorporate existing components of pretrained language m
 >>> tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 >>> pad_index = tokenizer.convert_tokens_to_ids(tokenizer.pad_token)
 >>> # Define a BERT subword Field
->>> bert_field = Field("subword",
-                       vocab=None,
+>>> bert_field = Field(name="subword",
                        padding_token=pad_index,
                        tokenizer=tokenizer.tokenize,
-                       custom_numericalize=tokenizer.convert_tokens_to_ids)
+                       numericalizer=tokenizer.convert_tokens_to_ids)
 >>> # ...
 >>> print(sst_train[222])
 Example[label: ('positive', None); subword: (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.'])]
