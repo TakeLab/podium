@@ -31,7 +31,7 @@ What are the ``None`` s? This is the `raw` data, which by default isn't stored i
   >>> from podium import Vocab, Field, LabelField
   >>> text = Field(name='text', numericalizer=Vocab(), keep_raw=True)
   >>> label = LabelField(name='label')
-  >>> fields = {'text': text, 'label':label}
+  >>> fields = {'text': text, 'label': label}
   >>>
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222].text)
@@ -116,10 +116,9 @@ Putting it all together
   >>> text = Field(name='text', numericalizer=Vocab(), 
   >>>              keep_raw=True,
   >>>              pretokenize_hooks=[lowercase],
-  >>>              posttokenize_hooks=[RemovePunct()]
-  >>>        )
+  >>>              posttokenize_hooks=[RemovePunct()])
   >>> label = LabelField(name='label')
-  >>> fields = {'text':text, 'label':label}
+  >>> fields = {'text': text, 'label': label}
   >>>
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222])
@@ -145,7 +144,7 @@ To do that, you should pass your own callable function as the ``numericalizer`` 
   >>>                       tokenizer=tokenizer.tokenize,
   >>>                       numericalizer=tokenizer.convert_tokens_to_ids)
   >>> label = LabelField('label')
-  >>> fields = {'text': subword_field, 'label':label}
+  >>> fields = {'text': subword_field, 'label': label}
   >>>
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222])
@@ -164,7 +163,7 @@ We have so far covered the case where you have a single input column, tokenize a
   >>> char = Field(name='char', numericalizer=Vocab(), tokenizer=list)
   >>> text = Field(name='word', numericalizer=Vocab())
   >>> label = LabelField(name='label')
-  >>> fields = {'text':(char, text), 'label':label}
+  >>> fields = {'text': (char, text), 'label': label}
   >>>
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222].word, sst_train[222].char, sep='\n')
@@ -200,7 +199,7 @@ One example of such a use-case would be extracting both word tokens as well as t
   >>> text = MultioutputField([word, pos], tokenizer=spacy_tokenizer)
   >>>
   >>> label = LabelField(name='label')
-  >>> fields = {'text': text, 'label':label}
+  >>> fields = {'text': text, 'label': label}
   >>>
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222].word, sst_train[222].pos, sep='\n')
@@ -231,7 +230,7 @@ For this reason, usage of :class:`podium.datasets.BucketIterator` is recommended
   >>> vocab = Vocab()
   >>> text = Field(name='text', numericalizer=vocab)
   >>> label = LabelField(name='label')
-  >>> fields = {'text':text, 'label':label}
+  >>> fields = {'text': text, 'label': label}
   >>>
   >>> train, test, valid = SST.get_dataset_splits(fields=fields)
   >>> # Define the iterators and our sort key

@@ -114,7 +114,7 @@ That's it! We have defined our Fields. In order for them to be initialized, we n
 
 .. code-block:: python
 
-  >>> fields = {'text': text, 'label':label}
+  >>> fields = {'text': text, 'label': label}
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
   >>> print(small_vocabulary)
   Vocab[finalized: True, size: 5000]
@@ -178,7 +178,7 @@ As we intend to use the whole dataset at once, we will also set ``disable_batch_
   >>> vocab = Vocab(max_size=5000)
   >>> text = Field(name='text', numericalizer=vocab, disable_batch_matrix=True)
   >>> label = LabelField(name='label')
-  >>> fields = {'text':text, 'label':label}
+  >>> fields = {'text': text, 'label': label}
   >>> sst_train, sst_test, sst_valid = SST.get_dataset_splits(fields=fields)
 
 Since the Tf-Idf vectorizer needs information from the dataset to compute the inverse document frequency, we first need to fit it on the dataset.
@@ -231,8 +231,8 @@ For this dataset, we need to define three Fields. We also might want the fields 
   >>> from podium import TabularDataset, Vocab, Field, LabelField
   >>> shared_vocab = Vocab()
   >>> fields = {'premise':   Field('premise', numericalizer=shared_vocab, tokenizer="spacy-en"),
-  >>>         'hypothesis':Field('hypothesis', numericalizer=shared_vocab, tokenizer="spacy-en"),
-  >>>         'label':     LabelField('label')}
+  >>>           'hypothesis':Field('hypothesis', numericalizer=shared_vocab, tokenizer="spacy-en"),
+  >>>           'label':     LabelField('label')}
   >>>
   >>> dataset = TabularDataset('my_dataset.csv', format='csv', fields=fields)
   >>> print(dataset)
