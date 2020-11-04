@@ -34,7 +34,7 @@ __all__ = [
 ]
 
 __name__ = "podium"
-__version__ = "1.1.0"
+__version__ = "1.0.1"
 
 # Reference for initialization of logging scikit-learn
 # https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/__init__.py
