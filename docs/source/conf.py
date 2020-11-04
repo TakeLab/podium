@@ -16,8 +16,7 @@ import sys
 # Quick fix for cross-reference warnings:
 from sphinx.domains.python import PythonDomain
 
-
-sys.path.insert(0, os.path.abspath('../../../podium'))
+sys.path.insert(0, os.path.abspath('../../'))
 
 
 # -- Project information -----------------------------------------------------
@@ -36,7 +35,16 @@ release = '2020'
 # ones.
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.napoleon',
-              'sphinx.ext.doctest']
+              'sphinx.ext.doctest',
+              'sphinx.ext.viewcode',
+              'sphinx.ext.autosummary',
+              'recommonmark',
+              'sphinx_copybutton'
+              ]
+
+source_suffix = ['.rst', '.md']
+autodoc_typehints = 'none'
+autoclass_content = 'both'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -46,19 +54,26 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
+copybutton_prompt_text = ">>> "
 
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
+
 html_theme = 'sphinx_rtd_theme'
+
+html_theme_options = {
+    'collapse_navigation': False,
+    'display_version': True,
+}
+
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 # html_static_path = ['_static']     # right now we don't use that
-
 
 # Napoleon settings
 napoleon_google_docstring = True
