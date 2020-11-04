@@ -84,11 +84,14 @@ PREPROC_REQUIRE = [
 
 
 DOCS_REQUIRE = [
-    "sphinx",
-    "sphinx_rtd_theme",
-    "datasets",
-    "keras==2.2.4",
-    "tensorflow==1.15",
+    'sphinx',
+    'sphinx_rtd_theme',
+    'recommonmark',
+    'sphinx-copybutton',
+    'datasets',
+    'keras==2.2.4',
+    'tensorflow==1.15',
+    'torch'
 ]
 
 

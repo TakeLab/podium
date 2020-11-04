@@ -14,17 +14,18 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class Dataset(ABC):
-    """General purpose container for datasets defining some common methods.
-
-     A dataset is a list of `Example` classes, along with the corresponding
-        `Field` classes, which process the columns of each example.
+    """A general purpose container for datasets.
+    A dataset is a shallow wrapper for a list of `Example` classes which
+    store the instance data as well as the corresponding `Field` classes,
+    which process the columns of each example.
 
     Attributes
     ----------
     examples : list
-        A list of Example objects.
+        A list containing the instances of the dataset as Example classes.
     fields : list
-        A list of Field objects that were used to create examples.
+        A list of Field objects defining preprocessing for data fields of
+        the dataset.
     """
 
     def __init__(self, examples, fields, sort_key=None):
@@ -98,8 +99,8 @@ class Dataset(ABC):
         and will be identical to the original dataset, with the exception of the
         example number and ordering. See wiki for detailed examples.
 
-        Example
-        -------
+        Example::
+
             # Indexing by a single integers returns a single example
             example = dataset.get(1)
 
