@@ -24,7 +24,7 @@ We can unpack the Example class with the bracket notation, as you would a dictio
   None ['A', 'slick', ',', 'engrossing', 'melodrama', '.']
   None positive
 
-What are the ``None`` s? This is the `raw` data, which by default isn't stored in Examples to save memory. If you want to keep the raw data as well (which might be required when applying some transformations), you have to set the ``keep_raw=True`` in the corresponding Field.
+What are the ``None`` s? This is the `raw` data, which by default isn't stored in Examples to save memory. If you want to keep the raw data as well (e.g. for future reference), you have to set the ``keep_raw=True`` in the corresponding Field.
 
 .. code-block:: python
 
@@ -37,7 +37,7 @@ What are the ``None`` s? This is the `raw` data, which by default isn't stored i
   >>> print(sst_train[222].text)
   ('A slick , engrossing melodrama .', ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])
 
-We can see that now we also have the pre-tokenized text available to us. In the case of SST this might not be as useful because the tokenizer is simply ``str.split``, in case of non-reversible tokenizers (ones in ``spacy``), you might want to keep the raw instance for reference.
+We can see that now we also have the pre-tokenized text available to us. In the case of SST this is not very useful because the tokenizer is simply ``str.split``, an easyily reversible function. In the case of non-reversible tokenizers (e.g. the ones in ``spacy``), you might want to keep the raw instance for future reference.
 
 
 How to interact with Fields
@@ -45,7 +45,12 @@ How to interact with Fields
 
 In the previous section, we could see that text from the SST dataset is both in uppercase as well as lowercase. Apart from that, we might not want to keep punctuation tokens, which we can also see in the processed data. These are two cases for which we have designed pretokenization and posttokenization **hooks**.
 
-As we said earlier, data in Podium exists in three states: raw, processed and numericalized. You can intervene and add a custom transformation between each of these three states. Functions which modify raw data prior to tokenization are called **pretokenization hooks**, while functions which modify processed data prior to numericalization are called **posttokenization hooks**.
+As we said earlier, data in Podium exists in three states: raw, processed and numericalized. You can intervene and add a custom transformation between each of these three states. Functions which modify raw data prior to tokenization are called **pretokenization hooks**, while functions which modify processed data prior to numericalization are called **posttokenization hooks**. We can see the Field process visualized for the text Field in the following image:
+
+.. image:: _static/field_internals.png
+    :alt: Field visualisation
+    :align: center
+
 
 Pretokenization hooks have the following signature:
 
@@ -125,6 +130,8 @@ Putting it all together
   ('a slick , engrossing melodrama .', ['a', 'slick', 'engrossing', 'melodrama'])
 
 We can see that our hooks worked: the raw data was lowercased prior to tokenization, and the punctuation is not present in the processed data. You can similarly define other hooks and pass them as arguments to your Fields. It is important to take care of the order in which you pass the hooks -- they will be executed in the same order as you passed them to the constructor, so take care that you don't modify some aspect of data crucial for your next hook.
+
+We have prepared a number of predefined hooks which are ready for you to use. You can see them here: :ref:`predefined-hooks`.
 
 Custom numericalization functions
 ===========================================
@@ -210,7 +217,7 @@ One example of such a use-case would be extracting both word tokens as well as t
 MultioutputFields accept three parameters upon construction, which encapsulate the first part of the Field processing cycle:
 
   - :obj:`output_fields` ``(List[Field])``: a sequence of Fields which will map tokenized data to outputs by applying posttokenization hooks and numericalization.
-  - :obj:`tokenizer` ``(Callable)``: the tokenizer to use. The same tokenizer will be used prior to passing data to all output Fields.
+  - :obj:`tokenizer` ``(str | Callable)``: the tokenizer to use (keyword string or callable function). The same tokenizer will be used prior to passing data to all output Fields.
   - :obj:`pretokenization_hooks` ``(tuple(Callable))``: a sequence of pretokenization hooks to apply to the raw data.
 
 After tokenization, the processed data will be sent to all of the output Fields. Note that only the post-tokenization part of the output fields will be used.
@@ -223,7 +230,7 @@ When iterating over NLP datasets, it is common that instances in a batch do not 
 For this reason, usage of :class:`podium.datasets.BucketIterator` is recommended. The ``BucketIterator`` uses a lookahead heuristic and sorts the instances based on a user-defined sort function. Let's take a look at a short example:
 
 .. code-block:: python
-  :emphasize-lines: 7 
+  :emphasize-lines: 8 
 
   >>> from podium.datasets import SST, IMDB
   >>> from podium import Vocab, Field, LabelField
@@ -233,8 +240,8 @@ For this reason, usage of :class:`podium.datasets.BucketIterator` is recommended
   >>> fields = {'text': text, 'label': label}
   >>>
   >>> train, test, valid = SST.get_dataset_splits(fields=fields)
-  >>> # Define the iterators and our sort key
   >>>
+  >>> # Define the iterators and our sort key
   >>> from podium import Iterator, BucketIterator
   >>> def instance_length(instance):
   >>>   # Use the text Field
@@ -242,7 +249,7 @@ For this reason, usage of :class:`podium.datasets.BucketIterator` is recommended
   >>>   return len(tokenized)
   >>> bucket_iter = BucketIterator(train, batch_size=32, bucket_sort_key=instance_length)
 
-The :attr:`podium.datasets.BucketIterator.bucket_sort_key` function defines how the instances in the dataset should be sorted. The method accepts an instance of the dataset, and should return a value which will be used as a sort key in the ``BucketIterator``. It might be interesting (and surprising) to see how much space (and time) do we earn by bucketing. We will define a naive iterator on the same dataset and measure the total amount of padding used when iterating over a dataset.
+The ``bucket_sort_key`` function defines how the instances in the dataset should be sorted. The method accepts an instance of the dataset, and should return a value which will be used as a sort key in the ``BucketIterator``. It might be interesting (and surprising) to see how much space (and time) do we earn by bucketing. We will define a naive iterator on the same dataset and measure the total amount of padding used when iterating over a dataset.
 
 .. code-block:: python
 
@@ -260,8 +267,8 @@ The :attr:`podium.datasets.BucketIterator.bucket_sort_key` function defines how 
   >>>   for batch_x, batch_y in iterator:
   >>>       total_padding += count_padding(batch_x.text, padding_index)
   >>>       total_size += batch_x.text.size
-  >>>       print(f"For {iterator.__class__.__name__}, padding = {total_padding}"
-  >>>             f" out of {total_size} = {total_padding/total_size:.2%}")
+  >>>   print(f"For {iterator.__class__.__name__}, padding = {total_padding}"
+  >>>         f" out of {total_size} = {total_padding/total_size:.2%}")
   For Iterator, padding = 148141 out of 281696 = 52.588961149608096%
   For BucketIterator, padding = 2125 out of 135680 = 1.5661851415094339%
 

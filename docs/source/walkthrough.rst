@@ -71,7 +71,7 @@ We saw earlier that our dataset has two Fields: text and label. We will touch on
 
 Inside each of these two fields we can see a :class:`podium.storage.Vocab` class, which is used for numericalization (converting tokens to indices). A Vocab is mainly defined by two maps: the string-to-index mapping :attr:`podium.storage.Vocab.stoi` and the index-to-string mapping :attr:`podium.storage.Vocab.itos`.
 
-In the previous code block we can see that the Vocab for the ``text`` field has a size of 16282. The Vocab by default includes all the tokens present in the dataset, whichever their frequency might be. There are two ways to control the size of your vocabulary:
+In highligted code block we can see that the Vocab for the ``text`` field has a size of 16282. The Vocab by default includes all the tokens present in the dataset, whichever their frequency might be. There are two ways to control the size of your vocabulary:
 
 1. Setting the minimum frequency (inclusive) for a token to be used in a Vocab: the :attr:`podium.storage.Vocab.min_freq` argument
 2. Setting the maximum size of the Vocab: the :attr:`podium.storage.Vocab.max_size` argument
@@ -91,11 +91,19 @@ Customizing the preprocessing pipeline with Fields
 
 Data processing in Podium is wholly encapsulated in the flexible :class:`podium.storage.Field` class. Default Fields for the SST dataset are defined in the :meth:`podium.datasets.impl.SST.get_dataset_splits` method, but you can easily redefine and customize them. We will only scratch the surface of customizing Fields in this section.
 
+You can think of Fields as the path your data takes from the input to your model. In order for Fields to be able to process data, you need to which input data columns will pass through which Fields.
+
+.. image:: _static/field_visual.png
+    :alt: Field visualisation
+    :align: center
+
+Looking at the image, your job is to define the color-coding between input data columns and Fields. If the columns in your dataset are named (as they are in the SST dataset), you should define this mapping as a **dictionary** where the keys are the names of the input data columns, while the values are Fields. The name of the Field affects only the attribute where the data for that Field will be stored, and not the input column! This is due to the fact that it more complex datasets, you might want to map a single input column to multiple Fields.
+
 Fields have a number of constructor arguments, only some of which we will enumerate here:
 
-  - :obj:`name` (str): The name under which the Field's data will be stored in the dataset's example attributes.
-  - :obj:`tokenizer` (str | callable | optional): The tokenizer for sequential data. You can pass a string to use a predefined tokenizer or pass a python callable which performs tokenization (e.g. a function or a class which implements ``__call__``). For predefined tokenizers, you can use ``'split'`` for ``str.split`` tokenizer or ``'spacy-lang'`` for the spacy tokenizer in ``lang`` language. For the spacy english tokenizer, this argument would be ``'spacy-en'``. If the data Field should not be tokenized, this argument should be None. Defaults to ``'split'``.
-  - :obj:`numericalizer` (Vocab | callable | optional): The method to convert tokens to indices. Traditionally, this argument should be a Vocab instance but users can define their own numericalization function and pass it as an argument. Custom numericalization can be used when you want to ensure that a certain token has a certain index for consistency with other work. If ``None``, numericalization won't bse attempted.
+  - :obj:`name` (str): The name under which the Field's data will be stored in the dataset's Examples.
+  - :obj:`tokenizer` (str | callable | optional): The tokenizer for sequential data. You can pass a string to use a predefined tokenizer or pass a python callable which performs tokenization (e.g. a function or a class which implements ``__call__``). For predefined tokenizers, you should follow the ``name-args`` argument formatting convention. You can use ``'split'`` for the ``str.split`` tokenizer (has no additional args) or ``'spacy-en'`` for the spacy english tokenizer. If the data Field should not be tokenized, this argument should be None. Defaults to ``'split'``.
+  - :obj:`numericalizer` (Vocab | callable | optional): The method to convert tokens to indices. Traditionally, this argument should be a Vocab instance but users can define their own numericalization function and pass it as an argument. Custom numericalization can be used when you want to ensure that a certain token has a certain index for consistency with other work. If ``None``, numericalization won't be attempted.
   - :obj:`is_target` (bool): Whether this data Field is a target field (will be used as a label during prediction). This flag serves merely as a convenience, to separate batches into input and target data during iteration.
   - :obj:`fixed_length`: (int, optional): Usually, text batches are padded to the maximum length of an instance in batch (default behavior). However, if you are using a fixed-size model (e.g. CNN without pooling) you can use this argument to force each instance of this Field to be of ``fixed_length``. Longer instances will be right-truncated, shorter instances will be padded.
 

@@ -1,59 +1,60 @@
-podium.preproc package
+Preprocessing tools
 =======================
 
-Submodules
-----------
+.. _predefined-hooks:
 
-podium.preproc.stop\_words module
-----------------------------------
-
-.. automodule:: podium.preproc.stop_words
-   :members:
-   :no-undoc-members:
-   :show-inheritance:
-
-podium.preproc.hooks module
-----------------------------------
+Hooks
+------
 
 .. automodule:: podium.preproc.hooks
    :members:
    :no-undoc-members:
    :show-inheritance:
 
-podium.preproc.functional module
-----------------------------------
+
+Stop words
+----------
+
+.. automodule:: podium.preproc.stop_words
+   :members:
+   :no-undoc-members:
+   :show-inheritance:
+
+
+Functional
+----------
 
 .. automodule:: podium.preproc.functional
    :members:
    :no-undoc-members:
    :show-inheritance:
 
-podium.preproc.sentencizers module
-----------------------------------
+Sentencizers
+------------
 
 .. automodule:: podium.preproc.sentencizers
    :members:
    :no-undoc-members:
    :show-inheritance:
 
-podium.preproc.tokenizers module
----------------------------------
+Tokenizers
+-----------
 
 .. automodule:: podium.preproc.tokenizers
    :members:
    :no-undoc-members:
    :show-inheritance:
 
-podium.preproc.util module
----------------------------
+Utilities
+----------
 
 .. automodule:: podium.preproc.util
    :members:
    :no-undoc-members:
    :show-inheritance:
 
-podium.preproc.yake module
----------------------------
+Yet another keyword extractor
+-----------------------------
 
 .. automodule:: podium.preproc.yake
    :members:

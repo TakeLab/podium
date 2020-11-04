@@ -1,4 +1,4 @@
-Documentation chapters to be written
+Documentation chapters in progress
 ====================================
 
 Handling datasets with missing data

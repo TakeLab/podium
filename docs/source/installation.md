@@ -1,11 +1,8 @@
 # Installation
 
-## Prerequisites
-
 We recommend you use a virtual environment:
-- [```conda```](https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/environments.html#virtual-environments)
-- [```virtualenv```](https://virtualenv.pypa.io/en/latest/installation/)
-
+- [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/environments.html#virtual-environments)
+- [virtualenv](https://virtualenv.pypa.io/en/latest/installation/)
 
 ## Install via Pip
 Coming soon!
