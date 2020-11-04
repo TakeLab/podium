@@ -30,9 +30,9 @@ jobs:
           python setup.py sdist bdist_wheel
           twine upload dist/* -r pypi
       
-       - name: Upload dist
-         uses: actions/upload-artifact@v2
-         with:
+      - name: Upload dist
+        uses: actions/upload-artifact@v2
+        with:
           name: dist
           path: dist
  
