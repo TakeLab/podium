@@ -5,7 +5,6 @@ import numpy as np
 
 
 class NumericalizerABC(ABC):
-
     def __init__(self, eager=True):
         self._finalized = False
         self._eager = eager

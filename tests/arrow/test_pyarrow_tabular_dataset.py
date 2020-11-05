@@ -150,8 +150,9 @@ def test_finalize_fields(data, fields, mocker):
 
     dataset.finalize_fields()
 
-    fields_to_finalize = [f for f in fields
-                          if not f.eager and f._numericalizer is not None]
+    fields_to_finalize = [
+        f for f in fields if not f.eager and f._numericalizer is not None
+    ]
     for f in fields_to_finalize:
         # during finalization, only non-eager field's dict should be updated
         assert f.update_numericalizer.call_count == (len(data) if (not f.eager) else 0)

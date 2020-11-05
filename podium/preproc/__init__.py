@@ -9,10 +9,11 @@ from .hooks import (
     TextCleanUp,
 )
 from .lemmatizer import CroatianLemmatizer
+from .numericalizer_abc import NumericalizerABC
 from .sentencizers import SpacySentencizer
 from .stemmer import CroatianStemmer
 from .tokenizers import get_tokenizer
-from .numericalizer_abc import NumericalizerABC
+
 
 __all__ = [
     "CroatianLemmatizer",
@@ -26,5 +27,5 @@ __all__ = [
     "CroatianStemmer",
     "SpacySentencizer",
     "get_tokenizer",
-    "NumericalizerABC"
+    "NumericalizerABC",
 ]

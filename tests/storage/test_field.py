@@ -5,6 +5,7 @@ import dill
 import numpy as np
 import pytest
 
+from podium.preproc import NumericalizerABC
 from podium.storage import (
     Field,
     LabelField,
@@ -13,7 +14,7 @@ from podium.storage import (
     SpecialVocabSymbols,
     Vocab,
 )
-from podium.preproc import NumericalizerABC
+
 
 ONE_TO_FIVE = [1, 2, 3, 4, 5]
 
