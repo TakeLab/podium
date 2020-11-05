@@ -13,7 +13,7 @@ from podium.storage import (
     SpecialVocabSymbols,
     Vocab,
 )
-
+from podium.preproc import NumericalizerABC
 
 ONE_TO_FIVE = [1, 2, 3, 4, 5]
 
@@ -36,16 +36,18 @@ class MockSpacy:
         return MockTokenizer()
 
 
-class MockVocab(Mock):
+class MockVocab(Mock, NumericalizerABC):
     def __init__(self, eager=True):
-        super(MockVocab, self).__init__(spec=Vocab)
+        Mock.__init__(self, spec=Vocab)
+        NumericalizerABC.__init__(self, eager)
         self.values = []
-        self.finalized = False
         self.numericalized = False
-        self.eager = eager
 
     def padding_index(self):
         return PAD_NUM
+
+    def update(self, tokens):
+        self.__iadd__(tokens)
 
     def __add__(self, values):
         if type(values) == type(self):
@@ -58,11 +60,9 @@ class MockVocab(Mock):
     def __iadd__(self, other):
         return self.__add__(other)
 
-    def finalize(self):
+    def _finalize(self):
         if self.finalized:
             raise Exception
-        else:
-            self.finalized = True
 
     def numericalize(self, data):
         self.numericalized = True

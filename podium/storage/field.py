@@ -9,7 +9,7 @@ import numpy as np
 
 from podium.preproc.tokenizers import get_tokenizer
 from podium.storage.vocab import Vocab
-
+from podium.preproc import NumericalizerABC
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ PretokHook = Callable[[Any], Any]
 PosttokHook = Callable[[Any, List[str]], Tuple[Any, List[str]]]
 Tokenizer = Callable[[Any], List[str]]
 TokenizerArg = Optional[Union[str, Tokenizer]]
-Numericalizer = Callable[[str], Union[int, float]]
+NumericalizerCallable = Callable[[str], Union[int, float]]
 
 
 class PretokenizationPipeline:
@@ -74,10 +74,10 @@ class MultioutputField:
     for posttokenization processing (posttokenization hooks and vocab updating)."""
 
     def __init__(
-        self,
-        output_fields: List["Field"],
-        tokenizer: TokenizerArg = "split",
-        pretokenize_hooks: Iterable[PretokHook] = [],
+            self,
+            output_fields: List["Field"],
+            tokenizer: TokenizerArg = "split",
+            pretokenize_hooks: Iterable[PretokHook] = [],
     ):
         """Field that does pretokenization and tokenization once and passes it to its
         output fields. Output fields are any type of field. The output fields are used
@@ -210,25 +210,36 @@ class MultioutputField:
         self._pretokenization_pipeline.clear()
 
 
+class NumericalizerCallableWrapper(NumericalizerABC):
+
+    def __init__(self, numericalizer: NumericalizerCallable):
+        super().__init__(eager=True)
+        self._wrapped_numericalizer = numericalizer
+
+    def numericalize(self, tokens: List[str]) -> np.ndarray:
+        numericalized = [self._wrapped_numericalizer(tok) for tok in tokens]
+        return np.array(numericalized)
+
+
 class Field:
     """Holds the preprocessing and numericalization logic for a single
     field of a dataset.
     """
 
     def __init__(
-        self,
-        name: str,
-        tokenizer: TokenizerArg = "split",
-        keep_raw: bool = False,
-        numericalizer: Optional[Union[Vocab, Numericalizer]] = None,
-        is_target: bool = False,
-        fixed_length: Optional[int] = None,
-        allow_missing_data: bool = False,
-        disable_batch_matrix: bool = False,
-        padding_token: Union[int, float] = -999,
-        missing_data_token: Union[int, float] = -1,
-        pretokenize_hooks: Iterable[PretokHook] = [],
-        posttokenize_hooks: Iterable[PosttokHook] = [],
+            self,
+            name: str,
+            tokenizer: TokenizerArg = "split",
+            keep_raw: bool = False,
+            numericalizer: Optional[Union[NumericalizerABC, NumericalizerCallable]] = None,
+            is_target: bool = False,
+            fixed_length: Optional[int] = None,
+            allow_missing_data: bool = False,
+            disable_batch_matrix: bool = False,
+            padding_token: Union[int, float] = -999,
+            missing_data_token: Union[int, float] = -1,
+            pretokenize_hooks: Iterable[PretokHook] = [],
+            posttokenize_hooks: Iterable[PosttokHook] = [],
     ):
         """Create a Field from arguments.
 
@@ -328,12 +339,13 @@ class Field:
         else:
             self._tokenizer = get_tokenizer(tokenizer)
 
-        if isinstance(numericalizer, Vocab):
-            self._vocab = numericalizer
-            self._numericalizer = self.vocab.__getitem__
-        else:
-            self._vocab = None
+        if isinstance(numericalizer, NumericalizerABC) or numericalizer is None:
             self._numericalizer = numericalizer
+        elif isinstance(numericalizer, Callable):
+            self._numericalizer = NumericalizerCallableWrapper(numericalizer)
+        else:
+            # TODO raise error
+            pass
 
         self._keep_raw = keep_raw
 
@@ -398,12 +410,16 @@ class Field:
             whether this field has a Vocab and whether that Vocab is
             marked as eager
         """
-        return self.vocab is not None and self.vocab.eager
+        # Pretend to be eager if no numericalizer provided
+        return self._numericalizer is None or self._numericalizer.eager
 
     @property
     def vocab(self):
         """"""
-        return self._vocab
+        if not self.use_vocab:
+            # TODO raise error
+            raise TypeError()
+        return self._numericalizer
 
     @property
     def use_vocab(self):
@@ -415,7 +431,7 @@ class Field:
             Whether the field uses a vocab or not.
         """
 
-        return self.vocab is not None
+        return isinstance(self._numericalizer, Vocab)
 
     @property
     def is_target(self):
@@ -505,7 +521,7 @@ class Field:
         return self._pretokenize_pipeline(data)
 
     def _run_posttokenization_hooks(
-        self, data: Any, tokens: List[str]
+            self, data: Any, tokens: List[str]
     ) -> Tuple[Any, List[str]]:
         """Runs posttokenization hooks on tokenized data.
 
@@ -527,7 +543,7 @@ class Field:
         return self._posttokenize_pipeline(data, tokens)
 
     def preprocess(
-        self, data: Any
+            self, data: Any
     ) -> Iterable[Tuple[str, Tuple[Any, Optional[List[str]]]]]:
         """Preprocesses raw data, tokenizing it if required,
         updating the vocab if the vocab is eager and preserving the raw data
@@ -569,7 +585,7 @@ class Field:
 
         return (self._process_tokens(processed_raw, tokenized),)
 
-    def update_vocab(self, tokenized: List[str]):
+    def update_numericalizer(self, tokenized: Union[str, List[str]]) -> None:
         """Updates the vocab with a data point in its tokenized form.
         If the field does not do tokenization,
 
@@ -580,11 +596,11 @@ class Field:
             updated with.
         """
 
-        if not self.use_vocab:
+        if self._numericalizer is None:
             return  # TODO throw Error?
 
         data = tokenized if isinstance(tokenized, (list, tuple)) else (tokenized,)
-        self._vocab += data
+        self._numericalizer.update(data)
 
     @property
     def finalized(self) -> bool:
@@ -597,16 +613,16 @@ class Field:
             Whether the field's Vocab vas finalized. If the field has no
             vocab, returns True.
         """
-        return True if self.vocab is None else self.vocab.finalized
+        return self._numericalizer is None or self._numericalizer.finalized
 
     def finalize(self):
         """Signals that this field's vocab can be built."""
 
-        if self.use_vocab:
-            self.vocab.finalize()
+        if self._numericalizer is not None:
+            self._numericalizer.finalize()
 
     def _process_tokens(
-        self, raw: Any, tokens: Union[Any, List[str]]
+            self, raw: Any, tokens: Union[Any, List[str]]
     ) -> Tuple[str, Tuple[Any, Optional[Union[Any, List[str]]]]]:
         """Runs posttokenization processing on the provided data and tokens and updates
         the vocab if needed. Used by Multioutput field.
@@ -629,8 +645,9 @@ class Field:
         raw, tokenized = self._run_posttokenization_hooks(raw, tokens)
         raw = raw if self._keep_raw else None
 
-        if self.eager and not self.vocab.finalized:
-            self.update_vocab(tokenized)
+        if self.eager and self._numericalizer is not None \
+                and not self._numericalizer.finalized:
+            self.update_numericalizer(tokenized)
         return self.name, (raw, tokenized)
 
     def get_default_value(self) -> Union[int, float]:
@@ -653,7 +670,7 @@ class Field:
         return self._missing_data_token
 
     def numericalize(
-        self, data: Tuple[Optional[Any], Optional[Union[Any, List[str]]]]
+            self, data: Tuple[Optional[Any], Optional[Union[Any, List[str]]]]
     ) -> Optional[Union[Any, np.ndarray]]:
         """Numericalize the already preprocessed data point based either on
         the vocab that was previously built, or on a custom numericalization
@@ -692,18 +709,15 @@ class Field:
 
         tokens = tokenized if isinstance(tokenized, (list, tuple)) else [tokenized]
 
-        if self.use_vocab:
-            return self.vocab.numericalize(tokens)
-        else:
-            return np.array([self._numericalizer(t) for t in tokens])
+        return self._numericalizer.numericalize(tokens)
 
     def _pad_to_length(
-        self,
-        array: np.ndarray,
-        length: int,
-        custom_pad_symbol: Optional[Union[int, float]] = None,
-        pad_left: bool = False,
-        truncate_left: bool = False,
+            self,
+            array: np.ndarray,
+            length: int,
+            custom_pad_symbol: Optional[Union[int, float]] = None,
+            pad_left: bool = False,
+            truncate_left: bool = False,
     ):
         """Either pads the given row with pad symbols, or truncates the row
         to be of given length. The vocab provides the pad symbol for all
@@ -748,7 +762,7 @@ class Field:
             # truncating
 
             if truncate_left:
-                array = array[len(array) - length :]
+                array = array[len(array) - length:]
             else:
                 array = array[:length]
 
@@ -779,7 +793,7 @@ class Field:
         return array
 
     def get_numericalization_for_example(
-        self, example, cache: bool = True
+            self, example, cache: bool = True
     ) -> Optional[Union[Any, np.ndarray]]:
         """Returns the numericalized data of this field for the provided example.
         The numericalized data is generated and cached in the example if 'cache' is true
@@ -865,13 +879,13 @@ class LabelField(Field):
     """
 
     def __init__(
-        self,
-        name: str,
-        numericalizer: Numericalizer = None,
-        allow_missing_data: bool = False,
-        is_target: bool = True,
-        missing_data_token: Union[int, float] = -1,
-        pretokenize_hooks: Iterable[PretokHook] = [],
+            self,
+            name: str,
+            numericalizer: NumericalizerCallable = None,
+            allow_missing_data: bool = False,
+            is_target: bool = True,
+            missing_data_token: Union[int, float] = -1,
+            pretokenize_hooks: Iterable[PretokHook] = [],
     ):
         """
         Field subclass used when no tokenization is required. For example, with a field
@@ -941,16 +955,16 @@ class MultilabelField(Field):
     """
 
     def __init__(
-        self,
-        name: str,
-        tokenizer: TokenizerArg = None,
-        numericalizer: Numericalizer = None,
-        num_of_classes: Optional[int] = None,
-        is_target: bool = True,
-        allow_missing_data: bool = False,
-        missing_data_token: Union[int, float] = -1,
-        pretokenize_hooks: Iterable[PretokHook] = [],
-        posttokenize_hooks: Iterable[PosttokHook] = [],
+            self,
+            name: str,
+            tokenizer: TokenizerArg = None,
+            numericalizer: NumericalizerCallable = None,
+            num_of_classes: Optional[int] = None,
+            is_target: bool = True,
+            allow_missing_data: bool = False,
+            missing_data_token: Union[int, float] = -1,
+            pretokenize_hooks: Iterable[PretokHook] = [],
+            posttokenize_hooks: Iterable[PosttokHook] = [],
     ):
         """Create a MultilabelField from arguments.
 
@@ -1055,7 +1069,7 @@ class MultilabelField(Field):
             )
 
     def numericalize(
-        self, data: Tuple[Optional[Any], Optional[Union[Any, List[str]]]]
+            self, data: Tuple[Optional[Any], Optional[Union[Any, List[str]]]]
     ) -> np.ndarray:
         """Numericalize the already preprocessed data point based either on
         the vocab that was previously built, or on a custom numericalization

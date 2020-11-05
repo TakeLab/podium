@@ -78,7 +78,7 @@ class MockField:
 
         return ((self.name, (raw, tokenized)),)
 
-    def update_vocab(self, tokenized):
+    def update_numericalizer(self, tokenized):
         assert not self.eager
         self.updated_count += 1
 

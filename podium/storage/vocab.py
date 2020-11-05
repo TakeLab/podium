@@ -3,10 +3,11 @@ import logging
 from collections import Counter
 from enum import Enum
 from itertools import chain
-from typing import Iterable, Union
+from typing import Iterable, Union, List
 
 import numpy as np
 
+from podium.preproc import NumericalizerABC
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -63,7 +64,7 @@ class SpecialVocabSymbols(Enum):
     PAD = "<pad>"
 
 
-class Vocab:
+class Vocab(NumericalizerABC):
     """Class for storing vocabulary. It supports frequency counting and size
     limiting.
 
@@ -100,6 +101,7 @@ class Vocab:
             if true word frequencies will be saved for later use on
             the finalization
         """
+        super(Vocab, self).__init__(eager)
         self._freqs = Counter()
         self._keep_freqs = keep_freqs
         self._min_freq = min_freq
@@ -115,8 +117,6 @@ class Vocab:
         self.stoi.update({k: v for v, k in enumerate(self.itos)})
 
         self._max_size = max_size
-        self.eager = eager
-        self.finalized = False  # flag to know if we're ready to numericalize
         _LOGGER.debug("Vocabulary has been created and initialized.")
 
     @staticmethod
@@ -197,6 +197,9 @@ class Vocab:
         if SpecialVocabSymbols.PAD not in self.stoi:
             raise ValueError("Padding symbol is not in the vocabulary.")
         return self.stoi[SpecialVocabSymbols.PAD]
+
+    def update(self, tokens: List[str]) -> None:
+        self.__iadd__(tokens)
 
     def __iadd__(self, values: Union["Vocab", Iterable]):
         """Adds additional values or another Vocab to this Vocab.
@@ -347,7 +350,7 @@ class Vocab:
                 new_vocab.finalize()
             return new_vocab
 
-    def finalize(self):
+    def _finalize(self):
         """Method finalizes vocab building. It also releases frequency counter
         if user set not to keep them.
 
@@ -379,7 +382,6 @@ class Vocab:
 
         if not self._keep_freqs:
             self._freqs = None  # release memory
-        self.finalized = True
         _LOGGER.debug("Vocabulary is finalized.")
 
     def numericalize(self, data):
