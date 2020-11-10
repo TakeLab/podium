@@ -1,6 +1,7 @@
 """Package contains datasets"""
 
 from .dataset import Dataset, rationed_split, stratified_split
+from .dataset_abc import DatasetABC
 from .hierarhical_dataset import HierarchicalDataset
 from .impl.catacx_dataset import CatacxDataset
 from .impl.conllu_dataset import CoNLLUDataset
@@ -21,6 +22,7 @@ from .tabular_dataset import TabularDataset
 
 __all__ = [
     "Dataset",
+    "DatasetABC",
     "TabularDataset",
     "HierarchicalDataset",
     "stratified_split",

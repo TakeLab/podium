@@ -3,17 +3,16 @@ import copy
 import itertools
 import logging
 import random
-from abc import ABC
-from typing import Any, Callable
+from typing import Callable, Iterable, List, Union
 
+from podium.datasets.dataset_abc import DatasetABC
 from podium.storage.example_factory import Example
-from podium.storage.field import unpack_fields
 
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class Dataset(ABC):
+class Dataset(DatasetABC):
     """A general purpose container for datasets.
     A dataset is a shallow wrapper for a list of `Example` classes which
     store the instance data as well as the corresponding `Field` classes,
@@ -42,16 +41,13 @@ class Dataset(ABC):
             together examples with similar lengths to minimize padding.
         """
 
-        self.examples = examples
-
-        # we don't need the column -> field mappings with nested tuples
-        # and None values, we just need a flat list of fields
-        self.fields = unpack_fields(fields)
-
-        self.field_dict = {field.name: field for field in self.fields}
+        self._examples = examples
         self.sort_key = sort_key
+        super().__init__(fields)
 
-    def __getitem__(self, i):
+    def __getitem__(
+        self, i: Union[int, Iterable[int], slice]
+    ) -> Union["DatasetABC", Example]:
         """Returns an example or a new dataset containing the indexed examples.
 
         If indexed with an int, only the example at that position will be returned.
@@ -86,7 +82,7 @@ class Dataset(ABC):
 
         """
 
-        return self.get(i, deep_copy=False)
+        return self.get(i)
 
     def get(self, i, deep_copy=False):
         """Returns an example or a new dataset containing the indexed examples.
@@ -127,7 +123,7 @@ class Dataset(ABC):
         -------
         single example or Dataset
             If i is an int, a single example will be returned.
-            If i is a slice or iterable, a copy of this dataset containing
+            If i is a slice or iterable, a dataset containing
             only the indexed examples will be returned.
 
         """
@@ -144,7 +140,7 @@ class Dataset(ABC):
             indexed_examples = [self.examples[index] for index in i]
             return self._dataset_copy_with_examples(indexed_examples, deep_copy=deep_copy)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns the number of examples in the dataset.
 
         Returns
@@ -152,7 +148,10 @@ class Dataset(ABC):
         int
             The number of examples in the dataset.
         """
-        return len(self.examples)
+        return len(self._examples)
+
+    def _get_examples(self) -> List[Example]:
+        return self._examples
 
     def __iter__(self):
         """Iterates over all examples in the dataset in order.
@@ -162,39 +161,7 @@ class Dataset(ABC):
         example
             Yields examples in the dataset.
         """
-        for x in self.examples:
-            yield x
-
-    def __getattr__(self, attr):
-        """Returns an Iterator iterating over values of the field with the
-        given name for every example in the dataset.
-
-        Parameters
-        ----------
-        attr : str
-            The name of the field whose values are to be returned.
-
-        Returns
-        ------
-            an Iterator iterating over values of the field with the given name
-            for every example in the dataset.
-
-        Raises
-        ------
-        AttributeError
-            If there is no Field with the given name.
-        """
-
-        if attr in self.field_dict:
-
-            def attr_generator(attr):
-                for x in self.examples:
-                    yield x[attr]
-
-            return attr_generator(attr)
-
-        else:
-            raise AttributeError(f"Dataset has no field {attr}.")
+        yield from self._examples
 
     def filter(self, predicate, inplace=False):
         """Method filters examples with given predicate.
@@ -207,51 +174,18 @@ class Dataset(ABC):
         inplace : bool, default False
             if True, do operation inplace and return None
         """
+        filtered_examples = [ex for ex in self.examples if predicate(ex)]
+
         if inplace:
-            self.examples = [example for example in self.examples if predicate(example)]
+            self._examples = filtered_examples
             return
+        else:
+            return Dataset(
+                examples=filtered_examples, fields=self.fields, sort_key=self.sort_key
+            )
 
-        filtered_examples = [copy.deepcopy(ex) for ex in self.examples if predicate(ex)]
-        fields_copy = copy.deepcopy(self.fields)
-
-        return Dataset(
-            examples=filtered_examples, fields=fields_copy, sort_key=self.sort_key
-        )
-
-    def finalize_fields(self, *args):
-        """
-        Builds vocabularies of all the non-eager fields in the dataset,
-        from the Dataset objects given as \\*args and then finalizes all the
-        fields.
-
-        Parameters
-        ----------
-        \\*args
-            A variable number of Dataset objects from which to build the
-            vocabularies for non-eager fields. If none provided, the
-            vocabularies are built from this Dataset (self).
-        """
-
-        # if there are non-eager fields, we need to build their vocabularies
-        fields_to_build = [f for f in self.fields if not f.eager and f.use_vocab]
-        if fields_to_build:
-            # there can be multiple datasets we want to iterate over
-            data_sources = [arg for arg in args if isinstance(arg, Dataset)]
-
-            # use self as a data source if no other given
-            if not data_sources:
-                data_sources.append(self)
-
-            # for each example in each dataset,
-            # update _all_ non-eager fields
-            for dataset in data_sources:
-                for example in dataset:
-                    for field in fields_to_build:
-                        _, tokenized = example[field.name]
-                        field.update_vocab(tokenized)
-
-        for field in self.fields:
-            field.finalize()
+    def filtered(self, predicate: Callable[[Example], bool]) -> "DatasetABC":
+        return self.filter(predicate, inplace=False)
 
     def split(
         self,
@@ -437,37 +371,6 @@ class Dataset(ABC):
             random.seed(random_state)
 
         random.shuffle(self.examples)
-
-    def batch(self):
-        """Creates an input and target batch containing the whole dataset.
-        The format of the batch is the same as the batches returned by the
-
-        Returns
-        -------
-        input_batch, target_batch
-                Two objects containing the input and target batches over
-                the whole dataset.
-        """
-        # dicts that will be used to create the InputBatch and TargetBatch
-        # objects
-        from podium.datasets import SingleBatchIterator
-
-        return next(iter(SingleBatchIterator(self, shuffle=False)))
-
-    def sorted(self, key: Callable[[Example], Any], reverse=False) -> "Dataset":
-        def index_key(i):
-            return key(self[i])
-
-        indices = list(range(len(self)))
-        indices.sort(key=index_key, reverse=reverse)
-        return self[indices]
-
-    def as_dataset(self):
-        return self
-
-    def __repr__(self):
-        fields = [field.name for field in self.fields]
-        return f"{type(self).__name__}[Size: {len(self.examples)}, Fields: {fields}]"
 
 
 def check_split_ratio(split_ratio):
