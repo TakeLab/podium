@@ -218,13 +218,11 @@ class DatasetABC(ABC):
         ...
 
     @overload
-    def __getitem__(self, i: Union[Iterable[int], slice]) -> "DatasetABC":
+    def __getitem__(self, i: Iterable[int]) -> "DatasetABC":
         ...
 
     @abstractmethod
-    def __getitem__(
-        self, i: Union[int, Iterable[int], slice]
-    ) -> Union["DatasetABC", Example]:
+    def __getitem__(self, i: slice) -> "DatasetABC":
         """Returns an example or a new dataset containing the indexed examples.
 
         If indexed with an int, only the example at that position will be returned.
