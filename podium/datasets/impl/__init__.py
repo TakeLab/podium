@@ -10,18 +10,3 @@ from .iris_dataset import IrisDataset
 from .pauza_dataset import PauzaHRDataset
 from .snli_dataset import SNLIDataset, SNLISimple
 from .sst_sentiment_dataset import SST
-
-
-__all__ = [
-    "IMDB",
-    "CatacxDataset",
-    "CoNLLUDataset",
-    "CornellMovieDialogsConversationalDataset",
-    "CroatianNERDataset",
-    "EuroVocDataset",
-    "PauzaHRDataset",
-    "SNLIDataset",
-    "SNLISimple",
-    "SST",
-    "IrisDataset",
-]
