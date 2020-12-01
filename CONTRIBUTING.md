@@ -46,9 +46,9 @@ Follow the steps below to submit a PR to Podium:
    make style 
    ```
 5. Run tests:
-   ```
-   python -m pytest -sv tests
    ```bash
+   python -m pytest -sv tests
+   ```
 6. If everything goes well, commit your changes and push them to the forked repository:
    ```bash
    git add .
