@@ -50,7 +50,7 @@ class Special(str):
 
 
 class BOS(Special):
-    def __init__(cls, token='<BOS>'):
+    def __new__(cls, token='<BOS>'):
         return super(BOS, cls).__new__(cls, token)
 
     def apply(self, sequence):
