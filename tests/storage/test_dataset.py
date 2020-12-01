@@ -92,19 +92,23 @@ class MockField:
         return self.name
 
 
-class MockExample:
+class MockExample(dict):
     def __init__(self, fields, data):
         self.accessed = False
 
         for f, d in zip(fields, data):
             for name, data in f.preprocess(d):
-                self.__setattr__(name, data)
+                self[name] = data
 
-    def __getattribute__(self, item):
-        if item not in {"accessed", "__setattr__"}:
-            self.accessed = True
+    def __getitem__(self, item):
+        self.accessed = True
+        return super().__getitem__(item)
 
-        return super().__getattribute__(item)
+    def __getattr__(self, item):
+        if item in self:
+            return self[item]
+
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{item}'")
 
 
 def test_finalize_fields(data, field_list):
@@ -177,26 +181,26 @@ def test_finalize_fields_after_split(data, field_list):
 def test_filter_dataset_inplace(data, field_list):
     dataset = create_dataset(data, field_list)
     assert len(dataset) == 12
-    dataset.filter(lambda ex: ex.label[0] > 7, inplace=True)
+    dataset.filter(lambda ex: ex["label"][0] > 7, inplace=True)
     assert len(dataset) == 5
     for ex in dataset:
-        assert ex.label[0] > 7
+        assert ex["label"][0] > 7
 
 
 def test_filter_dataset_copy(data, field_list):
     dataset = create_dataset(data, field_list)
     assert len(dataset) == 12
-    filtered_dataset = dataset.filter(lambda ex: ex.label[0] > 7, inplace=False)
+    filtered_dataset = dataset.filter(lambda ex: ex["label"][0] > 7, inplace=False)
     assert len(dataset) == 12
     assert len(filtered_dataset) == 5
     for ex in filtered_dataset:
-        assert ex.label[0] > 7
+        assert ex["label"][0] > 7
 
 
 def test_filtered_inplace_dataset_pickling(data, field_list, tmpdir):
     dataset = create_dataset(data, field_list)
     assert len(dataset) == 12
-    dataset.filter(lambda ex: ex.label[0] > 7, inplace=True)
+    dataset.filter(lambda ex: ex["label"][0] > 7, inplace=True)
     assert len(dataset) == 5
 
     dataset_file = os.path.join(tmpdir, "dataset.pkl")
@@ -208,7 +212,7 @@ def test_filtered_inplace_dataset_pickling(data, field_list, tmpdir):
         loaded_dataset = dill.load(fdata)
         assert len(loaded_dataset) == 5
         for ex in dataset:
-            assert ex.label[0] > 7
+            assert ex["label"][0] > 7
 
 
 @pytest.mark.parametrize(
@@ -295,12 +299,12 @@ def test_split_train_val_test_ratio(
 def test_split_non_overlap(split_ratio, data, field_list):
     dataset = create_dataset(data, field_list)
 
-    label_set = set(map(lambda ex: ex.label[0], dataset.examples))
+    label_set = set(map(lambda ex: ex["label"][0], dataset.examples))
     train_d, val_d, test_d = dataset.split(split_ratio)
 
-    train_label_set = set(map(lambda ex: ex.label[0], train_d.examples))
-    val_label_set = set(map(lambda ex: ex.label[0], val_d.examples))
-    test_label_set = set(map(lambda ex: ex.label[0], test_d.examples))
+    train_label_set = set(map(lambda ex: ex["label"][0], train_d.examples))
+    val_label_set = set(map(lambda ex: ex["label"][0], val_d.examples))
+    test_label_set = set(map(lambda ex: ex["label"][0], test_d.examples))
 
     assert not train_label_set.intersection(val_label_set)
     assert not train_label_set.intersection(test_label_set)
@@ -342,11 +346,11 @@ def test_split_stratified_ok(data_for_stratified, field_list):
     assert len(train_d) == len(val_d)
     assert len(train_d) + len(val_d) + len(test_d) == len(dataset)
 
-    train_label_counter = Counter(ex.label[0] for ex in train_d.examples)
-    val_label_counter = Counter(ex.label[0] for ex in val_d.examples)
-    test_label_counter = Counter(ex.label[0] for ex in test_d.examples)
+    train_label_counter = Counter(ex["label"][0] for ex in train_d.examples)
+    val_label_counter = Counter(ex["label"][0] for ex in val_d.examples)
+    test_label_counter = Counter(ex["label"][0] for ex in test_d.examples)
 
-    all_labels = set(ex.label[0] for ex in dataset.examples)
+    all_labels = set(ex["label"][0] for ex in dataset.examples)
 
     # stratified split preserves the percentage of each class in every split
     # if the splits are the same (1/3), then the number of examples with
@@ -451,7 +455,7 @@ def test_tabular_dataset_iterate_over_dataset(
     for example, val in zip(dataset, tabular_data[field_name]):
         expected_data = val, [val]
 
-        assert getattr(example, field_name) == expected_data
+        assert example[field_name] == expected_data
 
 
 @pytest.mark.parametrize("file_format, use_dict", FORMAT_USE_DICT_COMBINATIONS)
@@ -466,7 +470,7 @@ def test_tabular_dataset_iterate_over_examples(
     for example, val in zip(dataset.examples, tabular_data[field_name]):
         expected_data = val, [val]
 
-        assert getattr(example, field_name) == expected_data
+        assert example[field_name] == expected_data
 
 
 @pytest.mark.parametrize("file_format, use_dict", FORMAT_USE_DICT_COMBINATIONS)
@@ -504,7 +508,7 @@ def test_tabular_dataset_get_example_by_index(
     val = tabular_data[field_name][index_of_example]
     expected_data = val, [val]
 
-    assert getattr(dataset[index_of_example], field_name) == expected_data
+    assert dataset[index_of_example][field_name] == expected_data
 
 
 @pytest.mark.parametrize("file_format, use_dict", FORMAT_USE_DICT_COMBINATIONS)
@@ -536,7 +540,7 @@ def test_dataset_slicing(data, field_list):
         return x[0]
 
     def get_raw(example):
-        return example.text[0]
+        return example["text"][0]
 
     dataset_0_4 = dataset[:4]
     assert list(map(get_raw, dataset_0_4)) == list(map(fst, data[0:4]))
@@ -563,7 +567,7 @@ def test_dataset_multiindexing(data, field_list):
     dataset = create_dataset(data, field_list)
 
     def get_raw(example):
-        return example.text[0]
+        return example["text"][0]
 
     def test_indexing(indexes):
         true_data = [data[i][0] for i in indexes]
@@ -598,8 +602,8 @@ def test_dataset_deep_copy(data, field_list):
 
     for original, copy in zip(original_examples, dataset_deep_copy.examples):
         assert copy is not original
-        assert copy.text == original.text
-        assert copy.label == original.label
+        assert copy["text"] == original["text"]
+        assert copy["label"] == original["label"]
 
     original_example = original_examples[2]
     no_copy_example = original_dataset.get(2, deep_copy=False)
@@ -609,15 +613,12 @@ def test_dataset_deep_copy(data, field_list):
     assert no_copy_example is original_example
     assert indexed_example is original_example
     assert deep_copied_example is not original_example
-    assert deep_copied_example.text == original_example.text
-    assert deep_copied_example.label == original_example.label
+    assert deep_copied_example["text"] == original_example["text"]
+    assert deep_copied_example["label"] == original_example["label"]
 
 
 def test_dataset_multiindexing_pickling(data, field_list):
     dataset = create_dataset(data, field_list)
-
-    def example_equals(a, b):
-        return a.text == b.text and a.label == b.label
 
     indexed_dataset = dataset[0, 2, 3]
     with tempfile.TemporaryFile() as file:
@@ -627,7 +628,7 @@ def test_dataset_multiindexing_pickling(data, field_list):
 
     assert isinstance(loaded_dataset, Dataset)
     assert len(indexed_dataset) == len(loaded_dataset)
-    assert all(example_equals(a, b) for a, b in zip(indexed_dataset, loaded_dataset))
+    assert all(a == b for a, b in zip(indexed_dataset, loaded_dataset))
 
 
 @pytest.fixture
@@ -745,10 +746,6 @@ def test_eager_tokenization():
     dataset_lazy = create_dataset()
     dataset_eager = create_dataset()
 
-    for example_eager in dataset_eager:
-        assert example_eager.text_ is None
-        assert example_eager.source_ is None
-
     dataset_eager.finalize_fields()
     # Numericalize eagerly
     dataset_eager.numericalize_examples()
@@ -759,11 +756,11 @@ def test_eager_tokenization():
         pass
 
     for example_eager, example_lazy in zip(dataset_eager, dataset_lazy):
-        assert example_eager.text_ is not None
-        assert all(example_eager.text_ == example_lazy.text_)
+        assert example_eager["text_"] is not None
+        assert all(example_eager["text_"] == example_lazy.text_)
 
-        assert example_eager.source_ is not None
-        assert all(example_eager.source_ == example_lazy.source_)
+        assert example_eager["source_"] is not None
+        assert all(example_eager["source_"] == example_lazy.source_)
 
 
 @pytest.fixture
@@ -792,23 +789,23 @@ def hierarchical_dataset(hierarchical_dataset_fields, hierarchical_dataset_parse
 def test_create_hierarchical_dataset_from_json(hierarchical_dataset):
     root_nodes = hierarchical_dataset._root_nodes
 
-    assert root_nodes[0].example.name[0] == "parent1"
-    assert root_nodes[0].example.number[0] == 1
+    assert root_nodes[0].example["name"][0] == "parent1"
+    assert root_nodes[0].example["number"][0] == 1
 
-    assert root_nodes[1].example.name[0] == "parent2"
-    assert root_nodes[1].example.number[0] == 5
+    assert root_nodes[1].example["name"][0] == "parent2"
+    assert root_nodes[1].example["number"][0] == 5
 
-    assert root_nodes[0].children[0].example.name[0] == "c11"
-    assert root_nodes[0].children[0].example.number[0] == 2
+    assert root_nodes[0].children[0].example["name"][0] == "c11"
+    assert root_nodes[0].children[0].example["number"][0] == 2
 
-    assert root_nodes[0].children[0].children[0].example.name[0] == "c111"
-    assert root_nodes[0].children[0].children[0].example.number[0] == 3
+    assert root_nodes[0].children[0].children[0].example["name"][0] == "c111"
+    assert root_nodes[0].children[0].children[0].example["number"][0] == 3
 
-    assert root_nodes[0].children[1].example.name[0] == "c12"
-    assert root_nodes[0].children[1].example.number[0] == 4
+    assert root_nodes[0].children[1].example["name"][0] == "c12"
+    assert root_nodes[0].children[1].example["number"][0] == 4
 
-    assert root_nodes[1].children[0].example.name[0] == "c21"
-    assert root_nodes[1].children[0].example.number[0] == 6
+    assert root_nodes[1].children[0].example["name"][0] == "c21"
+    assert root_nodes[1].children[0].example["number"][0] == 6
 
     assert len(hierarchical_dataset) == 10
     assert hierarchical_dataset.depth == 2
@@ -817,23 +814,23 @@ def test_create_hierarchical_dataset_from_json(hierarchical_dataset):
 def test_flatten_hierarchical_dataset(hierarchical_dataset):
     count = 0
     for index, example in enumerate(hierarchical_dataset.flatten()):
-        assert example.number[0] == index + 1
+        assert example["number"][0] == index + 1
         count += 1
 
     assert count == 10
 
 
 def test_hierarchical_dataset_example_indexing(hierarchical_dataset):
-    assert hierarchical_dataset[0].name[0] == "parent1"
-    assert hierarchical_dataset[1].name[0] == "c11"
-    assert hierarchical_dataset[2].name[0] == "c111"
-    assert hierarchical_dataset[3].name[0] == "c12"
-    assert hierarchical_dataset[4].name[0] == "parent2"
-    assert hierarchical_dataset[5].name[0] == "c21"
-    assert hierarchical_dataset[6].name[0] == "c22"
-    assert hierarchical_dataset[7].name[0] == "c23"
-    assert hierarchical_dataset[8].name[0] == "c231"
-    assert hierarchical_dataset[9].name[0] == "c24"
+    assert hierarchical_dataset[0]["name"][0] == "parent1"
+    assert hierarchical_dataset[1]["name"][0] == "c11"
+    assert hierarchical_dataset[2]["name"][0] == "c111"
+    assert hierarchical_dataset[3]["name"][0] == "c12"
+    assert hierarchical_dataset[4]["name"][0] == "parent2"
+    assert hierarchical_dataset[5]["name"][0] == "c21"
+    assert hierarchical_dataset[6]["name"][0] == "c22"
+    assert hierarchical_dataset[7]["name"][0] == "c23"
+    assert hierarchical_dataset[8]["name"][0] == "c231"
+    assert hierarchical_dataset[9]["name"][0] == "c24"
 
 
 def test_hierarchical_dataset_finalize_fields(hierarchical_dataset_parser):

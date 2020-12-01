@@ -48,11 +48,11 @@ def test_simple_trainer_batch_transform_call(tabular_dataset, mocker, model):  #
 
     mocker.patch(
         "tests.models.test_simple_trainers.mock_feature_transform_fun",
-        return_value=next(iterator.__iter__())[0],
+        return_value=next(iter(iterator))[0],
     )
     mocker.patch(
         "tests.models.test_simple_trainers.mock_label_transform_fun",
-        return_value=next(iterator.__iter__())[1],
+        return_value=next(iter(iterator))[1],
     )
 
     feature_transformer = FeatureTransformer(mock_feature_transform_fun)

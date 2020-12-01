@@ -7,13 +7,12 @@ from functools import partial
 import numpy as np
 import pytest
 
+
+pa = pytest.importorskip("pyarrow")
+
 from podium.arrow import ArrowDataset
 from podium.datasets import Dataset
 from podium.storage import ExampleFactory, Field, Vocab
-
-
-# Try to import pyarrow
-pa = pytest.importorskip("pyarrow")
 
 
 @pytest.fixture
@@ -90,8 +89,8 @@ def test_slicing(index, data, fields, pyarrow_dataset):
 
     assert len(dataset_slice) == len(data_slice)
     for ex, (num, tok) in zip(dataset_slice, data_slice):
-        num_raw, _ = getattr(ex, "number")
-        tok_raw, _ = getattr(ex, "tokens")
+        num_raw, _ = ex["number"]
+        tok_raw, _ = ex["tokens"]
 
         assert num_raw == num
         assert tok_raw == tok
@@ -103,8 +102,8 @@ def test_dump_and_load(pyarrow_dataset):
 
     assert len(loaded_dataset) == len(pyarrow_dataset)
     for ex_original, ex_loaded in zip(pyarrow_dataset, loaded_dataset):
-        assert ex_original.number == ex_loaded.number
-        assert ex_original.tokens == ex_loaded.tokens
+        assert ex_original["number"] == ex_loaded["number"]
+        assert ex_original["tokens"] == ex_loaded["tokens"]
     assert (
         pyarrow_dataset.field_dict["tokens"].vocab.stoi
         == loaded_dataset.field_dict["tokens"].vocab.stoi
@@ -116,8 +115,8 @@ def test_dump_and_load(pyarrow_dataset):
 
     assert len(loaded_dataset_sliced) == len(dataset_sliced)
     for ex_original, ex_loaded in zip(dataset_sliced, loaded_dataset_sliced):
-        assert ex_original.number == ex_loaded.number
-        assert ex_original.tokens == ex_loaded.tokens
+        assert ex_original["number"] == ex_loaded["number"]
+        assert ex_original["tokens"] == ex_loaded["tokens"]
     assert (
         pyarrow_dataset.field_dict["tokens"].vocab.stoi
         == loaded_dataset_sliced.field_dict["tokens"].vocab.stoi
@@ -129,8 +128,8 @@ def test_dump_and_load(pyarrow_dataset):
 
     assert len(loaded_dataset) == len(pyarrow_dataset)
     for ex_original, ex_loaded in zip(pyarrow_dataset, loaded_dataset):
-        assert ex_original.number == ex_loaded.number
-        assert ex_original.tokens == ex_loaded.tokens
+        assert ex_original["number"] == ex_loaded["number"]
+        assert ex_original["tokens"] == ex_loaded["tokens"]
     assert (
         pyarrow_dataset.field_dict["tokens"].vocab.stoi
         == loaded_dataset.field_dict["tokens"].vocab.stoi
@@ -160,11 +159,11 @@ def test_finalize_fields(data, fields, mocker):
         assert f.finalized
 
 
-def test_filter(data, pyarrow_dataset):
+def test_filtered(data, pyarrow_dataset):
     def filter_even(ex):
-        return ex.number[0] % 2 == 0
+        return ex["number"][0] % 2 == 0
 
-    filtered_dataset = pyarrow_dataset.filter(filter_even)
+    filtered_dataset = pyarrow_dataset.filtered(filter_even)
     filtered_data = [d[0] for d in data if d[0] % 2 == 0]
 
     for (raw, _), d in zip(filtered_dataset.number, filtered_data):
@@ -192,16 +191,6 @@ def test_batching(data, pyarrow_dataset):
         assert len(tokenized) == len(batch_row)
         for token, index in zip(tokenized, batch_row):
             assert index == tokens_vocab[token]
-
-
-def test_to_dataset(pyarrow_dataset):
-    dataset = pyarrow_dataset.as_dataset()
-
-    assert isinstance(dataset, Dataset)
-    assert len(dataset) == len(pyarrow_dataset)
-    for arrow_ex, dataset_ex in zip(pyarrow_dataset, dataset):
-        assert arrow_ex.number == dataset_ex.number
-        assert arrow_ex.tokens == dataset_ex.tokens
 
 
 def test_from_dataset(data, fields):
@@ -260,8 +249,8 @@ def test_datatype_definition(data, fields):
     dataset = ArrowDataset.from_examples(fields_null, examples, data_types=datatypes)
 
     for ex, d in zip(dataset, data_null):
-        assert int(ex.number[0]) == d[0]
-        assert ex.tokens[0] == d[1]
+        assert int(ex["number"][0]) == d[0]
+        assert ex["tokens"][0] == d[1]
 
 
 @pytest.mark.skipif(
@@ -287,13 +276,13 @@ def test_sorted(data, pyarrow_dataset):
     dataset_slice = pyarrow_dataset[indices]
 
     sorted_data = sorted(data_slice, key=lambda x: x[0], reverse=False)
-    sorted_dataset = dataset_slice.sorted(key=lambda ex: ex.number[0], reverse=False)
+    sorted_dataset = dataset_slice.sorted(key=lambda ex: ex["number"][0], reverse=False)
     for d, ex in zip(sorted_data, sorted_dataset):
-        assert d[0] == ex.number[0]
+        assert d[0] == ex["number"][0]
 
     reverse_sorted_data = sorted(data_slice, key=lambda x: x[0], reverse=True)
     reverse_sorted_dataset = dataset_slice.sorted(
-        key=lambda ex: ex.number[0], reverse=True
+        key=lambda ex: ex["number"][0], reverse=True
     )
     for d, ex in zip(reverse_sorted_data, reverse_sorted_dataset):
-        assert d[0] == ex.number[0]
+        assert d[0] == ex["number"][0]

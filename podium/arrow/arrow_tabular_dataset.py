@@ -6,9 +6,9 @@ import pickle
 import shutil
 import tempfile
 from collections import defaultdict
-from typing import Any, Callable, Dict, Iterable, Iterator, List, Tuple, Union
+from typing import Any, Dict, Iterable, Iterator, List, Tuple, Union
 
-from podium.datasets import Dataset
+from podium.datasets import Dataset, DatasetABC
 from podium.storage import ExampleFactory, Field, unpack_fields
 from podium.storage.example_factory import Example
 
@@ -36,7 +36,7 @@ def _group(iterable, n):
         yield chunk
 
 
-class ArrowDataset:
+class ArrowDataset(DatasetABC):
     """Podium dataset implementation which uses PyArrow as its data storage backend.
     Examples are stored in a file which is then memory mapped for fast random access.
     """
@@ -78,11 +78,10 @@ class ArrowDataset:
             inferred data type if possible.
         """
         self.cache_path = cache_path
-        self.fields = unpack_fields(fields)
-        self.field_dict = {field.name: field for field in fields}
         self.mmapped_file = mmapped_file
         self.table = table
         self.data_types = data_types
+        super().__init__(fields)
 
     @staticmethod
     def from_dataset(
@@ -401,7 +400,7 @@ class ArrowDataset:
             field_tokenized_column = []
 
             for example in examples:
-                raw, tokenized = getattr(example, field.name)
+                raw, tokenized = example[field.name]
                 field_raw_column.append(raw)
                 field_tokenized_column.append(tokenized)
 
@@ -447,9 +446,9 @@ class ArrowDataset:
         )
 
         for row in zip(*field_value_iterators):
-            example = Example(fieldnames)
+            example = Example()
             for fieldname, values in zip(fieldnames, row):
-                setattr(example, fieldname, values)
+                example[fieldname] = values
             yield example
 
     @staticmethod
@@ -562,36 +561,10 @@ class ArrowDataset:
 
         return cache_path
 
-    @property
-    def examples(self):
+    def _get_examples(self) -> List[Example]:
         """Loads this ArrowDataset into memory and returns a list containing
         the loaded Examples."""
-        return self.as_dataset().examples
-
-    def as_dataset(self) -> Dataset:
-        """Loads this ArrowDataset into memory and returns an Dataset object containing
-        the loaded data.
-
-        Returns
-        -------
-        Dataset
-            Dataset containing all examples of this ArrowDataset.
-        """
-        examples = list(ArrowDataset._recordbatch_to_examples(self.table, self.fields))
-        return Dataset(examples, self.fields)
-
-    def batch(self):
-        """Creates an input and target batch containing the whole dataset.
-        The format of the batch is the same as the batches returned by the Iterator class.
-
-        Returns
-        -------
-        input_batch, target_batch
-                Two objects containing the input and target batches over
-                the whole dataset.
-        """
-        # TODO custom batch method?
-        return self.as_dataset().batch()
+        return list(ArrowDataset._recordbatch_to_examples(self.table, self.fields))
 
     @staticmethod
     def _field_values(
@@ -632,7 +605,9 @@ class ArrowDataset:
 
         return zip(raw_values, tokenized_values)
 
-    def __getitem__(self, item, deep_copy=False) -> Union[Example, "ArrowDataset"]:
+    def __getitem__(
+        self, item: Union[int, Iterable[int], slice]
+    ) -> Union[Example, "ArrowDataset"]:
         """Returns an example or a new ArrowDataset containing the indexed examples.
         If indexed with an int, only the example at that position will be returned.
         If Indexed with a slice or iterable, all examples indexed by the object
@@ -657,9 +632,6 @@ class ArrowDataset:
         ----------
         item: int or slice or iterable
             Index used to index examples.
-
-        deep_copy: bool
-            Not used.
 
         Returns
         -------
@@ -712,69 +684,6 @@ class ArrowDataset:
         """
         yield from self._recordbatch_to_examples(self.table, self.fields)
 
-    def __getattr__(self, fieldname) -> Iterator[Tuple[Any, Any]]:
-        """Iterates over the raw and tokenized values of all examples in this dataset.
-
-        Parameters
-        ----------
-        fieldname: str
-            Name of the field whose values are to be iterated over.
-
-        Returns
-        -------
-        Iterator[Tuple[raw, tokenized]]
-            Iterator over the raw and tokenized values of all examples in this dataset.
-
-        """
-        if fieldname in self.field_dict:
-            return ArrowDataset._field_values(self.table, fieldname)
-
-        else:
-            raise AttributeError(f"Dataset has no field {fieldname}.")
-
-    def filter(self, predicate: Callable[[Example], bool]) -> "ArrowDataset":
-        """Creates a new ArrowDataset instance containing only Examples for which the
-        predicate returns True.
-
-        Parameters
-        ----------
-        predicate : Callable[[Example], bool]
-            Callable used as a filtering predicate. It takes an Example as a parameter
-            and returns True if the Example is to be accepted, and False otherwise.
-
-        Returns
-        -------
-        ArrowDataset
-            New ArrowDataset containing Filtered Examples.
-        """
-        indices = [i for i, example in enumerate(self) if predicate(example)]
-        return self[indices]
-
-    def sorted(self, key: Callable[[Example], Any], reverse=False) -> "ArrowDataset":
-        """Returns a new ArrowDataset with sorted Examples.
-
-        Parameters
-        ----------
-        key: Callable[[Example], Any]
-            Extracts a comparable value from an Example.
-            That value will be used to determine Example ordering.
-
-        reverse: bool
-            If True, the returned dataset will be reversed.
-
-        Returns
-        -------
-        ArrowDataset
-            An ArrowDataset containing sorted Examples from this dataset.
-        """
-
-        def index_key(i, _dataset=self):
-            return key(_dataset[i])
-
-        indices = list(range(len(self)))
-        indices.sort(key=index_key, reverse=reverse)
-        return self[indices]
-
     def close(self):
         """ Closes resources held by the ArrowDataset."""
         if self.mmapped_file is not None:
@@ -790,37 +699,3 @@ class ArrowDataset:
         if self.mmapped_file is not None:
             self.close()
         shutil.rmtree(self.cache_path)
-
-    def finalize_fields(self, *datasets):
-        """Builds vocabularies of all the non-eager fields in the dataset,
-        from the Dataset objects given as \\*args and then finalizes all the
-        fields.
-
-        Parameters
-        ----------
-        \\*args
-            A variable number of Dataset objects from which to build the
-            vocabularies for non-eager fields. If none provided, the
-            vocabularies are built from this Dataset (self).
-        """
-        # if there are non-eager fields, we need to build their vocabularies
-        fields_to_build = [f for f in self.fields if not f.eager and f.use_vocab]
-        if fields_to_build:
-            # there can be multiple datasets we want to iterate over
-            data_sources = [
-                dataset for dataset in datasets if isinstance(dataset, Dataset)
-            ]
-
-            # use self as a data source if no other given
-            if not data_sources:
-                data_sources.append(self)
-
-            # for each example in each dataset,
-            # update _all_ non-eager fields
-            for dataset in data_sources:
-                for example in dataset:
-                    for field in fields_to_build:
-                        field.update_vocab(*getattr(example, field.name))
-
-        for field in self.fields:
-            field.finalize()

@@ -71,7 +71,7 @@ def test_creating_dataset(default_dataset):
     assert len(dataset) == 7
 
     for ex in dataset:
-        ex_data = {"statement": ex.statement[1], "reply": ex.reply[1]}
+        ex_data = {"statement": ex["statement"][1], "reply": ex["reply"][1]}
         assert ex_data in EXPECTED_EXAMPLES
 
 
