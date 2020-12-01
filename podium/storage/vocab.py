@@ -1,4 +1,5 @@
 """Module contains classes related to the vocabulary."""
+import abc
 import logging
 from collections import Counter
 from enum import Enum
@@ -32,35 +33,64 @@ def unique(values: Iterable):
         yield element
 
 
-class VocabDict(dict):
-    """Vocab dictionary class that is used like default dict but without adding missing
-    key to the dictionary."""
+# Make specials singletons
+class Special(str):
+    @abc.abstractmethod
+    def apply(self, sequence_or_token):
+        # Method should ONLY be used in Vocab.numericalize
+        pass
 
-    def __init__(self, default_factory=None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._default_factory = default_factory
+    def __hash__(self):
+        # Hash class instead of value
+        return hash(self.__class__)
 
-    def __missing__(self, key):
-        if self._default_factory is None:
-            raise KeyError(
-                "Default factory is not defined and key is not in " "the dictionary."
-            )
-        return self._default_factory()
+    def __eq__(self, other):
+        # Check equals via class instead of value
+        return self.__class__ == other.__class__
 
 
-class SpecialVocabSymbols(Enum):
-    """Class for special vocabular symbols
+class BOS(Special):
+    def __init__(cls, token='<BOS>'):
+        return super(BOS, cls).__new__(cls, token)
 
-    Attributes
-    ----------
-    UNK : str
-        Tag for unknown word
-    PAD : str
-        TAG for padding symbol
-    """
+    def apply(self, sequence):
+        return [self] + sequence 
 
-    UNK = "<unk>"
-    PAD = "<pad>"
+
+class EOS(Special):
+    def __new__(cls, token='<EOS>'):
+        return super(EOS, cls).__new__(cls, token)
+
+    def apply(self, sequence):
+        return sequence + [self]
+
+#################
+# Core specials #
+#################
+
+class MASK(Special):
+    def __new__(cls, token='<MASK>'):
+        return super(MASK, cls).__new__(cls, token)
+
+    def apply(self, sequence):
+        # Core special, handled by Vocab
+        return sequence
+
+class UNK(Special):
+    def __new__(cls, token='<UNK>'):
+        return super(UNK, cls).__new__(cls, token)
+
+    def apply(self, sequence):
+        # Core special, handled by Vocab
+        return sequence
+
+class PAD(Special):
+    def __new__(cls, token='<PAD>'):
+        return super(PAD, cls).__new__(cls, token)
+
+    def apply(self, sequence):
+        # Core special, handled by Vocab
+        return sequence
 
 
 class Vocab:
@@ -81,9 +111,10 @@ class Vocab:
         self,
         max_size=None,
         min_freq=1,
-        specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD),
+        specials=(UNK(), PAD()),
         keep_freqs=False,
         eager=True,
+        filter_unk=False
     ):
         """Vocab constructor. Specials are first in the vocabulary.
 
@@ -110,55 +141,13 @@ class Vocab:
         self._has_specials = len(self.specials) > 0
 
         self.itos = list(self.specials)
-        self._default_unk_index = self._init_default_unk_index(self.specials)
-        self.stoi = VocabDict(self._default_unk)
-        self.stoi.update({k: v for v, k in enumerate(self.itos)})
+        #self._default_unk_index = self._init_default_unk_index(self.specials)
+        self.stoi = {k: v for v, k in enumerate(self.itos)}
 
         self._max_size = max_size
         self.eager = eager
         self.finalized = False  # flag to know if we're ready to numericalize
         _LOGGER.debug("Vocabulary has been created and initialized.")
-
-    @staticmethod
-    def _init_default_unk_index(specials):
-        """Method computes index of default unknown symbol in given collection.
-
-        Parameters
-        ----------
-        specials : iter(SpecialVocabSymbols)
-            collection of special vocab symbols
-
-        Returns
-        -------
-        index : int or None
-            index of default unkwnown symbol or None if it doesn't exist
-        """
-        ind = 0
-        for spec in specials:
-            if spec == SpecialVocabSymbols.UNK:
-                return ind
-            ind += 1
-        return None
-
-    def _default_unk(self):
-        """Method obtains default unknown symbol index. Used for stoi.
-
-        Returns
-        -------
-        index: int
-            index of default unknown symbol
-
-        Raises
-        ------
-        ValueError
-            If unknown symbol is not present in the vocab.
-        """
-        if self._default_unk_index is None:
-            raise ValueError(
-                "Unknown symbol is not present in the vocab but "
-                "the user asked for the word that isn't in the vocab."
-            )
-        return self._default_unk_index
 
     def get_freqs(self):
         """Method obtains vocabulary frequencies.
@@ -194,9 +183,9 @@ class Vocab:
         ValueError
             If the padding symbol is not present in the vocabulary.
         """
-        if SpecialVocabSymbols.PAD not in self.stoi:
+        if PAD not in self.stoi:
             raise ValueError("Padding symbol is not in the vocabulary.")
-        return self.stoi[SpecialVocabSymbols.PAD]
+        return self.stoi[PAD]
 
     def __iadd__(self, values: Union["Vocab", Iterable]):
         """Adds additional values or another Vocab to this Vocab.
@@ -405,7 +394,12 @@ class Vocab:
                 "Cannot numericalize if the vocabulary has not been "
                 "finalized because itos and stoi are not yet built."
             )
-        return np.array([self.stoi[token] for token in data])
+
+        if UNK in self.stoi:
+            return np.array([self.stoi[token] if token in stoi else stoi[UNK]
+                             for token in data])
+        else:
+            return np.array([self.stoi[token] for token in data])
 
     def reverse_numericalize(self, numericalized_data: Iterable):
         """Transforms an iterable containing numericalized data into a list of tokens.

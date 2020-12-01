@@ -12,7 +12,7 @@ from .resources.large_resource import LargeResource, SCPLargeResource
 from .vectorizers.impl import GloVe, NlplVectorizer
 from .vectorizers.tfidf import TfIdfVectorizer
 from .vectorizers.vectorizer import BasicVectorStorage, VectorStorage
-from .vocab import SpecialVocabSymbols, Vocab
+from .vocab import Vocab
 
 
 # Convention: class imports from same module are continuous in one line until the length
@@ -37,7 +37,6 @@ __all__ = [
     "SCPLargeResource",
     "VectorStorage",
     "BasicVectorStorage",
-    "SpecialVocabSymbols",
     "Vocab",
     "Example",
     "ExampleFactory",
