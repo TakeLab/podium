@@ -113,8 +113,7 @@ class Vocab:
         min_freq=1,
         specials=(UNK(), PAD()),
         keep_freqs=False,
-        eager=True,
-        filter_unk=False
+        eager=True
     ):
         """Vocab constructor. Specials are first in the vocabulary.
 
@@ -148,6 +147,46 @@ class Vocab:
         self.eager = eager
         self.finalized = False  # flag to know if we're ready to numericalize
         _LOGGER.debug("Vocabulary has been created and initialized.")
+
+    @classmethod
+    def from_itos(cls, itos):
+        """Method constructs a vocab from a predefined index-to-string mapping.
+
+        Parameters
+        ----------
+            itos: list | tuple
+                The index-to-string mapping for tokens in the vocabulary
+        """
+        specials = [token for token in itos if isinstance(token, Special)]
+
+        vocab = cls(specials=specials)
+        vocab.itos = itos
+        vocab.stoi = {k: v for k,v in enumerate(itos)}
+        vocab.finalized = True
+
+        return vocab
+
+    @classmethod
+    def from_stoi(cls, stoi):
+        """Method constructs a vocab from a predefined index-to-string mapping.
+
+        Parameters
+        ----------
+            stoi: dict
+                The string-to-index mapping for the vocabulary
+        """
+        specials = [token for token in stoi.keys() if isinstance(token, Special)]
+
+        vocab = cls(specials=specials)
+        vocab.stoi = stoi
+        vocab_max_index = max(stoi.values())
+        itos = [None]*(vocab_max_index+1)
+        for token, index in stoi.items():
+            itos[index] = token
+        vocab.itos = itos
+        vocab.finalized = True
+
+        return vocab
 
     def get_freqs(self):
         """Method obtains vocabulary frequencies.
@@ -396,10 +435,16 @@ class Vocab:
             )
 
         if UNK in self.stoi:
+            # In order to replace unknown token with UNK, right now both UNK
+            # has to be present in the Vocab and filter_unk has to be set.
+            # I'm not sure in which case UNK would be present but filter_unk
+            # would be set to True.
             return np.array([self.stoi[token] if token in stoi else stoi[UNK]
                              for token in data])
         else:
-            return np.array([self.stoi[token] for token in data])
+            # Either UNK is not in Vocab or the user has requested unknown tokens
+            # to be filtered out of the instances.
+            return np.array([self.stoi[token] for token in data if token in stoi])
 
     def reverse_numericalize(self, numericalized_data: Iterable):
         """Transforms an iterable containing numericalized data into a list of tokens.
