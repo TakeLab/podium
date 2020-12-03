@@ -139,6 +139,13 @@ class Vocab:
             self.specials = (self.specials,)
         self._has_specials = len(self.specials) > 0
 
+        # Apply uniqueness check
+        if len(specials) > len(set(specials)):
+            error_msg = (
+                f"Specials may not contain multiple instances of same type."
+            )
+            raise ValueError(error_msg)
+
         self.itos = list(self.specials)
         #self._default_unk_index = self._init_default_unk_index(self.specials)
         self.stoi = {k: v for v, k in enumerate(self.itos)}
