@@ -33,14 +33,15 @@ release = '2020'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc',
-              'sphinx.ext.napoleon',
-              'sphinx.ext.doctest',
-              'sphinx.ext.viewcode',
-              'sphinx.ext.autosummary',
-              'recommonmark',
-              'sphinx_copybutton'
-              ]
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.doctest',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.autosummary',
+    'recommonmark',
+    'sphinx_copybutton',
+]
 
 source_suffix = ['.rst', '.md']
 autodoc_typehints = 'none'
@@ -87,7 +88,6 @@ napoleon_use_admonition_for_references = False
 napoleon_use_ivar = False
 napoleon_use_param = True
 napoleon_use_rtype = True
-
 
 
 class PatchedPythonDomain(PythonDomain):
