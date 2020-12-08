@@ -19,9 +19,6 @@ from podium.storage.resources.large_resource import LargeResource
 from podium.storage.vectorizers.vectorizer import BasicVectorStorage
 
 
-_LOGGER = logging.getLogger(__name__)
-
-
 Inputs = namedtuple("Inputs", ["tokens", "casing"])
 # using the same label set as original CroNER
 label_mapping = {
@@ -123,7 +120,7 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
     trainer = SimpleTrainer()
     feature_transformer = FeatureTransformer(feature_transform)
 
-    _LOGGER.info("Training started")
+    logging.info("Training started")
     trainer.train(
         model=model,
         dataset=train_set,
@@ -132,7 +129,7 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
         label_transform_fun=label_transform_fun,
         max_epoch=1,
     )
-    _LOGGER.info("Training finished")
+    logging.info("Training finished")
 
     X_test_batch, y_test_batch = test_set[:32].batch()
     X_test = feature_transformer.transform(X_test_batch)
@@ -147,15 +144,15 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
         pad_symbol, prediction, y_test
     )
 
-    _LOGGER.info("Expected:")
-    _LOGGER.info(y_test_filtered)
+    logging.info("Expected:")
+    logging.info(y_test_filtered)
 
-    _LOGGER.info("Actual:")
-    _LOGGER.info(prediction_filtered)
+    logging.info("Actual:")
+    logging.info(prediction_filtered)
 
     f1 = multiclass_f1_metric(y_test_filtered, prediction_filtered, average="weighted")
     info_msg = f"F1: {f1}"
-    _LOGGER.info(info_msg)
+    logging.info(info_msg)
 
 
 def filter_out_padding(pad_symbol, prediction, y_test):

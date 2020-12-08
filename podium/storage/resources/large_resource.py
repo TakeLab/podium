@@ -9,9 +9,6 @@ from podium.storage.resources import util
 from podium.storage.resources.downloader import SCPDownloader, SimpleHttpDownloader
 
 
-_LOGGER = logging.getLogger(__name__)
-
-
 class LargeResource:
     """Large resource that needs to download files from URL. Class also
     supports archive decompression.
@@ -54,7 +51,7 @@ class LargeResource:
             LargeResource.BASE_RESOURCE_DIR, self.config[LargeResource.RESOURCE_NAME]
         )
         self._check_files()
-        _LOGGER.info(
+        logging.info(
             "Large resource %s initialized.", self.config[LargeResource.RESOURCE_NAME]
         )
 
@@ -62,9 +59,9 @@ class LargeResource:
         """Method checks if large resource files exists and if they don't it
         initiates downloading of resources."""
         if os.path.exists(self.resource_location):
-            _LOGGER.info("Large resource alreadys exists, skipping download.")
+            logging.info("Large resource alreadys exists, skipping download.")
             return
-        _LOGGER.info("Large resource doesn't exist, starting download.")
+        logging.info("Large resource doesn't exist, starting download.")
         if LargeResource.ARCHIVE in self.config and self.config[LargeResource.ARCHIVE]:
             self._download_unarchive()
             return
