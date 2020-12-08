@@ -1,8 +1,5 @@
-podium.storage.resources package
-=================================
-
-Submodules
-----------
+Resource downloaders
+====================
 
 podium.storage.resources.downloader module
 -------------------------------------------

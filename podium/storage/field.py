@@ -70,7 +70,12 @@ class MultioutputField:
     output fields. Output fields are any type of field. The output fields are used only
     for posttokenization processing (posttokenization hooks and vocab updating)."""
 
-    def __init__(self, output_fields: List["Field"], tokenizer: TokenizerArg = "split"):
+    def __init__(
+        self,
+        output_fields: List["Field"],
+        tokenizer: TokenizerArg = "split",
+        pretokenize_hooks: Iterable[PretokHook] = [],
+    ):
         """Field that does pretokenization and tokenization once and passes it to its
         output fields. Output fields are any type of field. The output fields are used
         only for posttokenization processing (posttokenization hooks and vocab updating).
@@ -85,13 +90,25 @@ class MultioutputField:
             (only if 'tokenize' is True). The user can provide his own
             tokenizer as a callable object or specify one of the premade
             tokenizers by a string. The available premade tokenizers are:
-                - 'split' - default str.split()
-                - 'spacy-lang' - the spacy tokenizer. The language model can be defined
-                by replacing `lang` with the language model name. For example `spacy-en`
+
+            - 'split' - default str.split()
+            - 'spacy-lang' - the spacy tokenizer. The language model can be defined
+              by replacing `lang` with the language model name. For example `spacy-en`
+
+        pretokenize_hooks: Iterable[Callable[[Any], Any]]
+            Iterable containing pretokenization hooks. Providing hooks in this way is
+            identical to calling `add_pretokenize_hook`.
         """
 
         self._tokenizer_arg = tokenizer
         self._pretokenization_pipeline = PretokenizationPipeline()
+
+        if pretokenize_hooks is not None:
+            if not isinstance(pretokenize_hooks, (list, tuple)):
+                pretokenize_hooks = [pretokenize_hooks]
+            for hook in pretokenize_hooks:
+                self.add_pretokenize_hook(hook)
+
         self._tokenizer = get_tokenizer(tokenizer)
         self._output_fields = deque(output_fields)
 
@@ -207,8 +224,8 @@ class Field:
         disable_batch_matrix: bool = False,
         padding_token: Union[int, float] = -999,
         missing_data_token: Union[int, float] = -1,
-        pretokenize_hooks: Iterable[PretokHook] = (),
-        posttokenize_hooks: Iterable[PosttokHook] = (),
+        pretokenize_hooks: Iterable[PretokHook] = [],
+        posttokenize_hooks: Iterable[PosttokHook] = [],
     ):
         """Create a Field from arguments.
 
@@ -221,11 +238,13 @@ class Field:
             The tokenizer that is to be used when preprocessing raw data.
             The user can provide his own tokenizer as a callable object or specify one of
             the registered tokenizers by a string. The available pre-registered tokenizers
-             are:
-                - 'split' - default str.split(). Custom separator can be provided as
-                `split-sep` where `sep` is the separator string.
-                - 'spacy-lang' - the spacy tokenizer. The language model can be defined
-                by replacing `lang` with the language model name. For example `spacy-en`.
+            are:
+
+            - 'split' - default str.split(). Custom separator can be provided as
+              `split-sep` where `sep` is the separator string.
+            - 'spacy-lang' - the spacy tokenizer. The language model can be defined
+              by replacing `lang` with the language model name. For example `spacy-en`.
+
             If None, the data will not be tokenized and post-tokenization hooks wont be
             called. The provided data will be stored in the `tokenized` data field as-is.
 
@@ -342,13 +361,13 @@ class Field:
 
         if pretokenize_hooks is not None:
             if not isinstance(pretokenize_hooks, (list, tuple)):
-                pretokenize_hooks = (pretokenize_hooks,)
+                pretokenize_hooks = [pretokenize_hooks]
             for hook in pretokenize_hooks:
                 self.add_pretokenize_hook(hook)
 
         if posttokenize_hooks is not None:
             if not isinstance(posttokenize_hooks, (list, tuple)):
-                posttokenize_hooks = (posttokenize_hooks,)
+                posttokenize_hooks = [posttokenize_hooks]
             for hook in posttokenize_hooks:
                 self.add_posttokenize_hook(hook)
 
@@ -841,7 +860,7 @@ class LabelField(Field):
         allow_missing_data: bool = False,
         is_target: bool = True,
         missing_data_token: Union[int, float] = -1,
-        pretokenize_hooks: Iterable[PretokHook] = (),
+        pretokenize_hooks: Iterable[PretokHook] = [],
     ):
         """
         Field subclass used when no tokenization is required. For example, with a field
@@ -919,8 +938,8 @@ class MultilabelField(Field):
         is_target: bool = True,
         allow_missing_data: bool = False,
         missing_data_token: Union[int, float] = -1,
-        pretokenize_hooks: Iterable[PretokHook] = (),
-        posttokenize_hooks: Iterable[PosttokHook] = (),
+        pretokenize_hooks: Iterable[PretokHook] = [],
+        posttokenize_hooks: Iterable[PosttokHook] = [],
     ):
         """Create a MultilabelField from arguments.
 
@@ -933,11 +952,13 @@ class MultilabelField(Field):
             The tokenizer that is to be used when preprocessing raw data.
             The user can provide his own tokenizer as a callable object or specify one of
             the registered tokenizers by a string. The available pre-registered tokenizers
-             are:
-                - 'split' - default str.split(). Custom separator can be provided as
-                `split-sep` where `sep` is the separator string.
-                - 'spacy-lang' - the spacy tokenizer. The language model can be defined
-                by replacing `lang` with the language model name. For example `spacy-en`.
+            are:
+
+            - 'split' - default str.split(). Custom separator can be provided as
+              `split-sep` where `sep` is the separator string.
+            - 'spacy-lang' - the spacy tokenizer. The language model can be defined
+              by replacing `lang` with the language model name. For example `spacy-en`.
+
             If None, the data will not be tokenized and post-tokenization hooks wont be
             called. The provided data will be stored in the `tokenized` data field as-is.
 

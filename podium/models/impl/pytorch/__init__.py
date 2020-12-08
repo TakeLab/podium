@@ -3,6 +3,3 @@
 from .models import TorchModel
 from .sequence_classification import AttentionRNN
 from .trainers import TorchTrainer
-
-
-__all__ = ["TorchModel", "TorchTrainer", "AttentionRNN"]

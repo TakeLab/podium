@@ -1,6 +1,6 @@
 # TakeLab Podium
 
-Home of the **TakeLab Podium** project. Podium is a framework agnostic Python natural language processing library which standardizes data loading and preprocessing as well as model training and selection, among others.
+Home of the **TakeLab Podium** project. Podium is a framework agnostic Python natural language processing library which standardizes data loading and preprocessing.
 Our goal is to accelerate users' development of NLP models whichever aspect of the library they decide to use.
 
 - [Getting Started](#getting-started)
@@ -53,16 +53,16 @@ Use some of our pre-defined datasets:
 >>> print(sst_train)
 SST[Size: 6920, Fields: ['text', 'label']]
 >>> print(sst_train[222]) # A short example
-Example[label: ('positive', None); text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])]
+Example[text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']); label: (None, 'positive')]
 ```
 
 Load your own dataset from a standardized format (`csv`, `tsv` or `jsonl`):
 
 ```python
 >>> from podium.datasets import TabularDataset
->>> from podium.storage import Vocab, Field, LabelField
->>> fields = {'premise':   Field('premise', vocab=Vocab()),
-              'hypothesis':Field('hypothesis', vocab=Vocab()),
+>>> from podium import Vocab, Field, LabelField
+>>> fields = {'premise':   Field('premise', numericalizer=Vocab()),
+              'hypothesis':Field('hypothesis', numericalizer=Vocab()),
               'label':     LabelField('label')}
 >>> dataset = TabularDataset('my_dataset.csv', format='csv', fields=fields)
 >>> print(dataset)
@@ -76,7 +76,7 @@ Or define your own `Dataset` subclass (tutorial coming soon)
 We wrap dataset pre-processing in customizable `Field` classes. Each `Field` has an optional `Vocab` instance which automatically handles token-to-index conversion.
 
 ```python
->>> from podium.storage import Vocab, Field, LabelField
+>>> from podium import Vocab, Field, LabelField
 >>> vocab = Vocab(max_size=5000, min_freq=2)
 >>> text = Field(name='text', vocab=vocab)
 >>> label = LabelField(name='label')
@@ -123,11 +123,10 @@ A common use-case is to incorporate existing components of pretrained language m
 >>> tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 >>> pad_index = tokenizer.convert_tokens_to_ids(tokenizer.pad_token)
 >>> # Define a BERT subword Field
->>> bert_field = Field("subword",
-                       vocab=None,
+>>> bert_field = Field(name="subword",
                        padding_token=pad_index,
                        tokenizer=tokenizer.tokenize,
-                       custom_numericalize=tokenizer.convert_tokens_to_ids)
+                       numericalizer=tokenizer.convert_tokens_to_ids)
 >>> # ...
 >>> print(sst_train[222])
 Example[label: ('positive', None); subword: (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.'])]
@@ -141,7 +140,7 @@ To learn more about making a contribution to Podium, please see our [Contributio
 In this repository we use [numpydoc](https://numpydoc.readthedocs.io/en/latest/) as a standard for documentation and Black, Flake8 and isort for code sytle. Code style references are [Black](https://black.readthedocs.io/en/stable/), [Flake8](http://flake8.pycqa.org/en/latest/), [isort](https://pycqa.github.io/isort/) and [PEP8](https://www.python.org/dev/peps/pep-0008/).
 
 Commands to check black, isort and flake8 compliance for written code and tests.
-```
+```bash
 black --check --line-length 90 --target-version py36 podium tests examples
 isort --check-only podium tests examples
 flake8 podium tests examples
@@ -152,7 +151,7 @@ flake8 podium tests examples
 If you are installing from source, you will need Python 3.6 or later. We highly recommend installing an [Anaconda](https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/environments.html#virtual-environments) environment.
 
 Commands to setup virtual environment and run tests.
-```
+```bash
 conda create --name env python=3.6
 conda activate env
 pip install .[tests]
@@ -160,7 +159,7 @@ pytest tests
 ```
 
 If you intend to develop part of podium you should use following command to install podium.
-```
+```bash
 pip install -e .[dev]
 ```
 In other cases it should be enough to run ```pip install .``` for podium to be added to python environment.

@@ -118,7 +118,7 @@ class EuroVocLoader:
         LargeResource.BASE_RESOURCE_DIR. If the dataset is not present, it will atempt to
         download it.
 
-        **kwargs:
+        kwargs:
             SCPLargeResource.SCP_USER_KEY:
                 Username on the host machine from which the dataset is downloaded. Not
                 required if the username on the local machine matches the username on the

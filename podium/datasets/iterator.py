@@ -210,7 +210,7 @@ class Iterator:
 
     def _create_batch(self, dataset):
 
-        examples = dataset.as_dataset().examples
+        examples = dataset.examples
 
         # dicts that will be used to create the InputBatch and TargetBatch
         # objects
@@ -412,8 +412,8 @@ class BucketIterator(Iterator):
 
     def __init__(
         self,
-        batch_size,
         dataset=None,
+        batch_size=32,
         sort_key=None,
         shuffle=True,
         seed=42,
@@ -520,8 +520,8 @@ class HierarchicalDatasetIterator(Iterator):
 
     def __init__(
         self,
-        batch_size,
         dataset=None,
+        batch_size=32,
         sort_key=None,
         shuffle=False,
         seed=1,
@@ -539,7 +539,7 @@ class HierarchicalDatasetIterator(Iterator):
             The size of the batches that the iterator will return. If the
             number of examples in the dataset is not a multiple of
             batch_size the last returned batch will be smaller
-            (dataset_len MOD batch_size).
+            (dataset_len MOD batch_size). Defaults to 32.
         sort_key : callable
             A callable object used to sort the dataset prior to batching. If
             None, the dataset won't be sorted.

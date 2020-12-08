@@ -1,6 +1,7 @@
-"""Package contains datasets"""
+"""Package contains datasets."""
 
 from .dataset import Dataset, rationed_split, stratified_split
+from .dataset_abc import DatasetABC
 from .hierarhical_dataset import HierarchicalDataset
 from .impl.catacx_dataset import CatacxDataset
 from .impl.conllu_dataset import CoNLLUDataset
@@ -17,25 +18,3 @@ from .iterator import (
     SingleBatchIterator,
 )
 from .tabular_dataset import TabularDataset
-
-
-__all__ = [
-    "Dataset",
-    "TabularDataset",
-    "HierarchicalDataset",
-    "stratified_split",
-    "rationed_split",
-    "IMDB",
-    "CatacxDataset",
-    "CoNLLUDataset",
-    "SST",
-    "CornellMovieDialogsConversationalDataset",
-    "EuroVocDataset",
-    "PauzaHRDataset",
-    "SNLIDataset",
-    "SNLISimple",
-    "Iterator",
-    "SingleBatchIterator",
-    "BucketIterator",
-    "HierarchicalDatasetIterator",
-]

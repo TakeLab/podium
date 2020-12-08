@@ -142,7 +142,6 @@ def test_specials_indexes():
 
 @pytest.mark.usefixtures("tabular_dataset")
 def test_tfidf_equality_with_scikit(tabular_dataset):
-    tabular_dataset.finalize_fields()
     text_field = tabular_dataset.field_dict["text"]
     vocab = text_field.vocab
 
@@ -198,7 +197,6 @@ def test_vocab_none(tabular_dataset):
 
 @pytest.mark.usefixtures("tabular_dataset")
 def test_transform_example_none(tabular_dataset):
-    tabular_dataset.finalize_fields()
     text_field = tabular_dataset.field_dict["text"]
     vocab = text_field.vocab
 
@@ -238,7 +236,6 @@ def test_count_vectorizer_transform_tokens_tensor():
 
 @pytest.mark.usefixtures("tabular_dataset")
 def test_count_vectorizer_examples_none(tabular_dataset):
-    tabular_dataset.finalize_fields()
     text_field = tabular_dataset.field_dict["text"]
     vocab = text_field.vocab
 
@@ -266,7 +263,6 @@ def test_count_matrix_specials_indexes():
 
 @pytest.mark.usefixtures("tabular_dataset")
 def test_equality_count_vector_scikit(tabular_dataset):
-    tabular_dataset.finalize_fields()
     text_field = tabular_dataset.field_dict["text"]
     vocab = text_field.vocab
 

@@ -33,11 +33,13 @@ class NERCroatianXMLLoader:
         tag_schema: str
             Tag schema used for constructing the token labels
             - supported tag schemas:
+
                 - 'IOB': the label of the beginning token of the entity is
-                prefixed with 'B-', the remaining tokens that belong to the
-                same entity are prefixed with 'I-'. The tokens that don't
-                belong to any named entity are labeled 'O'
-        **kwargs:
+                  prefixed with 'B-', the remaining tokens that belong to the
+                  same entity are prefixed with 'I-'. The tokens that don't
+                  belong to any named entity are labeled 'O'
+
+        kwargs:
             SCPLargeResource.SCP_USER_KEY:
                 User on the host machine. Not required if the user on the
                 local machine matches the user on the host machine.
