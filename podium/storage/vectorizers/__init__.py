@@ -8,14 +8,3 @@ from .vectorizer import (
     random_normal_default_vector,
     zeros_default_vector,
 )
-
-
-__all__ = [
-    "VectorStorage",
-    "BasicVectorStorage",
-    "TfIdfVectorizer",
-    "GloVe",
-    "NlplVectorizer",
-    "zeros_default_vector",
-    "random_normal_default_vector",
-]
