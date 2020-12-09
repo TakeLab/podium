@@ -23,7 +23,7 @@ Example
     with open(model_path, "wb") as output_file:
         dill.dump(obj=clf, file=output_file)
 """
-import logging
+import warnings
 
 import dill
 import numpy as np
@@ -35,9 +35,6 @@ from podium.datasets.iterator import Iterator
 from podium.models import AbstractSupervisedModel
 from podium.storage.vectorizers.tfidf import TfIdfVectorizer
 from podium.validation.validation import KFold
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class MultilabelSVM(AbstractSupervisedModel):
@@ -144,10 +141,11 @@ class MultilabelSVM(AbstractSupervisedModel):
                 self._models.append(None)
                 self._missing_indexes.add(i)
 
-                _LOGGER.debug(
+                warnings.warn(
                     f"Label at index {i} doesn't have enough instances in the "
                     "train set, a model won't be trained for this label. "
-                    f"Number of instances: {num_examples}, cutoff {cutoff}"
+                    f"Number of instances: {num_examples}, cutoff {cutoff}",
+                    RuntimeWarning,
                 )
                 continue
 
@@ -198,11 +196,11 @@ class MultilabelSVM(AbstractSupervisedModel):
         for i, model in enumerate(self._models):
             if model is None:
                 Y[i] = [0] * X.shape[0]
-                debug_msg = (
+                warnings.warn(
                     f"No model trained for label at index {i}, returning a zero "
-                    "vector instead of model prediction."
+                    "vector instead of model prediction.",
+                    RuntimeWarning,
                 )
-                _LOGGER.debug(debug_msg)
             else:
                 Y[i] = model.predict(X)
         return {AbstractSupervisedModel.PREDICTION_KEY: Y.transpose()}

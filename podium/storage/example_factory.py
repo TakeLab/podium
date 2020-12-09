@@ -3,13 +3,9 @@ classes used for storage in Dataset classes"""
 
 import csv
 import json
-import logging
 import xml.etree.ElementTree as ET
 from enum import Enum
 from typing import Union
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class ExampleFormat(Enum):

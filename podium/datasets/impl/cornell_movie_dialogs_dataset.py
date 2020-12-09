@@ -1,14 +1,9 @@
 """Module contains Cornell Movie Dialogs datasets."""
-import logging
-
 from podium.dataload.cornell_movie_dialogs import CornellMovieDialogsNamedTuple
 from podium.datasets.dataset import Dataset
 from podium.storage.example_factory import ExampleFactory
 from podium.storage.field import Field
 from podium.storage.vocab import Vocab
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class CornellMovieDialogsConversationalDataset(Dataset):

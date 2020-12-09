@@ -1,7 +1,7 @@
 """Module contains classes for iterating over datasets."""
-import logging
 import math
 from abc import ABC, abstractmethod
+import warnings
 from collections import defaultdict, namedtuple
 from random import Random
 from typing import Iterator as PythonIterator
@@ -11,9 +11,6 @@ import numpy as np
 
 from podium.datasets.dataset import Dataset, DatasetABC
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class IteratorABC(ABC):
@@ -292,11 +289,10 @@ class Iterator(IteratorABC):
                 and not field._disable_batch_matrix
                 and field.name not in self._numericalization_format_warned_fieldnames
             ):
-                warning_msg = (
+                warnings.warn(
                     f"The batch for Field '{field.name}' can't be cast to "
                     f"matrix but `disable_batch_matrix` is set to False."
                 )
-                _LOGGER.warning(warning_msg)
                 self._numericalization_format_warned_fieldnames.add(field.name)
 
             if (

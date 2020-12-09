@@ -1,11 +1,7 @@
-import logging
 import os
 
 from ...resources import LargeResource
 from ..vectorizer import BasicVectorStorage, random_normal_default_vector
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class GloVe(BasicVectorStorage):

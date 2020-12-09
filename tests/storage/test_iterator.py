@@ -34,8 +34,6 @@ from .conftest import (
 )
 @pytest.mark.usefixtures("tabular_dataset")
 def test_len(batch_size, expected_len, tabular_dataset):
-    tabular_dataset.finalize_fields()
-
     iterator = Iterator(dataset=tabular_dataset, batch_size=batch_size)
 
     assert len(iterator) == expected_len
@@ -51,7 +49,6 @@ def test_padding(fixed_length, expected_shape, json_file_path):
     ds = create_tabular_dataset_from_json(fields=fields, json_file_path=json_file_path)
 
     batch_size = 7
-    ds.finalize_fields()
 
     iterator = Iterator(dataset=ds, batch_size=batch_size, shuffle=False)
 
@@ -74,8 +71,6 @@ def test_padding(fixed_length, expected_shape, json_file_path):
 
 @pytest.mark.usefixtures("tabular_dataset")
 def test_iterate_new_epoch(tabular_dataset):
-    tabular_dataset.finalize_fields()
-
     iterator = Iterator(dataset=tabular_dataset, batch_size=2)
 
     it = iter(iterator)
@@ -97,7 +92,6 @@ def test_iterate_new_epoch(tabular_dataset):
 def test_create_batch(tabular_dataset):
     expected_row_lengths = [3, 4, 3, 6]
 
-    tabular_dataset.finalize_fields()
     batch_size = 2
     iterator = Iterator(dataset=tabular_dataset, batch_size=batch_size, shuffle=False)
 
@@ -142,24 +136,22 @@ def test_not_numericalizable_field(json_file_path):
     fields["text_with_missing_data"] = (text_field, non_numericalizable_field)
 
     dataset = create_tabular_dataset_from_json(fields, json_file_path)
-    dataset.finalize_fields()
 
-    for x_batch, _ in Iterator(dataset, batch_size=len(dataset), shuffle=False):
-        assert isinstance(x_batch.non_numericalizable_field, (list, tuple))
-        for i, batch_data, real_data in zip(
-            range(len(dataset)), x_batch.non_numericalizable_field, TABULAR_TEXT
-        ):
-            if i == 3:
-                assert batch_data is None
-            else:
-                assert isinstance(batch_data, MockCustomDataClass)
-                assert batch_data.data == real_data
+    with pytest.warns(UserWarning):
+        for x_batch, _ in Iterator(dataset, batch_size=len(dataset), shuffle=False):
+            assert isinstance(x_batch.non_numericalizable_field, (list, tuple))
+            for i, batch_data, real_data in zip(
+                range(len(dataset)), x_batch.non_numericalizable_field, TABULAR_TEXT
+            ):
+                if i == 3:
+                    assert batch_data is None
+                else:
+                    assert isinstance(batch_data, MockCustomDataClass)
+                    assert batch_data.data == real_data
 
 
 @pytest.mark.usefixtures("tabular_dataset")
 def test_lazy_numericalization_caching(tabular_dataset):
-    tabular_dataset.finalize_fields()
-
     # Run one epoch to cause lazy numericalization
     for _ in Iterator(dataset=tabular_dataset, batch_size=10):
         pass
@@ -176,8 +168,6 @@ def test_lazy_numericalization_caching(tabular_dataset):
 
 @pytest.mark.usefixtures("tabular_dataset")
 def test_sort_key(tabular_dataset):
-    tabular_dataset.finalize_fields()
-
     def text_len_sort_key(example):
         tokens = example["text"][1]
         if tokens is None:
@@ -214,8 +204,6 @@ def test_shuffle_deterministic_sequence(
     expect_identical_behaviour,
     tabular_dataset,
 ):
-    tabular_dataset.finalize_fields()
-
     random.seed(42)  # internal random state independent from global seed
 
     iterator = Iterator(dataset=tabular_dataset, batch_size=2, shuffle=True, seed=seed_1)
@@ -241,8 +229,6 @@ def test_shuffle_deterministic_sequence(
 
 @pytest.mark.usefixtures("tabular_dataset")
 def test_shuffle_random_state(tabular_dataset):
-    tabular_dataset.finalize_fields()
-
     random.seed(5)  # internal random state independent from global seed
     # run first iterator for 3 epochs
     iterator = Iterator(dataset=tabular_dataset, batch_size=2, shuffle=True)
@@ -275,8 +261,6 @@ def test_shuffle_random_state(tabular_dataset):
 
 @pytest.mark.usefixtures("tabular_dataset")
 def test_shuffle_no_seed_or_state_exception(tabular_dataset):
-    tabular_dataset.finalize_fields()
-
     with pytest.raises(ValueError):
         Iterator(
             dataset=tabular_dataset,
@@ -289,8 +273,6 @@ def test_shuffle_no_seed_or_state_exception(tabular_dataset):
 
 @pytest.mark.usefixtures("tabular_dataset")
 def test_shuffle_random_state_exception(tabular_dataset):
-    tabular_dataset.finalize_fields()
-
     iterator = Iterator(dataset=tabular_dataset, batch_size=2, shuffle=False)
 
     with pytest.raises(RuntimeError):
@@ -375,8 +357,6 @@ def test_bucket_iterator(
     sort_key,
     tabular_dataset,
 ):
-    tabular_dataset.finalize_fields()
-
     iterator = BucketIterator(
         dataset=tabular_dataset,
         batch_size=2,
@@ -392,8 +372,6 @@ def test_bucket_iterator(
 
 @pytest.mark.usefixtures("tabular_dataset")
 def test_bucket_iterator_exception(tabular_dataset):
-    tabular_dataset.finalize_fields()
-
     with pytest.raises(ValueError):
         BucketIterator(
             dataset=tabular_dataset,
@@ -406,8 +384,6 @@ def test_bucket_iterator_exception(tabular_dataset):
 
 @pytest.mark.usefixtures("tabular_dataset")
 def test_bucket_iterator_no_dataset_on_init(tabular_dataset):
-    tabular_dataset.finalize_fields()
-
     bi = BucketIterator(
         dataset=None,
         batch_size=2,
@@ -423,8 +399,6 @@ def test_bucket_iterator_no_dataset_on_init(tabular_dataset):
 
 @pytest.mark.usefixtures("tabular_dataset")
 def test_bucket_iterator_set_dataset_on_init(tabular_dataset):
-    tabular_dataset.finalize_fields()
-
     bi = BucketIterator(
         dataset=None,
         batch_size=2,
