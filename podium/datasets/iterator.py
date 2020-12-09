@@ -1,7 +1,7 @@
 """Module contains classes for iterating over datasets."""
 import math
-from abc import ABC, abstractmethod
 import warnings
+from abc import ABC, abstractmethod
 from collections import defaultdict, namedtuple
 from random import Random
 from typing import Iterator as PythonIterator
@@ -640,7 +640,6 @@ class HierarchicalDatasetIterator(Iterator):
                 f"HierarchicalDatasets. Passed dataset type: "
                 f"{type(dataset).__name__}"
             )
-            _LOGGER.error(err_msg)
             raise ValueError(err_msg)
         super().set_dataset(dataset)
 
