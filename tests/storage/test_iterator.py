@@ -644,10 +644,6 @@ def test_hierarchical_set_dataset_after(hierarchical_dataset, hierarchical_datas
         next(batch_iter)
 
 
-def test_hierarchical_change_dataset(hierarchial_dataset, hierarchical_dataset_2):
-    pass
-
-
 HIERARCHIAL_DATASET_JSON_EXAMPLE = """
 [
 {
