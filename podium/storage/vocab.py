@@ -379,7 +379,6 @@ class Vocab(NumericalizerABC):
 
         if not self._keep_freqs:
             self._freqs = None  # release memory
-        self._finalized = True
 
     def numericalize(self, data):
         """Method numericalizes given tokens.

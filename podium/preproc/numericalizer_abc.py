@@ -5,7 +5,18 @@ import numpy as np
 
 
 class NumericalizerABC(ABC):
+    """ABC that contains the interface for Podium numericalizers. Numericalizers are used
+    to transform tokens into vectors or any other custom datatype during batching."""
+
     def __init__(self, eager=True):
+        """Initialises the Numericalizer.
+
+        Parameters:
+        -----------
+        eager: bool
+            Whether the
+
+        """
         self._finalized = False
         self._eager = eager
 
