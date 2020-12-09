@@ -5,8 +5,8 @@ Podium accelerates data loading, preprocessing & batching to enable faster devel
 See http://takelab.fer.hr/podium/ for complete documentation.
 """
 import re
-
 from pathlib import Path
+
 from setuptools import find_packages, setup
 
 

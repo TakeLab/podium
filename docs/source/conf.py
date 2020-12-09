@@ -16,6 +16,7 @@ import sys
 # Quick fix for cross-reference warnings:
 from sphinx.domains.python import PythonDomain
 
+
 sys.path.insert(0, os.path.abspath('../../'))
 
 
