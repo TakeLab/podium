@@ -1,17 +1,13 @@
 """Module contains custom metrics."""
-import logging
-
-
-_LOGGER = logging.getLogger(__name__)
-
 try:
     from sklearn.metrics import f1_score
 except ImportError:
-    _LOGGER.debug(
+    print(
         "Problem occured while trying to import sklearn. If the "
         "library is not installed visit https://scikit-learn.org"
         " for more details."
     )
+    raise
 
 
 def f1_metric(true, pred):

@@ -795,8 +795,6 @@ def test_label_field():
 
     preprocessed_data = [label_field.preprocess(label) for label in data]
 
-    label_field.finalize()
-
     for x in preprocessed_data:
         _, data = x[0]
         _, tokenized = data

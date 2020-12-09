@@ -1,5 +1,5 @@
 """Module contains classes related to the vocabulary."""
-import logging
+import warnings
 from collections import Counter
 from enum import Enum
 from itertools import chain
@@ -8,9 +8,6 @@ from typing import Iterable, List, Union
 import numpy as np
 
 from podium.preproc import NumericalizerABC
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 def unique(values: Iterable):
@@ -118,7 +115,6 @@ class Vocab(NumericalizerABC):
         self.stoi.update({k: v for v, k in enumerate(self.itos)})
 
         self._max_size = max_size
-        _LOGGER.debug("Vocabulary has been created and initialized.")
 
     @staticmethod
     def _init_default_unk_index(specials):
@@ -361,7 +357,7 @@ class Vocab(NumericalizerABC):
             If the vocab is already finalized.
         """
         if self.finalized:
-            _LOGGER.warning(
+            warnings.warn(
                 "Vocabulary is finalized already. "
                 "This should be used only if multiple fields "
                 "use same vocabulary."
@@ -383,7 +379,7 @@ class Vocab(NumericalizerABC):
 
         if not self._keep_freqs:
             self._freqs = None  # release memory
-        _LOGGER.debug("Vocabulary is finalized.")
+        self.finalized = True
 
     def numericalize(self, data):
         """Method numericalizes given tokens.

@@ -1,7 +1,7 @@
 """Module for loading raw eurovoc dataset"""
 import glob
-import logging
 import os
+import warnings
 import xml.etree.ElementTree as ET
 from collections import namedtuple
 from enum import Enum
@@ -15,15 +15,16 @@ from podium.storage.resources.large_resource import (
 )
 
 
-_LOGGER = logging.getLogger(__name__)
 try:
     import xlrd
 except ImportError:
-    _LOGGER.debug(
+    print(
         "Problem occured while trying to import xlrd. If the "
         "library is not installed visit http://www.python-excel.org/ "
         "for more details."
     )
+    raise
+
 
 Document = namedtuple("Document", "filename title text")
 
@@ -336,11 +337,11 @@ class EuroVocLoader:
             if label.rank != LabelRank.THESAURUS:
                 if label.thesaurus not in thesaurus_by_name:
                     # Error: thesaurus name does not exist (this shouldn't happen)
-                    debug_msg = (
+                    warnings.warn(
                         f"Label {label.id} has a non-existing thesaurus name "
-                        f"assigned: {label.thesaurus}"
+                        f"assigned: {label.thesaurus}",
+                        RuntimeWarning,
                     )
-                    _LOGGER.debug(debug_msg)
                     label.thesaurus = None
                 else:
                     label.thesaurus = thesaurus_by_name[label.thesaurus].id
@@ -354,11 +355,11 @@ class EuroVocLoader:
             if label.rank == LabelRank.TERM:
                 if label.micro_thesaurus not in microthesaurus_by_name:
                     # Error: microthesaurus name does not exist (this shouldn't happen)
-                    debug_msg = (
+                    warnings.warn(
                         f"Label {label.id} has a non-existing microthesaurus name "
-                        f"assigned: {label.micro_thesaurus}"
+                        f"assigned: {label.micro_thesaurus}",
+                        RuntimeWarning,
                     )
-                    _LOGGER.debug(debug_msg)
                     label.micro_thesaurus = None
                 else:
                     label.micro_thesaurus = microthesaurus_by_name[
@@ -502,20 +503,15 @@ class EuroVocLoader:
             filename = os.path.basename(doc)
             document_id = int(os.path.splitext(filename)[0].replace("NN", ""))
             if document_id not in document_mapping:
-                debug_msg = (
-                    f"{document_id} document id not found in document " "mappings."
+                warnings.warn(
+                    f"{document_id} document id not found in document " "mappings.",
+                    RuntimeWarning,
                 )
-                _LOGGER.debug(debug_msg)
                 continue
             parsed_doc = EuroVocLoader._parse_document(doc)
             # parsed_doc is None if there's been an error on document text extraction
             if parsed_doc:
                 parsed_documents.append(parsed_doc)
-        debug_msg = (
-            "Succesfully parsed documents: "
-            f"{len(parsed_documents)}/{len(xml_documents)}"
-        )
-        _LOGGER.debug(debug_msg)
         return parsed_documents
 
     @staticmethod
@@ -545,8 +541,10 @@ class EuroVocLoader:
         if title_text and title_text[0].isdigit():
             title_text = " ".join(title_text.split(" ")[2:])
         else:
-            debug_msg = f"{filename} file contains invalid document title: {title_text}"
-            _LOGGER.debug(debug_msg)
+            warnings.warn(
+                f"{filename} file contains invalid document title: {title_text}",
+                RuntimeWarning,
+            )
         title_text = title_text.lower().replace("\r", "").replace("\n", "")
 
         body_text = []
@@ -562,9 +560,10 @@ class EuroVocLoader:
         # generates an xml contaning the following string. Text for these documents is
         # not available and they are therefore ignored.
         if "postupak ekstrakcije teksta" in body_text:
-            debug_msg = f"{filename} XML file does not contain a valid text"
-            _LOGGER.debug(debug_msg)
-            return None
+            warnings.warn(
+                f"{filename} XML file does not contain a valid text", RuntimeWarning
+            )
+            return
 
         return Document(title=title_text, text=body_text, filename=filename)
 

@@ -1,17 +1,14 @@
 """Module contains EuroVoc dataset."""
 import functools
-import logging
 import os
 import re
+import warnings
 
 from podium.datasets.dataset import Dataset
 from podium.preproc.lemmatizer.croatian_lemmatizer import get_croatian_lemmatizer_hook
 from podium.preproc.stop_words import CROATIAN_EXTENDED
 from podium.storage import Field, MultilabelField, Vocab
 from podium.storage.example_factory import ExampleFactory
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class EuroVocDataset(Dataset):
@@ -113,7 +110,9 @@ class EuroVocDataset(Dataset):
             # document filename format is NNXXXXX.xml, where XXXXX is document_id
             document_id = int(os.path.splitext(document.filename)[0].replace("NN", ""))
             if document_id not in mappings:
-                _LOGGER.debug(f"Document {document_id} not found in mappings")
+                warnings.warn(
+                    f"Document {document_id} not found in mappings", RuntimeWarning
+                )
                 continue
 
             labels = mappings[document_id]
@@ -125,11 +124,11 @@ class EuroVocDataset(Dataset):
                 elif label in crovoc_label_hierarchy:
                     crovoc_labels.append(label)
                 else:
-                    debug_msg = (
+                    warnings.warn(
                         f"Document {document_id} has label {label} which is not present in the"
-                        "given label hierarchies."
+                        "given label hierarchies.",
+                        RuntimeWarning,
                     )
-                    _LOGGER.debug(debug_msg)
 
             example_data = {
                 "title": document.title,

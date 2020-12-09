@@ -25,9 +25,6 @@ from podium.storage.resources.large_resource import LargeResource
 from podium.storage.vectorizers.vectorizer import BasicVectorStorage
 
 
-_LOGGER = logging.getLogger(__name__)
-
-
 class CroatianNER(Pipeline):
     """Pipeline used to train named entity recognition for Croatian.
     It is designed to work on the croopinion dataset, but makes no
@@ -59,7 +56,7 @@ class CroatianNER(Pipeline):
                 "You can use fastText vectors available at "
                 "https://fasttext.cc/docs/en/crawl-vectors.html"
             )
-            _LOGGER.error(err_msg)
+            logging.error(err_msg)
             raise ValueError
 
         self.fields = ner_dataset_classification_fields()
@@ -114,25 +111,25 @@ class CroatianNER(Pipeline):
 
         if model_kwargs is None:
             model_kwargs = self._define_model_params()
-            _LOGGER.debug(f"Using default model parameters {model_kwargs}")
+            logging.debug(f"Using default model parameters {model_kwargs}")
 
         if trainer_kwargs is None:
             # use bucket iterator to minimize padding in batch
             iterator = BucketIterator(batch_size=32, sort_key=example_word_count)
             trainer_kwargs = {"max_epoch": 10, "iterator": iterator}
-            _LOGGER.debug(f"Using default trainer parameters {trainer_kwargs}")
+            logging.debug(f"Using default trainer parameters {trainer_kwargs}")
 
         trainer = SimpleTrainer() if trainer is None else trainer
 
         start = time.time()
-        _LOGGER.info("Starting training")
+        logging.info("Starting training")
         super().fit(
             dataset=dataset,
             model_kwargs=model_kwargs,
             trainer_kwargs=trainer_kwargs,
             trainer=trainer,
         )
-        _LOGGER.info(f"Training took {time.time() - start} seconds")
+        logging.info(f"Training took {time.time() - start} seconds")
 
     def predict_raw(self, raw_example, tokenizer=str.split):
         """

@@ -3,14 +3,10 @@ Module contains the The Stanford Natural Language Inference (SNLI) Corpus
 For more information about the dataset see: https://nlp.stanford.edu/projects/snli/
 or check the README.txt file in the dataset directory.
 """
-import logging
 import os
 
 from podium.datasets import Dataset
 from podium.storage import ExampleFactory, Field, LabelField, LargeResource, Vocab
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class SNLISimple(Dataset):
@@ -100,7 +96,6 @@ class SNLISimple(Dataset):
         example_factory = ExampleFactory(fields)
         examples = []
 
-        _LOGGER.debug(f"Loading dataset from file {file_path}")
         with open(file=file_path, encoding="utf8") as in_file:
             for line in in_file:
                 examples.append(example_factory.from_json(line))
@@ -193,11 +188,12 @@ class _TreeFactory:
         try:
             from nltk import Tree
         except ImportError:
-            _LOGGER.debug(
+            print(
                 "Problem occurred while trying to import nltk. "
                 "If the library is not installed visit "
                 "https://www.nltk.org/ for more details."
             )
+            raise
 
         if text[0] != "(":
             text = "(" + text + ")"

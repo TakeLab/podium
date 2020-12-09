@@ -187,10 +187,10 @@ def test_basic_load_vocab_none():
 @pytest.mark.parametrize(
     "tokens, expected_matrix, expected_shape",
     [
-        (["."], np.matrix(BASIC_VECT_DATA_DICT["."]), (1, 3)),
+        (["."], np.array(BASIC_VECT_DATA_DICT["."]), (1, 3)),
         (
             [",", ":", ".", "'"],
-            np.matrix(
+            np.array(
                 [
                     BASIC_VECT_DATA_DICT[","],
                     BASIC_VECT_DATA_DICT[":"],

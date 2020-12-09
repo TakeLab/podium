@@ -1,15 +1,11 @@
 """Module contains classes related to creating tfidf vectors from examples."""
 import array
-import logging
 from collections import Counter
 from functools import partial
 
 import numpy as np
 import scipy.sparse as sp
 from sklearn.feature_extraction.text import TfidfTransformer
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class CountVectorizer:

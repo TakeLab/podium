@@ -1,19 +1,16 @@
 """Module contains fully connected neural network models."""
-import logging
-
 from podium.models.model import AbstractSupervisedModel
 
-
-_LOGGER = logging.getLogger(__name__)
 
 try:
     from sklearn.neural_network import MLPClassifier
 except ImportError:
-    _LOGGER.debug(
+    print(
         "Problem occured while trying to import sklearn. If the "
         "library is not installed visit https://scikit-learn.org "
         "for more details."
     )
+    raise
 
 
 class ScikitMLPClassifier(AbstractSupervisedModel):

@@ -1,8 +1,5 @@
 """Module contains text sentencizer."""
-import logging
-
-
-_LOGGER = logging.getLogger(__name__)
+import warnings
 
 
 class SpacySentencizer:
@@ -27,8 +24,8 @@ class SpacySentencizer:
             disable = ["tagger", "ner"]
             nlp = spacy.load(language, disable=disable)
         except OSError:
-            _LOGGER.warning(
-                f"SpaCy model {language} not found." "Trying to download and install."
+            warnings.warn(
+                f"SpaCy model {language} not found. Trying to download and install."
             )
 
             from spacy.cli.download import download

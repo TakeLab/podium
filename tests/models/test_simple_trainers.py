@@ -18,7 +18,6 @@ def model(mocker):
 
 @pytest.mark.usefixtures("tabular_dataset", "model")  # noqa
 def test_simple_trainer_num_epoch(tabular_dataset, model):  # noqa
-    tabular_dataset.finalize_fields()
     iterator = Iterator(batch_size=len(tabular_dataset))
     trainer = SimpleTrainer()
     feature_transformer = FeatureTransformer(lambda x: x)
@@ -43,7 +42,6 @@ def mock_label_transform_fun(y):
 
 @pytest.mark.usefixtures("tabular_dataset", "mocker", "model")  # noqa
 def test_simple_trainer_batch_transform_call(tabular_dataset, mocker, model):  # noqa
-    tabular_dataset.finalize_fields()
     iterator = Iterator(tabular_dataset, batch_size=len(tabular_dataset))
 
     mocker.patch(
