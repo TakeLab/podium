@@ -1,11 +1,6 @@
 """Module contains the CoNLL-U dataset."""
-import logging
-
 from podium.datasets import Dataset
 from podium.storage import ExampleFactory, Field, Vocab
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class CoNLLUDataset(Dataset):
@@ -57,12 +52,11 @@ class CoNLLUDataset(Dataset):
         try:
             import conllu
         except ImportError:
-            error_msg = (
+            print(
                 "Problem occurred while trying to import conllu. "
                 "If the library is not installed visit "
                 "https://pypi.org/project/conllu/ for more details."
             )
-            _LOGGER.error(error_msg)
             raise
 
         # we define a nested function that will catch parse exceptions,

@@ -1,13 +1,9 @@
 """Module contains storage utility methods."""
-import logging
 import os
 import tarfile
 import zipfile
 
 from tqdm import tqdm
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 def copyfileobj_with_tqdm(finput, foutput, total_size, buffer_size=16 * 1024):

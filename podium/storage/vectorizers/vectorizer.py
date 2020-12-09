@@ -2,14 +2,10 @@
  Interface of implemented concrete vectorizers is given in Vectorizer class.
 
 """
-import logging
 import os
 from abc import ABC, abstractmethod
 
 import numpy as np
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 def zeros_default_vector(token, dim):
@@ -265,11 +261,8 @@ class BasicVectorStorage(VectorStorage):
 
     def load_vocab(self, vocab):
         if vocab is None:
-            raise ValueError(
-                "Cannot load vectors for vocab because given " "vocab is None."
-            )
+            raise ValueError("Cannot load vectors for vocab because given vocab is None.")
         self._load_vectors(vocab=vocab)
-        _LOGGER.debug("Loaded vectors for vocab.")
         return self.get_embedding_matrix(vocab)
 
     def token_to_vector(self, token):

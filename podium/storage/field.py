@@ -1,6 +1,5 @@
 """Module contains dataset's field definition and methods for construction."""
 import itertools
-import logging
 from collections import deque
 from collections.abc import Iterator
 from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
@@ -10,8 +9,6 @@ import numpy as np
 from podium.preproc.tokenizers import get_tokenizer
 from podium.storage.vocab import Vocab
 
-
-_LOGGER = logging.getLogger(__name__)
 
 # Type definitions to make type hints more readable
 PretokHook = Callable[[Any], Any]
@@ -314,11 +311,9 @@ class Field:
         """
 
         if not isinstance(name, str):
-            error_msg = (
+            raise ValueError(
                 f"Name must be a string," f" got type '{type(name).__name__}' instead."
             )
-            _LOGGER.error(error_msg)
-            raise ValueError(error_msg)
         self._name = name
         self._disable_batch_matrix = disable_batch_matrix
         self._tokenizer_arg_string = tokenizer if isinstance(tokenizer, str) else None
@@ -338,23 +333,19 @@ class Field:
         self._keep_raw = keep_raw
 
         if not isinstance(padding_token, (int, float)):
-            error_msg = (
+            raise ValueError(
                 f"Padding token of Field '{name}' is of type"
                 f" '{type(padding_token).__name__}'. Must be int or float"
             )
-            _LOGGER.error(error_msg)
-            raise ValueError(error_msg)
         self._padding_token = padding_token
 
         self._is_target = is_target
 
         if fixed_length is not None and not isinstance(fixed_length, int):
-            error_msg = (
+            raise ValueError(
                 f"`fixed_length` of Field `{name}` is of type"
                 f" {type(fixed_length).__name__}. Must be None or int."
             )
-            _LOGGER.error(error_msg)
-            raise ValueError(error_msg)
         self._fixed_length = fixed_length
 
         self._pretokenize_pipeline = PretokenizationPipeline()
@@ -362,12 +353,10 @@ class Field:
         self._allow_missing_data = allow_missing_data
 
         if not isinstance(missing_data_token, (int, float)):
-            error_msg = (
+            raise ValueError(
                 f"Missing data token of Field '{name}' is of type"
                 f" '{type(missing_data_token).__name__}'. Must be int or float"
             )
-            _LOGGER.error(error_msg)
-            raise ValueError(error_msg)
         self._missing_data_token = missing_data_token
 
         if pretokenize_hooks is not None:

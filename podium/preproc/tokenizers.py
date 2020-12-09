@@ -1,8 +1,5 @@
 """Module contains text tokenizers."""
-import logging
-
-
-_LOGGER = logging.getLogger(__name__)
+import warnings
 
 
 def get_tokenizer(tokenizer):
@@ -44,12 +41,10 @@ def get_tokenizer(tokenizer):
         return tokenizer
 
     if not isinstance(tokenizer, str):
-        err_msg = (
+        raise ValueError(
             f"Wrong type passed to `get_tokenizer`. Allowed types are callables "
             f"and strings. The provided type is {type(tokenizer)}"
         )
-        _LOGGER.error(err_msg)
-        raise ValueError(err_msg)
 
     tokenizer_split = tokenizer.split("-", 1)
     if len(tokenizer_split) == 1:
@@ -65,7 +60,7 @@ def get_tokenizer(tokenizer):
             disable = ["parser", "ner"]
             spacy_tokenizer = spacy.load(language, disable=disable)
         except OSError:
-            _LOGGER.warning(
+            warnings.warn(
                 f"SpaCy model {language} not found. " "Trying to download and install."
             )
 
@@ -101,7 +96,7 @@ def get_tokenizer(tokenizer):
             moses_tokenizer = MosesTokenizer()
             return moses_tokenizer.tokenize
         except ImportError:
-            _LOGGER.error(
+            print(
                 "Please install SacreMoses. "
                 "See the docs at https://github.com/alvations/sacremoses "
                 "for more information."

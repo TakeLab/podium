@@ -1,13 +1,8 @@
 """This module contains wrapper for Yet Another Keyword Extractor library."""
-import logging
-
-
-_LOGGER = logging.getLogger(__name__)
-
 try:
     import yake
 except ImportError:
-    _LOGGER.error(
+    print(
         "Problem occured while trying to import yake. "
         "If the library is not installed visit "
         "https://github.com/LIAAD/yake for more details."

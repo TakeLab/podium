@@ -3,7 +3,6 @@ lemmatizer dictionaries. It can return all possible word
 inflections for a lemma, or return the lemma of any
 word inflexion for the Croatian language."""
 import functools
-import logging
 import os
 
 from podium.preproc.util import (
@@ -14,9 +13,6 @@ from podium.storage.resources.large_resource import (
     SCPLargeResource,
     init_scp_large_resource_from_kwargs,
 )
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class CroatianLemmatizer:
@@ -94,7 +90,6 @@ class CroatianLemmatizer:
         try:
             return self._word2lemma[word]
         except KeyError:
-            _LOGGER.info("Word is being returned instead of lemma.")
             return word if not none_if_oov else None
 
     def get_words_for_lemma(self, lemma):

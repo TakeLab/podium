@@ -351,12 +351,13 @@ def test_missing_document(patched_hook):
 )
 @patch.object(CroatianLemmatizer, "__init__", mock_init_lemmatizer)
 def test_missing_document_mapping(patched_hook):
-    dataset = EuroVocDataset(
-        eurovoc_labels=eurovoc_label_hierarchy(),
-        crovoc_labels=crovoc_label_hierarchy(),
-        mappings=mappings_missing_document(),
-        documents=documents(),
-    )
+    with pytest.warns(RuntimeWarning):
+        dataset = EuroVocDataset(
+            eurovoc_labels=eurovoc_label_hierarchy(),
+            crovoc_labels=crovoc_label_hierarchy(),
+            mappings=mappings_missing_document(),
+            documents=documents(),
+        )
     assert len(dataset) == 2
     assert len(dataset.get_eurovoc_label_hierarchy()) == 4
     assert len(dataset.get_crovoc_label_hierarchy()) == 3
@@ -368,12 +369,13 @@ def test_missing_document_mapping(patched_hook):
 )
 @patch.object(CroatianLemmatizer, "__init__", mock_init_lemmatizer)
 def test_non_existing_label(patched_hook):
-    dataset = EuroVocDataset(
-        eurovoc_labels=eurovoc_label_hierarchy(),
-        crovoc_labels=crovoc_label_hierarchy(),
-        mappings=mappings_non_existing_label(),
-        documents=documents(),
-    )
+    with pytest.warns(RuntimeWarning):
+        dataset = EuroVocDataset(
+            eurovoc_labels=eurovoc_label_hierarchy(),
+            crovoc_labels=crovoc_label_hierarchy(),
+            mappings=mappings_non_existing_label(),
+            documents=documents(),
+        )
 
     assert len(dataset) == 3
     assert len(dataset.get_eurovoc_label_hierarchy()) == 4

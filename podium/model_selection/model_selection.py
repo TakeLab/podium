@@ -1,4 +1,3 @@
-import logging
 from typing import Any, Callable, Dict, Iterable, Tuple, Union
 
 import numpy as np
@@ -8,9 +7,6 @@ from tqdm import tqdm
 from podium.datasets import Dataset
 from podium.models import Experiment
 from podium.validation import k_fold_validation
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 def grid_search(
