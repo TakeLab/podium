@@ -1,16 +1,85 @@
 """Module contains classes for iterating over datasets."""
 import math
 import warnings
+from abc import ABC, abstractmethod
 from collections import defaultdict, namedtuple
 from random import Random
+from typing import Iterator as PythonIterator
+from typing import List, NamedTuple, Tuple
 
 import numpy as np
 
-from podium.datasets.dataset import Dataset
+from podium.datasets.dataset import Dataset, DatasetABC
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
 
 
-class Iterator:
+class IteratorABC(ABC):
+
+    # ============== Default methods ==============
+
+    def __call__(
+        self, dataset: DatasetABC
+    ) -> PythonIterator[Tuple[NamedTuple, NamedTuple]]:
+        """Sets the dataset for this Iterator and returns an iterable over the batches of
+        that dataset. Same as calling iterator.set_dataset() followed by iter(iterator)
+
+        Parameters
+        ----------
+        dataset: Dataset
+            Dataset to iterate over.
+
+        Returns
+        -------
+        Iterable over batches in the Dataset.
+
+        """
+        self.set_dataset(dataset)
+        return iter(self)
+
+    # ============== Abstract methods =============
+
+    @abstractmethod
+    def set_dataset(self, dataset: DatasetABC) -> None:
+        """Sets the dataset for this Iterator to iterate over.
+        Resets the epoch count.
+
+        Parameters
+        ----------
+        dataset: DatasetABC
+            Dataset to iterate over.
+        """
+        pass
+
+    @abstractmethod
+    def __iter__(self) -> PythonIterator[Tuple[NamedTuple, NamedTuple]]:
+        """Returns an iterator object that knows how to iterate over the
+        given dataset.
+        The iterator yields tuples in the form (input_batch, target_batch).
+        The input_batch and target_batch objects have attributes that
+        correspond to the names of input fields and target fields
+        (respectively) of the dataset.
+
+        Returns
+        -------
+        iter
+            Iterator that iterates over batches of examples in the dataset.
+        """
+        pass
+
+    @abstractmethod
+    def __len__(self) -> int:
+        """Returns the number of batches this iterator provides in one epoch.
+
+        Returns
+        -------
+        int
+            Number of batches s provided in one epoch.
+        """
+
+    pass
+
+
+class Iterator(IteratorABC):
     """An iterator that batches data from a dataset after numericalization.
 
     Attributes
@@ -34,7 +103,7 @@ class Iterator:
 
         Parameters
         ----------
-        dataset : Dataset
+        dataset : DatasetABC
             The dataset whose examples the iterator will iterate over.
         batch_size : int
             The size of the batches that the iterator will return. If the
@@ -112,21 +181,22 @@ class Iterator:
             self._shuffler = None
 
     @property
-    def epoch(self):
-        """The current epoch of the Iterator"""
+    def epoch(self) -> int:
+        """The current epoch of the Iterator."""
         return self._epoch
 
     @property
-    def iterations(self):
+    def iterations(self) -> int:
+        """Number of batches returned for the current epoch."""
         return self._iterations
 
-    def set_dataset(self, dataset: Dataset):
+    def set_dataset(self, dataset: DatasetABC) -> None:
         """Sets the dataset for this Iterator to iterate over.
         Resets the epoch count.
 
         Parameters
         ----------
-        dataset: Dataset
+        dataset: DatasetABC
             Dataset to iterate over.
         """
         self._epoch = 0
@@ -142,24 +212,7 @@ class Iterator:
 
         self._dataset = dataset
 
-    def __call__(self, dataset: Dataset):
-        """Sets the dataset for this Iterator and returns an iterable over the batches of
-        that Dataset. Same as calling iterator.set_dataset() followed by iter(iterator)
-
-        Parameters
-        ----------
-        dataset: Dataset
-            Dataset to iterate over.
-
-        Returns
-        -------
-        Iterable over batches in the Dataset.
-
-        """
-        self.set_dataset(dataset)
-        return iter(self)
-
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns the number of batches this iterator provides in one epoch.
 
         Returns
@@ -170,7 +223,7 @@ class Iterator:
 
         return math.ceil(len(self._dataset) / self._batch_size)
 
-    def __iter__(self):
+    def __iter__(self) -> PythonIterator[Tuple[NamedTuple, NamedTuple]]:
         """Returns an iterator object that knows how to iterate over the
         given dataset.
         The iterator yields tuples in the form (input_batch, target_batch).
@@ -208,7 +261,7 @@ class Iterator:
         self._iterations = 0
         self._epoch += 1
 
-    def _create_batch(self, dataset):
+    def _create_batch(self, dataset: DatasetABC) -> Tuple[NamedTuple, NamedTuple]:
 
         examples = dataset.examples
 
@@ -316,13 +369,13 @@ class Iterator:
         self._shuffler.setstate(state)
 
     @staticmethod
-    def _arrays_to_matrix(field, arrays):
+    def _arrays_to_matrix(field, arrays: List[np.ndarray]) -> np.ndarray:
         pad_length = Iterator._get_pad_length(field, arrays)
         padded_arrays = [field._pad_to_length(a, pad_length) for a in arrays]
         return np.array(padded_arrays)
 
     @staticmethod
-    def _get_pad_length(field, numericalizations):
+    def _get_pad_length(field, numericalizations) -> int:
         # the fixed_length attribute of Field has priority over the max length
         # of all the examples in the batch
         if field._fixed_length is not None:
@@ -330,38 +383,12 @@ class Iterator:
 
         # if fixed_length is None, then return the maximum length of all the
         # examples in the batch
-        def num_length(n):
+        def numericalization_length(n):
             return 1 if n is None else len(n)
 
-        return max(map(num_length, numericalizations))
+        return max(map(numericalization_length, numericalizations))
 
-    def _data(self):
-        """Method returns the copy of examples in the dataset.
-
-        The examples are shuffled if shuffle is True and sorted if sort_key
-        is not None. Sorting happens after shuffling so the shuffle flag may
-        have no effect if sort_key is not None (the only difference it can
-        make is in the order of elements with the same value of sort_key).
-        """
-
-        if self._shuffle:
-            # shuffle the indices
-            indices = list(range(len(self._dataset)))
-            self._shuffler.shuffle(indices)
-
-            # creates a new list
-            xs = [self._dataset[i] for i in indices]
-        else:
-            # copies the list
-            xs = self._dataset.examples[:]
-
-        # sorting the newly created list
-        if self._sort_key is not None:
-            xs.sort(key=self._sort_key)
-
-        return xs
-
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "{}[batch_size: {}, sort_key: {}, shuffle: {}]".format(
             self.__class__.__name__,
             self._batch_size,
@@ -374,13 +401,13 @@ class SingleBatchIterator(Iterator):
     """Iterator that creates one batch per epoch
     containing all examples in the dataset."""
 
-    def __init__(self, dataset: Dataset = None, shuffle=True):
+    def __init__(self, dataset: DatasetABC = None, shuffle=True):
         """Creates an Iterator that creates one batch per epoch
         containing all examples in the dataset.
 
         Parameters
         ----------
-        dataset : Dataset
+        dataset : DatasetABC
             The dataset whose examples the iterator will iterate over.
 
         shuffle : bool
@@ -394,11 +421,11 @@ class SingleBatchIterator(Iterator):
         """
         super().__init__(dataset=dataset, batch_size=len(dataset), shuffle=shuffle)
 
-    def set_dataset(self, dataset: Dataset):
+    def set_dataset(self, dataset: DatasetABC) -> None:
         super().set_dataset(dataset)
         self._batch_size = len(dataset)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return 1
 
 
@@ -461,15 +488,7 @@ class BucketIterator(Iterator):
         self.bucket_sort_key = bucket_sort_key
         self.look_ahead_multiplier = look_ahead_multiplier
 
-    def __iter__(self):
-        """Returns an iterator object that knows how to iterate over the
-        batches of the given dataset.
-
-        Returns
-        -------
-        iter
-            Iterator that iterates over batches of examples in the dataset.
-        """
+    def __iter__(self) -> PythonIterator[Tuple[NamedTuple, NamedTuple]]:
         step = self._batch_size * self.look_ahead_multiplier
         dataset = self._dataset
         if self._sort_key is not None:
@@ -491,7 +510,7 @@ class BucketIterator(Iterator):
         self._iterations = 0
         self._epoch += 1
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             "{}[batch_size: {}, sort_key: {}, "
             "shuffle: {}, look_ahead_multiplier: {}, bucket_sort_key: {}]".format(
@@ -533,7 +552,7 @@ class HierarchicalDatasetIterator(Iterator):
 
         Parameters
         ----------
-        dataset : Dataset
+        dataset : DatasetABC
             The dataset whose examples the iterator will iterate over.
         batch_size : int
             The size of the batches that the iterator will return. If the
@@ -614,6 +633,16 @@ class HierarchicalDatasetIterator(Iterator):
             internal_random_state=internal_random_state,
         )
 
+    def set_dataset(self, dataset: HierarchicalDataset) -> None:
+        if not isinstance(dataset, HierarchicalDataset):
+            err_msg = (
+                f"HierarchicalIterator can only iterate over "
+                f"HierarchicalDatasets. Passed dataset type: "
+                f"{type(dataset).__name__}"
+            )
+            raise ValueError(err_msg)
+        super().set_dataset(dataset)
+
     def _get_node_context(self, node):
         """Generates a list of examples that make up the context of the provided node,
         truncated to adhere to 'context_max_depth' and 'context_max_length' limitations.
@@ -645,9 +674,10 @@ class HierarchicalDatasetIterator(Iterator):
 
         return context
 
-    def _create_batch(self, nodes):
+    def _nodes_to_batch(self, nodes):
         """
         Creates a batch from the passed nodes.
+
         Parameters
         ----------
         nodes : list(Node)
@@ -706,19 +736,19 @@ class HierarchicalDatasetIterator(Iterator):
 
         return dataset_nodes
 
-    def __iter__(self):
+    def __iter__(self) -> PythonIterator[Tuple[NamedTuple, NamedTuple]]:
         dataset_nodes = self._data()
 
         for i in range(0, len(dataset_nodes), self._batch_size):
             batch_nodes = dataset_nodes[i : i + self._batch_size]
-            yield self._create_batch(batch_nodes)
+            yield self._nodes_to_batch(batch_nodes)
             self._iterations += 1
 
         # prepare for new epoch
         self._iterations = 0
         self._epoch += 1
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             "{}[batch_size: {}, sort_key: {}, "
             "shuffle: {}, context_max_length: {}, context_max_depth: {}]".format(
