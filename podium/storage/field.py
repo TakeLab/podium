@@ -72,7 +72,7 @@ class MultioutputField:
         self,
         output_fields: List["Field"],
         tokenizer: TokenizerType = "split",
-        pretokenize_hooks: Iterable[PretokenizationHookType] = [],
+        pretokenize_hooks: Optional[Iterable[PretokenizationHookType]] = None,
     ):
         """Field that does pretokenization and tokenization once and passes it to its
         output fields. Output fields are any type of field. The output fields are used
@@ -858,7 +858,7 @@ class LabelField(Field):
         allow_missing_data: bool = False,
         is_target: bool = True,
         missing_data_token: Union[int, float] = -1,
-        pretokenize_hooks: Iterable[PretokenizationHookType] = [],
+        pretokenize_hooks: Optional[Iterable[PretokenizationHookType]] = None,
     ):
         """
         Field subclass used when no tokenization is required. For example, with a field
@@ -936,8 +936,8 @@ class MultilabelField(Field):
         is_target: bool = True,
         allow_missing_data: bool = False,
         missing_data_token: Union[int, float] = -1,
-        pretokenize_hooks: Iterable[PretokenizationHookType] = [],
-        posttokenize_hooks: Iterable[PosttokenizationHookType] = [],
+        pretokenize_hooks: Optional[Iterable[PretokenizationHookType]] = None,
+        posttokenize_hooks: Optional[Iterable[PosttokenizationHookType]] = None,
     ):
         """Create a MultilabelField from arguments.
 
