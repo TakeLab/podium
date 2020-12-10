@@ -1053,9 +1053,8 @@ class MultilabelField(Field):
 
     def finalize(self):
         """Signals that this field's vocab can be built."""
-        super().finalize()
         if self._num_of_classes is None:
-            self.fixed_length = self._num_of_classes = len(self.vocab)
+            self._fixed_length = self._num_of_classes = len(self.vocab)
 
         if self.use_vocab and len(self.vocab) > self._num_of_classes:
             raise ValueError(
@@ -1063,6 +1062,7 @@ class MultilabelField(Field):
                 f"of classes. Declared: {self._num_of_classes}, "
                 f"Actual: {len(self.vocab)}"
             )
+        super().finalize()
 
     def numericalize(
         self, data: Tuple[Optional[Any], Optional[Union[Any, List[str]]]]
