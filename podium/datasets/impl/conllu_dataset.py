@@ -13,8 +13,7 @@ class CoNLLUDataset(Dataset):
         ----------
         file_path : str
             Path to the file containing the dataset.
-
-        fields : dict(str, Field)
+        fields : Dict[str, Field]
             Dictionary that maps the CoNLL-U field name to the field.
             If passed None the default set of fields will be used.
         """
@@ -31,20 +30,18 @@ class CoNLLUDataset(Dataset):
         ----------
         file_path : str
             Path to the file wich contains the dataset.
-
-        fields : dict(str, Field)
+        fields : Dict[str, Field]
             Dictionary that maps the CoNLL-U field name to the field.
 
         Returns
         -------
-        list(Example)
+        List[Example]
             A list of examples from the CoNLL-U dataset.
 
         Raises
         ------
         ImportError
             If the conllu library is not installed.
-
         ValueError
             If there is an error during parsing the file.
         """
@@ -68,85 +65,71 @@ class CoNLLUDataset(Dataset):
             except Exception as e:
                 raise ValueError("Error occured during parsing the file") from e
 
+        field_names = conllu.parser.DEFAULT_FIELDS
+        assert list(field_names) == list(
+            fields
+        ), "Only default CoNLL-U fields are supported"
+
         example_factory = ExampleFactory(fields)
 
         examples = []
         with open(file_path, encoding="utf-8") as in_file:
-
             for tokenlist in safe_conllu_parse(in_file):
-                for token in tokenlist:
-                    token = {
-                        field_name: tuple(field_value.items())
-                        if isinstance(field_value, dict)
-                        else field_value
-                        for field_name, field_value in token.items()
-                    }
-
-                    examples.append(example_factory.from_dict(token))
+                field_values = [
+                    list(field_value)
+                    for field_value in zip(*[token.values() for token in tokenlist])
+                ]
+                example = example_factory.from_dict(dict(zip(field_names, field_values)))
+                examples.append(example)
 
         return examples
 
     @staticmethod
     def get_default_fields():
         """Method returns a dict of default CoNLL-U fields.
-        fields : id, form, lemma, upos, xpos, feats, head, deprel, deps, misc
 
         Returns
         -------
-        fields : dict(str, Field)
+        fields : Dict[str, Field]
             Dict containing all default CoNLL-U fields.
         """
 
-        # numericalization of id is not allowed because
-        # numericalization of integer ranges is undefined
-        id = Field(name="id", tokenizer=None, keep_raw=True, numericalizer=None)
+        id = Field(name="id", tokenizer=None, numericalizer=None)
 
-        form = Field(
-            name="form", numericalizer=Vocab(specials=()), tokenizer=None, keep_raw=True
-        )
+        form = Field(name="form", tokenizer=None, numericalizer=Vocab(specials=()))
 
-        lemma = Field(
-            name="lemma", numericalizer=Vocab(specials=()), tokenizer=None, keep_raw=True
-        )
+        lemma = Field(name="lemma", tokenizer=None, numericalizer=Vocab(specials=()))
 
         upos = Field(
             name="upos",
-            numericalizer=Vocab(specials=()),
             tokenizer=None,
-            keep_raw=True,
-            allow_missing_data=True,
+            numericalizer=Vocab(specials=()),
         )
 
         xpos = Field(
             name="xpos",
-            numericalizer=Vocab(specials=()),
             tokenizer=None,
-            keep_raw=True,
-            allow_missing_data=True,
+            numericalizer=Vocab(specials=()),
         )
 
         feats = Field(
-            name="feats", tokenizer=None, numericalizer=None, allow_missing_data=True
+            name="feats", tokenizer=None, numericalizer=None
         )
 
         head = Field(
             name="head",
             tokenizer=None,
-            keep_raw=True,
             numericalizer=int,
-            allow_missing_data=True,
         )
 
-        deprel = Field(
-            name="deprel", tokenizer=None, keep_raw=True, allow_missing_data=True
-        )
+        deprel = Field(name="deprel", tokenizer=None)
 
         deps = Field(
-            name="deps", tokenizer=None, numericalizer=None, allow_missing_data=True
+            name="deps", tokenizer=None, numericalizer=None
         )
 
         misc = Field(
-            name="misc", tokenizer=None, numericalizer=None, allow_missing_data=True
+            name="misc", tokenizer=None, numericalizer=None
         )
 
         return {
