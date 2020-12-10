@@ -7,6 +7,7 @@ from typing import (
     Iterator,
     List,
     NamedTuple,
+    Optional,
     Tuple,
     Union,
     overload,
@@ -17,7 +18,7 @@ import numpy as np
 from podium.storage import Example, Field, unpack_fields
 
 
-FieldType = Optional[Union[Field, List[Field]]
+FieldType = Optional[Union[Field, List[Field]]]
 
 
 class DatasetABC(ABC):
