@@ -338,8 +338,9 @@ class Field:
         elif isinstance(numericalizer, Callable):
             self._numericalizer = NumericalizerCallableWrapper(numericalizer)
         else:
-            # TODO raise error
-            pass
+            err_msg = f'Field {name}: unsupported numericalizer type ' \
+                      f'"{type(numericalizer).__name__}"'
+            raise TypeError(err_msg)
 
         self._keep_raw = keep_raw
 
@@ -568,6 +569,7 @@ class Field:
 
         # Preprocess the raw input
         # TODO keep unprocessed or processed raw?
+        # Keeping processed for now, may change in the future
         processed_raw = self._run_pretokenization_hooks(data)
         tokenized = (
             self._tokenizer(processed_raw)
