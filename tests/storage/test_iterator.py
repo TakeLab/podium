@@ -487,6 +487,17 @@ def hierarchical_dataset(hierarchical_dataset_fields, hierarchical_dataset_parse
     return dataset
 
 
+@pytest.fixture
+def hierarchical_dataset_2(hierarchical_dataset_fields, hierarchical_dataset_parser):
+    dataset = HierarchicalDataset.from_json(
+        HIERARCHIAL_DATASET_JSON_EXAMPLE_2,
+        hierarchical_dataset_fields,
+        hierarchical_dataset_parser,
+    )
+    dataset.finalize_fields()
+    return dataset
+
+
 def test_hierarchical_dataset_iteration(hierarchical_dataset):
     hit = HierarchicalDatasetIterator(dataset=hierarchical_dataset, batch_size=3)
     batch_iter = iter(hit)
@@ -553,12 +564,58 @@ def test_hierarchical_no_dataset_set():
             pass
 
 
-def test_hierarchical_set_dataset_after(hierarchical_dataset):
-    hi = HierarchicalDatasetIterator(batch_size=20, context_max_depth=2)
+def test_hierarchical_set_dataset_after(hierarchical_dataset, hierarchical_dataset_2):
+    hi = HierarchicalDatasetIterator(batch_size=3, context_max_depth=2)
     hi.set_dataset(hierarchical_dataset)
-    for b in hi:
-        pass
-    assert True
+    batch_iter = iter(hi)
+
+    input_batch_1, _ = next(batch_iter)
+    assert len(input_batch_1.number) == 3
+    assert np.all(input_batch_1.number[0] == [[1]])
+    assert np.all(input_batch_1.number[1] == [[1], [2]])
+    assert np.all(input_batch_1.number[2] == [[1], [2], [3]])
+
+    input_batch_2, _ = next(batch_iter)
+    assert len(input_batch_2.number) == 3
+    assert np.all(input_batch_2.number[0] == [[1], [2], [4]])
+    assert np.all(input_batch_2.number[1] == [[5]])
+    assert np.all(input_batch_2.number[2] == [[5], [6]])
+
+    input_batch_3, _ = next(batch_iter)
+    assert len(input_batch_1.number) == 3
+    assert np.all(input_batch_3.number[0] == [[5], [6], [7]])
+    assert np.all(input_batch_3.number[1] == [[5], [6], [7], [8]])
+    assert np.all(input_batch_3.number[2] == [[5], [6], [7], [8], [9]])
+
+    input_batch_4, _ = next(batch_iter)
+    assert len(input_batch_4.number) == 1
+    assert np.all(input_batch_4.number[0] == [[5], [6], [7], [8], [10]])
+
+    with pytest.raises(StopIteration):
+        next(batch_iter)
+
+    # change dataset
+    hi.set_dataset(hierarchical_dataset_2)
+    batch_iter = iter(hi)
+
+    input_batch_1, _ = next(batch_iter)
+    assert len(input_batch_1.number) == 3
+    assert np.all(input_batch_1.number[0] == [[1]])
+    assert np.all(input_batch_1.number[1] == [[1], [2]])
+    assert np.all(input_batch_1.number[2] == [[1], [2], [3]])
+
+    input_batch_2, _ = next(batch_iter)
+    assert len(input_batch_2.number) == 3
+    assert np.all(input_batch_2.number[0] == [[5]])
+    assert np.all(input_batch_2.number[1] == [[5], [6]])
+    assert np.all(input_batch_2.number[2] == [[5], [6], [7]])
+
+    input_batch_3, _ = next(batch_iter)
+    assert len(input_batch_3.number) == 1
+    assert np.all(input_batch_3.number[0] == [[5], [6], [7], [10]])
+
+    with pytest.raises(StopIteration):
+        next(batch_iter)
 
 
 HIERARCHIAL_DATASET_JSON_EXAMPLE = """
@@ -605,6 +662,46 @@ HIERARCHIAL_DATASET_JSON_EXAMPLE = """
                     "number" : 9
                 }
             ]
+        },
+        {
+            "name" : "c24",
+            "number" : 10
+        }
+    ]
+}
+]
+"""
+
+HIERARCHIAL_DATASET_JSON_EXAMPLE_2 = """
+[
+{
+    "name" : "parent1",
+    "number" : 1,
+    "children" : [
+        {
+            "name" : "c11",
+            "number" : 2,
+            "children" : [
+                {
+                    "name" : "c111",
+                    "number" : 3
+                }
+            ]
+        }
+    ]
+},
+{
+    "name" : "parent2",
+    "number" : 5,
+    "children" : [
+        {
+            "name" : "c21",
+            "number" : 6
+        },
+        {
+            "name" : "c22",
+            "number" : 7,
+            "children" : []
         },
         {
             "name" : "c24",

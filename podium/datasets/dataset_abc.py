@@ -7,6 +7,7 @@ from typing import (
     Iterator,
     List,
     NamedTuple,
+    Optional,
     Tuple,
     Union,
     overload,
@@ -17,13 +18,11 @@ import numpy as np
 from podium.storage import Example, Field, unpack_fields
 
 
-FieldArg = Union[Field, List[Field], None]
-DictFields = Dict[str, FieldArg]
-ListFields = List[FieldArg]
+FieldType = Optional[Union[Field, List[Field]]]
 
 
 class DatasetABC(ABC):
-    def __init__(self, fields: Union[DictFields, ListFields]):
+    def __init__(self, fields: Union[Dict[str, FieldType], List[FieldType]]):
         self._fields = tuple(unpack_fields(fields))
 
     # ==================== Properties =========================
