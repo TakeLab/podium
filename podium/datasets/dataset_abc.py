@@ -17,7 +17,7 @@ import numpy as np
 from podium.storage import Example, Field, unpack_fields
 
 
-FieldType = Union[Field, List[Field], None]
+FieldType = Optional[Union[Field, List[Field]]
 
 
 class DatasetABC(ABC):
