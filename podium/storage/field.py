@@ -407,9 +407,11 @@ class Field:
         """"""
         if not self.use_vocab:
             numericalizer_type = type(self._numericalizer).__name__
-            err_msg = f'Field "{self.name}" has no vocab, numericalizer type is ' \
-                      f'{numericalizer_type}.'
-            raise TypeError(f"")
+            err_msg = (
+                f'Field "{self.name}" has no vocab, numericalizer type is '
+                f"{numericalizer_type}."
+            )
+            raise TypeError(err_msg)
         return self._numericalizer
 
     @property
