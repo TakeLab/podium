@@ -17,13 +17,11 @@ import numpy as np
 from podium.storage import Example, Field, unpack_fields
 
 
-FieldArg = Union[Field, List[Field], None]
-DictFields = Dict[str, FieldArg]
-ListFields = List[FieldArg]
+FieldType = Union[Field, List[Field], None]
 
 
 class DatasetABC(ABC):
-    def __init__(self, fields: Union[DictFields, ListFields]):
+    def __init__(self, fields: Union[Dict[str, FieldType], List[FieldType]]):
         self._fields = tuple(unpack_fields(fields))
 
     # ==================== Properties =========================
