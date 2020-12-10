@@ -112,9 +112,7 @@ class CoNLLUDataset(Dataset):
             numericalizer=Vocab(specials=()),
         )
 
-        feats = Field(
-            name="feats", tokenizer=None, numericalizer=None
-        )
+        feats = Field(name="feats", tokenizer=None, numericalizer=None)
 
         head = Field(
             name="head",
@@ -124,13 +122,9 @@ class CoNLLUDataset(Dataset):
 
         deprel = Field(name="deprel", tokenizer=None)
 
-        deps = Field(
-            name="deps", tokenizer=None, numericalizer=None
-        )
+        deps = Field(name="deps", tokenizer=None, numericalizer=None)
 
-        misc = Field(
-            name="misc", tokenizer=None, numericalizer=None
-        )
+        misc = Field(name="misc", tokenizer=None, numericalizer=None)
 
         return {
             "id": id,
