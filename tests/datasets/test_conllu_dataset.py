@@ -31,12 +31,12 @@ wrong_id_format   The     the    DET    DT   Definite=Def|PronType=Art   4   det
 
 @pytest.fixture
 def sample_dataset_raw():
-    return re.sub(" +", "\t", DATA) + "\n"
+    return re.sub(" +", "\t", DATA)
 
 
 @pytest.fixture
 def sample_dataset_raw_faulty():
-    return re.sub(" +", "\t", FAULTY_DATA) + "\n"
+    return re.sub(" +", "\t", FAULTY_DATA)
 
 
 def test_load_dataset(sample_dataset_raw):
