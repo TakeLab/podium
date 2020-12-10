@@ -10,19 +10,17 @@ from podium.preproc.tokenizers import get_tokenizer
 from podium.storage.vocab import Vocab
 
 
-# Type definitions to make type hints more readable
-PretokHook = Callable[[Any], Any]
-PosttokHook = Callable[[Any, List[str]], Tuple[Any, List[str]]]
-Tokenizer = Callable[[Any], List[str]]
-TokenizerArg = Optional[Union[str, Tokenizer]]
-Numericalizer = Callable[[str], Union[int, float]]
+PretokenizationHookType = Callable[[Any], Any]
+PosttokenizationHookType = Callable[[Any, List[str]], Tuple[Any, List[str]]]
+TokenizerType = Optional[Union[str, Callable[[Any], List[str]]]]
+NumericalizerType = Callable[[str], Union[int, float]]
 
 
 class PretokenizationPipeline:
     def __init__(self, hooks=()):
         self.hooks = deque(hooks)
 
-    def add_hook(self, hook):
+    def add_hook(self, hook: PretokenizationHookType):
         self.hooks.append(hook)
 
     def process(self, raw):
@@ -44,7 +42,7 @@ class PosttokenizationPipeline:
     def __init__(self, hooks=()):
         self.hooks = deque(hooks)
 
-    def add_hook(self, hook):
+    def add_hook(self, hook: PosttokenizationHookType):
         self.hooks.append(hook)
 
     def process(self, raw, tokenized):
@@ -73,8 +71,8 @@ class MultioutputField:
     def __init__(
         self,
         output_fields: List["Field"],
-        tokenizer: TokenizerArg = "split",
-        pretokenize_hooks: Iterable[PretokHook] = [],
+        tokenizer: TokenizerType = "split",
+        pretokenize_hooks: Optional[Iterable[PretokenizationHookType]] = None,
     ):
         """Field that does pretokenization and tokenization once and passes it to its
         output fields. Output fields are any type of field. The output fields are used
@@ -112,7 +110,7 @@ class MultioutputField:
         self._tokenizer = get_tokenizer(tokenizer)
         self._output_fields = deque(output_fields)
 
-    def add_pretokenize_hook(self, hook: PretokHook):
+    def add_pretokenize_hook(self, hook: PretokenizationHookType):
         """Add a pre-tokenization hook to the MultioutputField.
         If multiple hooks are added to the field, the order of their execution
         will be the same as the order in which they were added to the field,
@@ -215,17 +213,17 @@ class Field:
     def __init__(
         self,
         name: str,
-        tokenizer: TokenizerArg = "split",
+        tokenizer: TokenizerType = "split",
         keep_raw: bool = False,
-        numericalizer: Optional[Union[Vocab, Numericalizer]] = None,
+        numericalizer: Optional[Union[Vocab, NumericalizerType]] = None,
         is_target: bool = False,
         fixed_length: Optional[int] = None,
         allow_missing_data: bool = False,
         disable_batch_matrix: bool = False,
         padding_token: Union[int, float] = -999,
         missing_data_token: Union[int, float] = -1,
-        pretokenize_hooks: Iterable[PretokHook] = [],
-        posttokenize_hooks: Iterable[PosttokHook] = [],
+        pretokenize_hooks: Optional[Iterable[PretokenizationHookType]] = None,
+        posttokenize_hooks: Optional[Iterable[PosttokenizationHookType]] = None,
     ):
         """Create a Field from arguments.
 
@@ -410,7 +408,7 @@ class Field:
     def is_target(self):
         return self._is_target
 
-    def add_pretokenize_hook(self, hook: PretokHook):
+    def add_pretokenize_hook(self, hook: PretokenizationHookType):
         """Add a pre-tokenization hook to the Field.
         If multiple hooks are added to the field, the order of their execution
         will be the same as the order in which they were added to the field,
@@ -436,7 +434,7 @@ class Field:
         """
         self._pretokenize_pipeline.add_hook(hook)
 
-    def add_posttokenize_hook(self, hook: PosttokHook):
+    def add_posttokenize_hook(self, hook: PosttokenizationHookType):
         """Add a post-tokenization hook to the Field.
         If multiple hooks are added to the field, the order of their execution
         will be the same as the order in which they were added to the field,
@@ -856,11 +854,11 @@ class LabelField(Field):
     def __init__(
         self,
         name: str,
-        numericalizer: Numericalizer = None,
+        numericalizer: NumericalizerType = None,
         allow_missing_data: bool = False,
         is_target: bool = True,
         missing_data_token: Union[int, float] = -1,
-        pretokenize_hooks: Iterable[PretokHook] = [],
+        pretokenize_hooks: Optional[Iterable[PretokenizationHookType]] = None,
     ):
         """
         Field subclass used when no tokenization is required. For example, with a field
@@ -932,14 +930,14 @@ class MultilabelField(Field):
     def __init__(
         self,
         name: str,
-        tokenizer: TokenizerArg = None,
-        numericalizer: Numericalizer = None,
+        tokenizer: TokenizerType = None,
+        numericalizer: NumericalizerType = None,
         num_of_classes: Optional[int] = None,
         is_target: bool = True,
         allow_missing_data: bool = False,
         missing_data_token: Union[int, float] = -1,
-        pretokenize_hooks: Iterable[PretokHook] = [],
-        posttokenize_hooks: Iterable[PosttokHook] = [],
+        pretokenize_hooks: Optional[Iterable[PretokenizationHookType]] = None,
+        posttokenize_hooks: Optional[Iterable[PosttokenizationHookType]] = None,
     ):
         """Create a MultilabelField from arguments.
 
