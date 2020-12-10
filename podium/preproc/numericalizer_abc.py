@@ -24,7 +24,7 @@ class NumericalizerABC(ABC):
     def numericalize(self, tokens: List[str]) -> np.ndarray:
         pass
 
-    def _finalize(self):
+    def finalize(self):
         # Subclasses should override this method to add custom
         # finalization logic
         pass
@@ -32,10 +32,8 @@ class NumericalizerABC(ABC):
     def update(self, tokens: List[str]) -> None:
         pass
 
-    def finalize(self) -> None:
-        self._finalize()
+    def mark_finalized(self) -> None:
         self._finalized = True
-        pass
 
     @property
     def finalized(self) -> bool:

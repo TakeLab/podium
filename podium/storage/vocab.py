@@ -347,7 +347,7 @@ class Vocab(NumericalizerABC):
                 new_vocab.finalize()
             return new_vocab
 
-    def _finalize(self):
+    def finalize(self):
         """Method finalizes vocab building. It also releases frequency counter
         if user set not to keep them.
 
@@ -379,6 +379,7 @@ class Vocab(NumericalizerABC):
 
         if not self._keep_freqs:
             self._freqs = None  # release memory
+        self.mark_finalized()
 
     def numericalize(self, data):
         """Method numericalizes given tokens.

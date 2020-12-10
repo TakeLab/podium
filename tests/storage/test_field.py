@@ -61,9 +61,10 @@ class MockVocab(Mock, NumericalizerABC):
     def __iadd__(self, other):
         return self.__add__(other)
 
-    def _finalize(self):
+    def finalize(self):
         if self.finalized:
             raise Exception
+        self.mark_finalized()
 
     def numericalize(self, data):
         self.numericalized = True
