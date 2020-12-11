@@ -214,32 +214,32 @@ class ArrowDataset(DatasetABC):
         Parameters
         ----------
         path : str
-                Path to the data file.
+            Path to the data file.
 
         format : str
-                The format of the data file. Has to be either "CSV", "TSV", or
-                "JSON" (case-insensitive).
+            The format of the data file. Has to be either "CSV", "TSV", or
+            "JSON" (case-insensitive).
 
         fields : Union[Dict[str, Field], List[Field]]
-                A mapping from data columns to example fields.
-                This allows the user to rename columns from the data file,
-                to create multiple fields from the same column and also to
-                select only a subset of columns to load.
+            A mapping from data columns to example fields.
+            This allows the user to rename columns from the data file,
+            to create multiple fields from the same column and also to
+            select only a subset of columns to load.
 
-                A value stored in the list/dict can be either a Field
-                (1-to-1 mapping), a tuple of Fields (1-to-n mapping) or
-                None (ignore column).
+            A value stored in the list/dict can be either a Field
+            (1-to-1 mapping), a tuple of Fields (1-to-n mapping) or
+            None (ignore column).
 
-                If type is list, then it should map from the column index to
-                the corresponding field/s (i.e. the fields in the list should
-                be in the  same order as the columns in the file). Also, the
-                format must be CSV or TSV.
+            If type is list, then it should map from the column index to
+            the corresponding field/s (i.e. the fields in the list should
+            be in the  same order as the columns in the file). Also, the
+            format must be CSV or TSV.
 
-                If type is dict, then it should be a map from the column name
-                to the corresponding field/s. Column names not present in
-                the dict's keys are ignored. If the format is CSV/TSV,
-                then the data file must have a header
-                (column names need to be known).
+            If type is dict, then it should be a map from the column name
+            to the corresponding field/s. Column names not present in
+            the dict's keys are ignored. If the format is CSV/TSV,
+            then the data file must have a header
+            (column names need to be known).
 
         cache_path: str
             Path to the directory where the cache file will saved.

@@ -87,13 +87,6 @@ class IteratorABC(ABC):
 class Iterator(IteratorABC):
     """
     An iterator that batches data from a dataset after numericalization.
-
-    Attributes
-    ----------
-    _epoch : int
-        The number of epochs elapsed up to this point.
-    _iterations : int
-        The number of iterations elapsed in the current epoch.
     """
 
     def __init__(

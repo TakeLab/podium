@@ -411,7 +411,7 @@ class BasicVectorStorage(VectorStorage):
     def get_vector_dim(self):
         if not self._initialized:
             raise RuntimeError(
-                "Vector storage must be initialized to obtain " "vector dimenstion."
+                "Vector storage must be initialized to obtain vector dimenstion."
             )
         return self._dim
 
