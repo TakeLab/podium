@@ -251,7 +251,7 @@ class BasicVectorStorage(VectorStorage):
         encoding="utf-8",
         binary=True,
     ):
-        self._vectors = dict()
+        self._vectors = {}
         self._dim = None
         self._initialized = False
         self._binary = binary
