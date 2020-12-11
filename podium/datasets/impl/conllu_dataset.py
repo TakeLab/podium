@@ -66,9 +66,10 @@ class CoNLLUDataset(Dataset):
                 raise ValueError("Error occured during parsing the file") from e
 
         field_names = conllu.parser.DEFAULT_FIELDS
-        assert list(field_names) == list(
-            fields
-        ), "Only default CoNLL-U fields are supported"
+        assert list(field_names) == list(fields), (
+            f"Only default CoNLL-U fields are supported; "
+            f"expected {list(field_names)}, got {list(fields)}"
+        )
 
         example_factory = ExampleFactory(fields)
 
