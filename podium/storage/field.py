@@ -786,7 +786,7 @@ class Field:
 
             if pad_symbol is None:
                 raise ValueError(
-                    "Must provide a custom pad symbol if the " "field has no vocab."
+                    "Must provide a custom pad symbol if the field has no vocab."
                 )
 
             diff = length - len(array)

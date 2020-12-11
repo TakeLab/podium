@@ -45,7 +45,7 @@ class VocabDict(dict):
     def __missing__(self, key):
         if self._default_factory is None:
             raise KeyError(
-                "Default factory is not defined and key is not in " "the dictionary."
+                "Default factory is not defined and key is not in the dictionary."
             )
         return self._default_factory()
 

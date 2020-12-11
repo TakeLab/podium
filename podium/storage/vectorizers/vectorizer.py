@@ -168,7 +168,7 @@ class VectorStorage(ABC):
     @abstractmethod
     def get_vector_dim(self):
         """
-        "Method returns vector dimension.
+        Method returns vector dimension.
 
         Returns
         -------
@@ -365,7 +365,7 @@ class BasicVectorStorage(VectorStorage):
                 stripped_line = line.rstrip()
                 if not stripped_line:
                     raise RuntimeError(
-                        "Vectors file contains empty lines which is" " not supported."
+                        "Vectors file contains empty lines which is not supported."
                     )
 
                 word, vector_entries_str = stripped_line.split(split_delimiter, 1)
@@ -380,7 +380,7 @@ class BasicVectorStorage(VectorStorage):
                     header_lines += 1
                     if header_lines > 1:
                         raise RuntimeError(
-                            "Found more than one header line in " "vectors file."
+                            "Found more than one header line in vectors file."
                         )
                     continue  # probably a header, reference torch text
                 # second reference:

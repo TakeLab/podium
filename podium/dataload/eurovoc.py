@@ -508,7 +508,7 @@ class EuroVocLoader:
             document_id = int(os.path.splitext(filename)[0].replace("NN", ""))
             if document_id not in document_mapping:
                 warnings.warn(
-                    f"{document_id} document id not found in document " "mappings.",
+                    f"{document_id} document id not found in document mappings.",
                     RuntimeWarning,
                 )
                 continue

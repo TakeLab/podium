@@ -133,7 +133,7 @@ def test_scp_downloader_no_path():
         dl.HOST_ADDR_KEY: "djurdja.takelab.fer.hr",
         dl.USER_NAME_KEY: "user",
         dl.PASSWORD_KEY: "password",
-        dl.PRIVATE_KEY_FILE_KEY: "D:\\TakeLab\\" "takleab_ssh",
+        dl.PRIVATE_KEY_FILE_KEY: "D:\\TakeLab\\takleab_ssh",
     }
 
     with pytest.raises(ValueError):
@@ -148,7 +148,7 @@ def test_scp_downloader_no_uri():
         dl.HOST_ADDR_KEY: "djurdja.takelab.fer.hr",
         dl.USER_NAME_KEY: "user",
         dl.PASSWORD_KEY: "password",
-        dl.PRIVATE_KEY_FILE_KEY: "D:\\TakeLab\\" "takleab_ssh",
+        dl.PRIVATE_KEY_FILE_KEY: "D:\\TakeLab\\takleab_ssh",
     }
 
     with pytest.raises(ValueError):
@@ -163,7 +163,7 @@ def test_scp_downloader_no_host_name():
         dl.HOST_ADDR_KEY: None,
         dl.USER_NAME_KEY: "user",
         dl.PASSWORD_KEY: "password",
-        dl.PRIVATE_KEY_FILE_KEY: "D:\\TakeLab\\" "takleab_ssh",
+        dl.PRIVATE_KEY_FILE_KEY: "D:\\TakeLab\\takleab_ssh",
     }
 
     with pytest.raises(ValueError):
@@ -186,7 +186,7 @@ def test_scp_downloader_file_already_exists_no_overwrite():
         dl.HOST_ADDR_KEY: "djurdja.takelab.fer.hr",
         dl.USER_NAME_KEY: "user",
         dl.PASSWORD_KEY: "password",
-        dl.PRIVATE_KEY_FILE_KEY: "D:\\TakeLab\\" "takleab_ssh",
+        dl.PRIVATE_KEY_FILE_KEY: "D:\\TakeLab\\takleab_ssh",
     }
     return_value = dl.download(**config)
     assert not return_value

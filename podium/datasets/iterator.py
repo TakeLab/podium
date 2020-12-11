@@ -344,7 +344,7 @@ class Iterator(IteratorABC):
 
         if not self._shuffle:
             raise RuntimeError(
-                "Iterator with shuffle=False does not have " "an internal random state."
+                "Iterator with shuffle=False does not have an internal random state."
             )
 
         return self._shuffler.getstate()
@@ -369,7 +369,7 @@ class Iterator(IteratorABC):
 
         if not self._shuffle:
             raise RuntimeError(
-                "Iterator with shuffle=False does not have " "an internal random state."
+                "Iterator with shuffle=False does not have an internal random state."
             )
 
         self._shuffler.setstate(state)
