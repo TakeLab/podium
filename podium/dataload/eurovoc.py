@@ -104,7 +104,7 @@ class EuroVocLoader:
     URL = "/proj/sci/uisusd/data/eurovoc_data/eurovoc.zip"
     EUROVOC_LABELS_FILENAME = "EUROVOC.xml"
     CROVOC_LABELS_FILENAME = "CROVOC.xml"
-    MAPPING_FILENAME = "mapping.xlsx"
+    MAPPING_FILENAME = "mapping.xls"
     DATASET_DIR = "Data"
     DOCUMENT_PATHS = "*.xml"
     SCP_HOST = "djurdja.takelab.fer.hr"
@@ -434,11 +434,11 @@ class EuroVocLoader:
 
     @staticmethod
     def _parse_mappings(mappings_path):
-        """Parses the mappings of documents to labels from a xlsx file.
+        """Parses the mappings of documents to labels from a xls file.
 
         Parameters
         ----------
-        mappings_path : path to mappings in xlsx format
+        mappings_path : path to mappings in xls format
 
         Returns
         -------
