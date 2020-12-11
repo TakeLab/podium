@@ -283,8 +283,7 @@ def create_mock_dataset(
 
     mappings_path = os.path.join(base_dataset_dir, EuroVocLoader.MAPPING_FILENAME)
 
-    mappings_content = ""
-    with open("tests/dataload/mock_mapping.xlsx", mode="rb") as input_file:
+    with open("tests/dataload/mock_mapping.xls", mode="rb") as input_file:
         mappings_content = input_file.read()
     with open(file=mappings_path, mode="wb") as fp:
         fp.write(mappings_content)

@@ -494,7 +494,6 @@ def hierarchical_dataset_2(hierarchical_dataset_fields, hierarchical_dataset_par
         hierarchical_dataset_fields,
         hierarchical_dataset_parser,
     )
-    dataset.finalize_fields()
     return dataset
 
 
