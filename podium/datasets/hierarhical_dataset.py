@@ -1,19 +1,18 @@
 import json
+from typing import Tuple, Optional
 
 from podium.datasets.dataset import Dataset
-from podium.storage.example_factory import ExampleFactory
+from podium.storage import Example, ExampleFactory
 from podium.storage.field import unpack_fields
 
+from dataclasses import dataclass
 
-class HierarchicalDataset:
-    """Container for datasets with a hierarchical structure of examples which have the
-    same structure on every level of the hierarchy.
-    """
 
-    class Node(object):
-        """Class defines a node in hierarhical dataset.
+@dataclass
+class Node:
+    """Class defines a node in hierarhical dataset.
 
-        Attributes
+    Attributes
         ----------
         example : Example
             example instance containing node data
@@ -21,16 +20,20 @@ class HierarchicalDataset:
             index in current hierarchy level
         parent : Node
             parent node
-        children : tuple(Node)
+        children : tuple(Node), optional
             children nodes
-        """
+    """
 
-        __slots__ = "example", "index", "parent", "children"
+    example: Example
+    index: int
+    parent: "Node"
+    children: Optional[Tuple["Node"]] = None
 
-        def __init__(self, example, index, parent):
-            self.example = example
-            self.index = index
-            self.parent = parent
+
+class HierarchicalDataset:
+    """Container for datasets with a hierarchical structure of examples which have the
+    same structure on every level of the hierarchy.
+    """
 
     def __init__(self, parser, fields):
         """
@@ -171,7 +174,7 @@ class HierarchicalDataset:
         index = self._size
         self._size += 1
 
-        current_node = HierarchicalDataset.Node(example, index, parent)
+        current_node = Node(example, index, parent)
         children = tuple(self._parse(c, current_node, depth + 1) for c in raw_children)
         current_node.children = children
 

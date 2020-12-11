@@ -5,8 +5,10 @@ import warnings
 import xml.etree.ElementTree as ET
 from collections import namedtuple
 from enum import Enum
+from typing import List, Set, Optional
 
 import dill
+from dataclasses import dataclass
 
 from podium.datasets.impl.eurovoc_dataset import EuroVocDataset
 from podium.storage.resources.large_resource import (
@@ -25,7 +27,7 @@ except ImportError:
     )
     raise
 
-
+Id = int
 Document = namedtuple("Document", "filename title text")
 
 
@@ -37,6 +39,7 @@ class LabelRank(Enum):
     TERM = 1
 
 
+@dataclass
 class Label:
     """Label in EuroVoc dataset.
 
@@ -45,50 +48,36 @@ class Label:
     terms). All labels apart from thesaurus rank labels have at least one parent.
     Apart from parents, labels can also have similar labels which describe related
     areas, but aren't connected by the label hierarchy.
-    """
 
-    def __init__(
-        self,
-        name,
-        id,
-        direct_parents,
-        similar_terms,
-        rank,
-        thesaurus=None,
-        micro_thesaurus=None,
-        all_ancestors=None,
-    ):
-        """Defines a single label in the EuroVoc dataset.
-
-        Parameters
-        ----------
-        name : str
+    Attributes
+    ----------
+    name : str
             name of the label
-        id : int
-            numerical id of the label
-        direct_parents : list(int)
-            list of ids of direct parents
-        similar_terms : list(int)
-            list of ids of similar terms
-        rank : LabelRank
-            rank of the label
-        thesaurus : int
-            id of the thesaurus of the label (if the label represents a
-            thesaurus, it has its own id listed in this field)
-        micro_thesaurus : int
-            id of the microthesaurus of the label (if the label represents
-            a microthesaurus, it has its own id listed in this field)
-        all_ancestors : set(int)
-            set of ids of all ancestors of the label in the label hierarchy
-        """
-        self.name = name
-        self.id = id
-        self.direct_parents = direct_parents
-        self.all_ancestors = all_ancestors
-        self.similar_terms = similar_terms
-        self.rank = rank
-        self.micro_thesaurus = micro_thesaurus
-        self.thesaurus = thesaurus
+    id : int
+        numerical id of the label
+    direct_parents : list(int)
+        list of ids of direct parents
+    similar_terms : list(int)
+        list of ids of similar terms
+    rank : LabelRank
+        rank of the label
+    thesaurus : int
+        id of the thesaurus of the label (if the label represents a
+        thesaurus, it has its own id listed in this field)
+    micro_thesaurus : int
+        id of the microthesaurus of the label (if the label represents
+        a microthesaurus, it has its own id listed in this field)
+    all_ancestors : set(int)
+        set of ids of all ancestors of the label in the label hierarchy
+    """
+    name: str
+    id: Id
+    direct_parents: List[Id]
+    similar_terms: List[Id]
+    rank: LabelRank
+    thesaurus: Optional[Id] = None
+    micro_thesaurus: Optional[Id] = None
+    all_ancestors: Optional[Set[Id]] = None
 
 
 class EuroVocLoader:
