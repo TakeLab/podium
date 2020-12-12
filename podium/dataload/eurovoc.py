@@ -4,11 +4,11 @@ import os
 import warnings
 import xml.etree.ElementTree as ET
 from collections import namedtuple
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Set, Optional
+from typing import List, Optional, Set
 
 import dill
-from dataclasses import dataclass
 
 from podium.datasets.impl.eurovoc_dataset import EuroVocDataset
 from podium.storage.resources.large_resource import (
@@ -70,6 +70,7 @@ class Label:
     all_ancestors : set(int)
         set of ids of all ancestors of the label in the label hierarchy
     """
+
     name: str
     id: Id
     direct_parents: List[Id]
