@@ -384,7 +384,7 @@ class Dataset(DatasetABC):
         random.shuffle(self.examples)
 
     @staticmethod
-    def merge(datasets: DatasetABC, field_overrides: Dict[str, Field] = None):
+    def merge(datasets: List[DatasetABC], field_overrides: Dict[str, Field] = None):
         if field_overrides is None:
             field_overrides = {}
 
