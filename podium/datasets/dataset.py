@@ -5,11 +5,11 @@ import copy
 import itertools
 import random
 from itertools import chain
-from typing import Callable, Iterable, List, Union, Dict
+from typing import Callable, Dict, Iterable, List, Union
 
 from podium.datasets.dataset_abc import DatasetABC
-from podium.storage.example_factory import Example
 from podium.storage import Field
+from podium.storage.example_factory import Example
 
 
 class Dataset(DatasetABC):
@@ -46,7 +46,7 @@ class Dataset(DatasetABC):
         super().__init__(fields)
 
     def __getitem__(
-            self, i: Union[int, Iterable[int], slice]
+        self, i: Union[int, Iterable[int], slice]
     ) -> Union["DatasetABC", Example]:
         """
         Returns an example or a new dataset containing the indexed examples.
@@ -191,12 +191,12 @@ class Dataset(DatasetABC):
         return self.filter(predicate, inplace=False)
 
     def split(
-            self,
-            split_ratio=0.7,
-            stratified=False,
-            strata_field_name=None,
-            random_state=None,
-            shuffle=True,
+        self,
+        split_ratio=0.7,
+        stratified=False,
+        strata_field_name=None,
+        random_state=None,
+        shuffle=True,
     ):
         """
         Creates train-(validation)-test splits from this dataset.
@@ -341,7 +341,7 @@ class Dataset(DatasetABC):
         self.__dict__ = state
 
     def _dataset_copy_with_examples(
-            self, examples: list, deep_copy: bool = False
+        self, examples: list, deep_copy: bool = False
     ) -> "Dataset":
         """
         Creates a new dataset with the same fields and sort_key. The new dataset
@@ -568,8 +568,8 @@ def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
 
         indices_tuple = (
             indices[:train_len],  # Train
-            indices[train_len: train_len + val_len],  # Validation
-            indices[train_len + val_len:],  # Test
+            indices[train_len : train_len + val_len],  # Validation
+            indices[train_len + val_len :],  # Test
         )
 
     # Create a tuple of 3 lists, the middle of which is empty if only the
@@ -580,7 +580,7 @@ def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
 
 
 def stratified_split(
-        examples, train_ratio, val_ratio, test_ratio, strata_field_name, shuffle
+    examples, train_ratio, val_ratio, test_ratio, strata_field_name, shuffle
 ):
     """
     Performs a stratified split on a list of examples according to the given
