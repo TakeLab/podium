@@ -5,10 +5,11 @@ import copy
 import itertools
 import random
 from itertools import chain
-from typing import Callable, Iterable, List, Union
+from typing import Callable, Iterable, List, Union, Dict
 
 from podium.datasets.dataset_abc import DatasetABC
 from podium.storage.example_factory import Example
+from podium.storage import Field
 
 
 class Dataset(DatasetABC):
@@ -45,7 +46,7 @@ class Dataset(DatasetABC):
         super().__init__(fields)
 
     def __getitem__(
-        self, i: Union[int, Iterable[int], slice]
+            self, i: Union[int, Iterable[int], slice]
     ) -> Union["DatasetABC", Example]:
         """
         Returns an example or a new dataset containing the indexed examples.
@@ -190,12 +191,12 @@ class Dataset(DatasetABC):
         return self.filter(predicate, inplace=False)
 
     def split(
-        self,
-        split_ratio=0.7,
-        stratified=False,
-        strata_field_name=None,
-        random_state=None,
-        shuffle=True,
+            self,
+            split_ratio=0.7,
+            stratified=False,
+            strata_field_name=None,
+            random_state=None,
+            shuffle=True,
     ):
         """
         Creates train-(validation)-test splits from this dataset.
@@ -340,7 +341,7 @@ class Dataset(DatasetABC):
         self.__dict__ = state
 
     def _dataset_copy_with_examples(
-        self, examples: list, deep_copy: bool = False
+            self, examples: list, deep_copy: bool = False
     ) -> "Dataset":
         """
         Creates a new dataset with the same fields and sort_key. The new dataset
@@ -383,7 +384,10 @@ class Dataset(DatasetABC):
         random.shuffle(self.examples)
 
     @staticmethod
-    def merge(*datasets: DatasetABC):
+    def merge(datasets: DatasetABC, field_overrides: Dict[str, Field] = None):
+        if field_overrides is None:
+            field_overrides = {}
+
         field_dict = datasets[0].field_dict
         merged_field_names = set(field_dict.keys())
         for ds in datasets[1:]:
@@ -393,17 +397,43 @@ class Dataset(DatasetABC):
             merged_field_names.intersection_update(ds.field_dict.keys())
 
         assert len(merged_field_names) > 0, "No Field name overlap"
-        merged_field_dict = {
-            k: v for k, v in field_dict.items() if k in merged_field_names
+        # TODO better error
+        assert all(f in merged_field_names for f in field_overrides.keys())
+
+        field_mapping = {
+            name: field_overrides[name] if name in field_overrides else field_dict[name]
+            for name in merged_field_names
         }
+
+        non_final_fields = [f for f in field_mapping.values() if not f.finalized]
+        eager_fields = [f for f in non_final_fields if f.eager]
+        non_eager_fields = [f for f in non_final_fields if not f.eager]
+
         merged_examples = []
         for ex in chain(*datasets):
             new_ex = Example()
-            for field_name in merged_field_names:
-                new_ex[field_name] = ex[field_name]
+            for field_name, field in field_mapping.items():
+                field_data = ex[field_name]
+                new_ex[field.name] = field_data
+                if not field.finalized and field.eager:
+                    _, tokenized = field_data
+                    field.update_vocab(tokenized)
             merged_examples.append(new_ex)
 
-        return Dataset(merged_examples, merged_field_dict)
+        for f in eager_fields:
+            f.finalize()
+
+        for ex in merged_examples:
+            for f in non_eager_fields:
+                _, tokenized = ex[f.name]
+                f.update_vocab(tokenized)
+
+        for f in non_eager_fields:
+            f.finalize()
+
+        merged_fields = list(field_overrides.values())
+
+        return Dataset(merged_examples, merged_fields)
 
 
 def check_split_ratio(split_ratio):
@@ -538,8 +568,8 @@ def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
 
         indices_tuple = (
             indices[:train_len],  # Train
-            indices[train_len : train_len + val_len],  # Validation
-            indices[train_len + val_len :],  # Test
+            indices[train_len: train_len + val_len],  # Validation
+            indices[train_len + val_len:],  # Test
         )
 
     # Create a tuple of 3 lists, the middle of which is empty if only the
@@ -550,7 +580,7 @@ def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
 
 
 def stratified_split(
-    examples, train_ratio, val_ratio, test_ratio, strata_field_name, shuffle
+        examples, train_ratio, val_ratio, test_ratio, strata_field_name, shuffle
 ):
     """
     Performs a stratified split on a list of examples according to the given
