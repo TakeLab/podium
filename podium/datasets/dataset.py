@@ -4,6 +4,7 @@ Module contains base classes for datasets.
 import copy
 import itertools
 import random
+from itertools import chain
 from typing import Callable, Iterable, List, Union
 
 from podium.datasets.dataset_abc import DatasetABC
@@ -39,7 +40,6 @@ class Dataset(DatasetABC):
             A key to use for sorting dataset examples, used for batching
             together examples with similar lengths to minimize padding.
         """
-
         self._examples = examples
         self.sort_key = sort_key
         super().__init__(fields)
@@ -381,6 +381,29 @@ class Dataset(DatasetABC):
             random.seed(random_state)
 
         random.shuffle(self.examples)
+
+    @staticmethod
+    def merge(*datasets: DatasetABC):
+        field_dict = datasets[0].field_dict
+        merged_field_names = set(field_dict.keys())
+        for ds in datasets[1:]:
+            # Calculate the intersection of all fields.
+            # the merged dataset will contain only the fields that appear, by name,
+            # in all datasets.
+            merged_field_names.intersection_update(ds.field_dict.keys())
+
+        assert len(merged_field_names) > 0, "No Field name overlap"
+        merged_field_dict = {
+            k: v for k, v in field_dict.items() if k in merged_field_names
+        }
+        merged_examples = []
+        for ex in chain(*datasets):
+            new_ex = Example()
+            for field_name in merged_field_names:
+                new_ex[field_name] = ex[field_name]
+            merged_examples.append(new_ex)
+
+        return Dataset(merged_examples, merged_field_dict)
 
 
 def check_split_ratio(split_ratio):
