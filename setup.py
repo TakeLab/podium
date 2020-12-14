@@ -66,6 +66,8 @@ DATASETS_REQUIRE = [
     "conllu",
     # to support HF Datasets conversion
     "datasets",
+    # for labels in EuroVoc and nodes in HierarhicalDataset
+    "dataclasses;python_version<'3.7'",
     # to support saving/loading datasets from a disk
     "pyarrow>=1.0.0",
     # to read a .xlsx file when processing EuroVoc
