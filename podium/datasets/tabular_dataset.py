@@ -1,12 +1,8 @@
 import csv
-import logging
 import os
 
 from podium.datasets.dataset import Dataset
 from podium.storage.example_factory import ExampleFactory
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class TabularDataset(Dataset):

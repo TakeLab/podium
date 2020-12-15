@@ -5,8 +5,8 @@ Podium accelerates data loading, preprocessing & batching to enable faster devel
 See http://takelab.fer.hr/podium/ for complete documentation.
 """
 import re
-
 from pathlib import Path
+
 from setuptools import find_packages, setup
 
 
@@ -66,6 +66,8 @@ DATASETS_REQUIRE = [
     "conllu",
     # to support HF Datasets conversion
     "datasets",
+    # for labels in EuroVoc and nodes in HierarhicalDataset
+    "dataclasses;python_version<'3.7'",
     # to support saving/loading datasets from a disk
     "pyarrow>=1.0.0",
     # to read a .xlsx file when processing EuroVoc
@@ -86,12 +88,13 @@ PREPROC_REQUIRE = [
 DOCS_REQUIRE = [
     'sphinx',
     'sphinx_rtd_theme',
-    'recommonmark',
     'sphinx-copybutton',
+    'recommonmark',
     'datasets',
     'keras==2.2.4',
     'tensorflow==1.15',
-    'torch'
+    'torch',
+    'xlrd',
 ]
 
 

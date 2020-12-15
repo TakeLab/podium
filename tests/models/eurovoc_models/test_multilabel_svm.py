@@ -145,16 +145,18 @@ def test_missing_indexes():
     scoring = "f1"
     n_jobs = 1
 
-    clf.fit(
-        X=X,
-        y=Y_missing,
-        parameter_grid=parameter_grid,
-        n_splits=n_splits,
-        max_iter=max_iter,
-        cutoff=cutoff,
-        scoring=scoring,
-        n_jobs=n_jobs,
-    )
+    with pytest.warns(RuntimeWarning):
+        clf.fit(
+            X=X,
+            y=Y_missing,
+            parameter_grid=parameter_grid,
+            n_splits=n_splits,
+            max_iter=max_iter,
+            cutoff=cutoff,
+            scoring=scoring,
+            n_jobs=n_jobs,
+        )
+
     missing_indexes = clf.get_indexes_of_missing_models()
     assert len(missing_indexes) == 1
     assert missing_indexes == set([2])
@@ -170,18 +172,23 @@ def test_prediction_with_missing_indexes():
     scoring = "f1"
     n_jobs = 1
 
-    clf.fit(
-        X=X,
-        y=Y_missing,
-        parameter_grid=parameter_grid,
-        n_splits=n_splits,
-        max_iter=max_iter,
-        cutoff=cutoff,
-        scoring=scoring,
-        n_jobs=n_jobs,
-    )
+    with pytest.warns(RuntimeWarning):
+        clf.fit(
+            X=X,
+            y=Y_missing,
+            parameter_grid=parameter_grid,
+            n_splits=n_splits,
+            max_iter=max_iter,
+            cutoff=cutoff,
+            scoring=scoring,
+            n_jobs=n_jobs,
+        )
+
     missing_indexes = clf.get_indexes_of_missing_models()
-    prediction_dict = clf.predict(X)
+
+    with pytest.warns(RuntimeWarning):
+        prediction_dict = clf.predict(X)
+
     Y_pred = prediction_dict[ms.MultilabelSVM.PREDICTION_KEY]
 
     assert Y_pred.shape == Y_missing.shape

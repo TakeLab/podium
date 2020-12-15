@@ -1,15 +1,11 @@
 """Module contains base classes for datasets."""
 import copy
 import itertools
-import logging
 import random
 from typing import Callable, Iterable, List, Union
 
 from podium.datasets.dataset_abc import DatasetABC
 from podium.storage.example_factory import Example
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class Dataset(DatasetABC):

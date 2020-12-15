@@ -1,10 +1,12 @@
 """Module for loading raw eurovoc dataset"""
 import glob
-import logging
 import os
+import warnings
 import xml.etree.ElementTree as ET
 from collections import namedtuple
+from dataclasses import dataclass
 from enum import Enum
+from typing import List, Optional, Set
 
 import dill
 
@@ -15,16 +17,17 @@ from podium.storage.resources.large_resource import (
 )
 
 
-_LOGGER = logging.getLogger(__name__)
 try:
     import xlrd
 except ImportError:
-    _LOGGER.debug(
+    print(
         "Problem occured while trying to import xlrd. If the "
         "library is not installed visit http://www.python-excel.org/ "
         "for more details."
     )
+    raise
 
+Id = int
 Document = namedtuple("Document", "filename title text")
 
 
@@ -36,6 +39,7 @@ class LabelRank(Enum):
     TERM = 1
 
 
+@dataclass
 class Label:
     """Label in EuroVoc dataset.
 
@@ -44,50 +48,37 @@ class Label:
     terms). All labels apart from thesaurus rank labels have at least one parent.
     Apart from parents, labels can also have similar labels which describe related
     areas, but aren't connected by the label hierarchy.
+
+    Attributes
+    ----------
+    name : str
+            name of the label
+    id : int
+        numerical id of the label
+    direct_parents : list(int)
+        list of ids of direct parents
+    similar_terms : list(int)
+        list of ids of similar terms
+    rank : LabelRank
+        rank of the label
+    thesaurus : int
+        id of the thesaurus of the label (if the label represents a
+        thesaurus, it has its own id listed in this field)
+    micro_thesaurus : int
+        id of the microthesaurus of the label (if the label represents
+        a microthesaurus, it has its own id listed in this field)
+    all_ancestors : set(int)
+        set of ids of all ancestors of the label in the label hierarchy
     """
 
-    def __init__(
-        self,
-        name,
-        id,
-        direct_parents,
-        similar_terms,
-        rank,
-        thesaurus=None,
-        micro_thesaurus=None,
-        all_ancestors=None,
-    ):
-        """Defines a single label in the EuroVoc dataset.
-
-        Parameters
-        ----------
-        name : str
-            name of the label
-        id : int
-            numerical id of the label
-        direct_parents : list(int)
-            list of ids of direct parents
-        similar_terms : list(int)
-            list of ids of similar terms
-        rank : LabelRank
-            rank of the label
-        thesaurus : int
-            id of the thesaurus of the label (if the label represents a
-            thesaurus, it has its own id listed in this field)
-        micro_thesaurus : int
-            id of the microthesaurus of the label (if the label represents
-            a microthesaurus, it has its own id listed in this field)
-        all_ancestors : set(int)
-            set of ids of all ancestors of the label in the label hierarchy
-        """
-        self.name = name
-        self.id = id
-        self.direct_parents = direct_parents
-        self.all_ancestors = all_ancestors
-        self.similar_terms = similar_terms
-        self.rank = rank
-        self.micro_thesaurus = micro_thesaurus
-        self.thesaurus = thesaurus
+    name: str
+    id: Id
+    direct_parents: List[Id]
+    similar_terms: List[Id]
+    rank: LabelRank
+    thesaurus: Optional[Id] = None
+    micro_thesaurus: Optional[Id] = None
+    all_ancestors: Optional[Set[Id]] = None
 
 
 class EuroVocLoader:
@@ -103,7 +94,7 @@ class EuroVocLoader:
     URL = "/proj/sci/uisusd/data/eurovoc_data/eurovoc.zip"
     EUROVOC_LABELS_FILENAME = "EUROVOC.xml"
     CROVOC_LABELS_FILENAME = "CROVOC.xml"
-    MAPPING_FILENAME = "mapping.xlsx"
+    MAPPING_FILENAME = "mapping.xls"
     DATASET_DIR = "Data"
     DOCUMENT_PATHS = "*.xml"
     SCP_HOST = "djurdja.takelab.fer.hr"
@@ -336,11 +327,11 @@ class EuroVocLoader:
             if label.rank != LabelRank.THESAURUS:
                 if label.thesaurus not in thesaurus_by_name:
                     # Error: thesaurus name does not exist (this shouldn't happen)
-                    debug_msg = (
+                    warnings.warn(
                         f"Label {label.id} has a non-existing thesaurus name "
-                        f"assigned: {label.thesaurus}"
+                        f"assigned: {label.thesaurus}",
+                        RuntimeWarning,
                     )
-                    _LOGGER.debug(debug_msg)
                     label.thesaurus = None
                 else:
                     label.thesaurus = thesaurus_by_name[label.thesaurus].id
@@ -354,11 +345,11 @@ class EuroVocLoader:
             if label.rank == LabelRank.TERM:
                 if label.micro_thesaurus not in microthesaurus_by_name:
                     # Error: microthesaurus name does not exist (this shouldn't happen)
-                    debug_msg = (
+                    warnings.warn(
                         f"Label {label.id} has a non-existing microthesaurus name "
-                        f"assigned: {label.micro_thesaurus}"
+                        f"assigned: {label.micro_thesaurus}",
+                        RuntimeWarning,
                     )
-                    _LOGGER.debug(debug_msg)
                     label.micro_thesaurus = None
                 else:
                     label.micro_thesaurus = microthesaurus_by_name[
@@ -433,11 +424,11 @@ class EuroVocLoader:
 
     @staticmethod
     def _parse_mappings(mappings_path):
-        """Parses the mappings of documents to labels from a xlsx file.
+        """Parses the mappings of documents to labels from a xls file.
 
         Parameters
         ----------
-        mappings_path : path to mappings in xlsx format
+        mappings_path : path to mappings in xls format
 
         Returns
         -------
@@ -502,20 +493,15 @@ class EuroVocLoader:
             filename = os.path.basename(doc)
             document_id = int(os.path.splitext(filename)[0].replace("NN", ""))
             if document_id not in document_mapping:
-                debug_msg = (
-                    f"{document_id} document id not found in document " "mappings."
+                warnings.warn(
+                    f"{document_id} document id not found in document " "mappings.",
+                    RuntimeWarning,
                 )
-                _LOGGER.debug(debug_msg)
                 continue
             parsed_doc = EuroVocLoader._parse_document(doc)
             # parsed_doc is None if there's been an error on document text extraction
             if parsed_doc:
                 parsed_documents.append(parsed_doc)
-        debug_msg = (
-            "Succesfully parsed documents: "
-            f"{len(parsed_documents)}/{len(xml_documents)}"
-        )
-        _LOGGER.debug(debug_msg)
         return parsed_documents
 
     @staticmethod
@@ -545,8 +531,10 @@ class EuroVocLoader:
         if title_text and title_text[0].isdigit():
             title_text = " ".join(title_text.split(" ")[2:])
         else:
-            debug_msg = f"{filename} file contains invalid document title: {title_text}"
-            _LOGGER.debug(debug_msg)
+            warnings.warn(
+                f"{filename} file contains invalid document title: {title_text}",
+                RuntimeWarning,
+            )
         title_text = title_text.lower().replace("\r", "").replace("\n", "")
 
         body_text = []
@@ -562,9 +550,10 @@ class EuroVocLoader:
         # generates an xml contaning the following string. Text for these documents is
         # not available and they are therefore ignored.
         if "postupak ekstrakcije teksta" in body_text:
-            debug_msg = f"{filename} XML file does not contain a valid text"
-            _LOGGER.debug(debug_msg)
-            return None
+            warnings.warn(
+                f"{filename} XML file does not contain a valid text", RuntimeWarning
+            )
+            return
 
         return Document(title=title_text, text=body_text, filename=filename)
 

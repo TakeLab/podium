@@ -1,5 +1,4 @@
 """Module contains deep learning based sequence labelling model."""
-import logging
 import tempfile
 
 import numpy as np
@@ -8,7 +7,6 @@ from podium.models import AbstractSupervisedModel
 from podium.models.impl.blcc.chain_crf import ChainCRF, create_custom_objects
 
 
-_LOGGER = logging.getLogger(__name__)
 try:
     from keras import backend as K
     from keras.layers import (
@@ -24,11 +22,12 @@ try:
     from keras.models import Model, load_model
     from keras.optimizers import SGD, Adadelta, Adagrad, Adam, Nadam, RMSprop
 except ImportError:
-    _LOGGER.debug(
+    print(
         "Problem occured while trying to import keras. If the "
         "library is not installed visit https://keras.io/ "
         "for more details."
     )
+    raise
 
 
 class BLCCModel(AbstractSupervisedModel):

@@ -1,9 +1,6 @@
 """Module contains functional preprocessing hooks."""
-import logging
+import warnings
 from typing import Callable, List, Tuple
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 def truecase(oov: str = "title") -> Callable[[str], str]:
@@ -36,7 +33,7 @@ def truecase(oov: str = "title") -> Callable[[str], str]:
     try:
         import truecase as truecase_
     except ImportError:
-        _LOGGER.error(
+        print(
             "Problem occured while trying to import truecase. "
             "If the library is not installed visit "
             "https://pypi.org/project/truecase/ for more details."
@@ -81,8 +78,8 @@ def remove_stopwords(
         disable = ["tagger", "parser", "ner"]
         nlp = spacy.load(language, disable=disable)
     except OSError:
-        _LOGGER.warning(
-            f"SpaCy model {language} not found." "Trying to download and install."
+        warnings.warn(
+            f"SpaCy model {language} not found. Trying to download and install."
         )
 
         from spacy.cli.download import download

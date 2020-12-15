@@ -1,6 +1,5 @@
 """Modules defines an experiment - class used to combine iteration over data,
 model training and prediction."""
-import logging
 from inspect import isclass
 from typing import Callable, Dict, NamedTuple, Type, Union
 
@@ -13,9 +12,6 @@ from .batch_transform_functions import default_feature_transform, default_label_
 from .model import AbstractSupervisedModel
 from .trainer import AbstractTrainer
 from .transformers import FeatureTransformer
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class Experiment:

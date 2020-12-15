@@ -1,8 +1,4 @@
 """Module contains functions used to transform batch to tensors that models accept."""
-import logging
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 def default_feature_transform(x_batch):

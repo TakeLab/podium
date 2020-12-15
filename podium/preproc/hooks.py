@@ -1,15 +1,12 @@
 """Module contains various pretokenization and posttokenization hooks."""
 import functools
-import logging
 import re
+import warnings
 from typing import List, Optional, Pattern, Sequence, Tuple, Union
 
 import spacy
 from nltk.stem import SnowballStemmer
 from spacy.lemmatizer import Lemmatizer
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 _LANGUAGES = {
@@ -54,7 +51,7 @@ class MosesNormalizer:
         try:
             from sacremoses import MosesPunctNormalizer
         except ImportError:
-            _LOGGER.error(
+            print(
                 "Problem occured while trying to import sacremoses. "
                 "If the library is not installed visit "
                 "https://github.com/alvations/sacremoses for more details."
@@ -179,7 +176,7 @@ class TextCleanUp:
         try:
             from cleantext import clean
         except ImportError:
-            _LOGGER.error(
+            print(
                 "Problem occured while trying to import clean-text. "
                 "If the library is not installed visit "
                 "https://pypi.org/project/clean-text/ for more details."
@@ -294,8 +291,8 @@ class SpacyLemmatizer:
             disable = ["tagger", "parser", "ner"]
             nlp = spacy.load(language, disable=disable)
         except OSError:
-            _LOGGER.warning(
-                f"SpaCy model {language} not found." "Trying to download and install."
+            warnings.warn(
+                f"SpaCy model {language} not found. Trying to download and install."
             )
 
             from spacy.cli.download import download

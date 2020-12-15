@@ -1,19 +1,16 @@
 """Module contains svm models."""
-import logging
-
 from podium.models.model import AbstractSupervisedModel
 
-
-_LOGGER = logging.getLogger(__name__)
 
 try:
     from sklearn.svm import SVC, LinearSVC
 except ImportError:
-    _LOGGER.debug(
+    print(
         "Problem occured while trying to import sklearn. If the "
         "library is not installed visit https://scikit-learn.org"
         " for more details."
     )
+    raise
 
 
 class ScikitSVCModel(AbstractSupervisedModel):

@@ -283,8 +283,7 @@ def create_mock_dataset(
 
     mappings_path = os.path.join(base_dataset_dir, EuroVocLoader.MAPPING_FILENAME)
 
-    mappings_content = ""
-    with open("tests/dataload/mock_mapping.xlsx", mode="rb") as input_file:
+    with open("tests/dataload/mock_mapping.xls", mode="rb") as input_file:
         mappings_content = input_file.read()
     with open(file=mappings_path, mode="wb") as fp:
         fp.write(mappings_content)
@@ -303,7 +302,9 @@ def test_loading_dataset():
     path = create_mock_dataset()
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
         loader = EuroVocLoader()
-        eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
+
+        with pytest.warns(RuntimeWarning):
+            eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
 
         assert len(eurovoc_labels) == 4
         assert len(crovoc_labels) == 3
@@ -397,7 +398,9 @@ def test_loading_dataset_with_missing_document():
     path = create_mock_dataset(load_missing_doc=True)
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
         loader = EuroVocLoader()
-        eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
+
+        with pytest.warns(RuntimeWarning):
+            eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
 
         assert len(eurovoc_labels) == 4
         assert len(crovoc_labels) == 3
@@ -418,7 +421,9 @@ def test_loading_dataset_with_invalid_document():
     path = create_mock_dataset(load_invalid_doc=True)
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
         loader = EuroVocLoader()
-        eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
+
+        with pytest.warns(RuntimeWarning):
+            eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
 
         assert len(eurovoc_labels) == 4
         assert len(crovoc_labels) == 3
@@ -439,7 +444,9 @@ def test_loading_dataset_with_document_containing_br():
     path = create_mock_dataset(load_doc_with_br_tag=True)
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
         loader = EuroVocLoader()
-        eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
+
+        with pytest.warns(RuntimeWarning):
+            eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
 
         assert len(eurovoc_labels) == 4
         assert len(crovoc_labels) == 3
@@ -462,7 +469,9 @@ def test_loading_dataset_with_invalid_title():
     path = create_mock_dataset(load_doc_with_invalid_title=True)
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
         loader = EuroVocLoader()
-        eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
+
+        with pytest.warns(RuntimeWarning):
+            eurovoc_labels, crovoc_labels, mappings, documents = loader.load_dataset()
 
         assert len(eurovoc_labels) == 4
         assert len(crovoc_labels) == 3
@@ -497,7 +506,9 @@ def test_loading_dataset_with_non_existing_thesaurus():
     path = create_mock_dataset(non_existing_thesaurus=True)
     with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
         loader = EuroVocLoader()
-        eurovoc_labels, _, _, _ = loader.load_dataset()
+
+        with pytest.warns(RuntimeWarning):
+            eurovoc_labels, _, _, _ = loader.load_dataset()
 
         label = eurovoc_labels[3]
         assert label.thesaurus is None

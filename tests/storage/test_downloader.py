@@ -1,3 +1,4 @@
+import io
 import os
 import tempfile
 from unittest.mock import Mock
@@ -28,7 +29,7 @@ def test_simple_url_downloader_small_file():
     base = tempfile.mkdtemp()
     assert os.path.exists(base)
 
-    _mock_response(base_path=base, url=URL, data_bytes=test_string_bytes)
+    _mock_response(url=URL, data_bytes=test_string_bytes)
 
     # testing download
     result_file_path = os.path.join(base, "result.txt")
@@ -70,7 +71,7 @@ def test_simple_url_downloader_file_already_exists_overwrite():
     with open(file_path, "w") as original_fp:
         original_fp.write("original")
 
-    _mock_response(base_path=base, url=URL, data_bytes=b"new")
+    _mock_response(url=URL, data_bytes=b"new")
 
     dl = downloader.SimpleHttpDownloader
     dl.download(path=file_path, uri=URL, overwrite=True)
@@ -93,7 +94,6 @@ def test_simple_url_downloader_resource_not_found():
     assert os.path.exists(base)
 
     _mock_response(
-        base_path=base,
         url=URL,
         data_bytes=b"",
         status_code=404,
@@ -106,12 +106,7 @@ def test_simple_url_downloader_resource_not_found():
         dl.download(path=file_path, uri=URL)
 
 
-def _mock_response(base_path, url, data_bytes, status_code=200, status_reason="OK"):
-    # creating expected file for mocking response reading function
-    original_file_path = os.path.join(base_path, "original.txt")
-    with open(original_file_path, "wb") as original_fp:
-        original_fp.write(data_bytes)
-
+def _mock_response(url, data_bytes, status_code=200, status_reason="OK"):
     # mocking urllib response
 
     resp = requests.models.Response()
@@ -123,7 +118,8 @@ def _mock_response(base_path, url, data_bytes, status_code=200, status_reason="O
     original_response = response.HTTPResponse(
         body=resp._content, headers=None, status=status_code, reason=status_reason
     )
-    response_fp = open(original_file_path, "rb")
+
+    response_fp = io.BytesIO(data_bytes)
     original_response.read = response_fp.read
     resp.raw = original_response
     requests.get = Mock(return_value=resp)

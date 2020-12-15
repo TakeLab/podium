@@ -1,15 +1,12 @@
 """Module contains classes related to the vocabulary."""
 import abc
-import logging
+import warnings
 from collections import Counter
 from enum import Enum
 from itertools import chain
 from typing import Iterable, Union
 
 import numpy as np
-
-
-_LOGGER = logging.getLogger(__name__)
 
 
 def unique(values: Iterable):
@@ -153,7 +150,6 @@ class Vocab:
         self._max_size = max_size
         self.eager = eager
         self.finalized = False  # flag to know if we're ready to numericalize
-        _LOGGER.debug("Vocabulary has been created and initialized.")
 
     @classmethod
     def from_itos(cls, itos):
@@ -392,7 +388,7 @@ class Vocab:
             If the vocab is already finalized.
         """
         if self.finalized:
-            _LOGGER.warning(
+            warnings.warn(
                 "Vocabulary is finalized already. "
                 "This should be used only if multiple fields "
                 "use same vocabulary."
@@ -415,7 +411,6 @@ class Vocab:
         if not self._keep_freqs:
             self._freqs = None  # release memory
         self.finalized = True
-        _LOGGER.debug("Vocabulary is finalized.")
 
     def numericalize(self, data):
         """Method numericalizes given tokens.

@@ -1,6 +1,5 @@
 """Dataloader for Cornell Movie-Dialogs Corpus, available at
 http://www.cs.cornell.edu/~cristian/Cornell_Movie-Dialogs_Corpus.html"""
-import logging
 import os
 import re
 from collections import namedtuple
@@ -8,15 +7,14 @@ from collections import namedtuple
 from podium.storage import LargeResource
 
 
-_LOGGER = logging.getLogger(__name__)
-
 try:
     import pandas as pd
 except ImportError:
-    _LOGGER.debug(
+    print(
         "Problem occured while trying to import pandas. If the library is not "
         "installed visit https://pandas.pydata.org/ for more details."
     )
+    raise
 
 
 CornellMovieDialogsNamedTuple = namedtuple(
