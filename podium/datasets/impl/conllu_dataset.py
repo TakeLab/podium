@@ -1,4 +1,6 @@
 """Module contains the CoNLL-U dataset."""
+import collections
+
 from podium.datasets import Dataset
 from podium.storage import ExampleFactory, Field, Vocab
 
@@ -65,10 +67,11 @@ class CoNLLUDataset(Dataset):
             except Exception as e:
                 raise ValueError("Error occured during parsing the file") from e
 
-        field_names = conllu.parser.DEFAULT_FIELDS
-        assert list(field_names) == list(fields), (
-            f"Only default CoNLL-U fields are supported; "
-            f"expected {list(field_names)}, got {list(fields)}"
+        field_names = list(fields)
+        diff = set(field_names) - set(conllu.parser.DEFAULT_FIELDS)
+        assert not diff, (
+            "Only default CoNLL-U fields are supported; "
+            f"found unsupported fields: {diff}"
         )
 
         example_factory = ExampleFactory(fields)
@@ -76,11 +79,12 @@ class CoNLLUDataset(Dataset):
         examples = []
         with open(file_path, encoding="utf-8") as in_file:
             for tokenlist in safe_conllu_parse(in_file):
-                field_values = [
-                    list(field_value)
-                    for field_value in zip(*[token.values() for token in tokenlist])
-                ]
-                example = example_factory.from_dict(dict(zip(field_names, field_values)))
+                example_dict = collections.defaultdict(lambda: [])
+                for token in tokenlist:
+                    for field_name in field_names:
+                        example_dict[field_name].append(token[field_name])
+
+                example = example_factory.from_dict(example_dict)
                 examples.append(example)
 
         return examples
