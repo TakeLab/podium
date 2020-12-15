@@ -1,4 +1,6 @@
 """Module contains the CoNLL-U dataset."""
+import collections
+
 from podium.datasets import Dataset
 from podium.storage import ExampleFactory, Field, Vocab
 
@@ -13,8 +15,7 @@ class CoNLLUDataset(Dataset):
         ----------
         file_path : str
             Path to the file containing the dataset.
-
-        fields : dict(str, Field)
+        fields : Dict[str, Field]
             Dictionary that maps the CoNLL-U field name to the field.
             If passed None the default set of fields will be used.
         """
@@ -31,20 +32,18 @@ class CoNLLUDataset(Dataset):
         ----------
         file_path : str
             Path to the file wich contains the dataset.
-
-        fields : dict(str, Field)
+        fields : Dict[str, Field]
             Dictionary that maps the CoNLL-U field name to the field.
 
         Returns
         -------
-        list(Example)
+        List[Example]
             A list of examples from the CoNLL-U dataset.
 
         Raises
         ------
         ImportError
             If the conllu library is not installed.
-
         ValueError
             If there is an error during parsing the file.
         """
@@ -68,86 +67,69 @@ class CoNLLUDataset(Dataset):
             except Exception as e:
                 raise ValueError("Error occured during parsing the file") from e
 
+        field_names = list(fields)
+        diff = set(field_names) - set(conllu.parser.DEFAULT_FIELDS)
+        assert not diff, (
+            "Only default CoNLL-U fields are supported; "
+            f"found unsupported fields: {diff}"
+        )
+
         example_factory = ExampleFactory(fields)
 
         examples = []
         with open(file_path, encoding="utf-8") as in_file:
-
             for tokenlist in safe_conllu_parse(in_file):
+                example_dict = collections.defaultdict(lambda: [])
                 for token in tokenlist:
-                    token = {
-                        field_name: tuple(field_value.items())
-                        if isinstance(field_value, dict)
-                        else field_value
-                        for field_name, field_value in token.items()
-                    }
+                    for field_name in field_names:
+                        example_dict[field_name].append(token[field_name])
 
-                    examples.append(example_factory.from_dict(token))
+                example = example_factory.from_dict(example_dict)
+                examples.append(example)
 
         return examples
 
     @staticmethod
     def get_default_fields():
         """Method returns a dict of default CoNLL-U fields.
-        fields : id, form, lemma, upos, xpos, feats, head, deprel, deps, misc
 
         Returns
         -------
-        fields : dict(str, Field)
+        fields : Dict[str, Field]
             Dict containing all default CoNLL-U fields.
         """
 
-        # numericalization of id is not allowed because
-        # numericalization of integer ranges is undefined
-        id = Field(name="id", tokenizer=None, keep_raw=True, numericalizer=None)
+        id = Field(name="id", tokenizer=None, numericalizer=None)
 
-        form = Field(
-            name="form", numericalizer=Vocab(specials=()), tokenizer=None, keep_raw=True
-        )
+        form = Field(name="form", tokenizer=None, numericalizer=Vocab(specials=()))
 
-        lemma = Field(
-            name="lemma", numericalizer=Vocab(specials=()), tokenizer=None, keep_raw=True
-        )
+        lemma = Field(name="lemma", tokenizer=None, numericalizer=Vocab(specials=()))
 
         upos = Field(
             name="upos",
-            numericalizer=Vocab(specials=()),
             tokenizer=None,
-            keep_raw=True,
-            allow_missing_data=True,
+            numericalizer=Vocab(specials=()),
         )
 
         xpos = Field(
             name="xpos",
-            numericalizer=Vocab(specials=()),
             tokenizer=None,
-            keep_raw=True,
-            allow_missing_data=True,
+            numericalizer=Vocab(specials=()),
         )
 
-        feats = Field(
-            name="feats", tokenizer=None, numericalizer=None, allow_missing_data=True
-        )
+        feats = Field(name="feats", tokenizer=None, numericalizer=None)
 
         head = Field(
             name="head",
             tokenizer=None,
-            keep_raw=True,
             numericalizer=int,
-            allow_missing_data=True,
         )
 
-        deprel = Field(
-            name="deprel", tokenizer=None, keep_raw=True, allow_missing_data=True
-        )
+        deprel = Field(name="deprel", tokenizer=None)
 
-        deps = Field(
-            name="deps", tokenizer=None, numericalizer=None, allow_missing_data=True
-        )
+        deps = Field(name="deps", tokenizer=None, numericalizer=None)
 
-        misc = Field(
-            name="misc", tokenizer=None, numericalizer=None, allow_missing_data=True
-        )
+        misc = Field(name="misc", tokenizer=None, numericalizer=None)
 
         return {
             "id": id,
