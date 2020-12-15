@@ -110,7 +110,8 @@ class Vocab:
         min_freq=1,
         specials=(UNK(), PAD()),
         keep_freqs=False,
-        eager=True
+        eager=True,
+        deterministic=True
     ):
         """Vocab constructor. Specials are first in the vocabulary.
 
@@ -126,14 +127,30 @@ class Vocab:
         keep_freqs : bool
             if true word frequencies will be saved for later use on
             the finalization
+        eager : bool
+            if `True` the frequencies will be built immediately upon
+            dataset loading. While not obvious, the main effect of
+            this argument if set to `True` is that the frequencies of
+            the vocabulary will be built on based _all_ datasets
+            that use this vocabulary, while if set to `False`, the
+            vocabulary will be built by iterating again over the
+            datasets passed as argument to the `finalize_fields`
+            function.
+        deterministic : bool
+            if `True`, the numericalization for an instance will
+            not change between function calls. An example where
+            this argument should be set to `False` is when the 
+            Vocabulary uses Masking. Setting `deterministic` to
+            `False` will disable caching for all Fields that
+            use this Vocabulary.
         """
         self._freqs = Counter()
         self._keep_freqs = keep_freqs
         self._min_freq = min_freq
 
-        self.specials = () if specials is None else specials
+        self._specials = () if specials is None else specials
         if not isinstance(self.specials, (tuple, list)):
-            self.specials = (self.specials,)
+            self._specials = (self._specials,)
         self._has_specials = len(self.specials) > 0
 
         # Apply uniqueness check
@@ -143,13 +160,33 @@ class Vocab:
             )
             raise ValueError(error_msg)
 
-        self.itos = list(self.specials)
+        self._itos = list(self.specials)
         #self._default_unk_index = self._init_default_unk_index(self.specials)
-        self.stoi = {k: v for v, k in enumerate(self.itos)}
+        self._stoi = {k: v for v, k in enumerate(self.itos)}
 
         self._max_size = max_size
-        self.eager = eager
-        self.finalized = False  # flag to know if we're ready to numericalize
+        self._eager = eager
+        self._finalized = False  # flag to know if we're ready to numericalize
+
+    @property
+    def eager(self):
+        return self._eager
+
+    @property
+    def finalized(self):
+        return self._finalized
+
+    @property
+    def specials(self):
+        return self._specials
+
+    @property
+    def itos(self):
+        return self._itos
+
+    @property
+    def stoi(self):
+        return self._stoi
 
     @classmethod
     def from_itos(cls, itos):
@@ -163,9 +200,9 @@ class Vocab:
         specials = [token for token in itos if isinstance(token, Special)]
 
         vocab = cls(specials=specials)
-        vocab.itos = itos
-        vocab.stoi = {k: v for k,v in enumerate(itos)}
-        vocab.finalized = True
+        vocab._itos = itos
+        vocab._stoi = {k: v for k,v in enumerate(itos)}
+        vocab._finalized = True
 
         return vocab
 
@@ -181,13 +218,13 @@ class Vocab:
         specials = [token for token in stoi.keys() if isinstance(token, Special)]
 
         vocab = cls(specials=specials)
-        vocab.stoi = stoi
+        vocab._stoi = stoi
         vocab_max_index = max(stoi.values())
         itos = [None]*(vocab_max_index+1)
         for token, index in stoi.items():
             itos[index] = token
-        vocab.itos = itos
-        vocab.finalized = True
+        vocab._itos = itos
+        vocab._finalized = True
 
         return vocab
 
@@ -410,7 +447,7 @@ class Vocab:
 
         if not self._keep_freqs:
             self._freqs = None  # release memory
-        self.finalized = True
+        self._finalized = True
 
     def numericalize(self, data):
         """Method numericalizes given tokens.

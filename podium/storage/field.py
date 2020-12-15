@@ -790,6 +790,12 @@ class Field:
         cache_field_name = f"{self.name}_"
         numericalization = example.get(cache_field_name)
 
+        # Check if this concrete field can be cached. Fields that have
+        # non-deterministic numericalizers cannot be cached. Currently,
+        # we only expect vocabs to be non-deterministic.
+        cache_field = not self.use_vocab or self.use_vocab and self.vocab.deterministic
+        cache = cache and cache_field
+
         if numericalization is None:
             example_data = example[self.name]
             numericalization = self.numericalize(example_data)
