@@ -115,7 +115,7 @@ class Vocab:
         specials=(UNK(), PAD()),
         keep_freqs=False,
         eager=True,
-        deterministic=True
+        deterministic=True,
     ):
         """Vocab constructor. Specials are first in the vocabulary.
 
@@ -660,7 +660,6 @@ class MaskVocab(Vocab):
     @property
     def deterministic(self):
         return self._deterministic
-
 
     def numericalize(self, data):
         """Method numericalizes given tokens.
