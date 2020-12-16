@@ -47,42 +47,46 @@ class Special(str):
 
 
 class BOS(Special):
-    def __new__(cls, token='<BOS>'):
+    def __new__(cls, token="<BOS>"):
         return super(BOS, cls).__new__(cls, token)
 
     def apply(self, sequence):
-        return [self] + sequence 
+        return [self] + sequence
 
 
 class EOS(Special):
-    def __new__(cls, token='<EOS>'):
+    def __new__(cls, token="<EOS>"):
         return super(EOS, cls).__new__(cls, token)
 
     def apply(self, sequence):
         return sequence + [self]
 
+
 #################
 # Core specials #
 #################
 
+
 class MASK(Special):
-    def __new__(cls, token='<MASK>'):
+    def __new__(cls, token="<MASK>"):
         return super(MASK, cls).__new__(cls, token)
 
     def apply(self, sequence):
         # Core special, handled by Vocab
         return sequence
 
+
 class UNK(Special):
-    def __new__(cls, token='<UNK>'):
+    def __new__(cls, token="<UNK>"):
         return super(UNK, cls).__new__(cls, token)
 
     def apply(self, sequence):
         # Core special, handled by Vocab
         return sequence
 
+
 class PAD(Special):
-    def __new__(cls, token='<PAD>'):
+    def __new__(cls, token="<PAD>"):
         return super(PAD, cls).__new__(cls, token)
 
     def apply(self, sequence):
@@ -139,7 +143,7 @@ class Vocab:
         deterministic : bool
             if `True`, the numericalization for an instance will
             not change between function calls. An example where
-            this argument should be set to `False` is when the 
+            this argument should be set to `False` is when the
             Vocabulary uses Masking. Setting `deterministic` to
             `False` will disable caching for all Fields that
             use this Vocabulary.
@@ -155,18 +159,21 @@ class Vocab:
 
         # Apply uniqueness check
         if len(specials) > len(set(specials)):
-            error_msg = (
-                f"Specials may not contain multiple instances of same type."
-            )
+            error_msg = f"Specials may not contain multiple instances of same type."
             raise ValueError(error_msg)
 
         self._itos = list(self.specials)
-        #self._default_unk_index = self._init_default_unk_index(self.specials)
+        # self._default_unk_index = self._init_default_unk_index(self.specials)
         self._stoi = {k: v for v, k in enumerate(self.itos)}
 
         self._max_size = max_size
         self._eager = eager
+        self._deterministic = deterministic
         self._finalized = False  # flag to know if we're ready to numericalize
+
+    @property
+    def freqs(self):
+        return self._freqs
 
     @property
     def eager(self):
@@ -188,6 +195,10 @@ class Vocab:
     def stoi(self):
         return self._stoi
 
+    @property
+    def deterministic(self):
+        return self._deterministic
+
     @classmethod
     def from_itos(cls, itos):
         """Method constructs a vocab from a predefined index-to-string mapping.
@@ -201,7 +212,7 @@ class Vocab:
 
         vocab = cls(specials=specials)
         vocab._itos = itos
-        vocab._stoi = {k: v for k,v in enumerate(itos)}
+        vocab._stoi = {k: v for k, v in enumerate(itos)}
         vocab._finalized = True
 
         return vocab
@@ -220,7 +231,7 @@ class Vocab:
         vocab = cls(specials=specials)
         vocab._stoi = stoi
         vocab_max_index = max(stoi.values())
-        itos = [None]*(vocab_max_index+1)
+        itos = [None] * (vocab_max_index + 1)
         for token, index in stoi.items():
             itos[index] = token
         vocab._itos = itos
@@ -247,7 +258,7 @@ class Vocab:
                 "User specified that frequencies aren't kept in "
                 "vocabulary but the get_freqs method is called."
             )
-        return self._freqs
+        return self.freqs
 
     def padding_index(self):
         """Method returns padding symbol index.
@@ -474,16 +485,15 @@ class Vocab:
             )
 
         if UNK in self.stoi:
-            # In order to replace unknown token with UNK, right now both UNK
-            # has to be present in the Vocab and filter_unk has to be set.
-            # I'm not sure in which case UNK would be present but filter_unk
-            # would be set to True.
-            return np.array([self.stoi[token] if token in stoi else stoi[UNK]
-                             for token in data])
+            # If UNK is not in the vocabulary, we _erase_ the unknown tokens
+            # from the instances.
+            return np.array(
+                [self.stoi[token] if token in self.stoi else stoi[UNK] for token in data]
+            )
         else:
             # Either UNK is not in Vocab or the user has requested unknown tokens
             # to be filtered out of the instances.
-            return np.array([self.stoi[token] for token in data if token in stoi])
+            return np.array([self.stoi[token] for token in data if token in self.stoi])
 
     def reverse_numericalize(self, numericalized_data: Iterable):
         """Transforms an iterable containing numericalized data into a list of tokens.
@@ -532,7 +542,7 @@ class Vocab:
         """
         if self.finalized:
             return len(self.itos)
-        return len(self._freqs)
+        return len(self.freqs)
 
     def __eq__(self, other):
         """Two vocabs are same if they have same finalization status, their
@@ -552,7 +562,7 @@ class Vocab:
             return False
         if self.finalized != other.finalized:
             return False
-        if self._freqs != other._freqs:
+        if self.freqs != other.freqs:
             return False
         if self.stoi != other.stoi:
             return False
@@ -572,7 +582,7 @@ class Vocab:
             iterator over vocab tokens
         """
         if not self.finalized:
-            return iter(self._freqs.keys())
+            return iter(self.freqs.keys())
         return iter(self.itos)
 
     def __repr__(self):
@@ -606,3 +616,86 @@ class Vocab:
             )
 
         return self.stoi[token]
+
+
+class MaskVocab(Vocab):
+    def __init__(self, vocab, masking_probability=0.15):
+        if MASK() not in vocab.specials:
+            # Todo: flesh out error, proof of concept for now
+            raise ValueError("Mask token not in vocabulary of MaskVocab")
+
+        self.mask_token = vocab.itos[vocab.stoi[MASK()]]
+        self._vocab = vocab
+        self._deterministic = False
+        self.masking_probability = masking_probability
+
+    @property
+    def vocab(self):
+        return self._vocab
+
+    @property
+    def eager(self):
+        return self.vocab.eager
+
+    @property
+    def finalized(self):
+        return self.vocab.finalized
+
+    @property
+    def specials(self):
+        return self.vocab.specials
+
+    @property
+    def itos(self):
+        return self.vocab.itos
+
+    @property
+    def stoi(self):
+        return self.vocab.stoi
+
+    @property
+    def freqs(self):
+        return self.vocab.freqs
+
+    @property
+    def deterministic(self):
+        return self._deterministic
+
+
+    def numericalize(self, data):
+        """Method numericalizes given tokens.
+
+        Parameters
+        ----------
+        data : iter(str)
+            iterable collection of tokens
+
+        Returns
+        -------
+        numericalized_vector : array-like
+            numpy array of numericalized tokens
+
+        Raises
+        ------
+        RuntimeError
+            If the vocabulary is not finalized.
+        """
+
+        # Ensures data is a numpy array
+        numericalized_data = self.vocab.numericalize(data)
+        # Create a boolean vector of tokens which should be masked
+        mask = np.random.binomial(1, self.masking_probability, len(data)).astype(bool)
+        # Retrieve index of mask token from vocab
+        mask_index = self[MASK()]
+        # Overwrite data which should be masked with the mask index
+        numericalized_data[mask] = mask_index
+
+        return numericalized_data
+
+    def __iadd__(self, values: Union["Vocab", Iterable]):
+        self.vocab.__iadd__(values)
+        return self
+
+    def __add__(self, values: Union["Vocab", Iterable]):
+        self.vocab.__add__(values)
+        return self
