@@ -241,7 +241,7 @@ class Field:
             - 'split' - default str.split(). Custom separator can be provided as
               `split-sep` where `sep` is the separator string.
             - 'spacy-lang' - the spacy tokenizer. The language model can be defined
-              by replacing `lang` with the language model name. For example `spacy-en`.
+              by replacing `lang` with the language model name (e.g. `spacy-en`).
 
             If None, the data will not be tokenized and post-tokenization hooks wont be
             called. The provided data will be stored in the `tokenized` data field as-is.
