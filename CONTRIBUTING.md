@@ -4,15 +4,6 @@ Thank you for thinking about contributing to Podium. Everyone is more than welco
 
 Please note we have a code of conduct, please follow it in all your interactions with the project.
 
-## Contents
-
-- [Setup](#setup)
-- [Submiting pull requests](#submiting-pull-requests)
-- [Code style standards](#code-style-standards)
-- [Building and running unit tests](#building-and-running-unit-tests)
-- [Writing documentation](#writing-documentation)
-  - [Building documentation](#building-documentation)
-
 ## Setup
 
 To setup the project locally, follow the steps below:
