@@ -76,7 +76,7 @@ git pull --rebase upstream master
 
 ## Code style standards
 
-In this repository, we use Black, Flake8 and isort for code sytle. 
+In this repository, we use [black](https://black.readthedocs.io/en/stable/), [isort](https://pycqa.github.io/isort/) and [flake8](http://flake8.pycqa.org/en/latest/) for code sytle. 
 
 Commands to check black, isort and flake8 compliance for written code and tests.
 
