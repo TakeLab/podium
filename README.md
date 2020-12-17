@@ -1,11 +1,15 @@
 # TakeLab Podium
 
-Home of the **TakeLab Podium** project. Podium is a framework agnostic Python natural language processing library which standardizes data loading and preprocessing.
+## What is Podium?
+
+Podium is a framework agnostic Python natural language processing library which standardizes data loading and preprocessing.
 Our goal is to accelerate users' development of NLP models whichever aspect of the library they decide to use.
 
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
+### Contents
+
+- [Installation](#installation)
+  - [Installing from source](#installing-from-source)
+  - [Installing from pip](#installing-from-pip)
 - [Usage examples](#usage-examples)
   - [Loading datasets](#loading-datasets)
   - [Define your preprocessing](#define-your-preprocessing)
@@ -15,16 +19,9 @@ Our goal is to accelerate users' development of NLP models whichever aspect of t
 - [Authors](#authors)
 - [License](#license)
 
-## Getting Started
+## Installation
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
-
-### Prerequisites
-
-For building this project, system needs to have installed the following:
-- [```git```](https://git-scm.com/)
-- [```python3.6```](https://www.python.org/downloads/release/python-360/) or higher
-- [```pip```](https://pypi.org/project/pip/)
+Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
 
 We also recommend usage of a virtual environment:
 - [```conda```](https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/environments.html#virtual-environments)
@@ -32,13 +29,22 @@ We also recommend usage of a virtual environment:
 
 ### Installing from source
 
-To install `podium`, in your terminal
-1. Clone the repository: `git clone git@github.com:mttk/podium.git && cd podium`
-2. Install podium: `pip install .`
+Commands to install `podium` from source
 
-### Installing package from pip/wheel
+```bash
+git clone git@github.com:mttk/podium.git && cd podium
+pip install .
+```
 
-Coming soon!
+### Installing from pip
+
+The easiest way to install `podium` is using pip
+
+```bash
+pip install podium 
+```
+
+For more detailed installation instructions, check the [installation page](http://takelab.fer.hr/podium/installation.html) in the documentation.
 
 ## Usage examples
 
