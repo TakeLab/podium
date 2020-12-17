@@ -11,13 +11,12 @@ Our goal is to accelerate users' development of NLP models whichever aspect of t
   - [Define your preprocessing](#define-your-preprocessing)
   - [Use preprocessing from other libraries](#use-preprocessing-from-other-libraries)
 - [Contributing](#contributing)
-  - [Building and running unit tests](#building-and-running-unit-tests)
 - [Versioning](#versioning)
-- [Contributing](#contributing)
 - [Authors](#authors)
 - [License](#license)
 
 ## Getting Started
+
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
 ### Prerequisites
@@ -38,9 +37,11 @@ To install `podium`, in your terminal
 2. Install podium: `pip install .`
 
 ### Installing package from pip/wheel
+
 Coming soon!
 
 ## Usage examples
+
 For detailed usage examples see [examples](https://github.com/mttk/podium/tree/master/examples)
 
 ### Loading datasets
@@ -111,7 +112,6 @@ Example[label: ('positive', None); text: (None, ['a', 'slick', 'engrossing', 'me
 ```
 **Pre-tokenization** hooks do not see the tokenized data and are applied (and modify) only `raw` data. 
 **Post-tokenization** hooks have access to tokenized data, and can be applied to either `raw` or `tokenized` data.
-
 
 ### Use preprocessing from other libraries
 

@@ -23,7 +23,7 @@ git remote add upstream git@github.com:mttk/podium.git
 To install the minimal set of dependencies, run:
 
 ```bash
-pip install -e "."
+pip install -e .
 ```
 
 To install the full set of dependencies for developing Podium, run:
