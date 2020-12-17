@@ -41,7 +41,7 @@ pip install .
 The easiest way to install `podium` is using pip
 
 ```bash
-pip install podium 
+pip install podium-nlp 
 ```
 
 For more detailed installation instructions, check the [installation page](http://takelab.fer.hr/podium/installation.html) in the documentation.
