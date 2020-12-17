@@ -136,34 +136,6 @@ Example[label: ('positive', None); subword: (None, ['a', 'slick', ',', 'eng', '#
 
 To learn more about making a contribution to Podium, please see our [Contribution page](CONTRIBUTING.md).
 
-### Code style standards
-In this repository we use [numpydoc](https://numpydoc.readthedocs.io/en/latest/) as a standard for documentation and Black, Flake8 and isort for code sytle. Code style references are [Black](https://black.readthedocs.io/en/stable/), [Flake8](http://flake8.pycqa.org/en/latest/), [isort](https://pycqa.github.io/isort/) and [PEP8](https://www.python.org/dev/peps/pep-0008/).
-
-Commands to check black, isort and flake8 compliance for written code and tests.
-```bash
-black --check --line-length 90 --target-version py36 podium tests examples
-isort --check-only podium tests examples
-flake8 podium tests examples
-```
-
-### Building and running unit tests
-
-If you are installing from source, you will need Python 3.6 or later. We highly recommend installing an [Anaconda](https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/environments.html#virtual-environments) environment.
-
-Commands to setup virtual environment and run tests.
-```bash
-conda create --name env python=3.6
-conda activate env
-pip install .[tests]
-pytest tests
-```
-
-If you intend to develop part of podium you should use following command to install podium.
-```bash
-pip install -e .[dev]
-```
-In other cases it should be enough to run ```pip install .``` for podium to be added to python environment.
-
 ## Versioning
 
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](../../tags). 
