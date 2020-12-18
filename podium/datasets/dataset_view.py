@@ -60,8 +60,8 @@ class DatasetConcatView(DatasetABC):
             dataset, index = self._translate_index(item)
             return dataset[index]
 
-        # TODO imlpement after DatasetIndexedView
-        pass
+        else:
+            return create_view(self, item)
 
     def _get_examples(self) -> List[Example]:
         sublists = map(lambda ds: ds.examples, self._datasets)
