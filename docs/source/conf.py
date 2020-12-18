@@ -88,7 +88,7 @@ html_theme_options = {
 smv_tag_whitelist = r'^v\d+\.\d+\.\d+$' # Include tags like "v2.1.1"
 
 # Whitelist pattern for branches (set to None to ignore all branches)
-smv_branch_whitelist = r"^add_docs_multiversion$"
+smv_branch_whitelist = r"^master$"
 
 # Whitelist pattern for remotes (set to None to use local branches only)
 smv_remote_whitelist = None
