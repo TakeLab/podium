@@ -89,6 +89,7 @@ DOCS_REQUIRE = [
     'sphinx',
     'sphinx_rtd_theme',
     'sphinx-copybutton',
+    'sphinx-multiversion',
     'recommonmark',
     'datasets',
     'keras==2.2.4',

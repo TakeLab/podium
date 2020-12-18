@@ -42,14 +42,13 @@ extensions = [
     'sphinx.ext.autosummary',
     'recommonmark',
     'sphinx_copybutton',
+    "sphinx_multiversion",
 ]
 
 source_suffix = ['.rst', '.md']
 autodoc_typehints = 'none'
 autoclass_content = 'both'
 
-# Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -66,11 +65,37 @@ copybutton_prompt_text = ">>> "
 
 html_theme = 'sphinx_rtd_theme'
 
+# Add any paths that contain templates here, relative to this directory.
+templates_path = ['_templates']
+
 html_theme_options = {
     'collapse_navigation': False,
     'display_version': True,
 }
 
+html_sidebars = {
+    '**': [
+        'versioning.html',
+    ],
+}
+
+# Sphinx multiversion settings
+smv_tag_whitelist = r'^v\d+\.\d+\.\d+$' # Include tags like "v2.1.1"
+
+# Whitelist pattern for branches (set to None to ignore all branches)
+smv_branch_whitelist = r"^add_docs_multiversion$"
+
+# Whitelist pattern for remotes (set to None to use local branches only)
+smv_remote_whitelist = None
+
+# Pattern for released versions
+smv_released_pattern = r'^tags/.*$'
+
+# Format for versioned output directories inside the build directory
+smv_outputdir_format = '{ref.name}'
+
+# Determines whether remote or local git branches/tags are preferred if their output dirs conflict
+smv_prefer_remote_refs = False
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
