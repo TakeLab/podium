@@ -30,7 +30,6 @@ def unique(values: Iterable):
         yield element
 
 
-# Make specials singletons
 class Special(str):
     @abc.abstractmethod
     def apply(self, sequence_or_token):
@@ -484,7 +483,7 @@ class Vocab:
                 "finalized because itos and stoi are not yet built."
             )
 
-        if UNK in self.stoi:
+        if UNK() in self.stoi:
             # If UNK is not in the vocabulary, we _erase_ the unknown tokens
             # from the instances.
             return np.array(
