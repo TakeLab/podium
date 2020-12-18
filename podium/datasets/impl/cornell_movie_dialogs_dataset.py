@@ -1,4 +1,6 @@
-"""Module contains Cornell Movie Dialogs datasets."""
+"""
+Module contains Cornell Movie Dialogs datasets.
+"""
 from podium.dataload.cornell_movie_dialogs import CornellMovieDialogsNamedTuple
 from podium.datasets.dataset import Dataset
 from podium.storage.example_factory import ExampleFactory
@@ -7,11 +9,14 @@ from podium.storage.vocab import Vocab
 
 
 class CornellMovieDialogsConversationalDataset(Dataset):
-    """Cornell Movie Dialogs Conversational dataset which contains sentences and replies
-    from movies."""
+    """
+    Cornell Movie Dialogs Conversational dataset which contains sentences and
+    replies from movies.
+    """
 
     def __init__(self, data, fields=None):
-        """Dataset constructor.
+        """
+        Dataset constructor.
 
         Parameters
         ----------
@@ -42,7 +47,8 @@ class CornellMovieDialogsConversationalDataset(Dataset):
 
     @staticmethod
     def _create_examples(data: CornellMovieDialogsNamedTuple, fields):
-        """Method creates examples for Cornell Movie Dialogs dataset.
+        """
+        Method creates examples for Cornell Movie Dialogs dataset.
 
         Examples are created from the lines and conversations in data.
 
@@ -80,7 +86,8 @@ class CornellMovieDialogsConversationalDataset(Dataset):
 
     @staticmethod
     def get_default_fields():
-        """Method returns default Cornell Movie Dialogs fields: sentence and reply.
+        """
+        Method returns default Cornell Movie Dialogs fields: sentence and reply.
         Fields share same vocabulary.
 
         Returns

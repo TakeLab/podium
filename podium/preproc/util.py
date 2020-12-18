@@ -1,14 +1,15 @@
-"""Module contains utility functions to preprocess text data"""
+"""
+Module contains utility functions to preprocess text data.
+"""
 
 TRIE_END_SYMBOL = "*"
 
 
 def capitalize_target_like_source(func):
-    """Capitalization decorator of a method that processes a word.
-    Method invokes the parameter function
-    with a lowercased input, then capitalizes
-    the return value such that capitalization corresponds
-    to the original input provided
+    """
+    Capitalization decorator of a method that processes a word. Method invokes
+    the parameter function with a lowercased input, then capitalizes the return
+    value such that capitalization corresponds to the original input provided.
 
     Parameters
     ----------
@@ -40,7 +41,8 @@ def capitalize_target_like_source(func):
 
 
 def uppercase_target_like_source(source, target):
-    """Function uppercases target on the same places source is uppercased.
+    """
+    Function uppercases target on the same places source is uppercased.
 
     Parameters
     ----------
@@ -65,9 +67,9 @@ def uppercase_target_like_source(source, target):
 
 
 def make_trie(words):
-    """Creates a prefix trie data structure given a
-    list of strings. Strings are split into chars
-    and a char nested trie dict is returned
+    """
+    Creates a prefix trie data structure given a list of strings. Strings are
+    split into chars and a char nested trie dict is returned.
 
     Parameters
     ----------
@@ -95,9 +97,10 @@ def make_trie(words):
 
 
 def find_word_by_prefix(trie, word):
-    """Searches through a trie data structure and returns an element of the trie is the
-    word is a prefix or exact match of one of the trie elements.
-    Otherwise returns None
+    """
+    Searches through a trie data structure and returns an element of the trie is
+    the word is a prefix or exact match of one of the trie elements. Otherwise
+    returns None.
 
     Parameters
     ----------

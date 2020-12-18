@@ -1,4 +1,6 @@
-"""Module contains functions used to transform batch to tensors that models accept."""
+"""
+Module contains functions used to transform batch to tensors that models accept.
+"""
 
 
 def default_feature_transform(x_batch):

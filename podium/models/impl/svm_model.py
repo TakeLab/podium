@@ -1,4 +1,6 @@
-"""Module contains svm models."""
+"""
+Module contains svm models.
+"""
 from podium.models.model import AbstractSupervisedModel
 
 
@@ -14,7 +16,9 @@ except ImportError:
 
 
 class ScikitSVCModel(AbstractSupervisedModel):
-    """Simple scikitlearn SVM model."""
+    """
+    Simple scikitlearn SVM model.
+    """
 
     def __init__(self, **kwargs):
         self.reset(**kwargs)
@@ -31,7 +35,9 @@ class ScikitSVCModel(AbstractSupervisedModel):
 
 
 class ScikitLinearSVCModel(ScikitSVCModel):
-    """Simple scikitlearn linear SVM model."""
+    """
+    Simple scikitlearn linear SVM model.
+    """
 
     def reset(self, **kwargs):
         self._model = LinearSVC(**kwargs)

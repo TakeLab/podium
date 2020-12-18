@@ -3,13 +3,16 @@ from sklearn.model_selection import KFold as baseKFold
 
 
 class KFold(baseKFold):
-    """Adapter class for the scikit-learn KFold class.
+    """
+    Adapter class for the scikit-learn KFold class.
+
     Works with podium datasets directly.
     """
 
     def split(self, dataset):
-        """Splits the dataset into multiple train and test folds often used in model
-        validation.
+        """
+        Splits the dataset into multiple train and test folds often used in
+        model validation.
 
         Parameters
         ----------
@@ -20,7 +23,6 @@ class KFold(baseKFold):
         -------
         train_set, test_set
             Yields the train and test datasets for every fold.
-
         """
         indices = np.arange(len(dataset))
         for train_indices, test_indices in super().split(indices):

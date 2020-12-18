@@ -1,4 +1,6 @@
-"""Module contains Croatian NER dataset."""
+"""
+Module contains Croatian NER dataset.
+"""
 from podium.dataload.ner_croatian import NERCroatianXMLLoader
 from podium.datasets.dataset import Dataset
 from podium.storage import ExampleFactory, Field
@@ -7,16 +9,17 @@ from podium.storage.vocab import Vocab
 
 
 class CroatianNERDataset(Dataset):
-    """Croatian NER dataset.
+    """
+    Croatian NER dataset.
 
-    A single example in the dataset represents a single sentence in
-    the input data.
+    A single example in the dataset represents a single sentence in the input
+    data.
     """
 
     def __init__(self, tokenized_documents, fields):
-        """Dataset constructor.
-        Users should use the static method get_dataset rather than invoking
-        the constructor directly.
+        """
+        Dataset constructor. Users should use the static method get_dataset
+        rather than invoking the constructor directly.
 
         Parameters
         ----------
@@ -50,7 +53,8 @@ class CroatianNERDataset(Dataset):
 
     @classmethod
     def get_dataset(cls, tokenizer="split", tag_schema="IOB", fields=None, **kwargs):
-        """Method downloads (if necessary) and loads the dataset.
+        """
+        Method downloads (if necessary) and loads the dataset.
 
         Parameters
         ----------
@@ -122,8 +126,9 @@ class CroatianNERDataset(Dataset):
 
 
 def _is_delimiter_line(line):
-    """Checks if the line is delimiter line. Delimiter line is a tuple with
-    all elements set to None.
+    """
+    Checks if the line is delimiter line. Delimiter line is a tuple with all
+    elements set to None.
 
     Parameters
     ----------

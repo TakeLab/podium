@@ -5,8 +5,9 @@ from podium.storage import ExampleFactory, Field
 
 
 class IrisDataset(Dataset):
-    """This is the classic Iris dataset. This is perhaps the best known database to be
-    found in the pattern recognition literature.
+    """
+    This is the classic Iris dataset. This is perhaps the best known database to
+    be found in the pattern recognition literature.
 
     The fields of this dataset are:
         sepal_length - float
@@ -17,7 +18,9 @@ class IrisDataset(Dataset):
     """
 
     def __init__(self):
-        """Loads the Iris dataset."""
+        """
+        Loads the Iris dataset.
+        """
         x, y = load_iris(return_X_y=True)
 
         fields = IrisDataset._get_default_fields()

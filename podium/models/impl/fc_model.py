@@ -1,4 +1,6 @@
-"""Module contains fully connected neural network models."""
+"""
+Module contains fully connected neural network models.
+"""
 from podium.models.model import AbstractSupervisedModel
 
 
@@ -14,10 +16,13 @@ except ImportError:
 
 
 class ScikitMLPClassifier(AbstractSupervisedModel):
-    """Simple scikitlearn multiperceptron model."""
+    """
+    Simple scikitlearn multiperceptron model.
+    """
 
     def __init__(self, classes, **kwargs):
-        """Constructor that initializes Sckit MLPClassfier with given list of
+        """
+        Constructor that initializes Sckit MLPClassfier with given list of
         classes.
 
         Parameters
@@ -32,7 +37,9 @@ class ScikitMLPClassifier(AbstractSupervisedModel):
         self._model = MLPClassifier(max_iter=1, **kwargs)
 
     def fit(self, X, y, **kwargs):
-        """Method calls fit on multiperceptron model with given batch.
+        """
+        Method calls fit on multiperceptron model with given batch.
+
         It is supposed to be used as online learning.
         """
         self._model.partial_fit(X=X, y=y, classes=self.classes)

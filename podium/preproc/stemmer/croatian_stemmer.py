@@ -1,4 +1,6 @@
-"""Module contains simple stemmer for Croatian"""
+"""
+Module contains simple stemmer for Croatian.
+"""
 # -*-coding:utf-8-*-
 #
 #    Simple stemmer for Croatian v0.1
@@ -29,7 +31,9 @@ from podium.preproc.util import (
 
 
 class CroatianStemmer:
-    """Simple stemmer for Croatian language"""
+    """
+    Simple stemmer for Croatian language.
+    """
 
     def __init__(self):
 
@@ -67,8 +71,7 @@ class CroatianStemmer:
 
     def _determine_r_vowel(self, string):
         """
-        Determines if 'r' is a vowel or not
-        If it is => uppercase it.
+        Determines if 'r' is a vowel or not If it is => uppercase it.
 
         Parameters
         ----------
@@ -89,8 +92,9 @@ class CroatianStemmer:
             return False
 
     def transform(self, word):
-        """Method transforms given word from a dict, given it
-        ending with a specific suffix
+        """
+        Method transforms given word from a dict, given it ending with a
+        specific suffix.
 
         Parameters
         ----------
@@ -114,7 +118,8 @@ class CroatianStemmer:
             return word
 
     def root_word(self, word):
-        """Method returns root of a word.
+        """
+        Method returns root of a word.
 
         Parameters
         ----------
@@ -137,8 +142,8 @@ class CroatianStemmer:
     @capitalize_target_like_source
     def stem_word(self, word, **kwargs):
         """
-        Returns the root or roots of a word,
-        together with any derivational affixes
+        Returns the root or roots of a word, together with any derivational
+        affixes.
 
         Parameters
         ----------
@@ -158,10 +163,11 @@ class CroatianStemmer:
 
 
 def _stemmer_posttokenized_hook(raw, tokenized, stemmer):
-    """Stemmer postokenized hook that can be used in field processing.
-    It is intented for user to use `get_croatian_stemmer_hook` instead
-    of this function as it hides Stemmer initialization and ensures that
-    constructor is called once.
+    """
+    Stemmer postokenized hook that can be used in field processing. It is
+    intented for user to use `get_croatian_stemmer_hook` instead of this
+    function as it hides Stemmer initialization and ensures that constructor is
+    called once.
 
     Parameters
     ----------
@@ -181,5 +187,7 @@ def _stemmer_posttokenized_hook(raw, tokenized, stemmer):
 
 
 def get_croatian_stemmer_hook():
-    """Method obtains croatian stemmer hook."""
+    """
+    Method obtains croatian stemmer hook.
+    """
     return functools.partial(_stemmer_posttokenized_hook, stemmer=CroatianStemmer())

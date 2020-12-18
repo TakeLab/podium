@@ -1,5 +1,9 @@
-"""Module contains class for defining large resource. Classes that contain
-large resources that should be downloaded should use this module."""
+"""
+Module contains class for defining large resource.
+
+Classes that contain large resources that should be downloaded should use this
+module.
+"""
 import getpass
 import logging
 import os
@@ -10,8 +14,9 @@ from podium.storage.resources.downloader import SCPDownloader, SimpleHttpDownloa
 
 
 class LargeResource:
-    """Large resource that needs to download files from URL. Class also
-    supports archive decompression.
+    """
+    Large resource that needs to download files from URL. Class also supports
+    archive decompression.
 
     Attributes
     ----------
@@ -34,16 +39,16 @@ class LargeResource:
     SUPPORTED_ARCHIVE = ["zip", "tar", "bz2", "lzma"]
 
     def __init__(self, **kwargs):
-        """Creates large resource file. If the file is not in resource_location
-        it will be dowloaded from url and if needed decompressed.
-        Resource location is defined as BASE_RESOURCE_DIR+RESOURCE_NAME
+        """
+        Creates large resource file. If the file is not in resource_location it
+        will be dowloaded from url and if needed decompressed. Resource location
+        is defined as BASE_RESOURCE_DIR+RESOURCE_NAME.
 
         Parameters
         ----------
         kwargs : dict(str, str)
             key word arguments that define RESOURCE_NAME, URL and optionally
             archiving method ARCHIVE
-
         """
         self._check_args(arguments=kwargs)
         self.config = kwargs
@@ -56,8 +61,10 @@ class LargeResource:
         )
 
     def _check_files(self):
-        """Method checks if large resource files exists and if they don't it
-        initiates downloading of resources."""
+        """
+        Method checks if large resource files exists and if they don't it
+        initiates downloading of resources.
+        """
         if os.path.exists(self.resource_location):
             logging.info("Large resource alreadys exists, skipping download.")
             return
@@ -68,7 +75,8 @@ class LargeResource:
         self._download(download_destination=self.resource_location)
 
     def _download(self, download_destination):
-        """Method downloades file from config URL to given directory.
+        """
+        Method downloades file from config URL to given directory.
 
         Parameters
         ----------
@@ -80,8 +88,9 @@ class LargeResource:
         )
 
     def _unarchive(self, archive_file):
-        """Method unarchives given archive file if decompression of given file
-        is supported.
+        """
+        Method unarchives given archive file if decompression of given file is
+        supported.
 
         Parameters
         ----------
@@ -109,7 +118,9 @@ class LargeResource:
         )
 
     def _download_unarchive(self):
-        """Method downloades resource and decompresses it to resource location."""
+        """
+        Method downloades resource and decompresses it to resource location.
+        """
         os.makedirs(name=self.resource_location)
         download_dir = os.path.join(
             tempfile.mkdtemp(), self.config[LargeResource.RESOURCE_NAME]
@@ -118,7 +129,8 @@ class LargeResource:
         self._unarchive(archive_file=download_dir)
 
     def _check_args(self, arguments):
-        """Method checks if the large resource configuration has all essential
+        """
+        Method checks if the large resource configuration has all essential
         parts such as large resource url and resource name.
 
         Parameters
@@ -145,8 +157,9 @@ class LargeResource:
 
 
 class SCPLargeResource(LargeResource):
-    """Large resource that needs to download files from URI using scp protocol.
-    For other functionalities class uses Large Resource class.
+    """
+    Large resource that needs to download files from URI using scp protocol. For
+    other functionalities class uses Large Resource class.
 
     Attributes
     ----------
@@ -160,7 +173,6 @@ class SCPLargeResource(LargeResource):
     SCP_PRIVATE_KEY : str, optional
         key for keyword argument that defines location for private key
         on linux OS it can be optional if the key is in default location
-
     """
 
     SCP_HOST_KEY = "scp_host"
@@ -180,7 +192,8 @@ class SCPLargeResource(LargeResource):
         super(SCPLargeResource, self).__init__(**kwargs)
 
     def _download(self, download_destination):
-        """Method downloades file from config URL to given directory.
+        """
+        Method downloades file from config URL to given directory.
 
         Parameters
         ----------
@@ -196,7 +209,9 @@ class SCPLargeResource(LargeResource):
 
 
 def init_scp_large_resource_from_kwargs(resource, uri, archive, scp_host, user_dict):
-    """Method initializes scp resource from resource informations and user credentials
+    """
+    Method initializes scp resource from resource informations and user
+    credentials.
 
     Parameters
     ----------

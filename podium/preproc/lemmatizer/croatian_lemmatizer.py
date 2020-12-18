@@ -1,7 +1,9 @@
-"""Module Croatian Lemmatizer loads already prepared
-lemmatizer dictionaries. It can return all possible word
-inflections for a lemma, or return the lemma of any
-word inflexion for the Croatian language."""
+"""
+Module Croatian Lemmatizer loads already prepared lemmatizer dictionaries.
+
+It can return all possible word inflections for a lemma, or return the lemma of
+any word inflexion for the Croatian language.
+"""
 import functools
 import os
 
@@ -16,8 +18,8 @@ from podium.storage.resources.large_resource import (
 
 
 class CroatianLemmatizer:
-    """Class for lemmatizing words and fetching word
-    inflections for a given lemma
+    """
+    Class for lemmatizing words and fetching word inflections for a given lemma.
 
     Attributes
     ----------
@@ -34,7 +36,8 @@ class CroatianLemmatizer:
     MOLEX14_WORD2LEMMA = os.path.join(BASE_FOLDER, "molex14_word2lemma.txt")
 
     def __init__(self, **kwargs):
-        """Creates a lemmatizer object.
+        """
+        Creates a lemmatizer object.
 
         Parameters
         ----------
@@ -64,9 +67,10 @@ class CroatianLemmatizer:
 
     @capitalize_target_like_source
     def lemmatize_word(self, word, **kwargs):
-        """Returns the lemma for the provided word if
-        there is a word in a dictionary. If not found,
-        returns the word if none_if_oov=False, and None otherwise.
+        """
+        Returns the lemma for the provided word if there is a word in a
+        dictionary. If not found, returns the word if none_if_oov=False, and
+        None otherwise.
 
         Parameters
         ----------
@@ -93,7 +97,8 @@ class CroatianLemmatizer:
             return word if not none_if_oov else None
 
     def get_words_for_lemma(self, lemma):
-        """Returns a list of words that shares the provided lemma.
+        """
+        Returns a list of words that shares the provided lemma.
 
         Parameters
         ----------
@@ -122,14 +127,18 @@ class CroatianLemmatizer:
 
     @property
     def _word2lemma(self):
-        """Lazy loading of word2lemma dict"""
+        """
+        Lazy loading of word2lemma dict.
+        """
         if not self.__word2lemma_dict:
             self.__word2lemma_dict = self._get_word2lemma_dict()
         return self.__word2lemma_dict
 
     @property
     def _lemma2word(self):
-        """Lazy loading of lemma2word dict"""
+        """
+        Lazy loading of lemma2word dict.
+        """
         if not self.__lemma2word_dict:
             self.__lemma2word_dict = self._get_lemma2word_dict()
         return self.__lemma2word_dict
@@ -154,10 +163,11 @@ class CroatianLemmatizer:
 
 
 def _lemmatizer_posttokenized_hook(raw, tokenized, lemmatizer):
-    """Lemmatizer postokenized hook that can be used in field processing.
-    It is intented for the user to use `get_croatian_lemmatizer_hook`
-    instead of this function as it hides Lemmatizer initialization and ensures
-    that the constructor is called once.
+    """
+    Lemmatizer postokenized hook that can be used in field processing. It is
+    intented for the user to use `get_croatian_lemmatizer_hook` instead of this
+    function as it hides Lemmatizer initialization and ensures that the
+    constructor is called once.
 
     Parameters
     ----------
@@ -177,7 +187,8 @@ def _lemmatizer_posttokenized_hook(raw, tokenized, lemmatizer):
 
 
 def get_croatian_lemmatizer_hook(**kwargs):
-    """Method obtains croatian lemmatizer hook.
+    """
+    Method obtains croatian lemmatizer hook.
 
     Parameters
     ----------

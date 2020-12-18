@@ -15,7 +15,9 @@ from .transformers import FeatureTransformer
 
 
 class Experiment:
-    """Class used to streamline model fitting and prediction."""
+    """
+    Class used to streamline model fitting and prediction.
+    """
 
     def __init__(
         self,
@@ -26,7 +28,8 @@ class Experiment:
         ] = None,
         label_transform_fn: Callable[[NamedTuple], np.ndarray] = None,
     ):
-        """Creates a new Experiment. The Experiment class is used to simplify model
+        """
+        Creates a new Experiment. The Experiment class is used to simplify model
         fitting and prediction using Podium components.
 
         Parameters
@@ -76,9 +79,11 @@ class Experiment:
         self.set_label_transformer(label_transform_fn)
 
     def set_default_model_args(self, **kwargs):
-        """Sets the default model arguments. Model arguments are keyword arguments passed
-        to the model constructor. Default arguments can be updated/overridden by arguments
-        in the `model_kwargs` dict in the fit method.
+        """
+        Sets the default model arguments. Model arguments are keyword arguments
+        passed to the model constructor. Default arguments can be
+        updated/overridden by arguments in the `model_kwargs` dict in the fit
+        method.
 
         Parameters
         ----------
@@ -132,8 +137,9 @@ class Experiment:
         feature_transformer: FeatureTransformer = None,
         trainer: AbstractTrainer = None,
     ):
-        """Fits the model to the provided Dataset. During fitting, the provided Iterator
-        and Trainer are used.
+        """
+        Fits the model to the provided Dataset. During fitting, the provided
+        Iterator and Trainer are used.
 
         Parameters
         ----------
@@ -206,7 +212,8 @@ class Experiment:
         trainer_kwargs: Dict = None,
         trainer: AbstractTrainer = None,
     ):
-        """Fits the model to the data without resetting the model.
+        """
+        Fits the model to the data without resetting the model.
 
         Parameters
         ----------
@@ -250,7 +257,9 @@ class Experiment:
         )
 
     def predict(self, dataset: Dataset, batch_size: int = 128, **kwargs) -> np.ndarray:
-        """Computes the prediction of the model for every example in the provided dataset.
+        """
+        Computes the prediction of the model for every example in the provided
+        dataset.
 
         Parameters
         ----------

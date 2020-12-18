@@ -1,4 +1,6 @@
-"""Module contains ML models."""
+"""
+Module contains ML models.
+"""
 
 from .batch_transform_functions import default_feature_transform, default_label_transform
 from .experiment import Experiment

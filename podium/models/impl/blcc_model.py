@@ -1,4 +1,6 @@
-"""Module contains deep learning based sequence labelling model."""
+"""
+Module contains deep learning based sequence labelling model.
+"""
 import tempfile
 
 import numpy as np
@@ -31,7 +33,8 @@ except ImportError:
 
 
 class BLCCModel(AbstractSupervisedModel):
-    """Deep learning model for sequence labelling tasks.
+    """
+    Deep learning model for sequence labelling tasks.
 
     Originally proposed in the following paper:
     https://arxiv.org/pdf/1603.01354.pdf
@@ -129,7 +132,8 @@ class BLCCModel(AbstractSupervisedModel):
         self.model = self._build_model()
 
     def _build_model(self):
-        """Method initializes and compiles the model.
+        """
+        Method initializes and compiles the model.
 
         Raises
         ------
@@ -249,7 +253,9 @@ class BLCCModel(AbstractSupervisedModel):
         return model
 
     def fit(self, X, y, **kwargs):
-        """Method calls fit on BLCC model with the given batch.
+        """
+        Method calls fit on BLCC model with the given batch.
+
         It is supposed to be used as online learning.
         """
         self.model.train_on_batch(X, np.expand_dims(y, -1))

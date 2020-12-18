@@ -1,4 +1,6 @@
-"""Package contains modules for storing and loading vectors."""
+"""
+Package contains modules for storing and loading vectors.
+"""
 
 from .impl import GloVe, NlplVectorizer
 from .tfidf import TfIdfVectorizer

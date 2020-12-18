@@ -16,9 +16,11 @@ def kfold_scores(
     shuffle: Optional[bool] = False,
     random_state: int = None,
 ) -> List[Union[np.ndarray, int, float]]:
-    """Calculates a score for each train/test fold. The score for a fold is calculated by
-    first fitting the experiment to the train split and then using the test split to
-    calculate predictions and evaluate the score. This is repeated for every fold.
+    """
+    Calculates a score for each train/test fold. The score for a fold is
+    calculated by first fitting the experiment to the train split and then using
+    the test split to calculate predictions and evaluate the score. This is
+    repeated for every fold.
 
     Parameters
     ----------
@@ -74,7 +76,8 @@ def k_fold_validation(
     random_state: int = None,
 ) -> Union[np.ndarray, int, float]:
     # TODO add option to calculate statistical values (variance, p-value...)?
-    """Convenience function for kfold_scores. Calculates scores for every fold and
+    """
+    Convenience function for kfold_scores. Calculates scores for every fold and
     returns the mean of all scores.
 
     Parameters

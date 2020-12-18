@@ -1,6 +1,6 @@
 """
-Module contains the The Stanford Natural Language Inference (SNLI) Corpus
-For more information about the dataset see: https://nlp.stanford.edu/projects/snli/
+Module contains the The Stanford Natural Language Inference (SNLI) Corpus For
+more information about the dataset see: https://nlp.stanford.edu/projects/snli/
 or check the README.txt file in the dataset directory.
 """
 import os
@@ -54,8 +54,8 @@ class SNLISimple(Dataset):
 
     def __init__(self, file_path, fields):
         """
-        Dataset constructor. This method should not be used
-        directly, `get_train_test_dev_dataset` should be used instead.
+        Dataset constructor. This method should not be used directly,
+        `get_train_test_dev_dataset` should be used instead.
 
         Parameters
         ----------
@@ -77,8 +77,8 @@ class SNLISimple(Dataset):
     @staticmethod
     def _create_examples(file_path, fields):
         """
-        Method creates Examples for the SNLI Dataset, from a single
-        input `.jsonl` file.
+        Method creates Examples for the SNLI Dataset, from a single input
+        `.jsonl` file.
 
         Parameters
         ----------
@@ -104,10 +104,9 @@ class SNLISimple(Dataset):
     @staticmethod
     def get_train_test_dev_dataset(fields=None):
         """
-        Method creates train, test and dev (validation) Datasets
-        for the SNLI dataset. If the `snli_1.0` directory is not
-        present in the current/working directory, it will be
-        downloaded automatically.
+        Method creates train, test and dev (validation) Datasets for the SNLI
+        dataset. If the `snli_1.0` directory is not present in the
+        current/working directory, it will be downloaded automatically.
 
         Parameters
         ----------
@@ -147,7 +146,7 @@ class SNLISimple(Dataset):
     def get_default_fields():
         """
         Method returns the three main SNLI fields in the following order:
-        gold_label, sentence1, sentence2
+        gold_label, sentence1, sentence2.
 
         Returns
         -------
@@ -180,8 +179,11 @@ class SNLISimple(Dataset):
 
 
 class _TreeFactory:
-    """Used for creating trees from strings. This class
-    is necessary to make the dataset pickleable."""
+    """
+    Used for creating trees from strings.
+
+    This class is necessary to make the dataset pickleable.
+    """
 
     def __call__(self, text):
 
@@ -203,8 +205,8 @@ class _TreeFactory:
 # TODO: Write tests for SNLIDataset
 class SNLIDataset(SNLISimple):
     """
-    A SNLI Dataset class. Unlike `SNLISimple`, this class
-    includes all the fields included in the SNLI dataset by default.
+    A SNLI Dataset class. Unlike `SNLISimple`, this class includes all the
+    fields included in the SNLI dataset by default.
 
     Attributes
     ----------
@@ -266,10 +268,10 @@ class SNLIDataset(SNLISimple):
     @staticmethod
     def get_default_fields():
         """
-        Method returns all SNLI fields in the following order:
-        annotator_labels, captionID, gold_label, pairID,
-        sentence1, sentence1_parse, sentence1_binary_parse,
-        sentence2, sentence2_parse, sentence2_binary_parse
+        Method returns all SNLI fields in the following order: annotator_labels,
+        captionID, gold_label, pairID, sentence1, sentence1_parse,
+        sentence1_binary_parse, sentence2, sentence2_parse,
+        sentence2_binary_parse.
 
         Returns
         -------
@@ -279,7 +281,6 @@ class SNLIDataset(SNLISimple):
         Notes
         -----
         This dataset includes both parses for every sentence,
-
         """
 
         tree_factory = _TreeFactory()

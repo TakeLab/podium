@@ -5,14 +5,18 @@ import numpy as np
 
 
 class TensorTransformer(ABC):
-    """Abstract class used to transform tensors. Used in feature pre-processing during
-    training and prediction. Usually used in FeatureTransformer to transform tensors
-    returned by the feature extraction callable.
+    """
+    Abstract class used to transform tensors.
+
+    Used in feature pre-processing during training and prediction. Usually used
+    in FeatureTransformer to transform tensors returned by the feature
+    extraction callable.
     """
 
     @abstractmethod
     def fit(self, x: np.ndarray, y: np.ndarray) -> None:
-        """Fits the transformer to the provided data.
+        """
+        Fits the transformer to the provided data.
 
         Parameters
         ----------
@@ -25,7 +29,8 @@ class TensorTransformer(ABC):
 
     @abstractmethod
     def transform(self, x: np.ndarray) -> np.ndarray:
-        """Transforms the passed features.
+        """
+        Transforms the passed features.
 
         Parameters
         ----------
@@ -41,7 +46,8 @@ class TensorTransformer(ABC):
 
     @abstractmethod
     def requires_fitting(self) -> bool:
-        """Returns True if this TensorTransformer requires fitting.
+        """
+        Returns True if this TensorTransformer requires fitting.
 
         Returns
         -------
@@ -54,10 +60,13 @@ class TensorTransformer(ABC):
 
 
 class SklearnTensorTransformerWrapper(TensorTransformer):
-    """Wrapper class for Sklearn feature transformers."""
+    """
+    Wrapper class for Sklearn feature transformers.
+    """
 
     def __init__(self, feature_transformer, requires_fitting: bool = True) -> None:
-        """Creates a new SklearnTensorTransformerWrapper.
+        """
+        Creates a new SklearnTensorTransformerWrapper.
 
         Parameters
         ----------
@@ -83,15 +92,18 @@ class SklearnTensorTransformerWrapper(TensorTransformer):
 
 
 class FeatureTransformer:
-    """Class used to transform Dataset batches into features used in model prediction and
-    training."""
+    """
+    Class used to transform Dataset batches into features used in model
+    prediction and training.
+    """
 
     def __init__(
         self,
         feature_extraction_fn: Callable[[NamedTuple], np.ndarray],
         tensor_transformer: TensorTransformer = None,
     ) -> None:
-        """Creates a new FeatureTransformer.
+        """
+        Creates a new FeatureTransformer.
 
         Parameters
         ----------
@@ -107,7 +119,8 @@ class FeatureTransformer:
         self.tensor_transformer = tensor_transformer
 
     def fit(self, x: NamedTuple, y: np.ndarray) -> None:
-        """Fits this tensor transformer to the provided data.
+        """
+        Fits this tensor transformer to the provided data.
 
         Parameters
         ----------
@@ -124,7 +137,8 @@ class FeatureTransformer:
         self.tensor_transformer.fit(x_tensor, y)
 
     def transform(self, x: NamedTuple) -> np.ndarray:
-        """Trasforms the provided podium feature batch into a numpy array.
+        """
+        Trasforms the provided podium feature batch into a numpy array.
 
         Parameters
         ----------
@@ -158,15 +172,15 @@ class FeatureTransformer:
         return self.transform(x)
 
     def requires_fitting(self) -> bool:
-        """Returns True if the contained TensorTransformer exists and requires fitting,
-        else returns None.
+        """
+        Returns True if the contained TensorTransformer exists and requires
+        fitting, else returns None.
 
         Returns
         -------
         bool
             True if the contained TensorTransformer exists and requires fitting,
             else returns False.
-
         """
         return (
             self.tensor_transformer is not None

@@ -1,12 +1,15 @@
-"""Module contains sets of stop words and stop words removal hook."""
+"""
+Module contains sets of stop words and stop words removal hook.
+"""
 import functools
 
 
 def _remove_stopwords_hook(raw, tokenized, stop_words_set):
-    """Remove stopwords postokenized hook that can be used in field processing.
-    It is intented for the user to use `get_croatian_stop_words_removal_hook`
-    instead of this function as it ensures that the stop_words_set argument
-    is given by a wrapper function.
+    """
+    Remove stopwords postokenized hook that can be used in field processing. It
+    is intented for the user to use `get_croatian_stop_words_removal_hook`
+    instead of this function as it ensures that the stop_words_set argument is
+    given by a wrapper function.
 
     Parameters
     ----------
@@ -31,7 +34,8 @@ def _remove_stopwords_hook(raw, tokenized, stop_words_set):
 
 
 def get_croatian_stop_words_removal_hook(stop_words_set):
-    """Method obtains stop words removal hook.
+    """
+    Method obtains stop words removal hook.
 
     Parameters
     ----------

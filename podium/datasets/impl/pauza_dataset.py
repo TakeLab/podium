@@ -1,4 +1,6 @@
-"""Module contains PauzaHR datasets."""
+"""
+Module contains PauzaHR datasets.
+"""
 import os
 
 from podium.datasets.dataset import Dataset
@@ -9,7 +11,8 @@ from podium.storage.vocab import Vocab
 
 
 class PauzaHRDataset(Dataset):
-    """Simple PauzaHR dataset class which uses original reviews.
+    """
+    Simple PauzaHR dataset class which uses original reviews.
 
     Attributes
     ----------
@@ -35,7 +38,8 @@ class PauzaHRDataset(Dataset):
     TEST_DIR = "Test"
 
     def __init__(self, dir_path, fields):
-        """Dataset constructor. User should use static method
+        """
+        Dataset constructor. User should use static method
         get_train_test_dataset rather than using directly constructor.
 
         Parameters
@@ -58,8 +62,9 @@ class PauzaHRDataset(Dataset):
 
     @staticmethod
     def _create_examples(dir_path, fields):
-        """Method creates examples for PauzaHR dataset. Examples are positioned
-        in multiple files that are in one folder.
+        """
+        Method creates examples for PauzaHR dataset. Examples are positioned in
+        multiple files that are in one folder.
 
         Parameters
         ----------
@@ -85,7 +90,8 @@ class PauzaHRDataset(Dataset):
 
     @staticmethod
     def get_train_test_dataset(fields=None):
-        """Method creates train and test dataset for PauzaHR dataset.
+        """
+        Method creates train and test dataset for PauzaHR dataset.
 
         Parameters
         ----------
@@ -116,7 +122,8 @@ class PauzaHRDataset(Dataset):
 
     @staticmethod
     def get_default_fields():
-        """Method returns default PauzaHR fields: rating, source and text.
+        """
+        Method returns default PauzaHR fields: rating, source and text.
 
         Returns
         -------

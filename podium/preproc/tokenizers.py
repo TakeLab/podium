@@ -1,9 +1,12 @@
-"""Module contains text tokenizers."""
+"""
+Module contains text tokenizers.
+"""
 import warnings
 
 
 def get_tokenizer(tokenizer):
-    """Returns a tokenizer according to the parameters given.
+    """
+    Returns a tokenizer according to the parameters given.
 
     Parameters
     ----------

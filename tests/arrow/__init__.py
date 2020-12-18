@@ -1,1 +1,3 @@
-"This module contains tests for the arrow podium module"
+"""
+This module contains tests for the arrow podium module.
+"""
