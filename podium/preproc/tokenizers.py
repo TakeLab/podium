@@ -15,11 +15,6 @@ def get_tokenizer(tokenizer):
         The available premade tokenizers are:
             - 'split' - default str.split(). Custom separator can be provided as
               `split-sep` where `sep` is the separator string.
-            - 'spacy-lang' - the spacy tokenizer. The language model can be defined
-              by replacing `lang` with the language model name. For example `spacy-en`.
-
-            - 'split' - default str.split(). Custom separator can be provided as
-              `split-sep` where `sep` is the separator string.
 
             - 'spacy' - the spacy tokenizer, using the 'en' language
               model by default . Different language model can be provided as
@@ -27,7 +22,13 @@ def get_tokenizer(tokenizer):
               If spacy model is used for the first time, an attempt to install it will be
               made. If that fails, user should download it by using command similar
               to the following `python -m spacy download en`.
-              More details can be found in spacy documentation https://spacy.io/usage/models
+              More details can be found in spacy documentation https://spacy.io/usage/models.
+
+            - toktok - NLTK's toktok tokenizer. For more details
+            see https://www.nltk.org/_modules/nltk/tokenize/toktok.html.
+
+            - moses - Sacremoses's moses tokenizer. For more details
+            see https://github.com/alvations/sacremoses.
 
     Returns
     -------
