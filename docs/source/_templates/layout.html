@@ -1,0 +1,39 @@
+{%- extends "!layout.html" %}
+
+{#
+
+This template exists as a way to implement a version menu without changing what
+the theme normally renders the menu on local builds and on builds on Read the
+Docs. This is for local testing purposes only.
+
+#}
+
+{% block footer %}
+  {% if not READTHEDOCS %}
+    <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+      <span class="rst-current-version" data-toggle="rst-current-version">
+        <span class="fa fa-book"> Podium</span>
+        v: latest
+        <span class="fa fa-caret-down"></span>
+      </span>
+      <div class="rst-other-versions">
+        <dl>
+          <dt>{{ _('Versions') }}</dt>
+          {% if versions %}
+            {% for version in versions.branches %}
+            <dd><a href="{{ version.url }}">{{ version.name }}</a></dd>
+            {% endfor %}
+            {% for version in versions.tags %}
+            <dd><a href="{{ version.url }}">{{ version.name }}</a></dd>
+            {% endfor %}
+
+          {% else %}
+            <dd><a href="#">latest</a></dd>
+            <dd><a href="#">1.0</a></dd>
+            <dd><a href="#">1.1</a></dd>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

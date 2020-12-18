@@ -27,7 +27,7 @@ copyright = '2020, TakeLab, FER, Zagreb'
 author = 'TakeLab, FER, Zagreb'
 
 # The full version, including alpha/beta/rc tags
-release = '2020'
+release = '1.0.0'
 
 # -- General configuration ---------------------------------------------------
 
@@ -45,7 +45,7 @@ extensions = [
     "sphinx_multiversion",
 ]
 
-source_suffix = ['.rst', '.md']
+source_suffix = ['.rst', '.md', '.html']
 autodoc_typehints = 'none'
 autoclass_content = 'both'
 
@@ -57,26 +57,31 @@ exclude_patterns = []
 
 copybutton_prompt_text = ">>> "
 
+# Add any paths that contain templates here, relative to this directory.
+templates_path = [
+    '_templates',
+]
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
 
+
 html_theme = 'sphinx_rtd_theme'
 
-# Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+html_sidebars = {
+    '**': [
+        'localtoc.html',
+        'versions.html',
+        'globaltoc.html',
+    ],
+}
+
 
 html_theme_options = {
     'collapse_navigation': False,
     'display_version': True,
-}
-
-html_sidebars = {
-    '**': [
-        'versioning.html',
-    ],
 }
 
 # Sphinx multiversion settings

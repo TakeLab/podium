@@ -1,10 +1,17 @@
 
-Dataset classes
-================
+Example and Dataset classes
+============================
+
+Example
+-----------------
+.. autoclass:: podium.datasets.Dataset
+   :members:
+   :no-undoc-members:
+
 
 Dataset
 -----------------
-.. autoclass:: podium.datasets.Dataset
+.. autoclass:: podium.storage.ExampleFactory
    :members:
    :no-undoc-members:
 
