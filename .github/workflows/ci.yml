@@ -42,6 +42,11 @@ jobs:
     - name: Check isort compliance
       run: |
         isort --check-only podium tests examples
+    - name: Check docformatter compliance
+      run: |
+        docformatter podium tests examples --check --recursive \
+          --wrap-descriptions 80 --wrap-summaries 80 \
+          --pre-summary-newline --make-summary-multi-line
     - name: Check flake8 compliance
       run: |
         flake8 podium tests examples

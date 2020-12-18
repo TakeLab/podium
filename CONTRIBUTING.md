@@ -48,7 +48,7 @@ Follow the steps below to submit a PR to Podium:
 
 3. Implement your changes.
 
-4. Apply the code style changes (for more details see our [Coding Style](README.md#code-style-standards)):
+4. Apply the code style changes (for more details see our [Code and docstring style standards](#code-and-docstring-style-standards)):
 
    ```bash
    make style 
@@ -76,7 +76,7 @@ Follow the steps below to submit a PR to Podium:
 
 7. Click on *Pull request* on the webpage of the forked repository to request merging your changes with the project's master branch.
 
-## Code style standards
+## Code and docstring style standards
 
 In this repository, we use [black](https://black.readthedocs.io/en/stable/), [isort](https://pycqa.github.io/isort/) and [flake8](http://flake8.pycqa.org/en/latest/) for code sytle. 
 
@@ -86,6 +86,28 @@ Commands to check black, isort and flake8 compliance for written code and tests.
 black --check --line-length 90 --target-version py36 podium tests examples
 isort --check-only podium tests examples
 flake8 podium tests examples
+```
+
+We use [docfomatter](https://github.com/myint/docformatter) for docstring style.
+
+Commands to check docformatter compliance for written docstrings.
+
+```bash
+docformatter podium tests examples --check --recursive \
+   --wrap-descriptions 80 --wrap-summaries 80 \
+   --pre-summary-newline --make-summary-multi-line
+```
+
+To check the code and doc style all at once, run:
+
+```bash
+make quality
+```
+
+Similarly, to apply the required code and doc style changes in the source, run:
+
+```bash
+make style
 ```
 
 ## Building and running unit tests
@@ -117,5 +139,3 @@ We adhere to the [numpydoc](https://numpydoc.readthedocs.io/en/latest/) style fo
    cd docs
    make html
    ```
-
-

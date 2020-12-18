@@ -58,6 +58,7 @@ QUALITY_REQUIRE = [
     "black",
     "flake8",
     "isort",
+    "docformatter",
 ]
 
 
