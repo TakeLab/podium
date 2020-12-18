@@ -25,10 +25,10 @@ def get_tokenizer(tokenizer):
               More details can be found in spacy documentation https://spacy.io/usage/models.
 
             - toktok - NLTK's toktok tokenizer. For more details
-            see https://www.nltk.org/_modules/nltk/tokenize/toktok.html.
+              see https://www.nltk.org/_modules/nltk/tokenize/toktok.html.
 
             - moses - Sacremoses's moses tokenizer. For more details
-            see https://github.com/alvations/sacremoses.
+              see https://github.com/alvations/sacremoses.
 
     Returns
     -------
