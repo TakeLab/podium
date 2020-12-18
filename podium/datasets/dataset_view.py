@@ -1,5 +1,5 @@
-from itertools import chain, islice
-from typing import Any, Dict, Iterator, List, Tuple, Union
+from itertools import chain
+from typing import Any, Dict, Iterator, List, Tuple, Union, Sequence
 
 from podium.datasets.dataset_abc import DatasetABC
 from podium.storage import Example, Field
@@ -9,6 +9,7 @@ class DatasetConcatView(DatasetABC):
 
     def __init__(self, datasets: List[DatasetABC], field_overrides: Dict[str, Field]):
         self._datasets = list(datasets)
+        # TODO add warning for no datasets ?
         self._len = sum(map(len, datasets))
 
         self._cumulative_lengths = [len(self._datasets[0])]
@@ -62,6 +63,10 @@ class DatasetConcatView(DatasetABC):
         # TODO imlpement after DatasetIndexedView
         pass
 
+    def _get_examples(self) -> List[Example]:
+        sublists = map(lambda ds: ds.examples, self._datasets)
+        return [ex for sublist in sublists for ex in sublist]
+
     def _update_override_fields(self):
         eager_fields = {
             n: f for n, f in self._field_overrides.items() if not f.finalized and f.eager
@@ -110,7 +115,7 @@ class DatasetConcatView(DatasetABC):
                 break
             dataset_index += 1
 
-        offset = self._cumulative_lengths[dataset_index-1] if dataset_index > 0 else 0
+        offset = self._cumulative_lengths[dataset_index - 1] if dataset_index > 0 else 0
         translated_index = index - offset
         dataset = self._datasets[dataset_index]
         return dataset, translated_index
@@ -124,6 +129,37 @@ class DatasetConcatView(DatasetABC):
             intersection_field_names.intersection_update(ds.field_dict.keys())
         return list(intersection_field_names)
 
+    # TODO Implement __repr__
+
+
+# TODO create_view function
 
 class DatasetIndexedView(DatasetABC):
-    pass
+
+    def __init__(self,
+                 dataset: DatasetABC,
+                 indices: Sequence[int]):
+        self._dataset = dataset
+        self._indices = indices
+        super().__init__(dataset.field_dict)
+
+    def __len__(self):
+        return len(self._indices)
+
+    def __getitem__(self, item):
+        if isinstance(item, int):
+            index = self._indices[item]
+            return self._dataset[index]
+
+        if isinstance(item, slice):
+            new_indices = self._indices[item]
+            return DatasetIndexedView(self._dataset, new_indices)
+
+        else:
+            new_indices = [self._indices[i] for i in item]
+            return DatasetIndexedView(self._dataset, new_indices)
+
+    def __iter__(self):
+        yield from (self._dataset[i] for i in self._indices)
+
+    # TODO implement __repr__
