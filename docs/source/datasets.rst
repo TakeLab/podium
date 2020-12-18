@@ -4,14 +4,18 @@ Example and Dataset classes
 
 Example
 -----------------
-.. autoclass:: podium.datasets.Dataset
+.. autoclass:: podium.storage.Example
+   :members:
+   :no-undoc-members:
+
+.. autoclass:: podium.storage.ExampleFactory
    :members:
    :no-undoc-members:
 
 
 Dataset
 -----------------
-.. autoclass:: podium.storage.ExampleFactory
+.. autoclass:: podium.datasets.Dataset
    :members:
    :no-undoc-members:
 
