@@ -8,11 +8,11 @@ def test_callable_tokenizer():
 
 
 def test_split_tokenizer():
-    text = 'The quick brown fox jumps,over,the-lazy-dog'
+    text = "The quick brown fox jumps,over,the-lazy-dog"
 
-    assert get_tokenizer('split')(text) == text.split()
-    assert get_tokenizer('split-,')(text) == text.split(',')
-    assert get_tokenizer('split--')(text) == text.split('-')
+    assert get_tokenizer("split")(text) == text.split()
+    assert get_tokenizer("split-,")(text) == text.split(",")
+    assert get_tokenizer("split--")(text) == text.split("-")
 
 
 def test_missing_tokenizer():
