@@ -23,9 +23,9 @@ except ImportError:
     raise
 
 
-def _group(iterable, n):
+def _chunkify(iterable, n):
     """
-    groups an iterable into tuples of size n.
+    Splits an iterable into chunks of size n
     """
     it = iter(iterable)
     while True:
@@ -169,12 +169,12 @@ class ArrowDataset(DatasetABC):
 
         # TODO hande cache case when cache is present
 
-        chunks_iter = _group(examples, chunk_size)
+        chunks_iter = _chunkify(examples, chunk_size)
 
-        # get first group to infer schema
-        first_group = next(chunks_iter)
+        # get first chunk to infer schema
+        first_chunk = next(chunks_iter)
         record_batch = ArrowDataset._examples_to_recordbatch(
-            first_group, fields, data_types
+            first_chunk, fields, data_types
         )
         inferred_data_types = ArrowDataset._schema_to_data_types(record_batch.schema)
 

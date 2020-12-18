@@ -1,8 +1,8 @@
 import numpy as np
-from sklearn.model_selection import KFold as baseKFold
+from sklearn.model_selection import KFold as KFold_
 
 
-class KFold(baseKFold):
+class KFold(KFold_):
     """
     Adapter class for the scikit-learn KFold class.
 

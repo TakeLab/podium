@@ -318,12 +318,14 @@ class BasicVectorStorage(VectorStorage):
 
         Raises
         ------
+        AssertionError
+            If word is not an instance of bytes.
         UnicodeDecodeError
             If given word cannot be decoded in unicode.
         """
-        if isinstance(word, bytes):
-            decoded = word.decode("utf-8")
-            return decoded
+        assert isinstance(word, bytes)
+        decoded = word.decode("utf-8")
+        return decoded
 
     def _load_vectors(self, vocab=None):
         """
