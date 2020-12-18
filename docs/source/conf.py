@@ -31,6 +31,8 @@ release = '2020'
 
 # -- General configuration ---------------------------------------------------
 
+# The master toctree document.
+master_doc = 'index'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
@@ -50,6 +52,7 @@ autoclass_content = 'both'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
+html_static_path = ['_static']
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -67,8 +70,8 @@ copybutton_prompt_text = ">>> "
 html_theme = 'sphinx_rtd_theme'
 
 html_theme_options = {
-    'collapse_navigation': False,
-    'display_version': True,
+#    'collapse_navigation': False,
+#    'display_version': True,
 }
 
 
@@ -99,5 +102,7 @@ class PatchedPythonDomain(PythonDomain):
             env, fromdocname, builder, typ, target, node, contnode)
 
 
-def setup(sphinx):
-    sphinx.add_domain(PatchedPythonDomain, override=True)
+def setup(app):
+    #sphinx.add_domain(PatchedPythonDomain, override=True)
+    app.add_css_file('css/podium.css')
+    app.add_js_file('js/custom.js')
