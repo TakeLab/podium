@@ -1,12 +1,12 @@
 from itertools import chain
-from typing import Any, Dict, Iterator, List, Tuple, Union, Sequence
+from math import ceil
+from typing import Any, Dict, Iterator, List, Sequence, Tuple, Union
 
 from podium.datasets.dataset_abc import DatasetABC
 from podium.storage import Example, Field
 
 
 class DatasetConcatView(DatasetABC):
-
     def __init__(self, datasets: List[DatasetABC], field_overrides: Dict[str, Field]):
         self._datasets = list(datasets)
         # TODO add warning for no datasets ?
@@ -132,13 +132,13 @@ class DatasetConcatView(DatasetABC):
     # TODO Implement __repr__
 
 
-# TODO create_view function
+def create_view(dataset: DatasetABC, i: Union[Sequence[int], slice]) -> DatasetABC:
+    # TODO implement create_view
+    raise NotImplementedError()
+
 
 class DatasetIndexedView(DatasetABC):
-
-    def __init__(self,
-                 dataset: DatasetABC,
-                 indices: Sequence[int]):
+    def __init__(self, dataset: DatasetABC, indices: Sequence[int]):
         self._dataset = dataset
         self._indices = indices
         super().__init__(dataset.field_dict)
@@ -163,3 +163,33 @@ class DatasetIndexedView(DatasetABC):
         yield from (self._dataset[i] for i in self._indices)
 
     # TODO implement __repr__
+
+
+class DatasetSlicedView(DatasetABC):
+    def __init__(self, dataset: DatasetABC, s: slice):
+        self._dataset = dataset
+        start, stop, step = s.indices(len(dataset))
+        self._slice = slice(start, stop, step)
+        super().__init__(dataset.field_dict)
+
+    def __len__(self):
+        start, stop, step = self._slice.start, self._slice.stop, self._slice.step
+        if step < 0:
+            start, stop = stop, start
+            step *= -1
+
+        return ceil(max(stop - start, 0) / step)
+
+    def __iter__(self):
+        start, stop, step = self._slice.start, self._slice.stop, self._slice.step
+        for i in range(start, stop, step):
+            yield self._dataset[i]
+
+    def __getitem__(self, item):
+        if isinstance(item, int):
+            # TODO check bounds
+            index = self._slice.start + item * self._slice.step
+            return self._dataset[index]
+
+        else:
+            return create_view(self, item)
