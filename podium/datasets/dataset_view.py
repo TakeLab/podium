@@ -133,8 +133,10 @@ class DatasetConcatView(DatasetABC):
 
 
 def create_view(dataset: DatasetABC, i: Union[Sequence[int], slice]) -> DatasetABC:
-    # TODO implement create_view
-    raise NotImplementedError()
+    if isinstance(i, slice):
+        return DatasetSlicedView(dataset, i)
+    else:
+        return DatasetIndexedView(dataset, i)
 
 
 class DatasetIndexedView(DatasetABC):
