@@ -1,5 +1,5 @@
-from itertools import chain
-from typing import Dict, List, Iterator
+from itertools import chain, islice
+from typing import Any, Dict, Iterator, List, Tuple, Union
 
 from podium.datasets.dataset_abc import DatasetABC
 from podium.storage import Example, Field
@@ -10,6 +10,11 @@ class DatasetConcatView(DatasetABC):
     def __init__(self, datasets: List[DatasetABC], field_overrides: Dict[str, Field]):
         self._datasets = list(datasets)
         self._len = sum(map(len, datasets))
+
+        self._cumulative_lengths = [len(self._datasets[0])]
+        for dataset in datasets[1:]:
+            cumulative_len = self._cumulative_lengths[-1] + len(dataset)
+            self._cumulative_lengths.append(cumulative_len)
 
         self._field_overrides = dict(field_overrides)
         # TODO add warning for non-existing override mapping
@@ -34,6 +39,28 @@ class DatasetConcatView(DatasetABC):
 
         self._update_override_fields()
         super().__init__(field_dict)
+
+    def __len__(self) -> int:
+        return self._len
+
+    def __iter__(self) -> Iterator[Example]:
+        original_examples = chain(*self._datasets)
+        mapped_examples = map(self._map_example, original_examples)
+        yield from mapped_examples
+
+    def __getattr__(self, field: Union[str, Field]) -> Iterator[Tuple[Any, Any]]:
+        field_name = field if isinstance(field, str) else field.name
+        attr_getters = [getattr(ds, field_name) for ds in self._datasets]
+        yield from chain(*attr_getters)
+
+    def __getitem__(self, item):
+
+        if isinstance(item, int):
+            dataset, index = self._translate_index(item)
+            return dataset[index]
+
+        # TODO imlpement after DatasetIndexedView
+        pass
 
     def _update_override_fields(self):
         eager_fields = {
@@ -63,19 +90,30 @@ class DatasetConcatView(DatasetABC):
             for non_eager_field in non_eager_fields.values():
                 non_eager_field.finalize()
 
-    def __len__(self) -> int:
-        return self._len
-
-    def __iter__(self) -> Iterator[Example]:
-        original_examples = chain(*self._datasets)
-        mapped_examples = map(self._map_example, original_examples)
-        yield from mapped_examples
-
     def _map_example(self, example: Example) -> Example:
         new_example = Example()
         for original_field_name, mapped_field in self._field_mapping:
             new_example[mapped_field.name] = example[original_field_name]
         return new_example
+
+    def _translate_index(self, index: int) -> Tuple[DatasetABC, int]:
+        assert index < len(self), f"Index {index} out of range. Length: {len(self)}"
+
+        if index < 0:
+            # correct for negative indexing
+            index %= len(self)
+
+        # TODO implement better search alg? Binary search?
+        dataset_index = 0
+        for cumulative_len in self._cumulative_lengths:
+            if index < cumulative_len:
+                break
+            dataset_index += 1
+
+        offset = self._cumulative_lengths[dataset_index-1] if dataset_index > 0 else 0
+        translated_index = index - offset
+        dataset = self._datasets[dataset_index]
+        return dataset, translated_index
 
     @staticmethod
     def _get_intersection_field_names(datasets: List[DatasetABC]) -> List[str]:
@@ -85,3 +123,7 @@ class DatasetConcatView(DatasetABC):
             # Calculate the intersection of all field names
             intersection_field_names.intersection_update(ds.field_dict.keys())
         return list(intersection_field_names)
+
+
+class DatasetIndexedView(DatasetABC):
+    pass
