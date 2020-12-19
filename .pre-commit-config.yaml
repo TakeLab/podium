@@ -1,0 +1,20 @@
+repos:
+- repo: https://github.com/psf/black
+  rev: 20.8b1
+  hooks:
+  - id: black
+    args: [--line-length 90, --target-version py36, podium, tests, examples]
+    language_version: python3
+
+- repo: https://github.com/PyCQA/isort
+  rev: 5.6.4
+  hooks:
+    - id: isort
+      args: [podium, tests, examples]
+
+# - repo: https://github.com/myint/docformatter
+#   rev: v1.3.1
+#   hooks:
+#     - id: docformatter
+#       args: [podium, tests, examples, -i, --recursive, --wrap-descriptions 80, --wrap-summaries 80,
+#              --pre-summary-newline, --make-summary-multi-line]
