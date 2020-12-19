@@ -57,7 +57,7 @@ TESTS_REQUIRE = [
 
 QUALITY_REQUIRE = [
     "black==20.8b1",
-    "flake8==1.3.1",
+    "flake8==3.8.4",
     "isort==5.6.4",
 ]
 
