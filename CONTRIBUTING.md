@@ -88,6 +88,8 @@ isort --check-only podium tests examples
 flake8 podium tests examples
 ```
 
+Run `make style` to perform formatting. This can be automated by installing our pre-commit hook.
+
 ## Building and running unit tests
 
 Commands to run tests.
