@@ -16,8 +16,8 @@ from podium.datasets.hierarhical_dataset import HierarchicalDataset
 
 
 class IteratorABC(ABC):
-
-    # ============== Default methods ==============
+    """Abstract base class for all Iterators in Podium.
+    """
 
     def __call__(
         self, dataset: DatasetABC
@@ -34,12 +34,10 @@ class IteratorABC(ABC):
 
         Returns
         -------
-        Iterable over batches in the Dataset.
+            Iterable over batches in the Dataset.
         """
         self.set_dataset(dataset)
         return iter(self)
-
-    # ============== Abstract methods =============
 
     @abstractmethod
     def set_dataset(self, dataset: DatasetABC) -> None:
@@ -80,8 +78,7 @@ class IteratorABC(ABC):
         int
             Number of batches s provided in one epoch.
         """
-
-    pass
+        pass
 
 
 class Iterator(IteratorABC):

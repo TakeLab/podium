@@ -29,13 +29,9 @@ except ImportError:
     )
     raise
 
-<<<<<<< HEAD
-Id = int
-Document = namedtuple("Document", "filename title text")
-=======
 
+Id = int
 Document = namedtuple("Document", ["filename", "title", "text"])
->>>>>>> More fixes
 
 
 class LabelRank(Enum):
