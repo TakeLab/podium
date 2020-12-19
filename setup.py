@@ -1,8 +1,9 @@
 """
 TakeLab Podium is an open source library for natural language processing.
 
-Podium accelerates data loading, preprocessing & batching to enable faster development of NLP models.
-See http://takelab.fer.hr/podium/ for complete documentation.
+Podium accelerates data loading, preprocessing & batching to enable faster
+development of NLP models. See http://takelab.fer.hr/podium/ for complete
+documentation.
 """
 import re
 from pathlib import Path
@@ -13,12 +14,12 @@ from setuptools import find_packages, setup
 def _get_version():
     project_root_init = Path(__file__).parent / "podium" / "__init__.py"
     with open(project_root_init, "r") as f:
-        version = re.search(r'__version__ = \"(.*)\"', f.read()).group(1)
+        version = re.search(r"__version__ = \"(.*)\"", f.read()).group(1)
     return version
 
 
 VERSION = _get_version()
-DOCLINES = __doc__.split('\n')
+DOCLINES = __doc__.split("\n")
 
 
 INSTALL_REQUIRES = [
@@ -55,9 +56,9 @@ TESTS_REQUIRE = [
 
 
 QUALITY_REQUIRE = [
-    "black",
-    "flake8",
-    "isort",
+    "black==20.8b1",
+    "flake8==1.3.1",
+    "isort==5.6.4",
 ]
 
 
@@ -86,15 +87,15 @@ PREPROC_REQUIRE = [
 
 
 DOCS_REQUIRE = [
-    'sphinx',
-    'sphinx_rtd_theme',
-    'sphinx-copybutton',
-    'recommonmark',
-    'datasets',
-    'keras==2.2.4',
-    'tensorflow==1.15',
-    'torch',
-    'xlrd',
+    "sphinx",
+    "sphinx_rtd_theme",
+    "sphinx-copybutton",
+    "recommonmark",
+    "datasets",
+    "keras==2.2.4",
+    "tensorflow==1.15",
+    "torch",
+    "xlrd",
 ]
 
 
@@ -105,7 +106,6 @@ EXTRAS_REQUIRE = {
     "torch": ["torch"],
     # dependencies for all dataset implementations (including the ones in dataload)
     "datasets": DATASETS_REQUIRE,
-
     "docs": DOCS_REQUIRE,
     "quality": QUALITY_REQUIRE,
     "tests": TESTS_REQUIRE + DATASETS_REQUIRE + PREPROC_REQUIRE,
@@ -117,7 +117,7 @@ setup(
     name="podium",
     version=VERSION,
     description=DOCLINES[0],
-    long_description='\n'.join(DOCLINES),
+    long_description="\n".join(DOCLINES),
     author="TakeLab",
     author_email="takelab@fer.hr",
     url="https://github.com/TakeLab/podium",
@@ -135,10 +135,7 @@ setup(
     ),
     install_requires=INSTALL_REQUIRES,
     extras_require=EXTRAS_REQUIRE,
-    package_data={
-        "podium": [
-            "preproc/stemmer/data/*.txt"
-        ]},
+    package_data={"podium": ["preproc/stemmer/data/*.txt"]},
     python_requires=">=3.6",
     classifiers=[
         # maturity level
@@ -146,7 +143,6 @@ setup(
         #   4 - Beta
         #   5 - Production/Stable
         "Development Status :: 4 - Beta",
-
         "Intended Audience :: Developers",
         "Intended Audience :: Education",
         "Intended Audience :: Science/Research",
