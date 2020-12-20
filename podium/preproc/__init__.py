@@ -9,6 +9,7 @@ from .hooks import (
     TextCleanUp,
 )
 from .lemmatizer import CroatianLemmatizer
+from .numericalizer_abc import NumericalizerABC
 from .sentencizers import SpacySentencizer
 from .stemmer import CroatianStemmer
 from .tokenizers import get_tokenizer

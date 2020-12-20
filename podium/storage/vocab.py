@@ -3,9 +3,11 @@ import warnings
 from collections import Counter
 from enum import Enum
 from itertools import chain
-from typing import Iterable, Union
+from typing import Iterable, List, Union
 
 import numpy as np
+
+from podium.preproc import NumericalizerABC
 
 
 def unique(values: Iterable):
@@ -60,7 +62,7 @@ class SpecialVocabSymbols(Enum):
     PAD = "<pad>"
 
 
-class Vocab:
+class Vocab(NumericalizerABC):
     """Class for storing vocabulary. It supports frequency counting and size
     limiting.
 
@@ -97,6 +99,7 @@ class Vocab:
             if true word frequencies will be saved for later use on
             the finalization
         """
+        super(Vocab, self).__init__(eager)
         self._freqs = Counter()
         self._keep_freqs = keep_freqs
         self._min_freq = min_freq
@@ -112,8 +115,6 @@ class Vocab:
         self.stoi.update({k: v for v, k in enumerate(self.itos)})
 
         self._max_size = max_size
-        self.eager = eager
-        self.finalized = False  # flag to know if we're ready to numericalize
 
     @staticmethod
     def _init_default_unk_index(specials):
@@ -193,6 +194,9 @@ class Vocab:
         if SpecialVocabSymbols.PAD not in self.stoi:
             raise ValueError("Padding symbol is not in the vocabulary.")
         return self.stoi[SpecialVocabSymbols.PAD]
+
+    def update(self, tokens: List[str]) -> None:
+        self.__iadd__(tokens)
 
     def __iadd__(self, values: Union["Vocab", Iterable]):
         """Adds additional values or another Vocab to this Vocab.
@@ -375,7 +379,7 @@ class Vocab:
 
         if not self._keep_freqs:
             self._freqs = None  # release memory
-        self.finalized = True
+        self.mark_finalized()
 
     def numericalize(self, data):
         """Method numericalizes given tokens.

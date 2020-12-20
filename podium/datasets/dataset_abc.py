@@ -117,7 +117,7 @@ class DatasetABC(ABC):
                 for example in dataset:
                     for field in fields_to_build:
                         _, tokenized = example[field.name]
-                        field.update_vocab(tokenized)
+                        field.update_numericalizer(tokenized)
 
         for field in self.fields:
             field.finalize()

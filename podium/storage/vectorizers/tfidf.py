@@ -149,7 +149,7 @@ class CountVectorizer:
         ValueError
             If the vocab or fields vocab are None
         """
-        if self._vocab is None and (field is None or field.vocab is None):
+        if self._vocab is None and (field is None or not field.use_vocab):
             raise ValueError(
                 "Vocab is not defined. User should define vocab in constructor "
                 "or by providing field with a non-empty vocab property."

@@ -139,21 +139,23 @@ def test_dump_and_load(pyarrow_dataset):
 def test_finalize_fields(data, fields, mocker):
     for field in fields:
         mocker.spy(field, "finalize")
-        mocker.spy(field, "update_vocab")
+        mocker.spy(field, "update_numericalizer")
 
     dataset = pyarrow_dataset(data, fields)
 
     for f in fields:
         # before finalization, no field's dict was updated
-        if f.vocab is not None:
-            assert not f.finalized
+        if f._numericalizer is not None:
+            assert not f._numericalizer.finalized
 
     dataset.finalize_fields()
 
-    fields_to_finalize = [f for f in fields if not f.eager and f.use_vocab]
+    fields_to_finalize = [
+        f for f in fields if not f.eager and f._numericalizer is not None
+    ]
     for f in fields_to_finalize:
         # during finalization, only non-eager field's dict should be updated
-        assert f.update_vocab.call_count == (len(data) if (not f.eager) else 0)
+        assert f.update_numericalizer.call_count == (len(data) if (not f.eager) else 0)
         f.finalize.assert_called_once()
         # all fields should be finalized
         assert f.finalized
