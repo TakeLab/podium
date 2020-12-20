@@ -3,7 +3,7 @@ from typing import (
     Any,
     Callable,
     Dict,
-    Iterable,
+    Sequence,
     Iterator,
     List,
     NamedTuple,
@@ -228,7 +228,7 @@ class DatasetABC(ABC):
         ...
 
     @overload
-    def __getitem__(self, i: Iterable[int]) -> "DatasetABC":
+    def __getitem__(self, i: Sequence[int]) -> "DatasetABC":
         ...
 
     @abstractmethod

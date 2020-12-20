@@ -7,7 +7,12 @@ from podium.storage import Example, Field
 
 
 class DatasetConcatView(DatasetABC):
-    def __init__(self, datasets: List[DatasetABC], field_overrides: Dict[str, Field]):
+    def __init__(self, datasets: List[DatasetABC],
+                 field_overrides: Dict[str, Field] = None):
+        if isinstance(datasets, DatasetABC):
+            # Wrap single dataset in a list
+            datasets = [datasets]
+
         self._datasets = list(datasets)
         # TODO add warning for no datasets ?
         self._len = sum(map(len, datasets))
@@ -17,7 +22,7 @@ class DatasetConcatView(DatasetABC):
             cumulative_len = self._cumulative_lengths[-1] + len(dataset)
             self._cumulative_lengths.append(cumulative_len)
 
-        self._field_overrides = dict(field_overrides)
+        self._field_overrides = field_overrides or {}
         # TODO add warning for non-existing override mapping
         # TODO add warning for empty field intersection
 
@@ -26,9 +31,9 @@ class DatasetConcatView(DatasetABC):
         )
         field_mapping = {}
         for f_name in intersection_field_names:
-            if f_name in field_overrides:
+            if f_name in self._field_overrides:
                 # ignore field and take the override
-                override_field = field_overrides[f_name]
+                override_field = self._field_overrides[f_name]
                 field_mapping[f_name] = override_field
             else:
                 # take the field from the first dataset
@@ -36,6 +41,9 @@ class DatasetConcatView(DatasetABC):
                 field_mapping[f_name] = original_field
 
         self._field_mapping = field_mapping
+        self._reverse_field_name_mapping = {mapped_field.name: orig_fname
+                                            for orig_fname, mapped_field
+                                            in self._field_mapping.items()}
         field_dict = {f.name: f for f in field_mapping.values()}
 
         self._update_override_fields()
@@ -51,6 +59,7 @@ class DatasetConcatView(DatasetABC):
 
     def __getattr__(self, field: Union[str, Field]) -> Iterator[Tuple[Any, Any]]:
         field_name = field if isinstance(field, str) else field.name
+        field_name = self._reverse_field_name_mapping[field_name]
         attr_getters = [getattr(ds, field_name) for ds in self._datasets]
         yield from chain(*attr_getters)
 
@@ -58,7 +67,7 @@ class DatasetConcatView(DatasetABC):
 
         if isinstance(item, int):
             dataset, index = self._translate_index(item)
-            return dataset[index]
+            return self._map_example(dataset[index])
 
         else:
             return create_view(self, item)
@@ -97,7 +106,7 @@ class DatasetConcatView(DatasetABC):
 
     def _map_example(self, example: Example) -> Example:
         new_example = Example()
-        for original_field_name, mapped_field in self._field_mapping:
+        for original_field_name, mapped_field in self._field_mapping.items():
             new_example[mapped_field.name] = example[original_field_name]
         return new_example
 
@@ -128,8 +137,6 @@ class DatasetConcatView(DatasetABC):
             # Calculate the intersection of all field names
             intersection_field_names.intersection_update(ds.field_dict.keys())
         return list(intersection_field_names)
-
-    # TODO Implement __repr__
 
 
 def create_view(dataset: DatasetABC, i: Union[Sequence[int], slice]) -> DatasetABC:
@@ -163,8 +170,6 @@ class DatasetIndexedView(DatasetABC):
 
     def __iter__(self):
         yield from (self._dataset[i] for i in self._indices)
-
-    # TODO implement __repr__
 
 
 class DatasetSlicedView(DatasetABC):
