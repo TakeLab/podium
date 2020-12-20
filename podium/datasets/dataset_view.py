@@ -7,8 +7,9 @@ from podium.storage import Example, Field
 
 
 class DatasetConcatView(DatasetABC):
-    def __init__(self, datasets: List[DatasetABC],
-                 field_overrides: Dict[str, Field] = None):
+    def __init__(
+        self, datasets: List[DatasetABC], field_overrides: Dict[str, Field] = None
+    ):
         if isinstance(datasets, DatasetABC):
             # Wrap single dataset in a list
             datasets = [datasets]
@@ -41,9 +42,10 @@ class DatasetConcatView(DatasetABC):
                 field_mapping[f_name] = original_field
 
         self._field_mapping = field_mapping
-        self._reverse_field_name_mapping = {mapped_field.name: orig_fname
-                                            for orig_fname, mapped_field
-                                            in self._field_mapping.items()}
+        self._reverse_field_name_mapping = {
+            mapped_field.name: orig_fname
+            for orig_fname, mapped_field in self._field_mapping.items()
+        }
         field_dict = {f.name: f for f in field_mapping.values()}
 
         self._update_override_fields()
