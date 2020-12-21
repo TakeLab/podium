@@ -1,3 +1,6 @@
+/* Modified from huggingface/datasets
+*/
+
 // These two things need to be updated at each release for the version selector.
 // Last stable version
 const stableVersion = "v1.0.0"
@@ -7,18 +10,22 @@ const versionMapping = {
     "v1.0.0": "v1.0.0",
 }
 
+//const navigationBckgColor = "#356BBA"
+const navigationBckgColor = "#2980b9"
+
 function addIcon() {
+    // Restore this when we have an actual logo
     const podiumLogo = "https://png.pngtree.com/png-vector/20190330/ourlarge/pngtree-vector-podium-icon-png-image_892778.jpg";
     const image = document.createElement("img");
     image.setAttribute("src", podiumLogo);
-    image.style.width = '156px';
+    image.style.width = '124px';
     image.style.height = 'auto';
 
     const div = document.createElement("div");
     div.appendChild(image);
     div.style.textAlign = 'center';
     div.style.paddingTop = '30px';
-    //div.style.backgroundColor = '#6670FF';
+    div.style.backgroundColor = navigationBckgColor;
 
     const scrollDiv = document.querySelector(".wy-side-scroll");
     scrollDiv.prepend(div);
@@ -57,9 +64,9 @@ function addVersionControl() {
 
     const htmlLines = [];
     for (const [key, value] of Object.entries(versionMapping)) {
-        let baseUrlIndex = (version == "datasets") ? versionIndex + 1: versionIndex;
+        let baseUrlIndex = (version in versionMapping) ? versionIndex + 1: versionIndex;
         var urlParts = parts.slice(0, baseUrlIndex);
-        if (key != "") {
+        if (key != "" && key != stableVersion) {
             urlParts = urlParts.concat([key]);
         }
         urlParts = urlParts.concat(parts.slice(versionIndex+1));
@@ -92,7 +99,7 @@ function addVersionControl() {
     div.appendChild(versionButton);
     div.appendChild(versionMenu);
     div.style.paddingTop = '25px';
-    //div.style.backgroundColor = '#6670FF';
+    div.style.backgroundColor = navigationBckgColor;
     div.style.display = 'block';
     div.style.textAlign = 'center';
 
@@ -113,7 +120,7 @@ function parseGithubButtons (){"use strict";var e=window.document,t=e.location,o
 
 
 function onLoad() {
-    //addIcon();
+    addIcon();
     addVersionControl();
     addGithubButton();
     parseGithubButtons();
