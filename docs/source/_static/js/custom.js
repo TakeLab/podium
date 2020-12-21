@@ -47,7 +47,10 @@ function addGithubButton() {
 function addVersionControl() {
     // To grab the version currently in view, we parse the url
     const parts = location.toString().split('/');
-    let versionIndex = parts.length - 2;
+    const libName = 'podium' // this is what we search for to determine the version
+
+    let versionIndex = parts.indexOf(libName) + 1;
+
     // Index page may not have a last part with filename.html so we need to go up
     /*if (parts[parts.length - 1] != "" && 
         ! parts[parts.length - 1].match(/\.html$|^search.html?/)) {
@@ -64,8 +67,7 @@ function addVersionControl() {
 
     const htmlLines = [];
     for (const [key, value] of Object.entries(versionMapping)) {
-        let baseUrlIndex = (version in versionMapping) ? versionIndex : versionIndex + 1;
-        var urlParts = parts.slice(0, baseUrlIndex);
+        var urlParts = parts.slice(0, versionIndex);
         if (key != "" && key != stableVersion) {
             urlParts = urlParts.concat([key]);
         }
