@@ -70,8 +70,8 @@ copybutton_prompt_text = ">>> "
 html_theme = 'sphinx_rtd_theme'
 
 html_theme_options = {
-#    'collapse_navigation': False,
-#    'display_version': True,
+    'collapse_navigation': False,
+    'display_version': True,
 }
 
 

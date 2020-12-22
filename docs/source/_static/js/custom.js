@@ -10,11 +10,9 @@ const versionMapping = {
     "v1.0.0": "v1.0.0",
 }
 
-//const navigationBckgColor = "#356BBA"
 const navigationBckgColor = "#2980b9"
 
 function addIcon() {
-    // Restore this when we have an actual logo
     const podiumLogo = "https://png.pngtree.com/png-vector/20190330/ourlarge/pngtree-vector-podium-icon-png-image_892778.jpg";
     const image = document.createElement("img");
     image.setAttribute("src", podiumLogo);
@@ -49,17 +47,10 @@ function addVersionControl() {
     const parts = location.toString().split('/');
     const libName = 'podium' // this is what we search for to determine the version
 
+    // The version either follows the lib name
+    // or isn't present in url (in case of stable vers)
     let versionIndex = parts.indexOf(libName) + 1;
 
-    // Index page may not have a last part with filename.html so we need to go up
-    /*if (parts[parts.length - 1] != "" && 
-        ! parts[parts.length - 1].match(/\.html$|^search.html?/)) {
-        versionIndex = parts.length - 1;
-    }
-    // Main classes and models are nested so we need to go deeper
-    else if (parts[versionIndex] == "main_classes" || parts[versionIndex] == "model_doc") {
-        versionIndex = versionIndex - 1;
-    } */
     const version = parts[versionIndex];
 
     // Menu with all the links,
