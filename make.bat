@@ -45,4 +45,3 @@ if "%1"!="" goto error
 :error
     echo make: *** No rule to make target '%1%'.  Stop.
     goto :EOF
-
