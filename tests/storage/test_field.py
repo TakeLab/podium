@@ -10,9 +10,10 @@ from podium.storage import (
     LabelField,
     MultilabelField,
     MultioutputField,
-    SpecialVocabSymbols,
     Vocab,
 )
+
+from podium.storage.vocab import UNK
 
 
 ONE_TO_FIVE = [1, 2, 3, 4, 5]
@@ -520,7 +521,7 @@ def test_multilabel_field_specials_in_vocab_fail():
     with pytest.raises(ValueError):
         MultilabelField(
             name="bla",
-            numericalizer=Vocab(specials=(SpecialVocabSymbols.UNK,)),
+            numericalizer=Vocab(specials=(UNK())),
             num_of_classes=10,
         )
 

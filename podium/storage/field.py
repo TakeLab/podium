@@ -262,6 +262,10 @@ class Field:
         return self._vocab
 
     @property
+    def deterministic(self):
+        return self._deterministic
+
+    @property
     def use_vocab(self):
         """A flag that tells whether the field uses a vocab or not.
 

@@ -184,7 +184,7 @@ class Vocab:
         self._has_specials = len(self.specials) > 0
 
         # Apply uniqueness check
-        if len(specials) > len(set(specials)):
+        if len(self.specials) > len(set(self.specials)):
             error_msg = f"Specials may not contain multiple instances of same type."
             raise ValueError(error_msg)
 
@@ -349,7 +349,7 @@ class Vocab:
                 )
 
             # unique is used instead of set to somewhat preserve ordering
-            self.specials = list(unique(chain(self.specials, other_vocab.specials)))
+            self._specials = list(unique(chain(self.specials, other_vocab.specials)))
             self._has_specials = len(self.specials) > 0
             self._itos = list(self.specials)
             self._freqs += other_vocab._freqs  # add freqs to this instance
@@ -486,8 +486,8 @@ class Vocab:
 
         Parameters
         ----------
-        data : iter(str)
-            iterable collection of tokens
+        data : str | iter(str)
+            a single token or iterable collection of tokens
 
         Returns
         -------
@@ -505,11 +505,16 @@ class Vocab:
                 "finalized because itos and stoi are not yet built."
             )
 
+        if isinstance(data, str):
+            # Wrap string into list
+            data = [data]
+
         if UNK() in self.stoi:
             # If UNK is not in the vocabulary, we _erase_ the unknown tokens
             # from the instances.
+            unk_token = self.stoi[UNK()]
             return np.array(
-                [self.stoi[token] if token in self.stoi else stoi[UNK] for token in data]
+                [self.stoi[token] if token in self.stoi else unk_token for token in data]
             )
         else:
             # Either UNK is not in Vocab or the user has requested unknown tokens
