@@ -29,19 +29,27 @@
 }
   
 .version-dropdown a:hover {
-    background-color: #3498DB
+    background-color: #3498DB;
 }
 
 .version-show {
     display: block;
 }
 
+a.icon.icon-home {
+    margin: 10 auto;
+}
+
 /*Home icon hover*/
 a.icon.icon-home:hover {
-    background-color: #3498DB
+    background-color: #3498DB;
 }
 
 /* To keep the logo centered */
 .wy-side-scroll {
+    width: auto;
+}
+
+.wy-side-nav-search {
     width: auto;
 }
