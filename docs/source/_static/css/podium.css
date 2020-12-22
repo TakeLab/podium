@@ -1,0 +1,55 @@
+/* Version control */
+
+.version-button {
+    color: white;
+    border: none;
+    padding: 5px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+/*Focus & hover color change on the version dropdown */
+.version-button:hover, .version-button:focus {
+    background-color: #3498DB;
+}
+ 
+.version-dropdown {
+    display: none;
+    background-color: #343131;
+    min-width: 160px;
+    overflow: auto;
+    font-size: 15px;
+}
+  
+.version-dropdown a {
+    color: white;
+    padding: 3px 4px;
+    text-decoration: none;
+    display: block;
+}
+  
+.version-dropdown a:hover {
+    background-color: #3498DB;
+}
+
+.version-show {
+    display: block;
+}
+
+a.icon.icon-home {
+    margin: 10 auto;
+}
+
+/*Home icon hover*/
+a.icon.icon-home:hover {
+    background-color: #3498DB;
+}
+
+/* To keep the logo centered */
+.wy-side-scroll {
+    width: auto;
+}
+
+.wy-side-nav-search {
+    width: auto;
+}
