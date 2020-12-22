@@ -63,148 +63,6 @@ class PosttokenizationPipeline:
         self.hooks.clear()
 
 
-class MultioutputField:
-    """Field that does pretokenization and tokenization once and passes it to its
-    output fields. Output fields are any type of field. The output fields are used only
-    for posttokenization processing (posttokenization hooks and vocab updating)."""
-
-    def __init__(
-        self,
-        output_fields: List["Field"],
-        tokenizer: TokenizerType = "split",
-        pretokenize_hooks: Optional[Iterable[PretokenizationHookType]] = None,
-    ):
-        """Field that does pretokenization and tokenization once and passes it to its
-        output fields. Output fields are any type of field. The output fields are used
-        only for posttokenization processing (posttokenization hooks and vocab updating).
-
-        Parameters
-        ----------
-         output_fields : List[Field],
-            List containig the output fields. The pretokenization hooks and tokenizer
-            in these fields are ignored and only posttokenization hooks are used.
-         tokenizer : Optional[Union[str, Callable]]
-            The tokenizer that is to be used when preprocessing raw data
-            (only if 'tokenize' is True). The user can provide his own
-            tokenizer as a callable object or specify one of the premade
-            tokenizers by a string. The available premade tokenizers are:
-
-            - 'split' - default str.split()
-            - 'spacy-lang' - the spacy tokenizer. The language model can be defined
-              by replacing `lang` with the language model name. For example `spacy-en`
-
-        pretokenize_hooks: Iterable[Callable[[Any], Any]]
-            Iterable containing pretokenization hooks. Providing hooks in this way is
-            identical to calling `add_pretokenize_hook`.
-        """
-
-        self._tokenizer_arg = tokenizer
-        self._pretokenization_pipeline = PretokenizationPipeline()
-
-        if pretokenize_hooks is not None:
-            if not isinstance(pretokenize_hooks, (list, tuple)):
-                pretokenize_hooks = [pretokenize_hooks]
-            for hook in pretokenize_hooks:
-                self.add_pretokenize_hook(hook)
-
-        self._tokenizer = get_tokenizer(tokenizer)
-        self._output_fields = deque(output_fields)
-
-    def add_pretokenize_hook(self, hook: PretokenizationHookType):
-        """Add a pre-tokenization hook to the MultioutputField.
-        If multiple hooks are added to the field, the order of their execution
-        will be the same as the order in which they were added to the field,
-        each subsequent hook taking the output of the previous hook as its
-        input.
-        If the same function is added to the Field as a hook multiple times,
-        it will be executed that many times.
-        The output of the final pre-tokenization hook is the raw data that the
-        tokenizer will get as its input.
-
-        Pretokenize hooks have the following signature:
-            func pre_tok_hook(raw_data):
-                raw_data_out = do_stuff(raw_data)
-                return raw_data_out
-
-        This can be used to eliminate encoding errors in data, replace numbers
-        and names, etc.
-
-        Parameters
-        ----------
-        hook : Callable[[Any], Any]
-            The pre-tokenization hook that we want to add to the field.
-        """
-        self._pretokenization_pipeline.add_hook(hook)
-
-    def _run_pretokenization_hooks(self, data: Any) -> Any:
-        """Runs pretokenization hooks on the raw data and returns the result.
-
-        Parameters
-        ----------
-        data : Any
-            data to be processed
-
-        Returns
-        -------
-        Any
-            processed data
-
-        """
-
-        return self._pretokenization_pipeline(data)
-
-    def add_output_field(self, field: "Field"):
-        """
-        Adds the passed field to this field's output fields.
-
-        Parameters
-        ----------
-        field : Field
-            Field to add to output fields.
-        """
-        self._output_fields.append(field)
-
-    def preprocess(self, data: Any) -> Iterable[Tuple[str, Tuple[Optional[Any], Any]]]:
-        """Preprocesses raw data, tokenizing it if required. The outputfields update their
-         vocabs if required and preserve the raw data if the output field's
-         'keep_raw' is true.
-
-        Parameters
-        ----------
-        data : Any
-            The raw data that needs to be preprocessed.
-
-        Returns
-        -------
-        Iterable[Tuple[str, Tuple[Optional[Any], Any]]]
-            An Iterable containing the raw and tokenized data of all the output fields.
-            The structure of the returned tuples is (name, (raw, tokenized)), where 'name'
-            is the name of the output field and raw and tokenized are processed data.
-
-        Raises
-        ------
-            If data is None and missing data is not allowed.
-        """
-        data = self._run_pretokenization_hooks(data)
-        tokens = self._tokenizer(data) if self._tokenizer is not None else data
-        return tuple(field._process_tokens(data, tokens) for field in self._output_fields)
-
-    def get_output_fields(self) -> Iterable["Field"]:
-        """
-        Returns an Iterable of the contained output fields.
-
-        Returns
-        -------
-        Iterable[Field] :
-            an Iterable of the contained output fields.
-        """
-        return self._output_fields
-
-    def remove_pretokenize_hooks(self):
-        """Remove all the pre-tokenization hooks that were added to the MultioutputField."""
-        self._pretokenization_pipeline.clear()
-
-
 class Field:
     """Holds the preprocessing and numericalization logic for a single
     field of a dataset.
@@ -220,6 +78,7 @@ class Field:
         fixed_length: Optional[int] = None,
         allow_missing_data: bool = False,
         disable_batch_matrix: bool = False,
+        deterministic: bool = True,
         padding_token: Union[int, float] = -999,
         missing_data_token: Union[int, float] = -1,
         pretokenize_hooks: Optional[Iterable[PretokenizationHookType]] = None,
@@ -284,6 +143,15 @@ class Field:
             If True, a list of unpadded vectors(or other data type) will be returned
             instead. For missing data, the value in the list will be None.
 
+        deterministic : bool
+            Flag which determines whether this Field has deterministic or nondeterministic
+            numericalization (numericalization for the same instance can be different between
+            function calls). Disables numericalization caching for this Field. The flag is
+            passed to the numericalizer to indicate to use the nondeterministic setting.
+            E.g., in the case of masked language modelling, we wish the inputs to be masked
+            (nondeterministic), and the outputs (labels) to not be masked while using the
+            same vocabulary.
+
         padding_token : int
             Padding token used when numericalizer is a callable. If the numericalizer is
             None or a Vocab, this value is ignored.
@@ -314,6 +182,7 @@ class Field:
             )
         self._name = name
         self._disable_batch_matrix = disable_batch_matrix
+        self._deterministic = deterministic
         self._tokenizer_arg_string = tokenizer if isinstance(tokenizer, str) else None
 
         if tokenizer is None:
@@ -791,10 +660,9 @@ class Field:
         numericalization = example.get(cache_field_name)
 
         # Check if this concrete field can be cached. Fields that have
-        # non-deterministic numericalizers cannot be cached. Currently,
-        # we only expect vocabs to be non-deterministic.
-        cache_field = not self.use_vocab or self.use_vocab and self.vocab.deterministic
-        cache = cache and cache_field
+        # non-deterministic numericalizers cannot be cached.
+
+        cache = cache and self.deterministic
 
         if numericalization is None:
             example_data = example[self.name]
@@ -852,6 +720,148 @@ class Field:
         return (self,)
 
 
+class MultioutputField:
+    """Field that does pretokenization and tokenization once and passes it to its
+    output fields. Output fields are any type of field. The output fields are used only
+    for posttokenization processing (posttokenization hooks and vocab updating)."""
+
+    def __init__(
+        self,
+        output_fields: List["Field"],
+        tokenizer: TokenizerType = "split",
+        pretokenize_hooks: Optional[Iterable[PretokenizationHookType]] = None,
+    ):
+        """Field that does pretokenization and tokenization once and passes it to its
+        output fields. Output fields are any type of field. The output fields are used
+        only for posttokenization processing (posttokenization hooks and vocab updating).
+
+        Parameters
+        ----------
+         output_fields : List[Field],
+            List containig the output fields. The pretokenization hooks and tokenizer
+            in these fields are ignored and only posttokenization hooks are used.
+         tokenizer : Optional[Union[str, Callable]]
+            The tokenizer that is to be used when preprocessing raw data
+            (only if 'tokenize' is True). The user can provide his own
+            tokenizer as a callable object or specify one of the premade
+            tokenizers by a string. The available premade tokenizers are:
+
+            - 'split' - default str.split()
+            - 'spacy-lang' - the spacy tokenizer. The language model can be defined
+              by replacing `lang` with the language model name. For example `spacy-en`
+
+        pretokenize_hooks: Iterable[Callable[[Any], Any]]
+            Iterable containing pretokenization hooks. Providing hooks in this way is
+            identical to calling `add_pretokenize_hook`.
+        """
+
+        self._tokenizer_arg = tokenizer
+        self._pretokenization_pipeline = PretokenizationPipeline()
+
+        if pretokenize_hooks is not None:
+            if not isinstance(pretokenize_hooks, (list, tuple)):
+                pretokenize_hooks = [pretokenize_hooks]
+            for hook in pretokenize_hooks:
+                self.add_pretokenize_hook(hook)
+
+        self._tokenizer = get_tokenizer(tokenizer)
+        self._output_fields = deque(output_fields)
+
+    def add_pretokenize_hook(self, hook: PretokenizationHookType):
+        """Add a pre-tokenization hook to the MultioutputField.
+        If multiple hooks are added to the field, the order of their execution
+        will be the same as the order in which they were added to the field,
+        each subsequent hook taking the output of the previous hook as its
+        input.
+        If the same function is added to the Field as a hook multiple times,
+        it will be executed that many times.
+        The output of the final pre-tokenization hook is the raw data that the
+        tokenizer will get as its input.
+
+        Pretokenize hooks have the following signature:
+            func pre_tok_hook(raw_data):
+                raw_data_out = do_stuff(raw_data)
+                return raw_data_out
+
+        This can be used to eliminate encoding errors in data, replace numbers
+        and names, etc.
+
+        Parameters
+        ----------
+        hook : Callable[[Any], Any]
+            The pre-tokenization hook that we want to add to the field.
+        """
+        self._pretokenization_pipeline.add_hook(hook)
+
+    def _run_pretokenization_hooks(self, data: Any) -> Any:
+        """Runs pretokenization hooks on the raw data and returns the result.
+
+        Parameters
+        ----------
+        data : Any
+            data to be processed
+
+        Returns
+        -------
+        Any
+            processed data
+
+        """
+
+        return self._pretokenization_pipeline(data)
+
+    def add_output_field(self, field: "Field"):
+        """
+        Adds the passed field to this field's output fields.
+
+        Parameters
+        ----------
+        field : Field
+            Field to add to output fields.
+        """
+        self._output_fields.append(field)
+
+    def preprocess(self, data: Any) -> Iterable[Tuple[str, Tuple[Optional[Any], Any]]]:
+        """Preprocesses raw data, tokenizing it if required. The outputfields update their
+         vocabs if required and preserve the raw data if the output field's
+         'keep_raw' is true.
+
+        Parameters
+        ----------
+        data : Any
+            The raw data that needs to be preprocessed.
+
+        Returns
+        -------
+        Iterable[Tuple[str, Tuple[Optional[Any], Any]]]
+            An Iterable containing the raw and tokenized data of all the output fields.
+            The structure of the returned tuples is (name, (raw, tokenized)), where 'name'
+            is the name of the output field and raw and tokenized are processed data.
+
+        Raises
+        ------
+            If data is None and missing data is not allowed.
+        """
+        data = self._run_pretokenization_hooks(data)
+        tokens = self._tokenizer(data) if self._tokenizer is not None else data
+        return tuple(field._process_tokens(data, tokens) for field in self._output_fields)
+
+    def get_output_fields(self) -> Iterable["Field"]:
+        """
+        Returns an Iterable of the contained output fields.
+
+        Returns
+        -------
+        Iterable[Field] :
+            an Iterable of the contained output fields.
+        """
+        return self._output_fields
+
+    def remove_pretokenize_hooks(self):
+        """Remove all the pre-tokenization hooks that were added to the MultioutputField."""
+        self._pretokenization_pipeline.clear()
+
+
 class LabelField(Field):
     """Field subclass used when no tokenization is required. For example, with a field
     that has a single value denoting a label.
@@ -860,8 +870,10 @@ class LabelField(Field):
     def __init__(
         self,
         name: str,
-        numericalizer: NumericalizerType = None,
+        numericalizer: Optional[Union[Vocab, NumericalizerType]] = None,
         allow_missing_data: bool = False,
+        disable_batch_matrix: bool = False,
+        deterministic: bool = True,
         is_target: bool = True,
         missing_data_token: Union[int, float] = -1,
         pretokenize_hooks: Optional[Iterable[PretokenizationHookType]] = None,
@@ -890,6 +902,22 @@ class LabelField(Field):
             is False and None is sent to be preprocessed, an ValueError will be raised.
             If 'allow_missing_data' is True, if a None is sent to be preprocessed, it will
             be stored and later numericalized properly.
+
+        disable_batch_matrix: bool
+            Whether the batch created for this field will be compressed into a matrix.
+            If False, the batch returned by an Iterator or Dataset.batch() will contain
+            a matrix of numericalizations for all examples (if possible).
+            If True, a list of unpadded vectors(or other data type) will be returned
+            instead. For missing data, the value in the list will be None.
+
+        deterministic : bool
+            Flag which determines whether this Field has deterministic or nondeterministic
+            numericalization (numericalization for the same instance can be different between
+            function calls). Disables numericalization caching for this Field. The flag is
+            passed to the numericalizer to indicate to use the nondeterministic setting.
+            E.g., in the case of masked language modelling, we wish the inputs to be masked
+            (nondeterministic), and the outputs (labels) to not be masked while using the
+            same vocabulary.
 
         is_target : bool
             Whether this field is a target variable. Affects iteration over
@@ -923,6 +951,8 @@ class LabelField(Field):
             is_target=is_target,
             fixed_length=1,
             allow_missing_data=allow_missing_data,
+            disable_batch_matrix=disable_batch_matrix,
+            deterministic=deterministic,
             missing_data_token=missing_data_token,
             pretokenize_hooks=pretokenize_hooks,
         )
@@ -937,10 +967,12 @@ class MultilabelField(Field):
         self,
         name: str,
         tokenizer: TokenizerType = None,
-        numericalizer: NumericalizerType = None,
+        numericalizer: Optional[Union[Vocab, NumericalizerType]] = None,
         num_of_classes: Optional[int] = None,
         is_target: bool = True,
         allow_missing_data: bool = False,
+        disable_batch_matrix: bool = False,
+        deterministic: bool = True,
         missing_data_token: Union[int, float] = -1,
         pretokenize_hooks: Optional[Iterable[PretokenizationHookType]] = None,
         posttokenize_hooks: Optional[Iterable[PosttokenizationHookType]] = None,
@@ -991,6 +1023,22 @@ class MultilabelField(Field):
             If 'allow_missing_data' is True, if a None is sent to be preprocessed, it will
             be stored and later numericalized properly.
 
+        disable_batch_matrix: bool
+            Whether the batch created for this field will be compressed into a matrix.
+            If False, the batch returned by an Iterator or Dataset.batch() will contain
+            a matrix of numericalizations for all examples (if possible).
+            If True, a list of unpadded vectors(or other data type) will be returned
+            instead. For missing data, the value in the list will be None.
+
+        deterministic : bool
+            Flag which determines whether this Field has deterministic or nondeterministic
+            numericalization (numericalization for the same instance can be different between
+            function calls). Disables numericalization caching for this Field. The flag is
+            passed to the numericalizer to indicate to use the nondeterministic setting.
+            E.g., in the case of masked language modelling, we wish the inputs to be masked
+            (nondeterministic), and the outputs (labels) to not be masked while using the
+            same vocabulary.
+
         missing_data_token : Union[int, float]
             Token to use to mark batch rows as missing. If data for a field is missing,
             its matrix row will be filled with this value. For non-numericalizable fields,
@@ -1029,6 +1077,8 @@ class MultilabelField(Field):
             is_target=is_target,
             fixed_length=num_of_classes,
             allow_missing_data=allow_missing_data,
+            disable_batch_matrix=disable_batch_matrix,
+            deterministic=deterministic,
             missing_data_token=missing_data_token,
             pretokenize_hooks=pretokenize_hooks,
             posttokenize_hooks=posttokenize_hooks,

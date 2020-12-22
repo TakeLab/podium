@@ -31,33 +31,66 @@ def unique(values: Iterable):
 
 
 class Special(str):
-    @abc.abstractmethod
-    def apply(self, sequence_or_token):
-        # Method should ONLY be used in Vocab.numericalize
-        pass
+    """Base class for a special token.
 
+    Every special token is a subclass of string (this way one can)
+    easily modify the concrete string representation of the special.
+    The functionality of the special token, which acts the same as
+    a post-tokenization hook should be implemented in the `apply`
+    instance method for each subclass. We ensure that each special
+    token will be present in the Vocab.
+    """
     def __hash__(self):
-        # Hash class instead of value
+        """Overrides hash.
+
+        Check docs of `__eq__` for motivation.
+        """
         return hash(self.__class__)
 
     def __eq__(self, other):
-        # Check equals via class instead of value
+        """ Check equals via class instead of value.
+        The motivation behind this is that we want to be able to
+        match the special token by class and not by value, as it
+        is the type of the special token that determines its 
+        functionality.
+        This way we allow for the concrete string representation
+        of the special to be easily changed, while retaining simple
+        existence checks for vocab functionality.
+        """
         return self.__class__ == other.__class__
+
+    def apply(self, sequence):
+        """Apply (insert) the special token in the adequate
+        place in the sequence.
+        """
+        raise NotImplementedError
 
 
 class BOS(Special):
+    """The beginning-of-sequence special token.
+    """
     def __new__(cls, token="<BOS>"):
+        """Provides default value upon creation for the BOS token.
+        """
         return super(BOS, cls).__new__(cls, token)
 
     def apply(self, sequence):
+        """ Apply the BOS token, adding it to the start of the sequence
+        """
         return [self] + sequence
 
 
 class EOS(Special):
+    """The end-of-sequence special token.
+    """
     def __new__(cls, token="<EOS>"):
+        """Provides default value upon creation for the EOS token.
+        """
         return super(EOS, cls).__new__(cls, token)
 
     def apply(self, sequence):
+        """ Apply the EOS token, adding it to the start of the sequence
+        """
         return sequence + [self]
 
 
@@ -65,31 +98,33 @@ class EOS(Special):
 # Core specials #
 #################
 
-
-class MASK(Special):
-    def __new__(cls, token="<MASK>"):
-        return super(MASK, cls).__new__(cls, token)
-
-    def apply(self, sequence):
-        # Core special, handled by Vocab
-        return sequence
-
-
 class UNK(Special):
+    """The unknown core special token.
+    """
     def __new__(cls, token="<UNK>"):
+        """Provides default value upon creation for the UNK token.
+        """
         return super(UNK, cls).__new__(cls, token)
 
     def apply(self, sequence):
-        # Core special, handled by Vocab
+        """Core special, handled by Vocab
+        """
+        # Perhaps indicate somehow that this call isn't an op.
         return sequence
 
 
 class PAD(Special):
+    """The padding core special token.
+    """
     def __new__(cls, token="<PAD>"):
+        """Provides default value upon creation for the PAD token.
+        """
         return super(PAD, cls).__new__(cls, token)
 
     def apply(self, sequence):
-        # Core special, handled by Vocab
+        """Core special, handled by Vocab
+        """
+        # Perhaps indicate somehow that this call isn't an op.
         return sequence
 
 
@@ -114,7 +149,6 @@ class Vocab:
         specials=(UNK(), PAD()),
         keep_freqs=False,
         eager=True,
-        deterministic=True,
     ):
         """Vocab constructor. Specials are first in the vocabulary.
 
@@ -139,13 +173,6 @@ class Vocab:
             vocabulary will be built by iterating again over the
             datasets passed as argument to the `finalize_fields`
             function.
-        deterministic : bool
-            if `True`, the numericalization for an instance will
-            not change between function calls. An example where
-            this argument should be set to `False` is when the
-            Vocabulary uses Masking. Setting `deterministic` to
-            `False` will disable caching for all Fields that
-            use this Vocabulary.
         """
         self._freqs = Counter()
         self._keep_freqs = keep_freqs
@@ -167,7 +194,6 @@ class Vocab:
 
         self._max_size = max_size
         self._eager = eager
-        self._deterministic = deterministic
         self._finalized = False  # flag to know if we're ready to numericalize
 
     @property
@@ -193,10 +219,6 @@ class Vocab:
     @property
     def stoi(self):
         return self._stoi
-
-    @property
-    def deterministic(self):
-        return self._deterministic
 
     @classmethod
     def from_itos(cls, itos):
@@ -272,9 +294,9 @@ class Vocab:
         ValueError
             If the padding symbol is not present in the vocabulary.
         """
-        if PAD not in self.stoi:
+        if PAD() not in self.stoi:
             raise ValueError("Padding symbol is not in the vocabulary.")
-        return self.stoi[PAD]
+        return self.stoi[PAD()]
 
     def __iadd__(self, values: Union["Vocab", Iterable]):
         """Adds additional values or another Vocab to this Vocab.
@@ -615,85 +637,3 @@ class Vocab:
             )
 
         return self.stoi[token]
-
-
-class MaskVocab(Vocab):
-    def __init__(self, vocab, masking_probability=0.15):
-        if MASK() not in vocab.specials:
-            # Todo: flesh out error, proof of concept for now
-            raise ValueError("Mask token not in vocabulary of MaskVocab")
-
-        self.mask_token = vocab.itos[vocab.stoi[MASK()]]
-        self._vocab = vocab
-        self._deterministic = False
-        self.masking_probability = masking_probability
-
-    @property
-    def vocab(self):
-        return self._vocab
-
-    @property
-    def eager(self):
-        return self.vocab.eager
-
-    @property
-    def finalized(self):
-        return self.vocab.finalized
-
-    @property
-    def specials(self):
-        return self.vocab.specials
-
-    @property
-    def itos(self):
-        return self.vocab.itos
-
-    @property
-    def stoi(self):
-        return self.vocab.stoi
-
-    @property
-    def freqs(self):
-        return self.vocab.freqs
-
-    @property
-    def deterministic(self):
-        return self._deterministic
-
-    def numericalize(self, data):
-        """Method numericalizes given tokens.
-
-        Parameters
-        ----------
-        data : iter(str)
-            iterable collection of tokens
-
-        Returns
-        -------
-        numericalized_vector : array-like
-            numpy array of numericalized tokens
-
-        Raises
-        ------
-        RuntimeError
-            If the vocabulary is not finalized.
-        """
-
-        # Ensures data is a numpy array
-        numericalized_data = self.vocab.numericalize(data)
-        # Create a boolean vector of tokens which should be masked
-        mask = np.random.binomial(1, self.masking_probability, len(data)).astype(bool)
-        # Retrieve index of mask token from vocab
-        mask_index = self[MASK()]
-        # Overwrite data which should be masked with the mask index
-        numericalized_data[mask] = mask_index
-
-        return numericalized_data
-
-    def __iadd__(self, values: Union["Vocab", Iterable]):
-        self.vocab.__iadd__(values)
-        return self
-
-    def __add__(self, values: Union["Vocab", Iterable]):
-        self.vocab.__add__(values)
-        return self
