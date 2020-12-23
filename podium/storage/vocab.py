@@ -221,11 +221,6 @@ class Vocab:
     def from_itos(cls, itos):
         """Method constructs a vocab from a predefined index-to-string mapping.
 
-    @staticmethod
-    def _init_default_unk_index(specials):
-        """
-        Method computes index of default unknown symbol in given collection.
-
         Parameters
         ----------
             itos: list | tuple
