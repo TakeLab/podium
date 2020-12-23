@@ -230,7 +230,7 @@ def test_from_tabular(data, fields, tmpdir):
         assert int(ex.number[0]) == d[0]
         assert ex.tokens[0] == d[1]
 
-    ArrowDataset.delete_cache()
+    csv_dataset.delete_cache()
 
 
 def test_missing_datatype_exception(data, fields, tmpdir):
