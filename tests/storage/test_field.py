@@ -5,14 +5,7 @@ import dill
 import numpy as np
 import pytest
 
-from podium.storage import (
-    Field,
-    LabelField,
-    MultilabelField,
-    MultioutputField,
-    Vocab,
-)
-
+from podium.storage import Field, LabelField, MultilabelField, MultioutputField, Vocab
 from podium.storage.vocab import UNK
 
 

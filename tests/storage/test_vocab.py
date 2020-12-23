@@ -1,9 +1,8 @@
 import os
 
 import dill
-import pytest
-
 import numpy as np
+import pytest
 
 from podium.storage import vocab
 
@@ -105,15 +104,45 @@ def test_empty_specials_get_pad_symbol():
     with pytest.raises(ValueError):
         voc.padding_index()
 
-# Won't raise error anymore as we now filter
-# unknown tokens
-#def test_empty_specials_stoi():
-#    voc = vocab.Vocab(specials=[])
-#    data = ["tree", "plant", "grass"]
-#    voc = voc + set(data)
-#    voc.finalize()
-#    with pytest.raises(ValueError):
-#        voc.stoi["apple"]
+
+def test_no_unk_filters_unknown_tokens():
+    voc = vocab.Vocab(specials=[])
+    data = ["tree", "plant", "grass"]
+    voc = voc + set(data)
+    voc.finalize()
+
+    # Tree is in vocab
+    assert len(voc.numericalize("tree")) == 1
+    # Apple isn't in vocab
+    assert len(voc.numericalize("apple")) == 0
+    # Try with list argument
+    assert len(voc.numericalize(["tree", "apple"])) == 1
+
+
+def test_specials_uniqueness():
+    with pytest.raises(ValueError):
+        voc = vocab.Vocab(specials=[vocab.UNK(), vocab.UNK()])
+
+    with pytest.raises(ValueError):
+        voc = vocab.Vocab(specials=[vocab.UNK(), vocab.UNK("<my_unknown>")])
+
+    with pytest.raises(ValueError):
+        voc = vocab.Vocab(specials=[vocab.PAD(), vocab.PAD()])
+
+    with pytest.raises(ValueError):
+        voc = vocab.Vocab(specials=[vocab.PAD(), vocab.PAD("<my_pad>")])
+
+    with pytest.raises(ValueError):
+        voc = vocab.Vocab(specials=[vocab.BOS(), vocab.BOS()])
+
+    with pytest.raises(ValueError):
+        voc = vocab.Vocab(specials=[vocab.BOS(), vocab.BOS("<my_bos>")])
+
+    with pytest.raises(ValueError):
+        voc = vocab.Vocab(specials=[vocab.EOS(), vocab.EOS()])
+
+    with pytest.raises(ValueError):
+        voc = vocab.Vocab(specials=[vocab.EOS(), vocab.EOS("<my_eos>")])
 
 
 def test_specials_get_pad_symbol():
@@ -153,9 +182,16 @@ def test_size_after_final_with_specials():
     assert len(voc) == len(data) + len(specials)
 
 
-def test_enum_special_vocab_symbols():
+def test_special_vocab_symbols():
     assert str(vocab.PAD()) == "<PAD>"
     assert str(vocab.UNK()) == "<UNK>"
+
+    assert str(vocab.PAD("<my_pad>")) == "<my_pad>"
+    assert str(vocab.UNK("<my_unk>")) == "<my_unk>"
+
+    # These hold due to overloaded hash/eq
+    assert vocab.PAD("<my_pad>") == vocab.PAD()
+    assert vocab.UNK("<my_unk>") == vocab.UNK()
 
 
 def test_get_stoi_for_unknown_word_default_unk():
@@ -224,10 +260,7 @@ def test_iadd_vocab_to_vocab():
     voc1 += voc2
 
     assert voc1.get_freqs() == expected_freqs
-    assert all(
-        spec in voc1.specials
-        for spec in (vocab.PAD(), vocab.UNK())
-    )
+    assert all(spec in voc1.specials for spec in (vocab.PAD(), vocab.UNK()))
 
 
 def test_add_vocab_to_vocab_error():
@@ -355,6 +388,7 @@ def test_equals_two_vocabs_different_freq():
     voc2 += ["a"]
     assert voc1 != voc2
 
+
 # This won't fail anymore, should change to
 # test_vocab_filer_unk
 def test_vocab_fail_no_unk():
@@ -362,7 +396,7 @@ def test_vocab_fail_no_unk():
     voc += [1, 2, 3, 4, 5]
     voc.finalize()
 
-    assert np.array_equal(voc.numericalize([1, 2, 3, 6]), np.array([0,1,2]))
+    assert np.array_equal(voc.numericalize([1, 2, 3, 6]), np.array([0, 1, 2]))
 
 
 def test_vocab_has_no_specials():
@@ -380,33 +414,6 @@ def test_vocab_has_specials():
     voc2 = vocab.Vocab(specials=vocab.UNK())
     assert voc2._has_specials
     assert voc2.specials == (vocab.UNK(),)
-
-# There is no more vocabdict (applie to next 2 tests)
-
-#def test_vocab_dict_normal_dict_use():
-#    vocab_dict = vocab.VocabDict()
-#    vocab_dict["first"] = 2
-#    vocab_dict["second"] = 5
-#    assert len(vocab_dict) == 2
-#    assert vocab_dict["first"] == 2
-#    assert vocab_dict["second"] == 5
-
-
-#def test_vocab_dict_default_factory():
-#    vocab_dict = vocab.VocabDict(default_factory=lambda: "default")
-#    vocab_dict["item"] = 1
-#    assert len(vocab_dict) == 1
-#    assert vocab_dict["unkown_element"] == "default"
-#    assert "unkown_element" not in vocab_dict
-#    assert len(vocab_dict) == 1
-
-
-# This doesn't raise error anymore as we filter out unknown
-# tokens when the UNK special isn't defined
-#def test_vocab_dict_default_factory_none_error():
-#    vocab_dict = vocab.VocabDict(default_factory=None)
-#    with pytest.raises(KeyError):
-#        vocab_dict["item_not_in_dict"]
 
 
 def test_reverse_numericalize():
@@ -427,3 +434,26 @@ def test_reverse_numericalize_not_finalized():
 
     with pytest.raises(RuntimeError):
         voc.reverse_numericalize(voc.numericalize(words))
+
+
+def test_vocab_static_constructors():
+    specials = [vocab.PAD(), vocab.UNK()]
+    voc = vocab.Vocab(specials=specials)
+    data = ["tree", "plant", "grass"]
+    voc = (voc + set(data)) + {"plant"}
+    voc.finalize()
+
+    itos2voc = vocab.Vocab.from_itos(voc.itos)
+    # Only the frequencies will be different because
+    # we don't transfer this information, so the full
+    # vocab1 == vocab2 will fail. Perhaps split equality
+    # checks for vocab on before/after finalization?
+
+    assert itos2voc.itos == voc.itos
+    assert itos2voc.stoi == voc.stoi
+    assert itos2voc.specials == voc.specials
+
+    stoi2voc = vocab.Vocab.from_stoi(voc.stoi)
+    assert stoi2voc.itos == voc.itos
+    assert stoi2voc.stoi == voc.stoi
+    assert stoi2voc.specials == voc.specials

@@ -4,7 +4,7 @@ from sklearn.feature_extraction import text
 
 from podium.storage.field import Field
 from podium.storage.vectorizers.tfidf import CountVectorizer, TfIdfVectorizer
-from podium.storage.vocab import UNK, PAD, Vocab
+from podium.storage.vocab import PAD, UNK, Vocab
 
 from .conftest import TABULAR_TEXT
 
@@ -112,9 +112,7 @@ def test_build_count_matrix_costum_specials_vocab_with_specials():
     vocab_words = ["this", "is", "the", "first", "document"]
     vocab += vocab_words
     vocab.finalize()
-    tfidf = TfIdfVectorizer(
-        vocab=vocab, specials=[PAD(), "this", "first"]
-    )
+    tfidf = TfIdfVectorizer(vocab=vocab, specials=[PAD(), "this", "first"])
     tfidf._init_special_indexes()
 
     numericalized_data = get_numericalized_data(data=DATA, vocab=vocab)

@@ -53,16 +53,25 @@ def vocab(tabular_dataset_fields):
 
 @pytest.fixture
 @pytest.mark.usefixtures("json_file_path")
+def cache_disabled_tabular_dataset(json_file_path):
+    return create_tabular_dataset_from_json(
+        tabular_dataset_fields(deterministic=False), json_file_path
+    )
+
+
+@pytest.fixture
+@pytest.mark.usefixtures("json_file_path")
 def tabular_dataset(json_file_path):
     return create_tabular_dataset_from_json(tabular_dataset_fields(), json_file_path)
 
 
-def tabular_dataset_fields(fixed_length=None):
+def tabular_dataset_fields(fixed_length=None, deterministic=True):
     text = Field(
         "text",
         numericalizer=Vocab(eager=True),
         fixed_length=fixed_length,
         allow_missing_data=False,
+        deterministic=deterministic,
     )
     text_missing = Field(
         "text_with_missing_data",

@@ -40,6 +40,7 @@ class Special(str):
     instance method for each subclass. We ensure that each special
     token will be present in the Vocab.
     """
+
     def __hash__(self):
         """Overrides hash.
 
@@ -48,10 +49,10 @@ class Special(str):
         return hash(self.__class__)
 
     def __eq__(self, other):
-        """ Check equals via class instead of value.
+        """Check equals via class instead of value.
         The motivation behind this is that we want to be able to
         match the special token by class and not by value, as it
-        is the type of the special token that determines its 
+        is the type of the special token that determines its
         functionality.
         This way we allow for the concrete string representation
         of the special to be easily changed, while retaining simple
@@ -67,30 +68,26 @@ class Special(str):
 
 
 class BOS(Special):
-    """The beginning-of-sequence special token.
-    """
+    """The beginning-of-sequence special token."""
+
     def __new__(cls, token="<BOS>"):
-        """Provides default value upon creation for the BOS token.
-        """
+        """Provides default value upon creation for the BOS token."""
         return super(BOS, cls).__new__(cls, token)
 
     def apply(self, sequence):
-        """ Apply the BOS token, adding it to the start of the sequence
-        """
+        """Apply the BOS token, adding it to the start of the sequence"""
         return [self] + sequence
 
 
 class EOS(Special):
-    """The end-of-sequence special token.
-    """
+    """The end-of-sequence special token."""
+
     def __new__(cls, token="<EOS>"):
-        """Provides default value upon creation for the EOS token.
-        """
+        """Provides default value upon creation for the EOS token."""
         return super(EOS, cls).__new__(cls, token)
 
     def apply(self, sequence):
-        """ Apply the EOS token, adding it to the start of the sequence
-        """
+        """Apply the EOS token, adding it to the start of the sequence"""
         return sequence + [self]
 
 
@@ -98,32 +95,29 @@ class EOS(Special):
 # Core specials #
 #################
 
+
 class UNK(Special):
-    """The unknown core special token.
-    """
+    """The unknown core special token."""
+
     def __new__(cls, token="<UNK>"):
-        """Provides default value upon creation for the UNK token.
-        """
+        """Provides default value upon creation for the UNK token."""
         return super(UNK, cls).__new__(cls, token)
 
     def apply(self, sequence):
-        """Core special, handled by Vocab
-        """
+        """Core special, handled by Vocab"""
         # Perhaps indicate somehow that this call isn't an op.
         return sequence
 
 
 class PAD(Special):
-    """The padding core special token.
-    """
+    """The padding core special token."""
+
     def __new__(cls, token="<PAD>"):
-        """Provides default value upon creation for the PAD token.
-        """
+        """Provides default value upon creation for the PAD token."""
         return super(PAD, cls).__new__(cls, token)
 
     def apply(self, sequence):
-        """Core special, handled by Vocab
-        """
+        """Core special, handled by Vocab"""
         # Perhaps indicate somehow that this call isn't an op.
         return sequence
 
@@ -233,7 +227,7 @@ class Vocab:
 
         vocab = cls(specials=specials)
         vocab._itos = itos
-        vocab._stoi = {k: v for k, v in enumerate(itos)}
+        vocab._stoi = {v: k for k, v in enumerate(itos)}
         vocab._finalized = True
 
         return vocab
