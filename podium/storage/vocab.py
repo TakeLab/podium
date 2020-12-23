@@ -1,4 +1,6 @@
-"""Module contains classes related to the vocabulary."""
+"""
+Module contains classes related to the vocabulary.
+"""
 import warnings
 from collections import Counter
 from enum import Enum
@@ -9,7 +11,8 @@ import numpy as np
 
 
 def unique(values: Iterable):
-    """Generator that iterates over the first occurrence of every value in values,
+    """
+    Generator that iterates over the first occurrence of every value in values,
     preserving original order.
 
     Parameters
@@ -30,8 +33,10 @@ def unique(values: Iterable):
 
 
 class VocabDict(dict):
-    """Vocab dictionary class that is used like default dict but without adding missing
-    key to the dictionary."""
+    """
+    Vocab dictionary class that is used like default dict but without adding
+    missing key to the dictionary.
+    """
 
     def __init__(self, default_factory=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -46,7 +51,8 @@ class VocabDict(dict):
 
 
 class SpecialVocabSymbols(Enum):
-    """Class for special vocabular symbols
+    """
+    Class for special vocabular symbols.
 
     Attributes
     ----------
@@ -61,7 +67,8 @@ class SpecialVocabSymbols(Enum):
 
 
 class Vocab:
-    """Class for storing vocabulary. It supports frequency counting and size
+    """
+    Class for storing vocabulary. It supports frequency counting and size
     limiting.
 
     Attributes
@@ -82,7 +89,8 @@ class Vocab:
         keep_freqs=False,
         eager=True,
     ):
-        """Vocab constructor. Specials are first in the vocabulary.
+        """
+        Vocab constructor. Specials are first in the vocabulary.
 
         Parameters
         ----------
@@ -117,7 +125,8 @@ class Vocab:
 
     @staticmethod
     def _init_default_unk_index(specials):
-        """Method computes index of default unknown symbol in given collection.
+        """
+        Method computes index of default unknown symbol in given collection.
 
         Parameters
         ----------
@@ -137,7 +146,8 @@ class Vocab:
         return None
 
     def _default_unk(self):
-        """Method obtains default unknown symbol index. Used for stoi.
+        """
+        Method obtains default unknown symbol index. Used for stoi.
 
         Returns
         -------
@@ -157,7 +167,8 @@ class Vocab:
         return self._default_unk_index
 
     def get_freqs(self):
-        """Method obtains vocabulary frequencies.
+        """
+        Method obtains vocabulary frequencies.
 
         Returns
         -------
@@ -178,7 +189,8 @@ class Vocab:
         return self._freqs
 
     def padding_index(self):
-        """Method returns padding symbol index.
+        """
+        Method returns padding symbol index.
 
         Returns
         -------
@@ -195,7 +207,8 @@ class Vocab:
         return self.stoi[SpecialVocabSymbols.PAD]
 
     def __iadd__(self, values: Union["Vocab", Iterable]):
-        """Adds additional values or another Vocab to this Vocab.
+        """
+        Adds additional values or another Vocab to this Vocab.
 
         Parameters
         ----------
@@ -260,8 +273,9 @@ class Vocab:
         return self
 
     def __add__(self, values: Union["Vocab", Iterable]):
-        """Method allows a vocabulary to be added to current vocabulary or
-        that a set of values is added to the vocabulary.
+        """
+        Method allows a vocabulary to be added to current vocabulary or that a
+        set of values is added to the vocabulary.
 
         If max_size if None for any of the two Vocabs, the max_size of the resulting Vocab
         will also be None. If they are both defined, the max_size of the resulting Vocab
@@ -344,8 +358,9 @@ class Vocab:
             return new_vocab
 
     def finalize(self):
-        """Method finalizes vocab building. It also releases frequency counter
-        if user set not to keep them.
+        """
+        Method finalizes vocab building. It also releases frequency counter if
+        user set not to keep them.
 
         Raises
         ------
@@ -378,7 +393,8 @@ class Vocab:
         self.finalized = True
 
     def numericalize(self, data):
-        """Method numericalizes given tokens.
+        """
+        Method numericalizes given tokens.
 
         Parameters
         ----------
@@ -403,8 +419,10 @@ class Vocab:
         return np.array([self.stoi[token] for token in data])
 
     def reverse_numericalize(self, numericalized_data: Iterable):
-        """Transforms an iterable containing numericalized data into a list of tokens.
-        The tokens are read from this Vocab's itos and no additional processing is done.
+        """
+        Transforms an iterable containing numericalized data into a list of
+        tokens. The tokens are read from this Vocab's itos and no additional
+        processing is done.
 
         Parameters
         ----------
@@ -430,7 +448,8 @@ class Vocab:
 
     @property
     def has_specials(self):
-        """Property that checks if the vocabulary contains special symbols.
+        """
+        Property that checks if the vocabulary contains special symbols.
 
         Returns
         -------
@@ -440,7 +459,8 @@ class Vocab:
         return self._has_specials
 
     def __len__(self):
-        """Method calculates vocab lengths including special symbols.
+        """
+        Method calculates vocab lengths including special symbols.
 
         Returns
         -------
@@ -452,8 +472,9 @@ class Vocab:
         return len(self._freqs)
 
     def __eq__(self, other):
-        """Two vocabs are same if they have same finalization status, their
-        stoi and itos mappings are same and their frequency counters are same.
+        """
+        Two vocabs are same if they have same finalization status, their stoi
+        and itos mappings are same and their frequency counters are same.
 
         Parameters
         ----------
@@ -478,10 +499,11 @@ class Vocab:
         return True
 
     def __iter__(self):
-        """Method returns iterator over vocabulary, if the vocabulary is not
+        """
+        Method returns iterator over vocabulary, if the vocabulary is not
         finalized iteration is done over frequency counter and special symbols
-        are not included, otherwise it is performed on itos and special
-        symbols are included.
+        are not included, otherwise it is performed on itos and special symbols
+        are included.
 
         Returns
         -------
@@ -496,9 +518,9 @@ class Vocab:
         return f"{type(self).__name__}[finalized: {self.finalized}, size: {len(self)}]"
 
     def __getitem__(self, token):
-        """Returns the token index of the passed token. If the passed token has no index,
-        UNK token index is returned.
-        Otherwise, an exception is raised.
+        """
+        Returns the token index of the passed token. If the passed token has no
+        index, UNK token index is returned. Otherwise, an exception is raised.
 
         Parameters
         ----------

@@ -1,4 +1,6 @@
-"""Module contains the converter class for processing the HuggingFace Datasets."""
+"""
+Module contains the converter class for processing the HuggingFace Datasets.
+"""
 from typing import Dict, Iterator, Optional
 
 from podium.datasets import Dataset
@@ -21,7 +23,9 @@ def _identity(x):
 
 
 class _FeatureConverter:
-    """Class for converting features of the HuggingFace Dataset to the podium.storage.Fields.
+    """
+    Class for converting features of the HuggingFace Dataset to the
+    podium.storage.Fields.
 
     Notes
     -----
@@ -31,7 +35,8 @@ class _FeatureConverter:
 
     @staticmethod
     def convert(name: str, feature: datasets.features.FeatureType) -> Field:
-        """Convert a feature to the podium.storage.Field.
+        """
+        Convert a feature to the podium.storage.Field.
 
         Parameters:
         name : str
@@ -116,8 +121,10 @@ class _FeatureConverter:
 def convert_features_to_fields(
     features: Dict[str, datasets.features.FeatureType]
 ) -> Dict[str, Field]:
-    """Convert a dictionary that maps column names of the HuggingFace Dataset
-    to the features into a dictionary that maps column names to the podium.storage.Fields.
+    """
+    Convert a dictionary that maps column names of the HuggingFace Dataset to
+    the features into a dictionary that maps column names to the
+    podium.storage.Fields.
 
     Parameters
     ----------
@@ -136,12 +143,16 @@ def convert_features_to_fields(
 
 
 class HFDatasetConverter:
-    """Class for converting rows from the HuggingFace Datasets to podium.storage.Example."""
+    """
+    Class for converting rows from the HuggingFace Datasets to
+    podium.storage.Example.
+    """
 
     def __init__(
         self, dataset: datasets.Dataset, fields: Optional[Dict[str, Field]] = None
     ) -> None:
-        """HFDatasetConverter constructor.
+        """
+        HFDatasetConverter constructor.
 
         Parameters
         ----------
@@ -168,14 +179,17 @@ class HFDatasetConverter:
         self.fields = fields or convert_features_to_fields(dataset.features)
 
     def __iter__(self) -> Iterator[Example]:
-        """Iterate through the dataset and convert the examples."""
+        """
+        Iterate through the dataset and convert the examples.
+        """
         example_factory = ExampleFactory(self.fields)
 
         for raw_example in self.dataset:
             yield example_factory.from_dict(raw_example)
 
     def as_dataset(self) -> Dataset:
-        """Convert the original HuggingFace dataset to a podium.storage.Dataset.
+        """
+        Convert the original HuggingFace dataset to a podium.storage.Dataset.
 
         Returns
         -------
@@ -188,7 +202,8 @@ class HFDatasetConverter:
     def from_dataset_dict(
         dataset_dict: Dict[str, datasets.Dataset]
     ) -> Dict[str, "HFDatasetConverter"]:
-        """Copies the keys of given dictionary and converts the corresponding
+        """
+        Copies the keys of given dictionary and converts the corresponding
         HuggingFace Datasets to the HFDatasetConverter instances.
 
         Parameters

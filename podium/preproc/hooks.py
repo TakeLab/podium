@@ -1,4 +1,6 @@
-"""Module contains various pretokenization and posttokenization hooks."""
+"""
+Module contains various pretokenization and posttokenization hooks.
+"""
 import functools
 import re
 import warnings
@@ -30,13 +32,15 @@ _LANGUAGES.update({lang: lang for lang in _LANGUAGES.values()})
 
 
 class MosesNormalizer:
-    """Pretokenization took that normalizes the raw textual data.
+    """
+    Pretokenization took that normalizes the raw textual data.
 
     Uses sacremoses.MosesPunctNormalizer to perform normalization.
     """
 
     def __init__(self, language: str = "en") -> None:
-        """MosesNormalizer constructor.
+        """
+        MosesNormalizer constructor.
 
         Parameters
         ----------
@@ -61,7 +65,8 @@ class MosesNormalizer:
         self._normalizer = MosesPunctNormalizer(language)
 
     def __call__(self, raw: str) -> str:
-        """Applies normalization to the raw textual data.
+        """
+        Applies normalization to the raw textual data.
 
         Parameters
         ----------
@@ -77,15 +82,20 @@ class MosesNormalizer:
 
 
 class RegexReplace:
-    """Pretokenization hook that applies a sequence of regex substitutions to the raw
-    textual data. Each substitution corresponds to a 2-tuple consisting of
-    a regex pattern and a string that will replace that pattern."""
+    """
+    Pretokenization hook that applies a sequence of regex substitutions to the
+    raw textual data.
+
+    Each substitution corresponds to a 2-tuple consisting of a regex pattern and
+    a string that will replace that pattern.
+    """
 
     def __init__(
         self,
         replace_patterns: Sequence[Tuple[Union[Pattern, str], str]],
     ) -> None:
-        """RegexReplace constructor.
+        """
+        RegexReplace constructor.
 
         Parameters
         ----------
@@ -100,8 +110,8 @@ class RegexReplace:
         ]
 
     def __call__(self, raw: str) -> str:
-        """Applies a sequence of regex substitutions to the raw
-        textual data.
+        """
+        Applies a sequence of regex substitutions to the raw textual data.
 
         Parameters
         ----------
@@ -120,9 +130,12 @@ class RegexReplace:
 
 
 class TextCleanUp:
-    """Pretokenization hook that cleans up the raw textual data. Additionally, it supports
-    replacement of urls, emails, phone numbers, numbers, digits, and currency symbols
-    with arbitrary tokens. During the clean up, whitespace is normalized.
+    """
+    Pretokenization hook that cleans up the raw textual data.
+
+    Additionally, it supports replacement of urls, emails, phone numbers,
+    numbers, digits, and currency symbols with arbitrary tokens. During the
+    clean up, whitespace is normalized.
     """
 
     def __init__(
@@ -139,7 +152,8 @@ class TextCleanUp:
         replace_digit: Optional[str] = None,
         replace_currency_symbol: Optional[str] = None,
     ) -> None:
-        """TextCleanUp constructor.
+        """
+        TextCleanUp constructor.
 
         Parameters
         ----------
@@ -214,7 +228,8 @@ class TextCleanUp:
         self._cleanup = functools.partial(clean, **kwargs)
 
     def __call__(self, raw: str) -> str:
-        """Cleans up the raw textual data.
+        """
+        Cleans up the raw textual data.
 
         Parameters
         ----------
@@ -230,13 +245,15 @@ class TextCleanUp:
 
 
 class NLTKStemmer:
-    """Posttokenization hook that applies stemming to the tokenized textual data.
+    """
+    Posttokenization hook that applies stemming to the tokenized textual data.
 
     Uses nltk.stem.SnowballStemmer to perform stemming.
     """
 
     def __init__(self, language: str = "en", ignore_stopwords: bool = False) -> None:
-        """NLTKStemmer constructor.
+        """
+        NLTKStemmer constructor.
 
         Parameters
         ----------
@@ -260,7 +277,8 @@ class NLTKStemmer:
         self._stemmer = SnowballStemmer(language, ignore_stopwords)
 
     def __call__(self, raw: str, tokenized: List[str]) -> Tuple[str, List[str]]:
-        """Stemms the tokenized textual data. The raw part is left unchanged.
+        """
+        Stemms the tokenized textual data. The raw part is left unchanged.
 
         Returns
         -------
@@ -272,12 +290,16 @@ class NLTKStemmer:
 
 
 class SpacyLemmatizer:
-    """Posttokenization hook that applies SpaCy Lemmatizer to the tokenized textual data.
+    """
+    Posttokenization hook that applies SpaCy Lemmatizer to the tokenized textual
+    data.
+
     If the language model is not installed, an attempt is made to install it.
     """
 
     def __init__(self, language: str = "en") -> None:
-        """SpacyLemmatizer constructor.
+        """
+        SpacyLemmatizer constructor.
 
         Parameters
         ----------
@@ -303,8 +325,9 @@ class SpacyLemmatizer:
         self._lemmatizer = Lemmatizer(nlp.vocab.lookups)
 
     def __call__(self, raw: str, tokenized: List[str]) -> Tuple[str, List[str]]:
-        """Applies lemmatization to the tokenized textual data.
-        The raw part is left unchanged.
+        """
+        Applies lemmatization to the tokenized textual data. The raw part is
+        left unchanged.
 
         Returns
         -------

@@ -1,4 +1,6 @@
-"""Package contains modules used in model validation"""
+"""
+Package contains modules used in model validation.
+"""
 
 from .kfold import KFold
 from .validation import k_fold_classification_metrics, k_fold_validation, kfold_scores

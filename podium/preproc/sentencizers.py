@@ -1,14 +1,19 @@
-"""Module contains text sentencizer."""
+"""
+Module contains text sentencizer.
+"""
 import warnings
 
 
 class SpacySentencizer:
-    """Detects sentence boundaries and splits the input data on them.
+    """
+    Detects sentence boundaries and splits the input data on them.
+
     If the language model is not installed, an attempt is made to install it.
     """
 
     def __init__(self, language="en"):
-        """Sentencizer constructor.
+        """
+        Sentencizer constructor.
 
         Parameters
         ----------
@@ -36,7 +41,8 @@ class SpacySentencizer:
         self._nlp = nlp
 
     def __call__(self, data):
-        """Splits the input data on sentence boundaries.
+        """
+        Splits the input data on sentence boundaries.
 
         Parameters
         ----------

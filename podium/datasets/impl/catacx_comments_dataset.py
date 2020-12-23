@@ -1,4 +1,6 @@
-"""Module contains the catacx dataset."""
+"""
+Module contains the catacx dataset.
+"""
 import json
 import os
 
@@ -9,7 +11,11 @@ from podium.storage.resources.large_resource import LargeResource
 
 
 class CatacxCommentsDataset(Dataset):
-    """Simple Catacx dataset. Contains only the comments."""
+    """
+    Simple Catacx dataset.
+
+    Contains only the comments.
+    """
 
     NAME = "CatacxCommentsDataset"
     DATASET_FILE_NAME = "catacx_dataset.json"
@@ -17,8 +23,9 @@ class CatacxCommentsDataset(Dataset):
     URL = None  # TODO Add real URL
 
     def __init__(self, dir_path, fields=None):
-        """Dataset constructor, should be given the path to the .json file which contains
-        the Catacx dataset.
+        """
+        Dataset constructor, should be given the path to the .json file which
+        contains the Catacx dataset.
 
         Parameters
         ----------
@@ -35,7 +42,8 @@ class CatacxCommentsDataset(Dataset):
 
     @staticmethod
     def get_dataset(fields=None):
-        """Downloads (if necessary) and loads the dataset. Not supported yet.
+        """
+        Downloads (if necessary) and loads the dataset. Not supported yet.
         Raises NotImplementedError if called.
 
         Parameters
@@ -70,7 +78,8 @@ class CatacxCommentsDataset(Dataset):
 
     @staticmethod
     def _get_comments(ds):
-        """Generator iterating trough the comments in the Catacx dataset.
+        """
+        Generator iterating trough the comments in the Catacx dataset.
 
         Parameters
         ----------
@@ -88,7 +97,8 @@ class CatacxCommentsDataset(Dataset):
 
     @staticmethod
     def _create_examples(dir_path, fields):
-        """Loads the dataset and extracts Examples.
+        """
+        Loads the dataset and extracts Examples.
 
         Parameters
         ----------

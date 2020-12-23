@@ -1,4 +1,6 @@
-"""Example how to use model on simple PauzaHR dataset using the Experiment class."""
+"""
+Example how to use model on simple PauzaHR dataset using the Experiment class.
+"""
 import os
 
 import numpy as np
@@ -18,13 +20,17 @@ from podium.validation import k_fold_classification_metrics
 
 
 def numericalize_pauza_rating(rating):
-    """Function numericalizes pauza_hr dataset rating field"""
+    """
+    Function numericalizes pauza_hr dataset rating field.
+    """
     label = round(float(rating) * 2) - 1
     return label
 
 
 def basic_pauza_hr_fields():
-    """Function returns pauza-hr fields used for classification."""
+    """
+    Function returns pauza-hr fields used for classification.
+    """
     rating = Field(
         name="Rating",
         vocab=Vocab(specials=()),
@@ -52,7 +58,9 @@ def label_transform_fun(y_batch):
 
 
 def experiment_example():
-    """Example of setting up and using the Experiment class."""
+    """
+    Example of setting up and using the Experiment class.
+    """
 
     LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
 
@@ -70,8 +78,10 @@ def experiment_example():
     embedding_matrix = vectorizer.get_embedding_matrix(fields["Text"].vocab)
 
     def feature_transform_fn(x_batch):
-        """Batch transform function that returns a mean of embedding vectors for every
-        token in an Example"""
+        """
+        Batch transform function that returns a mean of embedding vectors for
+        every token in an Example.
+        """
         x_tensor = np.take(embedding_matrix, x_batch.Text.astype(int), axis=0)
         x = np.mean(x_tensor, axis=1)
         return x

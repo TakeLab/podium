@@ -1,4 +1,6 @@
-"""Package contains modules for preprocessing."""
+"""
+Package contains modules for preprocessing.
+"""
 
 from .functional import remove_stopwords, truecase
 from .hooks import (

@@ -1,4 +1,6 @@
-"""Module contains the CoNLL-U dataset."""
+"""
+Module contains the CoNLL-U dataset.
+"""
 import collections
 
 from podium.datasets import Dataset
@@ -6,10 +8,15 @@ from podium.storage import ExampleFactory, Field, Vocab
 
 
 class CoNLLUDataset(Dataset):
-    """A CoNLL-U dataset class. This class uses all default CoNLL-U fields."""
+    """
+    A CoNLL-U dataset class.
+
+    This class uses all default CoNLL-U fields.
+    """
 
     def __init__(self, file_path, fields=None):
-        """Dataset constructor.
+        """
+        Dataset constructor.
 
         Parameters
         ----------
@@ -26,7 +33,8 @@ class CoNLLUDataset(Dataset):
 
     @staticmethod
     def _create_examples(file_path, fields):
-        """Loads the dataset and extracts Examples.
+        """
+        Loads the dataset and extracts Examples.
 
         Parameters
         ----------
@@ -91,7 +99,8 @@ class CoNLLUDataset(Dataset):
 
     @staticmethod
     def get_default_fields():
-        """Method returns a dict of default CoNLL-U fields.
+        """
+        Method returns a dict of default CoNLL-U fields.
 
         Returns
         -------

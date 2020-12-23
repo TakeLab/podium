@@ -1,5 +1,7 @@
-"""Module containing the Example Factory method used to dynamically create example
-classes used for storage in Dataset classes"""
+"""
+Module containing the Example Factory method used to dynamically create example
+classes used for storage in Dataset classes.
+"""
 
 import csv
 import json
@@ -28,7 +30,8 @@ FACTORY_METHOD_DICT = {
 
 
 class Example(dict):
-    """Base class for data instances in Podium.
+    """
+    Base class for data instances in Podium.
 
     Each key corresponds to one Field and holds (raw, tokenized) values produced by
     that Field.
@@ -50,11 +53,11 @@ class Example(dict):
 
     @staticmethod
     def with_fields(fields):
-        """Create an Example instance from the given fields. This function
-        should be used in conjuction with the function that creates an Example
-        from the specific format.
-        See podium.storage.ExampleFactory for the concrete list of functions
-        that create Examples from diffent formats.
+        """
+        Create an Example instance from the given fields. This function should
+        be used in conjuction with the function that creates an Example from the
+        specific format. See podium.storage.ExampleFactory for the concrete list
+        of functions that create Examples from diffent formats.
 
         Notes
         -----
@@ -65,11 +68,16 @@ class Example(dict):
 
 
 class ExampleFactory:
-    """Class used to create Example instances. Every ExampleFactory dynamically creates
-    its own example class definition optimised for the fields provided in __init__."""
+    """
+    Class used to create Example instances.
+
+    Every ExampleFactory dynamically creates its own example class definition
+    optimised for the fields provided in __init__.
+    """
 
     def __init__(self, fields):
-        """Creates a new ExampleFactory instance.
+        """
+        Creates a new ExampleFactory instance.
 
         Parameters
         ----------
@@ -78,7 +86,6 @@ class ExampleFactory:
             (or tuples of Fields), or a list of Fields (or tuples of Fields).
             A Field value of None means the corresponding column will
             be ignored.
-
         """
         if isinstance(fields, dict):
             self.fields = {
@@ -90,7 +97,8 @@ class ExampleFactory:
             self.fields = fields
 
     def from_dict(self, data):
-        """Method creates example from data in dictionary format.
+        """
+        Method creates example from data in dictionary format.
 
         Parameters
         ----------
@@ -111,7 +119,8 @@ class ExampleFactory:
         return example
 
     def from_list(self, data):
-        """Method creates example from data in list format.
+        """
+        Method creates example from data in list format.
 
         Parameters
         ----------
@@ -132,7 +141,8 @@ class ExampleFactory:
         return example
 
     def from_xml_str(self, data):
-        """Method creates and Example from xml string.
+        """
+        Method creates and Example from xml string.
 
         Parameters
         ----------
@@ -176,9 +186,8 @@ class ExampleFactory:
         return example
 
     def from_json(self, data):
-        """Creates an Example from a JSON object and the
-        corresponding fields.
-
+        """
+        Creates an Example from a JSON object and the corresponding fields.
 
         Parameters
         ----------
@@ -201,8 +210,9 @@ class ExampleFactory:
         return self.from_dict(json.loads(data))
 
     def from_csv(self, data, field_to_index=None, delimiter=","):
-        """Creates an Example from a CSV line and a corresponding
-        list or dict of Fields.
+        """
+        Creates an Example from a CSV line and a corresponding list or dict of
+        Fields.
 
         Parameters
         ----------
@@ -230,8 +240,9 @@ class ExampleFactory:
             return self.from_dict(data_dict)
 
     def from_fields_tree(self, data, subtrees=False, label_transform=None):
-        """Creates an Example (or multiple Examples) from a string
-        representing an nltk tree and a list of corresponding values.
+        """
+        Creates an Example (or multiple Examples) from a string representing an
+        nltk tree and a list of corresponding values.
 
         Parameters
         ----------
@@ -297,7 +308,8 @@ class ExampleFactory:
 
 
 def tree_to_list(tree):
-    """Method joins tree leaves and label in one list.
+    """
+    Method joins tree leaves and label in one list.
 
     Parameters
     ----------
@@ -313,7 +325,8 @@ def tree_to_list(tree):
 
 
 def set_example_attributes(example, field, val):
-    """Method sets example attributes with given values.
+    """
+    Method sets example attributes with given values.
 
     Parameters
     ----------

@@ -1,4 +1,6 @@
-"""Module contains classes for iterating over datasets."""
+"""
+Module contains classes for iterating over datasets.
+"""
 import math
 import warnings
 from abc import ABC, abstractmethod
@@ -20,8 +22,10 @@ class IteratorABC(ABC):
     def __call__(
         self, dataset: DatasetABC
     ) -> PythonIterator[Tuple[NamedTuple, NamedTuple]]:
-        """Sets the dataset for this Iterator and returns an iterable over the batches of
-        that dataset. Same as calling iterator.set_dataset() followed by iter(iterator)
+        """
+        Sets the dataset for this Iterator and returns an iterable over the
+        batches of that dataset. Same as calling iterator.set_dataset() followed
+        by iter(iterator)
 
         Parameters
         ----------
@@ -31,7 +35,6 @@ class IteratorABC(ABC):
         Returns
         -------
         Iterable over batches in the Dataset.
-
         """
         self.set_dataset(dataset)
         return iter(self)
@@ -40,8 +43,9 @@ class IteratorABC(ABC):
 
     @abstractmethod
     def set_dataset(self, dataset: DatasetABC) -> None:
-        """Sets the dataset for this Iterator to iterate over.
-        Resets the epoch count.
+        """
+        Sets the dataset for this Iterator to iterate over. Resets the epoch
+        count.
 
         Parameters
         ----------
@@ -52,11 +56,11 @@ class IteratorABC(ABC):
 
     @abstractmethod
     def __iter__(self) -> PythonIterator[Tuple[NamedTuple, NamedTuple]]:
-        """Returns an iterator object that knows how to iterate over the
-        given dataset.
-        The iterator yields tuples in the form (input_batch, target_batch).
-        The input_batch and target_batch objects have attributes that
-        correspond to the names of input fields and target fields
+        """
+        Returns an iterator object that knows how to iterate over the given
+        dataset. The iterator yields tuples in the form (input_batch,
+        target_batch). The input_batch and target_batch objects have attributes
+        that correspond to the names of input fields and target fields
         (respectively) of the dataset.
 
         Returns
@@ -68,7 +72,8 @@ class IteratorABC(ABC):
 
     @abstractmethod
     def __len__(self) -> int:
-        """Returns the number of batches this iterator provides in one epoch.
+        """
+        Returns the number of batches this iterator provides in one epoch.
 
         Returns
         -------
@@ -80,7 +85,8 @@ class IteratorABC(ABC):
 
 
 class Iterator(IteratorABC):
-    """An iterator that batches data from a dataset after numericalization.
+    """
+    An iterator that batches data from a dataset after numericalization.
 
     Attributes
     ----------
@@ -99,7 +105,8 @@ class Iterator(IteratorABC):
         seed=1,
         internal_random_state=None,
     ):
-        """Creates an iterator for the given dataset and batch size.
+        """
+        Creates an iterator for the given dataset and batch size.
 
         Parameters
         ----------
@@ -182,17 +189,22 @@ class Iterator(IteratorABC):
 
     @property
     def epoch(self) -> int:
-        """The current epoch of the Iterator."""
+        """
+        The current epoch of the Iterator.
+        """
         return self._epoch
 
     @property
     def iterations(self) -> int:
-        """Number of batches returned for the current epoch."""
+        """
+        Number of batches returned for the current epoch.
+        """
         return self._iterations
 
     def set_dataset(self, dataset: DatasetABC) -> None:
-        """Sets the dataset for this Iterator to iterate over.
-        Resets the epoch count.
+        """
+        Sets the dataset for this Iterator to iterate over. Resets the epoch
+        count.
 
         Parameters
         ----------
@@ -213,7 +225,8 @@ class Iterator(IteratorABC):
         self._dataset = dataset
 
     def __len__(self) -> int:
-        """Returns the number of batches this iterator provides in one epoch.
+        """
+        Returns the number of batches this iterator provides in one epoch.
 
         Returns
         -------
@@ -224,19 +237,17 @@ class Iterator(IteratorABC):
         return math.ceil(len(self._dataset) / self._batch_size)
 
     def __iter__(self) -> PythonIterator[Tuple[NamedTuple, NamedTuple]]:
-        """Returns an iterator object that knows how to iterate over the
-        given dataset.
-        The iterator yields tuples in the form (input_batch, target_batch).
-        The input_batch and target_batch objects have attributes that
-        correspond to the names of input fields and target fields
-        (respectively) of the dataset.
-        The values of those attributes are numpy matrices, whose rows are the
-        numericalized values of that field in the examples that are in the
-        batch.
-        Rows of sequential fields (that are of variable length) are all padded
-        to a common length. The common length is either the fixed_length
-        attribute of the field or, if that is not given, the maximum length
-        of all examples in the batch.
+        """
+        Returns an iterator object that knows how to iterate over the given
+        dataset. The iterator yields tuples in the form (input_batch,
+        target_batch). The input_batch and target_batch objects have attributes
+        that correspond to the names of input fields and target fields
+        (respectively) of the dataset. The values of those attributes are numpy
+        matrices, whose rows are the numericalized values of that field in the
+        examples that are in the batch. Rows of sequential fields (that are of
+        variable length) are all padded to a common length. The common length is
+        either the fixed_length attribute of the field or, if that is not given,
+        the maximum length of all examples in the batch.
 
         Returns
         -------
@@ -316,7 +327,8 @@ class Iterator(IteratorABC):
         return input_batch, target_batch
 
     def get_internal_random_state(self):
-        """Returns the internal random state of the iterator.
+        """
+        Returns the internal random state of the iterator.
 
         Useful when we want to stop iteration and later continue where we left
         off. We can store the random state obtained with this method and later
@@ -345,7 +357,8 @@ class Iterator(IteratorABC):
         return self._shuffler.getstate()
 
     def set_internal_random_state(self, state):
-        """Sets the internal random state of the iterator.
+        """
+        Sets the internal random state of the iterator.
 
         Useful when we want to stop iteration and later continue where we left
         off. We can take the random state previously obtained from another
@@ -398,12 +411,15 @@ class Iterator(IteratorABC):
 
 
 class SingleBatchIterator(Iterator):
-    """Iterator that creates one batch per epoch
-    containing all examples in the dataset."""
+    """
+    Iterator that creates one batch per epoch containing all examples in the
+    dataset.
+    """
 
     def __init__(self, dataset: DatasetABC = None, shuffle=True):
-        """Creates an Iterator that creates one batch per epoch
-        containing all examples in the dataset.
+        """
+        Creates an Iterator that creates one batch per epoch containing all
+        examples in the dataset.
 
         Parameters
         ----------
@@ -430,8 +446,9 @@ class SingleBatchIterator(Iterator):
 
 
 class BucketIterator(Iterator):
-    """Creates a bucket iterator that uses a look-ahead heuristic to try and
-    batch examples in a way that minimizes the amount of necessary padding.
+    """
+    Creates a bucket iterator that uses a look-ahead heuristic to try and batch
+    examples in a way that minimizes the amount of necessary padding.
 
     It creates a bucket of size N x batch_size, and sorts that bucket before
     splitting it into batches, so there is less padding necessary.
@@ -447,9 +464,10 @@ class BucketIterator(Iterator):
         look_ahead_multiplier=100,
         bucket_sort_key=None,
     ):
-        """Creates a BucketIterator with the given bucket sort key and
-        look-ahead multiplier (how many batch_sizes to look ahead when
-        sorting examples for batches).
+        """
+        Creates a BucketIterator with the given bucket sort key and look-ahead
+        multiplier (how many batch_sizes to look ahead when sorting examples for
+        batches).
 
         Parameters
         ----------
@@ -525,16 +543,16 @@ class BucketIterator(Iterator):
 
 
 class HierarchicalDatasetIterator(Iterator):
-    """Iterator used to create batches for Hierarchical Datasets.
+    """
+    Iterator used to create batches for Hierarchical Datasets.
 
-    It creates batches in the form of lists of matrices. In the batch namedtuple that gets
-    returned, every attribute corresponds to a field in the dataset. For every field in
-    the dataset, the namedtuple contains a list of matrices, where every matrix
-    represents the context of an example in the batch. The rows of a matrix contain
-    numericalized representations of the examples that make up the context of an example
-    in the batch with the representation of the example itself being in the last row of
-    its own context matrix.
-
+    It creates batches in the form of lists of matrices. In the batch namedtuple
+    that gets returned, every attribute corresponds to a field in the dataset.
+    For every field in the dataset, the namedtuple contains a list of matrices,
+    where every matrix represents the context of an example in the batch. The
+    rows of a matrix contain numericalized representations of the examples that
+    make up the context of an example in the batch with the representation of
+    the example itself being in the last row of its own context matrix.
     """
 
     def __init__(
@@ -548,7 +566,8 @@ class HierarchicalDatasetIterator(Iterator):
         context_max_length=None,
         context_max_depth=None,
     ):
-        """Creates an iterator for the given dataset and batch size.
+        """
+        Creates an iterator for the given dataset and batch size.
 
         Parameters
         ----------
@@ -644,8 +663,10 @@ class HierarchicalDatasetIterator(Iterator):
         super().set_dataset(dataset)
 
     def _get_node_context(self, node):
-        """Generates a list of examples that make up the context of the provided node,
-        truncated to adhere to 'context_max_depth' and 'context_max_length' limitations.
+        """
+        Generates a list of examples that make up the context of the provided
+        node, truncated to adhere to 'context_max_depth' and
+        'context_max_length' limitations.
 
         Parameters
         ----------
@@ -658,7 +679,6 @@ class HierarchicalDatasetIterator(Iterator):
             A list of examples that make up the context of the provided node,
             truncated to adhere to 'context_max_depth' and 'context_max_length'
             limitations.
-
         """
         context_iterator = HierarchicalDataset._get_node_context(
             node, self._context_max_depth
@@ -688,7 +708,6 @@ class HierarchicalDatasetIterator(Iterator):
         (namedtuple, namedtuple)
             a tuple of two namedtuples, input batch and target batch, containing the
             input and target fields of the batch respectively.
-
         """
 
         input_batch_dict, target_batch_dict = defaultdict(list), defaultdict(list)

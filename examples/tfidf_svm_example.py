@@ -1,4 +1,6 @@
-"""Example how to use tfidf with svm on simple SST dataset."""
+"""
+Example how to use tfidf with svm on simple SST dataset.
+"""
 from sklearn.metrics import accuracy_score
 
 from podium.datasets import SST
@@ -11,8 +13,10 @@ from podium.storage.vectorizers.tfidf import TfIdfVectorizer
 
 
 def tfidf_svm_example_main():
-    """Function obtains sst dataset and then trains scikit svc linear model by using
-    tfidf as input."""
+    """
+    Function obtains sst dataset and then trains scikit svc linear model by
+    using tfidf as input.
+    """
     train_set, test_set, _ = SST.get_dataset_splits()
 
     train_iter = Iterator(batch_size=len(train_set))

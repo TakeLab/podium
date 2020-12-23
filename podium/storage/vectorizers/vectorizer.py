@@ -1,6 +1,7 @@
-"""Module vectorizer offers classes for vectorizing tokens.
- Interface of implemented concrete vectorizers is given in Vectorizer class.
+"""
+Module vectorizer offers classes for vectorizing tokens.
 
+Interface of implemented concrete vectorizers is given in Vectorizer class.
 """
 import os
 from abc import ABC, abstractmethod
@@ -9,8 +10,9 @@ import numpy as np
 
 
 def zeros_default_vector(token, dim):
-    """Function for creating default vector for given token in form of zeros
-    array. Dimension of returned array is equal to given dim.
+    """
+    Function for creating default vector for given token in form of zeros array.
+    Dimension of returned array is equal to given dim.
 
     Parameters
     ----------
@@ -37,8 +39,9 @@ def zeros_default_vector(token, dim):
 
 
 def random_normal_default_vector(token, dim):
-    """Draw a random vector from a standard normal distribution.
-    Dimension of returned array is equal to given dim.
+    """
+    Draw a random vector from a standard normal distribution. Dimension of
+    returned array is equal to given dim.
 
     Parameters
     ----------
@@ -61,15 +64,17 @@ def random_normal_default_vector(token, dim):
 
 
 class VectorStorage(ABC):
-    """Interface for classes that can vectorize token. One example of such
-    vectorizer is word2vec.
+    """
+    Interface for classes that can vectorize token.
 
+    One example of such vectorizer is word2vec.
     """
 
     def __init__(
         self, path, default_vector_function=None, cache_path=None, max_vectors=None
     ):
-        """Vectorizer base class constructor.
+        """
+        Vectorizer base class constructor.
 
         Parameters
         ----------
@@ -85,7 +90,6 @@ class VectorStorage(ABC):
             vectors to load
         max_vectors : int, optional
             maximum number of vectors to load in memory
-
         """
         self._path = path
         self._default_vector_function = default_vector_function
@@ -94,7 +98,8 @@ class VectorStorage(ABC):
 
     @abstractmethod
     def load_all(self):
-        """Method loads all vectors stored in instance path to the vectors.
+        """
+        Method loads all vectors stored in instance path to the vectors.
 
         Raises
         ------
@@ -109,8 +114,9 @@ class VectorStorage(ABC):
 
     @abstractmethod
     def load_vocab(self, vocab):
-        """Method loads vectors for tokens in vocab
-        stored in given path to the instance.
+        """
+        Method loads vectors for tokens in vocab stored in given path to the
+        instance.
 
         Parameters
         ----------
@@ -131,7 +137,8 @@ class VectorStorage(ABC):
 
     @abstractmethod
     def token_to_vector(self, token):
-        """Method obtains vector for given token.
+        """
+        Method obtains vector for given token.
 
         Parameters
         ----------
@@ -160,7 +167,8 @@ class VectorStorage(ABC):
 
     @abstractmethod
     def get_vector_dim(self):
-        """ "Method returns vector dimension.
+        """
+        "Method returns vector dimension.
 
         Returns
         -------
@@ -176,7 +184,8 @@ class VectorStorage(ABC):
 
     @abstractmethod
     def __len__(self):
-        """Method returns number of vectors in vector storage.
+        """
+        Method returns number of vectors in vector storage.
 
         Returns
         -------
@@ -186,7 +195,8 @@ class VectorStorage(ABC):
         pass
 
     def get_embedding_matrix(self, vocab=None):
-        """Method constructs embedding matrix.
+        """
+        Method constructs embedding matrix.
 
         Note: From python 3.6 dictionaries preserve insertion order
         https://docs.python.org/3.6/whatsnew/3.6.html#other-language-changes
@@ -215,7 +225,8 @@ class VectorStorage(ABC):
 
 
 class BasicVectorStorage(VectorStorage):
-    """Basic implementation of VectorStorage that handles loading vectors from
+    """
+    Basic implementation of VectorStorage that handles loading vectors from
     system storage.
 
     Attributes
@@ -229,7 +240,6 @@ class BasicVectorStorage(VectorStorage):
     _binary : bool
         if True, the file is read as a binary file.
         Else, it's read as a plain utf-8 text file.
-
     """
 
     def __init__(
@@ -282,7 +292,9 @@ class BasicVectorStorage(VectorStorage):
         return self._vectors[token]
 
     def _cache_vectors(self):
-        """Method for caching loaded vectors to cache_dir."""
+        """
+        Method for caching loaded vectors to cache_dir.
+        """
         with open(self._cache_path, "wb") as cache_file:
             for word in self._vectors:
                 vector_values_string = " ".join(map(str, self._vectors[word]))
@@ -290,7 +302,8 @@ class BasicVectorStorage(VectorStorage):
 
     @staticmethod
     def _decode_word(word):
-        """Method tries to decode binary word as utf-8 raises UnicodeError if
+        """
+        Method tries to decode binary word as utf-8 raises UnicodeError if
         fails.
 
         Parameters
@@ -313,8 +326,9 @@ class BasicVectorStorage(VectorStorage):
             return decoded
 
     def _load_vectors(self, vocab=None):
-        """Internal method for loading vectors. It combines vocab vectors
-        loading and all vectors loading.
+        """
+        Internal method for loading vectors. It combines vocab vectors loading
+        and all vectors loading.
 
         Parameters
         ----------
@@ -402,9 +416,12 @@ class BasicVectorStorage(VectorStorage):
         return self._dim
 
     def _check_path(self):
-        """Internal method for determining if instance paths are in supported
-        state. It enforces that both paths cannot be None and that not None
-        path must exist unless if it is used for caching loaded vectors.
+        """
+        Internal method for determining if instance paths are in supported
+        state.
+
+        It enforces that both paths cannot be None and that not None path must
+        exist unless if it is used for caching loaded vectors.
         """
         if self._path is None and self._cache_path is None:
             raise ValueError(

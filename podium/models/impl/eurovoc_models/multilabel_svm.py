@@ -1,4 +1,5 @@
-"""Multilabel SVM classifier for EuroVoc dataset.
+"""
+Multilabel SVM classifier for EuroVoc dataset.
 
 Example
 -------
@@ -38,15 +39,18 @@ from podium.validation.validation import KFold
 
 
 class MultilabelSVM(AbstractSupervisedModel):
-    """Multilabel SVM with hyperparameter optimization via grid search using K-fold
+    """
+    Multilabel SVM with hyperparameter optimization via grid search using K-fold
     cross-validation.
 
-    Multilabel SVM is implemented as a set of binary SVM classifiers, one for each class
-    in dataset (one vs. rest).
+    Multilabel SVM is implemented as a set of binary SVM classifiers, one for
+    each class in dataset (one vs. rest).
     """
 
     def __init__(self):
-        """Creates and instance of MultilabelSVM."""
+        """
+        Creates and instance of MultilabelSVM.
+        """
         self._models = None
 
     def fit(
@@ -60,7 +64,8 @@ class MultilabelSVM(AbstractSupervisedModel):
         scoring="f1",
         n_jobs=1,
     ):
-        """Fits the model on given data.
+        """
+        Fits the model on given data.
 
         For each class present in y (for each column of the y matrix), a separate SVM
         model is trained. If there are no positive training instances for some label
@@ -167,7 +172,8 @@ class MultilabelSVM(AbstractSupervisedModel):
             self._models.append(clf)
 
     def predict(self, X):
-        """Predict labels for given data.
+        """
+        Predict labels for given data.
 
         If no model has been trained for some class (because the was not enough examples
         for this label in the train set), a zero column is returned. If one wishes to
@@ -206,8 +212,9 @@ class MultilabelSVM(AbstractSupervisedModel):
         return {AbstractSupervisedModel.PREDICTION_KEY: Y.transpose()}
 
     def get_indexes_of_missing_models(self):
-        """Returns the indexes of classes for which the models have not been trained due
-        to the lack of positive training examples.
+        """
+        Returns the indexes of classes for which the models have not been
+        trained due to the lack of positive training examples.
 
         Returns
         -------
@@ -230,8 +237,9 @@ class MultilabelSVM(AbstractSupervisedModel):
 
 
 def get_label_matrix(Y):
-    """Takes the target fields returned by the EuroVoc iterator and returns the EuroVoc
-    label matrix.
+    """
+    Takes the target fields returned by the EuroVoc iterator and returns the
+    EuroVoc label matrix.
 
     Parameters
     ----------
@@ -256,7 +264,8 @@ def train_multilabel_svm(
     include_classes_with_no_train_examples=False,
     include_classes_with_no_test_examples=False,
 ):
-    """Trains the multilabel SVM model on a given instance of dataset.
+    """
+    Trains the multilabel SVM model on a given instance of dataset.
 
     Parameters
     ----------

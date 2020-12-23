@@ -1,4 +1,6 @@
-"""Package contains datasets."""
+"""
+Package contains datasets.
+"""
 
 from .dataset import Dataset, rationed_split, stratified_split
 from .dataset_abc import DatasetABC

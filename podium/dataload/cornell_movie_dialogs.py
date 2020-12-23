@@ -1,5 +1,7 @@
-"""Dataloader for Cornell Movie-Dialogs Corpus, available at
-http://www.cs.cornell.edu/~cristian/Cornell_Movie-Dialogs_Corpus.html"""
+"""
+Dataloader for Cornell Movie-Dialogs Corpus, available at
+http://www.cs.cornell.edu/~cristian/Cornell_Movie-Dialogs_Corpus.html.
+"""
 import os
 import re
 from collections import namedtuple
@@ -24,13 +26,14 @@ CornellMovieDialogsNamedTuple = namedtuple(
 
 
 class CornellMovieDialogsLoader:
-    """Class for downloading and parsing the Cornell Movie-Dialogs dataset.
+    """
+    Class for downloading and parsing the Cornell Movie-Dialogs dataset.
 
-    This class is used for downloading the dataset (if it's not already downloaded) and
-    parsing the files in the dataset. If it's not already present
-    LargeResource.BASE_RESOURCE_DIR, the dataset is automatically downloaded when an
-    instance of the loader is created. The downloaded resources can be parsed using
-    the load_dataset method.
+    This class is used for downloading the dataset (if it's not already
+    downloaded) and parsing the files in the dataset. If it's not already
+    present LargeResource.BASE_RESOURCE_DIR, the dataset is automatically
+    downloaded when an instance of the loader is created. The downloaded
+    resources can be parsed using the load_dataset method.
     """
 
     URL = "http://www.cs.cornell.edu/~cristian/data/cornell_movie_dialogs_corpus.zip"
@@ -63,9 +66,11 @@ class CornellMovieDialogsLoader:
     URL_FILENAME = "raw_script_urls.txt"
 
     def __init__(self):
-        """The constructor will check if the dataset is already been downloaded in the
-        LargeResource.BASE_RESOURCE_DIR. If the dataset is not present, it will atempt to
-        download it.
+        """
+        The constructor will check if the dataset is already been downloaded in
+        the LargeResource.BASE_RESOURCE_DIR.
+
+        If the dataset is not present, it will atempt to download it.
         """
         LargeResource(
             **{
@@ -76,7 +81,8 @@ class CornellMovieDialogsLoader:
         )
 
     def load_dataset(self):
-        """Loads and parses all the necessary files from the dataset folder.
+        """
+        Loads and parses all the necessary files from the dataset folder.
 
         Returns
         -------
@@ -101,8 +107,9 @@ class CornellMovieDialogsLoader:
 
     @staticmethod
     def _load_file(file_name, fields, columns_hooks=None):
-        """Method loads file from Cornell movie dialogs dataset defined with file name and
-        fields that are used in the file.
+        """
+        Method loads file from Cornell movie dialogs dataset defined with file
+        name and fields that are used in the file.
 
         Parameters
         ----------
@@ -135,7 +142,9 @@ class CornellMovieDialogsLoader:
         return data_frame.to_dict(orient="list")
 
     def load_titles(self):
-        """Method loads file containing movie titles."""
+        """
+        Method loads file containing movie titles.
+        """
         column_hooks = {}
         column_hooks["genres"] = lambda s: s.strip("[]''").split("', '")
         return self._load_file(
@@ -145,7 +154,9 @@ class CornellMovieDialogsLoader:
         )
 
     def load_conversations(self):
-        """Method loads file containing movie conversations."""
+        """
+        Method loads file containing movie conversations.
+        """
         column_hooks = {}
         column_hooks["utteranceIDs"] = lambda s: s.strip("[]''").split("', '")
         return self._load_file(
@@ -155,21 +166,27 @@ class CornellMovieDialogsLoader:
         )
 
     def load_lines(self):
-        """Method loads file containing movie lines."""
+        """
+        Method loads file containing movie lines.
+        """
         return self._load_file(
             file_name=CornellMovieDialogsLoader.LINES_FILENAME,
             fields=CornellMovieDialogsLoader.LINES_FIELDS,
         )
 
     def load_characters(self):
-        """Method loads file containing movie characters."""
+        """
+        Method loads file containing movie characters.
+        """
         return self._load_file(
             file_name=CornellMovieDialogsLoader.CHARACTERS_FILENAME,
             fields=CornellMovieDialogsLoader.CHARACTERS_FIELDS,
         )
 
     def load_urls(self):
-        """Method loads file containing movie script urls."""
+        """
+        Method loads file containing movie script urls.
+        """
         return self._load_file(
             file_name=CornellMovieDialogsLoader.URL_FILENAME,
             fields=CornellMovieDialogsLoader.URL_FIELDS,

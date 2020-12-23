@@ -8,7 +8,8 @@ from podium.storage.vocab import Vocab
 
 
 class SST(Dataset):
-    """The Stanford sentiment treebank dataset.
+    """
+    The Stanford sentiment treebank dataset.
 
     Attributes
     ----------
@@ -43,8 +44,9 @@ class SST(Dataset):
     LABEL_FIELD_NAME = "label"
 
     def __init__(self, file_path, fields, fine_grained=False, subtrees=False):
-        """Dataset constructor. User should use static method
-        get_dataset_splits rather than using the constructor directly.
+        """
+        Dataset constructor. User should use static method get_dataset_splits
+        rather than using the constructor directly.
 
         Parameters
         ----------
@@ -87,9 +89,10 @@ class SST(Dataset):
 
     @staticmethod
     def _create_examples(file_path, fields, fine_grained, subtrees):
-        """Method creates examples for the sst dataset. Examples are arranged in two
-        folders, one for examples with positive sentiment and other with negative
-        sentiment. One file in each folder represents one example.
+        """
+        Method creates examples for the sst dataset. Examples are arranged in
+        two folders, one for examples with positive sentiment and other with
+        negative sentiment. One file in each folder represents one example.
 
         Parameters
         ----------
@@ -135,7 +138,8 @@ class SST(Dataset):
 
     @staticmethod
     def get_dataset_splits(fields=None, fine_grained=False, subtrees=False):
-        """Method loads and creates dataset splits for the SST dataset.
+        """
+        Method loads and creates dataset splits for the SST dataset.
 
         Parameters
         ----------
@@ -186,7 +190,8 @@ class SST(Dataset):
 
     @staticmethod
     def get_default_fields():
-        """Method returns default Imdb fields: text and label.
+        """
+        Method returns default Imdb fields: text and label.
 
         Returns
         -------

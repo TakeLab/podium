@@ -14,8 +14,12 @@ from podium.storage.field import Field, MultioutputField
 
 
 class Pipeline(Experiment):
-    """Class used to streamline the use of Podium. It contains all components needed to
-    train or fine-tune a pre-configured model and make predictions on new data."""
+    """
+    Class used to streamline the use of Podium.
+
+    It contains all components needed to train or fine-tune a pre-configured
+    model and make predictions on new data.
+    """
 
     def __init__(
         self,
@@ -29,7 +33,8 @@ class Pipeline(Experiment):
         label_transform_fn: Callable[[NamedTuple], np.ndarray] = None,
         output_transform_fn: Callable[[np.ndarray], Any] = None,
     ):
-        """Creates a new pipeline instance.
+        """
+        Creates a new pipeline instance.
 
         Parameters
         ----------
@@ -134,8 +139,9 @@ class Pipeline(Experiment):
         )
 
     def predict_raw(self, raw_example: Any, **kwargs) -> np.ndarray:
-        """Computes the prediction of the model for the one example.
-        The example must be of the format provided in the constructor as the
+        """
+        Computes the prediction of the model for the one example. The example
+        must be of the format provided in the constructor as the
         `example_format` parameter.
 
         Parameters
@@ -149,7 +155,8 @@ class Pipeline(Experiment):
         Returns
         -------
         ndarray
-            Tensor containing the prediction for the example."""
+            Tensor containing the prediction for the example.
+        """
         processed_example = self.prediction_example_factory.from_format(
             raw_example, self.example_format
         )
@@ -169,8 +176,9 @@ class Pipeline(Experiment):
         trainer_kwargs: Dict = None,
         trainer: AbstractTrainer = None,
     ):
-        """Fits the model to the data without resetting the model.
-        Each example must be of the format provided in the constructor as the
+        """
+        Fits the model to the data without resetting the model. Each example
+        must be of the format provided in the constructor as the
         `example_format` parameter.
 
         Parameters
@@ -208,10 +216,10 @@ class Pipeline(Experiment):
         feature_transformer: FeatureTransformer = None,
         trainer: AbstractTrainer = None,
     ):
-        """Fits the model to the provided examples.
-        During fitting, the provided Iterator and Trainer are used.
-        Each example must be of the format provided in the constructor as the
-        `example_format` parameter.
+        """
+        Fits the model to the provided examples. During fitting, the provided
+        Iterator and Trainer are used. Each example must be of the format
+        provided in the constructor as the `example_format` parameter.
 
         Parameters
         ----------

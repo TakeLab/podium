@@ -1,11 +1,15 @@
-"""Example shows how to add keyword extraction features to a dataset."""
+"""
+Example shows how to add keyword extraction features to a dataset.
+"""
 from podium.datasets import Dataset
 from podium.preproc.yake import YAKE
 from podium.storage import ExampleFactory, Field
 
 
 class DummyDataset(Dataset):
-    """Dummmy dataset."""
+    """
+    Dummmy dataset.
+    """
 
     TEXT_FIELD_NAME = "text"
 
@@ -27,10 +31,13 @@ class DummyDataset(Dataset):
 
 
 def keyword_extraction_main():
-    """Function creates a dummmy keyword extraction dataset in Croatian language
-    and extracts the keywords. The created dataset demonstrates how to map the input
-    text to two fields: tokens (tokenized using str.split) and keywords (extracted
-    using YAKE)."""
+    """
+    Function creates a dummmy keyword extraction dataset in Croatian language
+    and extracts the keywords.
+
+    The created dataset demonstrates how to map the input text to two fields:
+    tokens (tokenized using str.split) and keywords (extracted using YAKE).
+    """
 
     sample_texts = [
         """Karijera u turizmu Pjevačica Renata Končić Minea već dva tjedna radi kao

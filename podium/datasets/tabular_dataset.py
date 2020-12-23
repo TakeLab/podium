@@ -6,14 +6,16 @@ from podium.storage.example_factory import ExampleFactory
 
 
 class TabularDataset(Dataset):
-    """A dataset type for data stored in a single CSV, TSV or JSON file, where
-    each row of the file is a single example.
+    """
+    A dataset type for data stored in a single CSV, TSV or JSON file, where each
+    row of the file is a single example.
     """
 
     def __init__(
         self, path, format, fields, skip_header=False, csv_reader_params={}, **kwargs
     ):
-        """Creates a TabularDataset from a file containing the data rows and an
+        """
+        Creates a TabularDataset from a file containing the data rows and an
         object containing all the fields that we are interested in.
 
         Parameters
@@ -86,8 +88,9 @@ class TabularDataset(Dataset):
 
 
 def create_examples(reader, format, fields, skip_header):
-    """Creates a list of examples from the given line reader and fields
-    (see TabularDataset.__init__ docs for more info on the fields).
+    """
+    Creates a list of examples from the given line reader and fields (see
+    TabularDataset.__init__ docs for more info on the fields).
 
     Parameters
     ----------

@@ -387,7 +387,8 @@ def test_glove_wrong_params(name, dim):
 def create_temp_vect_file(
     vect_file_name, file_data, file_header=None, base_dir=None, binary=True
 ):
-    """Helper function that creates temporary vector file with given data.
+    """
+    Helper function that creates temporary vector file with given data.
 
     Parameters
     ----------

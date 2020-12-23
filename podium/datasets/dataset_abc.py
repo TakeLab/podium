@@ -29,23 +29,31 @@ class DatasetABC(ABC):
 
     @property
     def fields(self) -> Tuple[Field]:
-        """List containing all fields of this dataset."""
+        """
+        List containing all fields of this dataset.
+        """
         return self._fields
 
     @property
     def field_dict(self) -> Dict[str, Field]:
-        """Dictionary containing all field names mapping to their respective Fields."""
+        """
+        Dictionary containing all field names mapping to their respective
+        Fields.
+        """
         return {f.name: f for f in self.fields}
 
     @property
     def examples(self) -> List[Example]:
-        """List containing all Examples."""
+        """
+        List containing all Examples.
+        """
         return self._get_examples()
 
     # ================= Default methods =======================
 
     def __iter__(self) -> Iterator[Example]:
-        """Iterates over all examples in the dataset in order.
+        """
+        Iterates over all examples in the dataset in order.
 
         Yields
         ------
@@ -56,8 +64,9 @@ class DatasetABC(ABC):
             yield self[i]
 
     def __getattr__(self, field: Union[str, Field]) -> Iterator[Tuple[Any, Any]]:
-        """Returns an Iterator iterating over values of the field with the
-        given name for every example in the dataset.
+        """
+        Returns an Iterator iterating over values of the field with the given
+        name for every example in the dataset.
 
         Parameters
         ----------
@@ -89,9 +98,8 @@ class DatasetABC(ABC):
 
     def finalize_fields(self, *datasets: "DatasetABC") -> None:
         """
-        Builds vocabularies of all the non-eager fields in the dataset,
-        from the Dataset objects given as \\*args and then finalizes all the
-        fields.
+        Builds vocabularies of all the non-eager fields in the dataset, from the
+        Dataset objects given as \\*args and then finalizes all the fields.
 
         Parameters
         ----------
@@ -123,8 +131,9 @@ class DatasetABC(ABC):
             field.finalize()
 
     def batch(self) -> Tuple[NamedTuple, NamedTuple]:
-        """Creates an input and target batch containing the whole dataset.
-        The format of the batch is the same as the batches returned by the
+        """
+        Creates an input and target batch containing the whole dataset. The
+        format of the batch is the same as the batches returned by the.
 
         Returns
         -------
@@ -138,8 +147,9 @@ class DatasetABC(ABC):
         return next(iter(SingleBatchIterator(self, shuffle=False)))
 
     def sorted(self, key: Callable[[Example], Any], reverse=False) -> "DatasetABC":
-        """Creates a new DatasetABC instance in which all Examples are sorted according to
-        the value returned by `key`.
+        """
+        Creates a new DatasetABC instance in which all Examples are sorted
+        according to the value returned by `key`.
 
         Parameters
         ----------
@@ -165,7 +175,8 @@ class DatasetABC(ABC):
         return self[indices]
 
     def filtered(self, predicate: Callable[[Example], bool]) -> "DatasetABC":
-        """Filters examples with given predicate and returns a new DatasetABC
+        """
+        Filters examples with given predicate and returns a new DatasetABC
         instance containing those examples.
 
         Parameters
@@ -184,8 +195,9 @@ class DatasetABC(ABC):
         return self[indices]
 
     def shuffled(self) -> "DatasetABC":
-        """Creates a new DatasetABC instance containing all Examples, but in shuffled
-        order.
+        """
+        Creates a new DatasetABC instance containing all Examples, but in
+        shuffled order.
 
         Returns
         -------
@@ -203,7 +215,8 @@ class DatasetABC(ABC):
 
     @abstractmethod
     def __len__(self) -> int:
-        """Returns the number of examples in the dataset.
+        """
+        Returns the number of examples in the dataset.
 
         Returns
         -------
@@ -222,7 +235,8 @@ class DatasetABC(ABC):
 
     @abstractmethod
     def __getitem__(self, i: slice) -> "DatasetABC":
-        """Returns an example or a new dataset containing the indexed examples.
+        """
+        Returns an example or a new dataset containing the indexed examples.
 
         If indexed with an int, only the example at that position will be returned.
         If Indexed with a slice or iterable, all examples indexed by the object
@@ -253,11 +267,12 @@ class DatasetABC(ABC):
             If i is an int, a single example will be returned.
             If i is a slice or iterable, a copy of this dataset containing
             only the indexed examples will be returned.
-
         """
         pass
 
     @abstractmethod
     def _get_examples(self) -> List[Example]:
-        """Returns a list containing all examples of this dataset."""
+        """
+        Returns a list containing all examples of this dataset.
+        """
         pass

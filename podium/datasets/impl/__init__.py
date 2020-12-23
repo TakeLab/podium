@@ -1,4 +1,6 @@
-"""Package contains concrete datasets."""
+"""
+Package contains concrete datasets.
+"""
 
 from .catacx_dataset import CatacxDataset
 from .conllu_dataset import CoNLLUDataset
