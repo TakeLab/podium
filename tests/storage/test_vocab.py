@@ -121,28 +121,28 @@ def test_no_unk_filters_unknown_tokens():
 
 def test_specials_uniqueness():
     with pytest.raises(ValueError):
-        voc = vocab.Vocab(specials=[vocab.UNK(), vocab.UNK()])
+        vocab.Vocab(specials=[vocab.UNK(), vocab.UNK()])
 
     with pytest.raises(ValueError):
-        voc = vocab.Vocab(specials=[vocab.UNK(), vocab.UNK("<my_unknown>")])
+        vocab.Vocab(specials=[vocab.UNK(), vocab.UNK("<my_unknown>")])
 
     with pytest.raises(ValueError):
-        voc = vocab.Vocab(specials=[vocab.PAD(), vocab.PAD()])
+        vocab.Vocab(specials=[vocab.PAD(), vocab.PAD()])
 
     with pytest.raises(ValueError):
-        voc = vocab.Vocab(specials=[vocab.PAD(), vocab.PAD("<my_pad>")])
+        vocab.Vocab(specials=[vocab.PAD(), vocab.PAD("<my_pad>")])
 
     with pytest.raises(ValueError):
-        voc = vocab.Vocab(specials=[vocab.BOS(), vocab.BOS()])
+        vocab.Vocab(specials=[vocab.BOS(), vocab.BOS()])
 
     with pytest.raises(ValueError):
-        voc = vocab.Vocab(specials=[vocab.BOS(), vocab.BOS("<my_bos>")])
+        vocab.Vocab(specials=[vocab.BOS(), vocab.BOS("<my_bos>")])
 
     with pytest.raises(ValueError):
-        voc = vocab.Vocab(specials=[vocab.EOS(), vocab.EOS()])
+        vocab.Vocab(specials=[vocab.EOS(), vocab.EOS()])
 
     with pytest.raises(ValueError):
-        voc = vocab.Vocab(specials=[vocab.EOS(), vocab.EOS("<my_eos>")])
+        vocab.Vocab(specials=[vocab.EOS(), vocab.EOS("<my_eos>")])
 
 
 def test_specials_get_pad_symbol():

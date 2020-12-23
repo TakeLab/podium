@@ -1,8 +1,6 @@
 """Module contains classes related to the vocabulary."""
-import abc
 import warnings
 from collections import Counter
-from enum import Enum
 from itertools import chain
 from typing import Iterable, Union
 
@@ -179,7 +177,7 @@ class Vocab:
 
         # Apply uniqueness check
         if len(self.specials) > len(set(self.specials)):
-            error_msg = f"Specials may not contain multiple instances of same type."
+            error_msg = "Specials may not contain multiple instances of same type."
             raise ValueError(error_msg)
 
         self._itos = list(self.specials)
