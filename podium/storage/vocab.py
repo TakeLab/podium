@@ -85,7 +85,7 @@ class EOS(Special):
         return super(EOS, cls).__new__(cls, token)
 
     def apply(self, sequence):
-        """Apply the EOS token, adding it to the start of the sequence"""
+        """Apply the EOS token, adding it to the end of the sequence"""
         return sequence + [self]
 
 
