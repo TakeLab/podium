@@ -142,7 +142,9 @@ def test_basic_token_default():
         vect.load_all()
         assert "a" not in vect._vectors
         assert vect["a"].shape == (3,)
-        assert np.allclose(a=vect.token_to_vector("a"), b=np.zeros(3), rtol=0, atol=1.0e-6)
+        assert np.allclose(
+            a=vect.token_to_vector("a"), b=np.zeros(3), rtol=0, atol=1.0e-6
+        )
 
 
 def test_basic_load_vocab():
@@ -327,7 +329,9 @@ def test_basic_cache_vocab():
             assert os.path.exists(vect_file_path)
             cache_path = os.path.join(base, "cache.t")
             assert not os.path.exists(cache_path)
-            vect = vectorizer.BasicVectorStorage(path=vect_file_path, cache_path=cache_path)
+            vect = vectorizer.BasicVectorStorage(
+                path=vect_file_path, cache_path=cache_path
+            )
 
             vocab = [".", ":", ","]
             vect.load_vocab(vocab)

@@ -1,8 +1,8 @@
+import contextlib
 import os
 import shutil
 import tempfile
 from unittest.mock import patch
-import contextlib
 
 import dill
 import pytest
@@ -304,7 +304,9 @@ def create_file(file_path, file_content):
 def test_loading_dataset():
     pytest.importorskip("xlrd")
 
-    with create_mock_dataset() as path, patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+    with create_mock_dataset() as path, patch.object(
+        LargeResource, "BASE_RESOURCE_DIR", path
+    ):
         loader = EuroVocLoader()
 
         with pytest.warns(RuntimeWarning):
@@ -396,7 +398,9 @@ def test_loading_dataset():
 def test_loading_dataset_with_missing_document():
     pytest.importorskip("xlrd")
 
-    with create_mock_dataset(load_missing_doc=True) as path, patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+    with create_mock_dataset(load_missing_doc=True) as path, patch.object(
+        LargeResource, "BASE_RESOURCE_DIR", path
+    ):
         loader = EuroVocLoader()
 
         with pytest.warns(RuntimeWarning):
@@ -415,7 +419,9 @@ def test_loading_dataset_with_missing_document():
 def test_loading_dataset_with_invalid_document():
     pytest.importorskip("xlrd")
 
-    with create_mock_dataset(load_invalid_doc=True) as path, patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+    with create_mock_dataset(load_invalid_doc=True) as path, patch.object(
+        LargeResource, "BASE_RESOURCE_DIR", path
+    ):
         loader = EuroVocLoader()
 
         with pytest.warns(RuntimeWarning):
@@ -434,7 +440,9 @@ def test_loading_dataset_with_invalid_document():
 def test_loading_dataset_with_document_containing_br():
     pytest.importorskip("xlrd")
 
-    with create_mock_dataset(load_doc_with_br_tag=True) as path, patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+    with create_mock_dataset(load_doc_with_br_tag=True) as path, patch.object(
+        LargeResource, "BASE_RESOURCE_DIR", path
+    ):
         loader = EuroVocLoader()
 
         with pytest.warns(RuntimeWarning):
@@ -455,7 +463,9 @@ def test_loading_dataset_with_document_containing_br():
 def test_loading_dataset_with_invalid_title():
     pytest.importorskip("xlrd")
 
-    with create_mock_dataset(load_doc_with_invalid_title=True) as path, patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+    with create_mock_dataset(load_doc_with_invalid_title=True) as path, patch.object(
+        LargeResource, "BASE_RESOURCE_DIR", path
+    ):
         loader = EuroVocLoader()
 
         with pytest.warns(RuntimeWarning):
@@ -479,7 +489,9 @@ def test_loading_dataset_with_invalid_labels():
     pytest.importorskip("xlrd")
 
     with pytest.raises(ValueError):
-        with create_mock_dataset(invalid_labels=True) as path, patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+        with create_mock_dataset(invalid_labels=True) as path, patch.object(
+            LargeResource, "BASE_RESOURCE_DIR", path
+        ):
             loader = EuroVocLoader()
             loader.load_dataset()
 
@@ -487,7 +499,9 @@ def test_loading_dataset_with_invalid_labels():
 def test_loading_dataset_with_non_existing_thesaurus():
     pytest.importorskip("xlrd")
 
-    with create_mock_dataset(non_existing_thesaurus=True) as path, patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+    with create_mock_dataset(non_existing_thesaurus=True) as path, patch.object(
+        LargeResource, "BASE_RESOURCE_DIR", path
+    ):
         loader = EuroVocLoader()
 
         with pytest.warns(RuntimeWarning):
