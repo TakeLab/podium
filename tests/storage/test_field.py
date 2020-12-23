@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from podium.storage import Field, LabelField, MultilabelField, MultioutputField, Vocab
-from podium.storage.vocab import UNK
+from podium.storage.vocab import BOS, EOS, PAD, UNK
 
 
 ONE_TO_FIVE = [1, 2, 3, 4, 5]
@@ -37,6 +37,7 @@ class MockVocab(Mock):
         self.finalized = False
         self.numericalized = False
         self.eager = eager
+        self.specials = ()
 
     def padding_index(self):
         return PAD_NUM
@@ -409,6 +410,35 @@ def test_field_repeated_hooks():
 
     # check that the hook that was added twice was also called twice
     assert to_lower_hook.call_count == 2
+
+
+def test_field_applies_specials():
+    bos, eos = BOS(), EOS()
+    vocab = Vocab(specials=(bos, eos))
+    f = Field(name="F", tokenizer="split", numericalizer=vocab, keep_raw=True)
+
+    _, received = f.preprocess("asd 123 BLA")[0]
+    expected = ("asd 123 BLA", [bos, "asd", "123", "BLA", eos])
+
+    assert received == expected
+
+    # Test with empty specials
+    vocab = Vocab(specials=())
+    f = Field(name="F", tokenizer="split", numericalizer=vocab, keep_raw=True)
+
+    _, received = f.preprocess("asd 123 BLA")[0]
+    expected = ("asd 123 BLA", ["asd", "123", "BLA"])
+
+    assert received == expected
+
+    # Test core specials are a no-op
+    vocab = Vocab(specials=(PAD(), UNK()))
+    f = Field(name="F", tokenizer="split", numericalizer=vocab, keep_raw=True)
+
+    _, received = f.preprocess("asd 123 BLA")[0]
+    expected = ("asd 123 BLA", ["asd", "123", "BLA"])
+
+    assert received == expected
 
 
 def test_field_is_target():

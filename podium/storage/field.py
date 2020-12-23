@@ -487,8 +487,17 @@ class Field:
         """
 
         raw, tokenized = self._run_posttokenization_hooks(raw, tokens)
+
+        # Apply the special tokens. These act as a post-tokenization
+        # hook, but are applied separately as we want to encapsulate
+        # that logic in their class to minimize code changes.
+        if self.use_vocab:
+            for special_token in self.vocab.specials:
+                tokenized = special_token.apply(tokenized)
+
         raw = raw if self._keep_raw else None
 
+        # Self.eager checks if a vocab is used so this won't error
         if self.eager and not self.vocab.finalized:
             self.update_vocab(tokenized)
         return self.name, (raw, tokenized)
