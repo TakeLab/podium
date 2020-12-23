@@ -762,9 +762,13 @@ class Field:
 
 
 class MultioutputField:
-    """Field that does pretokenization and tokenization once and passes it to its
-    output fields. Output fields are any type of field. The output fields are used only
-    for posttokenization processing (posttokenization hooks and vocab updating)."""
+    """
+    Field that does pretokenization and tokenization once and passes it to its
+    output fields.
+
+    Output fields are any type of field. The output fields are used only for
+    posttokenization processing (posttokenization hooks and vocab updating).
+    """
 
     def __init__(
         self,
@@ -772,9 +776,11 @@ class MultioutputField:
         tokenizer: TokenizerType = "split",
         pretokenize_hooks: Optional[Iterable[PretokenizationHookType]] = None,
     ):
-        """Field that does pretokenization and tokenization once and passes it to its
-        output fields. Output fields are any type of field. The output fields are used
-        only for posttokenization processing (posttokenization hooks and vocab updating).
+        """
+        Field that does pretokenization and tokenization once and passes it to
+        its output fields. Output fields are any type of field. The output
+        fields are used only for posttokenization processing (posttokenization
+        hooks and vocab updating).
 
         Parameters
         ----------
@@ -809,15 +815,14 @@ class MultioutputField:
         self._output_fields = deque(output_fields)
 
     def add_pretokenize_hook(self, hook: PretokenizationHookType):
-        """Add a pre-tokenization hook to the MultioutputField.
-        If multiple hooks are added to the field, the order of their execution
-        will be the same as the order in which they were added to the field,
-        each subsequent hook taking the output of the previous hook as its
-        input.
-        If the same function is added to the Field as a hook multiple times,
-        it will be executed that many times.
-        The output of the final pre-tokenization hook is the raw data that the
-        tokenizer will get as its input.
+        """
+        Add a pre-tokenization hook to the MultioutputField. If multiple hooks
+        are added to the field, the order of their execution will be the same as
+        the order in which they were added to the field, each subsequent hook
+        taking the output of the previous hook as its input. If the same
+        function is added to the Field as a hook multiple times, it will be
+        executed that many times. The output of the final pre-tokenization hook
+        is the raw data that the tokenizer will get as its input.
 
         Pretokenize hooks have the following signature:
             func pre_tok_hook(raw_data):
@@ -835,7 +840,8 @@ class MultioutputField:
         self._pretokenization_pipeline.add_hook(hook)
 
     def _run_pretokenization_hooks(self, data: Any) -> Any:
-        """Runs pretokenization hooks on the raw data and returns the result.
+        """
+        Runs pretokenization hooks on the raw data and returns the result.
 
         Parameters
         ----------
@@ -846,7 +852,6 @@ class MultioutputField:
         -------
         Any
             processed data
-
         """
 
         return self._pretokenization_pipeline(data)
@@ -863,9 +868,10 @@ class MultioutputField:
         self._output_fields.append(field)
 
     def preprocess(self, data: Any) -> Iterable[Tuple[str, Tuple[Optional[Any], Any]]]:
-        """Preprocesses raw data, tokenizing it if required. The outputfields update their
-         vocabs if required and preserve the raw data if the output field's
-         'keep_raw' is true.
+        """
+        Preprocesses raw data, tokenizing it if required. The outputfields
+        update their vocabs if required and preserve the raw data if the output
+        field's 'keep_raw' is true.
 
         Parameters
         ----------
@@ -899,7 +905,10 @@ class MultioutputField:
         return self._output_fields
 
     def remove_pretokenize_hooks(self):
-        """Remove all the pre-tokenization hooks that were added to the MultioutputField."""
+        """
+        Remove all the pre-tokenization hooks that were added to the
+        MultioutputField.
+        """
         self._pretokenization_pipeline.clear()
 
 
