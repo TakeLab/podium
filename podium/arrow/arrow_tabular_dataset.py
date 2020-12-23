@@ -24,7 +24,9 @@ except ImportError:
 
 
 def _group(iterable, n):
-    """ groups an iterable into tuples of size n"""
+    """
+    groups an iterable into tuples of size n.
+    """
     it = iter(iterable)
     while True:
         chunk = tuple(itertools.islice(it, n))
@@ -34,8 +36,12 @@ def _group(iterable, n):
 
 
 class ArrowDataset(DatasetABC):
-    """Podium dataset implementation which uses PyArrow as its data storage backend.
-    Examples are stored in a file which is then memory mapped for fast random access.
+    """
+    Podium dataset implementation which uses PyArrow as its data storage
+    backend.
+
+    Examples are stored in a file which is then memory mapped for fast random
+    access.
     """
 
     TEMP_CACHE_FILENAME_PREFIX = "podium_arrow_cache_"
@@ -50,7 +56,8 @@ class ArrowDataset(DatasetABC):
         mmapped_file: pa.MemoryMappedFile,
         data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
     ):
-        """Creates a new ArrowDataset instance. Users should use static constructor
+        """
+        Creates a new ArrowDataset instance. Users should use static constructor
         functions like 'from_dataset' to construct new ArrowDataset instances.
 
         Parameters
@@ -86,7 +93,8 @@ class ArrowDataset(DatasetABC):
         cache_path: str = None,
         data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
     ) -> "ArrowDataset":
-        """Creates an ArrowDataset instance from a podium.datasets.Dataset.
+        """
+        Creates an ArrowDataset instance from a podium.datasets.Dataset.
 
         Parameters
         ----------
@@ -107,7 +115,6 @@ class ArrowDataset(DatasetABC):
         -------
         ArrowDataset
             ArrowDataset instance created from the passed Dataset.
-
         """
         return ArrowDataset.from_examples(
             dataset.fields, iter(dataset), cache_path, data_types
@@ -121,7 +128,8 @@ class ArrowDataset(DatasetABC):
         data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
         chunk_size=10_000,
     ) -> "ArrowDataset":
-        """Creates an ArrowDataset from the provided Examples.
+        """
+        Creates an ArrowDataset from the provided Examples.
 
         Parameters
         ----------
@@ -200,7 +208,8 @@ class ArrowDataset(DatasetABC):
         delimiter=None,
         csv_reader_params: Dict = None,
     ) -> "ArrowDataset":
-        """Loads a tabular file format (csv, tsv, json) as an ArrowDataset.
+        """
+        Loads a tabular file format (csv, tsv, json) as an ArrowDataset.
 
         Parameters
         ----------
@@ -265,7 +274,6 @@ class ArrowDataset(DatasetABC):
         -------
         ArrowDataset
             ArrowDataset instance containing the examples from the tabular file.
-
         """
         format = format.lower()
         csv_reader_params = {} if csv_reader_params is None else csv_reader_params
@@ -328,7 +336,9 @@ class ArrowDataset(DatasetABC):
     def _schema_to_data_types(
         inferred_schema: pa.Schema,
     ) -> Dict[str, Tuple[pa.DataType, pa.DataType]]:
-        """Converts a pyarrow Schema instance into the ArrowDataset data_types format.
+        """
+        Converts a pyarrow Schema instance into the ArrowDataset data_types
+        format.
 
         Parameters
         ----------
@@ -357,7 +367,8 @@ class ArrowDataset(DatasetABC):
         fields: Union[Dict[str, Field], List[Field]],
         data_types=None,
     ) -> pa.RecordBatch:
-        """Converts an list of examples into a pyarrow RecordBatch object.
+        """
+        Converts an list of examples into a pyarrow RecordBatch object.
 
         Parameters
         ----------
@@ -419,7 +430,8 @@ class ArrowDataset(DatasetABC):
 
     @staticmethod
     def _recordbatch_to_examples(record_batch, fields) -> Iterator[Example]:
-        """Converts a pyarrow RecordBatch object into Podium examples.
+        """
+        Converts a pyarrow RecordBatch object into Podium examples.
 
         Parameters
         ----------
@@ -433,7 +445,6 @@ class ArrowDataset(DatasetABC):
         -------
         Iterator[podium.storage.Example]
             An Iterator iterating over the Examples contained in the passed RecordBatch.
-
         """
         fields = unpack_fields(fields)
         fieldnames = tuple(field.name for field in fields)
@@ -450,7 +461,8 @@ class ArrowDataset(DatasetABC):
 
     @staticmethod
     def _check_for_missing_data_types(fields, data_types):
-        """Checks if data_types has non-null data types for every field in fields.
+        """
+        Checks if data_types has non-null data types for every field in fields.
         Raises a RuntimeError if not.
 
         Parameters
@@ -465,7 +477,6 @@ class ArrowDataset(DatasetABC):
         ------
         RuntimeError
             If not every field in fields has appropriate data types in data_types.
-
         """
         for field in fields:
             raw_dtype, tokenized_dtype = data_types.get(field.name, (None, None))
@@ -488,9 +499,10 @@ class ArrowDataset(DatasetABC):
 
     @staticmethod
     def load_cache(cache_path) -> "ArrowDataset":
-        """Loads a cached ArrowDataset contained in the cache_path directory.
-        Fields will be loaded into memory but the Example data will be memory mapped
-        avoiding unnecessary memory usage.
+        """
+        Loads a cached ArrowDataset contained in the cache_path directory.
+        Fields will be loaded into memory but the Example data will be memory
+        mapped avoiding unnecessary memory usage.
 
         Parameters
         ----------
@@ -501,7 +513,6 @@ class ArrowDataset(DatasetABC):
         -------
         ArrowDataset
             the ArrowDataset loaded from the passed cache directory.
-
         """
         # load fields
         fields_file_path = os.path.join(cache_path, ArrowDataset.CACHE_FIELDS_FILENAME)
@@ -515,9 +526,10 @@ class ArrowDataset(DatasetABC):
         return ArrowDataset(table, fields, cache_path, mmapped_file)
 
     def dump_cache(self, cache_path: str = None) -> str:
-        """Saves this dataset at cache_path. Dumped datasets can be loaded with the
-        ArrowDataset.load_cache static method. All fields contained in this dataset must
-        be serializable using pickle.
+        """
+        Saves this dataset at cache_path. Dumped datasets can be loaded with the
+        ArrowDataset.load_cache static method. All fields contained in this
+        dataset must be serializable using pickle.
 
         Parameters
         ----------
@@ -531,7 +543,6 @@ class ArrowDataset(DatasetABC):
         str
             The chosen cache directory path. Useful when cache_path is None and a
             temporary directory is created.
-
         """
         if cache_path == self.cache_path:
             raise ValueError(
@@ -559,15 +570,18 @@ class ArrowDataset(DatasetABC):
         return cache_path
 
     def _get_examples(self) -> List[Example]:
-        """Loads this ArrowDataset into memory and returns a list containing
-        the loaded Examples."""
+        """
+        Loads this ArrowDataset into memory and returns a list containing the
+        loaded Examples.
+        """
         return list(ArrowDataset._recordbatch_to_examples(self.table, self.fields))
 
     @staticmethod
     def _field_values(
         record_batch: pa.RecordBatch, fieldname: str
     ) -> Iterable[Tuple[Any, Any]]:
-        """Iterates over the raw and tokenized values of a field contained in the
+        """
+        Iterates over the raw and tokenized values of a field contained in the
         record_batch.
 
         Parameters
@@ -605,11 +619,12 @@ class ArrowDataset(DatasetABC):
     def __getitem__(
         self, item: Union[int, Iterable[int], slice]
     ) -> Union[Example, "ArrowDataset"]:
-        """Returns an example or a new ArrowDataset containing the indexed examples.
-        If indexed with an int, only the example at that position will be returned.
-        If Indexed with a slice or iterable, all examples indexed by the object
-        will be collected and a new dataset containing only those examples will be
-        returned.
+        """
+        Returns an example or a new ArrowDataset containing the indexed
+        examples. If indexed with an int, only the example at that position will
+        be returned. If Indexed with a slice or iterable, all examples indexed
+        by the object will be collected and a new dataset containing only those
+        examples will be returned.
 
         Examples in the returned Dataset are the same ones present in the
         original dataset. If a complete deep-copy of the dataset, or its slice,
@@ -662,7 +677,8 @@ class ArrowDataset(DatasetABC):
         )
 
     def __len__(self) -> int:
-        """Returns the number of Examples in this Dataset.
+        """
+        Returns the number of Examples in this Dataset.
 
         Returns
         -------
@@ -672,7 +688,8 @@ class ArrowDataset(DatasetABC):
         return len(self.table)
 
     def __iter__(self) -> Iterator[Example]:
-        """Iterates over Examples in this dataset.
+        """
+        Iterates over Examples in this dataset.
 
         Returns
         -------
@@ -682,7 +699,9 @@ class ArrowDataset(DatasetABC):
         yield from self._recordbatch_to_examples(self.table, self.fields)
 
     def close(self):
-        """ Closes resources held by the ArrowDataset."""
+        """
+        Closes resources held by the ArrowDataset.
+        """
         if self.mmapped_file is not None:
             self.mmapped_file.close()
             self.mmapped_file = None
@@ -691,7 +710,9 @@ class ArrowDataset(DatasetABC):
             warnings.warn("Attempted closing an already closed ArrowDataset.")
 
     def delete_cache(self):
-        """ Deletes the cache directory."""
+        """
+        Deletes the cache directory.
+        """
         if self.mmapped_file is not None:
             self.close()
         shutil.rmtree(self.cache_path)

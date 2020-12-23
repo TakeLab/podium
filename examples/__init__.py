@@ -1,1 +1,3 @@
-"""Package contains examples of podium usage"""
+"""
+Package contains examples of podium usage.
+"""

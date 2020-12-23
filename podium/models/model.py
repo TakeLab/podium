@@ -1,9 +1,12 @@
-"""Module contains base model interfaces."""
+"""
+Module contains base model interfaces.
+"""
 from abc import ABC, abstractmethod
 
 
 class AbstractSupervisedModel(ABC):
-    """Interface for supervised models.
+    """
+    Interface for supervised models.
 
     Attributes
     ----------
@@ -15,8 +18,9 @@ class AbstractSupervisedModel(ABC):
 
     @abstractmethod
     def fit(self, X, y, **kwargs):
-        """Method trains the model and returns dictionary of values defined by
-        model specific key parameters
+        """
+        Method trains the model and returns dictionary of values defined by
+        model specific key parameters.
 
         Parameters
         ----------
@@ -37,7 +41,8 @@ class AbstractSupervisedModel(ABC):
 
     @abstractmethod
     def predict(self, X, **kwargs):
-        """Predict labels for given data
+        """
+        Predict labels for given data.
 
         Parameters
         ----------
@@ -56,24 +61,27 @@ class AbstractSupervisedModel(ABC):
 
     @abstractmethod
     def reset(self, **kwargs):
-        """Resets the model to its initial state so it can be re-trained.
+        """
+        Resets the model to its initial state so it can be re-trained.
 
         Parameters
         ----------
         kwargs
             Additional key-value parameters for model
-
         """
         pass
 
 
 class AbstractFrameworkModel(ABC):
-    """Interface for framework models."""
+    """
+    Interface for framework models.
+    """
 
     @abstractmethod
     def save(self, file_path, **kwargs):
-        """Method saves model to given file_path with additional arguments
-        defined in kwargs.
+        """
+        Method saves model to given file_path with additional arguments defined
+        in kwargs.
 
         Parameters
         ----------
@@ -91,7 +99,8 @@ class AbstractFrameworkModel(ABC):
 
     @abstractmethod
     def load(self, **kwargs):
-        """Method loads model from given file_path with additional arguments
+        """
+        Method loads model from given file_path with additional arguments
         defined in kwargs.
 
         Parameters

@@ -1,4 +1,6 @@
-"""Module contains dataset's field definition and methods for construction."""
+"""
+Module contains dataset's field definition and methods for construction.
+"""
 import itertools
 from collections import deque
 from collections.abc import Iterator
@@ -64,8 +66,9 @@ class PosttokenizationPipeline:
 
 
 class Field:
-    """Holds the preprocessing and numericalization logic for a single
-    field of a dataset.
+    """
+    Holds the preprocessing and numericalization logic for a single field of a
+    dataset.
     """
 
     def __init__(
@@ -84,7 +87,8 @@ class Field:
         pretokenize_hooks: Optional[Iterable[PretokenizationHookType]] = None,
         posttokenize_hooks: Optional[Iterable[PosttokenizationHookType]] = None,
     ):
-        """Create a Field from arguments.
+        """
+        Create a Field from arguments.
 
         Parameters
         ----------
@@ -100,7 +104,7 @@ class Field:
             - 'split' - default str.split(). Custom separator can be provided as
               `split-sep` where `sep` is the separator string.
             - 'spacy-lang' - the spacy tokenizer. The language model can be defined
-              by replacing `lang` with the language model name. For example `spacy-en`.
+              by replacing `lang` with the language model name (e.g. `spacy-en`).
 
             If None, the data will not be tokenized and post-tokenization hooks wont be
             called. The provided data will be stored in the `tokenized` data field as-is.
@@ -240,25 +244,35 @@ class Field:
 
     @property
     def name(self):
-        """The name of this field"""
+        """
+        The name of this field.
+        """
         return self._name
 
     @property
     def eager(self):
-        """A flag that tells whether this field has a Vocab and whether that Vocab is
-        marked as eager.
+        """
+        A flag that tells whether this field has a Vocab and whether that Vocab
+        is marked as eager.
 
         Returns
         -------
         bool
-            whether this field has a Vocab and whether that Vocab is
+            Whether this field has a Vocab and whether that Vocab is
             marked as eager
         """
         return self.vocab is not None and self.vocab.eager
 
     @property
     def vocab(self):
-        """"""
+        """
+        The field's Vocab or None.
+
+        Returns
+        -------
+        Vocab, optional
+            Returns the field's Vocab if defined or None.
+        """
         return self._vocab
 
     @property
@@ -267,7 +281,8 @@ class Field:
 
     @property
     def use_vocab(self):
-        """A flag that tells whether the field uses a vocab or not.
+        """
+        A flag that tells whether the field uses a vocab or not.
 
         Returns
         -------
@@ -282,15 +297,14 @@ class Field:
         return self._is_target
 
     def add_pretokenize_hook(self, hook: PretokenizationHookType):
-        """Add a pre-tokenization hook to the Field.
-        If multiple hooks are added to the field, the order of their execution
-        will be the same as the order in which they were added to the field,
-        each subsequent hook taking the output of the previous hook as its
-        input.
-        If the same function is added to the Field as a hook multiple times,
-        it will be executed that many times.
-        The output of the final pre-tokenization hook is the raw data that the
-        tokenizer will get as its input.
+        """
+        Add a pre-tokenization hook to the Field. If multiple hooks are added to
+        the field, the order of their execution will be the same as the order in
+        which they were added to the field, each subsequent hook taking the
+        output of the previous hook as its input. If the same function is added
+        to the Field as a hook multiple times, it will be executed that many
+        times. The output of the final pre-tokenization hook is the raw data
+        that the tokenizer will get as its input.
 
         Pretokenize hooks have the following signature:
             func pre_tok_hook(raw_data):
@@ -308,19 +322,17 @@ class Field:
         self._pretokenize_pipeline.add_hook(hook)
 
     def add_posttokenize_hook(self, hook: PosttokenizationHookType):
-        """Add a post-tokenization hook to the Field.
-        If multiple hooks are added to the field, the order of their execution
-        will be the same as the order in which they were added to the field,
-        each subsequent hook taking the output of the previous hook as its
-        input.
-        If the same function is added to the Field as a hook multiple times,
-        it will be executed that many times.
-        Post-tokenization hooks are called only if the Field is sequential
-        (in non-sequential fields there is no tokenization and only
-        pre-tokenization hooks are called).
-        The output of the final post-tokenization hook are the raw and
-        tokenized data that the preprocess function will use to produce its
-        result.
+        """
+        Add a post-tokenization hook to the Field. If multiple hooks are added
+        to the field, the order of their execution will be the same as the order
+        in which they were added to the field, each subsequent hook taking the
+        output of the previous hook as its input. If the same function is added
+        to the Field as a hook multiple times, it will be executed that many
+        times. Post-tokenization hooks are called only if the Field is
+        sequential (in non-sequential fields there is no tokenization and only
+        pre-tokenization hooks are called). The output of the final post-
+        tokenization hook are the raw and tokenized data that the preprocess
+        function will use to produce its result.
 
         Posttokenize hooks have the following outline:
             func post_tok_hook(raw_data, tokenized_data):
@@ -341,15 +353,20 @@ class Field:
         self._posttokenize_pipeline.add_hook(hook)
 
     def remove_pretokenize_hooks(self):
-        """Remove all the pre-tokenization hooks that were added to the Field."""
+        """
+        Remove all the pre-tokenization hooks that were added to the Field.
+        """
         self._pretokenize_pipeline.clear()
 
     def remove_posttokenize_hooks(self):
-        """Remove all the post-tokenization hooks that were added to the Field."""
+        """
+        Remove all the post-tokenization hooks that were added to the Field.
+        """
         self._posttokenize_pipeline.clear()
 
     def _run_pretokenization_hooks(self, data: Any) -> Any:
-        """Runs pretokenization hooks on the raw data and returns the result.
+        """
+        Runs pretokenization hooks on the raw data and returns the result.
 
         Parameters
         ----------
@@ -360,14 +377,14 @@ class Field:
         -------
         hashable
             processed data
-
         """
         return self._pretokenize_pipeline(data)
 
     def _run_posttokenization_hooks(
         self, data: Any, tokens: List[str]
     ) -> Tuple[Any, List[str]]:
-        """Runs posttokenization hooks on tokenized data.
+        """
+        Runs posttokenization hooks on tokenized data.
 
         Parameters
         ----------
@@ -382,16 +399,16 @@ class Field:
         (data, list(tokens))
             Returns a tuple containing the data and list of tokens processed by
             posttokenization hooks.
-
         """
         return self._posttokenize_pipeline(data, tokens)
 
     def preprocess(
         self, data: Any
     ) -> Iterable[Tuple[str, Tuple[Any, Optional[List[str]]]]]:
-        """Preprocesses raw data, tokenizing it if required,
-        updating the vocab if the vocab is eager and preserving the raw data
-        if field's 'store_raw' is true.
+        """
+        Preprocesses raw data, tokenizing it if required, updating the vocab if
+        the vocab is eager and preserving the raw data if field's 'store_raw' is
+        true.
 
         Parameters
         ----------
@@ -430,8 +447,9 @@ class Field:
         return (self._process_tokens(processed_raw, tokenized),)
 
     def update_vocab(self, tokenized: List[str]):
-        """Updates the vocab with a data point in its tokenized form.
-        If the field does not do tokenization,
+        """
+        Updates the vocab with a data point in its tokenized form. If the field
+        does not do tokenization,
 
         Parameters
         ----------
@@ -448,7 +466,8 @@ class Field:
 
     @property
     def finalized(self) -> bool:
-        """Returns whether the field's Vocab vas finalized. If the field has no
+        """
+        Returns whether the field's Vocab vas finalized. If the field has no
         vocab, returns True.
 
         Returns
@@ -460,7 +479,9 @@ class Field:
         return True if self.vocab is None else self.vocab.finalized
 
     def finalize(self):
-        """Signals that this field's vocab can be built."""
+        """
+        Signals that this field's vocab can be built.
+        """
 
         if self.use_vocab:
             self.vocab.finalize()
@@ -468,8 +489,9 @@ class Field:
     def _process_tokens(
         self, raw: Any, tokens: Union[Any, List[str]]
     ) -> Tuple[str, Tuple[Any, Optional[Union[Any, List[str]]]]]:
-        """Runs posttokenization processing on the provided data and tokens and updates
-        the vocab if needed. Used by Multioutput field.
+        """
+        Runs posttokenization processing on the provided data and tokens and
+        updates the vocab if needed. Used by Multioutput field.
 
         Parameters
         ----------
@@ -503,7 +525,8 @@ class Field:
         return self.name, (raw, tokenized)
 
     def get_default_value(self) -> Union[int, float]:
-        """Method obtains default field value for missing data.
+        """
+        Method obtains default field value for missing data.
 
         Returns
         -------
@@ -524,8 +547,9 @@ class Field:
     def numericalize(
         self, data: Tuple[Optional[Any], Optional[Union[Any, List[str]]]]
     ) -> Optional[Union[Any, np.ndarray]]:
-        """Numericalize the already preprocessed data point based either on
-        the vocab that was previously built, or on a custom numericalization
+        """
+        Numericalize the already preprocessed data point based either on the
+        vocab that was previously built, or on a custom numericalization
         function, if the field doesn't use a vocab.
 
         Parameters
@@ -574,10 +598,10 @@ class Field:
         pad_left: bool = False,
         truncate_left: bool = False,
     ):
-        """Either pads the given row with pad symbols, or truncates the row
-        to be of given length. The vocab provides the pad symbol for all
-        fields that have vocabs, otherwise the pad symbol has to be given as
-        a parameter.
+        """
+        Either pads the given row with pad symbols, or truncates the row to be
+        of given length. The vocab provides the pad symbol for all fields that
+        have vocabs, otherwise the pad symbol has to be given as a parameter.
 
         Parameters
         ----------
@@ -650,10 +674,11 @@ class Field:
     def get_numericalization_for_example(
         self, example, cache: bool = True
     ) -> Optional[Union[Any, np.ndarray]]:
-        """Returns the numericalized data of this field for the provided example.
-        The numericalized data is generated and cached in the example if 'cache' is true
-        and the cached data is not already present. If already cached, the cached data is
-        returned.
+        """
+        Returns the numericalized data of this field for the provided example.
+        The numericalized data is generated and cached in the example if 'cache'
+        is true and the cached data is not already present. If already cached,
+        the cached data is returned.
 
         Parameters
         ----------
@@ -686,8 +711,9 @@ class Field:
         return numericalization
 
     def __getstate__(self):
-        """Method obtains field state. It is used for pickling dataset data
-        to file.
+        """
+        Method obtains field state. It is used for pickling dataset data to
+        file.
 
         Returns
         -------
@@ -700,8 +726,9 @@ class Field:
         return state
 
     def __setstate__(self, state):
-        """Method sets field state. It is used for unpickling dataset data
-        from file.
+        """
+        Method sets field state. It is used for unpickling dataset data from
+        file.
 
         Parameters
         ----------
@@ -723,7 +750,8 @@ class Field:
             )
 
     def get_output_fields(self) -> Iterable["Field"]:
-        """Returns an Iterable of the contained output fields.
+        """
+        Returns an Iterable of the contained output fields.
 
         Returns
         -------
@@ -876,8 +904,10 @@ class MultioutputField:
 
 
 class LabelField(Field):
-    """Field subclass used when no tokenization is required. For example, with a field
-    that has a single value denoting a label.
+    """
+    Field subclass used when no tokenization is required.
+
+    For example, with a field that has a single value denoting a label.
     """
 
     def __init__(
@@ -892,8 +922,8 @@ class LabelField(Field):
         pretokenize_hooks: Optional[Iterable[PretokenizationHookType]] = None,
     ):
         """
-        Field subclass used when no tokenization is required. For example, with a field
-        that has a single value denoting a label.
+        Field subclass used when no tokenization is required. For example, with
+        a field that has a single value denoting a label.
 
         Parameters
         ----------
@@ -972,7 +1002,9 @@ class LabelField(Field):
 
 
 class MultilabelField(Field):
-    """Field subclass used to get multihot encoded vectors in batches.
+    """
+    Field subclass used to get multihot encoded vectors in batches.
+
     Used in cases when a field can have multiple classes active at a time.
     """
 
@@ -990,7 +1022,8 @@ class MultilabelField(Field):
         pretokenize_hooks: Optional[Iterable[PretokenizationHookType]] = None,
         posttokenize_hooks: Optional[Iterable[PosttokenizationHookType]] = None,
     ):
-        """Create a MultilabelField from arguments.
+        """
+        Create a MultilabelField from arguments.
 
         Parameters
         ----------
@@ -1098,7 +1131,9 @@ class MultilabelField(Field):
         )
 
     def finalize(self):
-        """Signals that this field's vocab can be built."""
+        """
+        Signals that this field's vocab can be built.
+        """
         super().finalize()
         if self._num_of_classes is None:
             self.fixed_length = self._num_of_classes = len(self.vocab)
@@ -1113,10 +1148,11 @@ class MultilabelField(Field):
     def numericalize(
         self, data: Tuple[Optional[Any], Optional[Union[Any, List[str]]]]
     ) -> np.ndarray:
-        """Numericalize the already preprocessed data point based either on
-        the vocab that was previously built, or on a custom numericalization
-        function, if the field doesn't use a vocab. Returns a numpy array containing
-        a multihot encoded vector of num_of_classes length.
+        """
+        Numericalize the already preprocessed data point based either on the
+        vocab that was previously built, or on a custom numericalization
+        function, if the field doesn't use a vocab. Returns a numpy array
+        containing a multihot encoded vector of num_of_classes length.
 
         Parameters
         ----------
@@ -1144,7 +1180,8 @@ class MultilabelField(Field):
 
 
 def unpack_fields(fields):
-    """Flattens the given fields object into a flat list of fields.
+    """
+    Flattens the given fields object into a flat list of fields.
 
     Parameters
     ----------

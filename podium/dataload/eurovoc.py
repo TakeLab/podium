@@ -1,4 +1,6 @@
-"""Module for loading raw eurovoc dataset"""
+"""
+Module for loading raw eurovoc dataset.
+"""
 import glob
 import os
 import warnings
@@ -32,7 +34,9 @@ Document = namedtuple("Document", "filename title text")
 
 
 class LabelRank(Enum):
-    """Levels of labels in EuroVoc."""
+    """
+    Levels of labels in EuroVoc.
+    """
 
     THESAURUS = 3
     MICRO_THESAURUS = 2
@@ -41,7 +45,8 @@ class LabelRank(Enum):
 
 @dataclass
 class Label:
-    """Label in EuroVoc dataset.
+    """
+    Label in EuroVoc dataset.
 
     Labels are assigned to documents. One document has multiple labels.
     Labels have a hierarchy in which one label can have one or more parents (broader
@@ -82,13 +87,14 @@ class Label:
 
 
 class EuroVocLoader:
-    """Class for downloading and parsing the EuroVoc dataset.
+    """
+    Class for downloading and parsing the EuroVoc dataset.
 
     This class is used for downloading the EuroVoc dataset (if it's not already
-    downloaded) and parsing the files in the dataset. If it's not already present
-    LargeResource.BASE_RESOURCE_DIR, the dataset is automatically downloaded when an
-    instance of EuroVocLoader is created. The downloaded resources can be parsed using
-    the load_dataset method.
+    downloaded) and parsing the files in the dataset. If it's not already
+    present LargeResource.BASE_RESOURCE_DIR, the dataset is automatically
+    downloaded when an instance of EuroVocLoader is created. The downloaded
+    resources can be parsed using the load_dataset method.
     """
 
     URL = "/proj/sci/uisusd/data/eurovoc_data/eurovoc.zip"
@@ -102,7 +108,8 @@ class EuroVocLoader:
     NAME = "EuroVocDataset"
 
     def __init__(self, **kwargs):
-        """Constructor of the EuroVocLoader class.
+        """
+        Constructor of the EuroVocLoader class.
 
         The constructor will check if the dataset is already been downloaded in the
         LargeResource.BASE_RESOURCE_DIR. If the dataset is not present, it will atempt to
@@ -129,7 +136,8 @@ class EuroVocLoader:
         )
 
     def load_dataset(self):
-        """Loads and parses all the necessary files from the dataset folder.
+        """
+        Loads and parses all the necessary files from the dataset folder.
 
         Returns
         -------
@@ -177,7 +185,9 @@ class EuroVocLoader:
 
     @staticmethod
     def _parse_labels_by_name(label_hierarchy_path):
-        """Does the first pass through the label file that maps label names to label ids.
+        """
+        Does the first pass through the label file that maps label names to
+        label ids.
 
         The label hierarchy is parsed from an xml file and returned as a dictionary where
         keys are label names and values are instances of Label class. This is done
@@ -286,7 +296,8 @@ class EuroVocLoader:
 
     @staticmethod
     def _parse_label_hierarchy(label_hierarchy_path):
-        """Parses the label hierarchy.
+        """
+        Parses the label hierarchy.
 
         The label hierarchy is parsed from an xml file and returned as a dictionary where
         keys are label ids and values are instances of Label class.
@@ -365,7 +376,8 @@ class EuroVocLoader:
 
     @staticmethod
     def _collect_all_ancestors(label_hierarchy):
-        """Finds and stores the ancestors of all the labels in the label hierarchy.
+        """
+        Finds and stores the ancestors of all the labels in the label hierarchy.
 
         Parameters
         ----------
@@ -397,7 +409,8 @@ class EuroVocLoader:
 
     @staticmethod
     def _get_all_ancestors(label_id, label_hierarchy):
-        """Finds and returns the ancestors of the label with the given label_id.
+        """
+        Finds and returns the ancestors of the label with the given label_id.
 
         Parameters
         ----------
@@ -405,7 +418,6 @@ class EuroVocLoader:
 
         label_hierarchy : dict(int, Label)
             Dictionary that maps label_id to Label.
-
         """
         direct_parents = label_hierarchy[label_id].direct_parents
         parents = set(direct_parents)
@@ -424,7 +436,8 @@ class EuroVocLoader:
 
     @staticmethod
     def _parse_mappings(mappings_path):
-        """Parses the mappings of documents to labels from a xls file.
+        """
+        Parses the mappings of documents to labels from a xls file.
 
         Parameters
         ----------
@@ -468,7 +481,8 @@ class EuroVocLoader:
 
     @staticmethod
     def _parse_documents(path, document_mapping):
-        """Parses xml documents from the given path.
+        """
+        Parses xml documents from the given path.
 
         If the document_id is not present in the given document_mapping dictionary, the
         document is not parsed.
@@ -506,7 +520,8 @@ class EuroVocLoader:
 
     @staticmethod
     def _parse_document(doc):
-        """Parses the given document from xml.
+        """
+        Parses the given document from xml.
 
         Parameters
         ----------
@@ -559,7 +574,8 @@ class EuroVocLoader:
 
 
 def _get_text(child, filed_name):
-    """Extracts and returns lowercase striped text from field with the given name.
+    """
+    Extracts and returns lowercase striped text from field with the given name.
 
     Parameters
     ----------
@@ -577,8 +593,9 @@ def _get_text(child, filed_name):
 
 
 def dill_dataset(output_path):
-    """Downloads the EuroVoc dataset (if not already present) and stores the dataset in a
-    dill file.
+    """
+    Downloads the EuroVoc dataset (if not already present) and stores the
+    dataset in a dill file.
 
     Parameters
     ----------

@@ -1,31 +1,27 @@
 # TakeLab Podium
 
-Home of the **TakeLab Podium** project. Podium is a framework agnostic Python natural language processing library which standardizes data loading and preprocessing.
+## What is Podium?
+
+Podium is a framework agnostic Python natural language processing library which standardizes data loading and preprocessing.
 Our goal is to accelerate users' development of NLP models whichever aspect of the library they decide to use.
 
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
+### Contents
+
+- [Installation](#installation)
+  - [Installing from source](#installing-from-source)
+  - [Installing from pip](#installing-from-pip)
 - [Usage examples](#usage-examples)
   - [Loading datasets](#loading-datasets)
   - [Define your preprocessing](#define-your-preprocessing)
   - [Use preprocessing from other libraries](#use-preprocessing-from-other-libraries)
 - [Contributing](#contributing)
-  - [Building and running unit tests](#building-and-running-unit-tests)
 - [Versioning](#versioning)
-- [Contributing](#contributing)
 - [Authors](#authors)
 - [License](#license)
 
-## Getting Started
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+## Installation
 
-### Prerequisites
-
-For building this project, system needs to have installed the following:
-- [```git```](https://git-scm.com/)
-- [```python3.6```](https://www.python.org/downloads/release/python-360/) or higher
-- [```pip```](https://pypi.org/project/pip/)
+Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
 
 We also recommend usage of a virtual environment:
 - [```conda```](https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/environments.html#virtual-environments)
@@ -33,14 +29,25 @@ We also recommend usage of a virtual environment:
 
 ### Installing from source
 
-To install `podium`, in your terminal
-1. Clone the repository: `git clone git@github.com:mttk/podium.git && cd podium`
-2. Install podium: `pip install .`
+Commands to install `podium` from source
 
-### Installing package from pip/wheel
-Coming soon!
+```bash
+git clone git@github.com:mttk/podium.git && cd podium
+pip install .
+```
+
+### Installing from pip
+
+The easiest way to install `podium` is using pip
+
+```bash
+pip install podium-nlp
+```
+
+For more detailed installation instructions, check the [installation page](http://takelab.fer.hr/podium/installation.html) in the documentation.
 
 ## Usage examples
+
 For detailed usage examples see [examples](https://github.com/mttk/podium/tree/master/examples)
 
 ### Loading datasets
@@ -112,7 +119,6 @@ Example[label: ('positive', None); text: (None, ['a', 'slick', 'engrossing', 'me
 **Pre-tokenization** hooks do not see the tokenized data and are applied (and modify) only `raw` data. 
 **Post-tokenization** hooks have access to tokenized data, and can be applied to either `raw` or `tokenized` data.
 
-
 ### Use preprocessing from other libraries
 
 A common use-case is to incorporate existing components of pretrained language models, such as BERT. This is extremely simple to incorporate as part of our `Field`s. This snippet requires installation of the `transformers` (`pip install transformers`) library.
@@ -135,34 +141,6 @@ Example[label: ('positive', None); subword: (None, ['a', 'slick', ',', 'eng', '#
 ## Contributing
 
 To learn more about making a contribution to Podium, please see our [Contribution page](CONTRIBUTING.md).
-
-### Code style standards
-In this repository we use [numpydoc](https://numpydoc.readthedocs.io/en/latest/) as a standard for documentation and Black, Flake8 and isort for code sytle. Code style references are [Black](https://black.readthedocs.io/en/stable/), [Flake8](http://flake8.pycqa.org/en/latest/), [isort](https://pycqa.github.io/isort/) and [PEP8](https://www.python.org/dev/peps/pep-0008/).
-
-Commands to check black, isort and flake8 compliance for written code and tests.
-```bash
-black --check --line-length 90 --target-version py36 podium tests examples
-isort --check-only podium tests examples
-flake8 podium tests examples
-```
-
-### Building and running unit tests
-
-If you are installing from source, you will need Python 3.6 or later. We highly recommend installing an [Anaconda](https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/environments.html#virtual-environments) environment.
-
-Commands to setup virtual environment and run tests.
-```bash
-conda create --name env python=3.6
-conda activate env
-pip install .[tests]
-pytest tests
-```
-
-If you intend to develop part of podium you should use following command to install podium.
-```bash
-pip install -e .[dev]
-```
-In other cases it should be enough to run ```pip install .``` for podium to be added to python environment.
 
 ## Versioning
 

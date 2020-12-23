@@ -1,4 +1,6 @@
-"""Module contains EuroVoc dataset."""
+"""
+Module contains EuroVoc dataset.
+"""
 import functools
 import os
 import re
@@ -12,10 +14,14 @@ from podium.storage.example_factory import ExampleFactory
 
 
 class EuroVocDataset(Dataset):
-    """EuroVoc dataset class that contains labeled documents and the label hierarchy."""
+    """
+    EuroVoc dataset class that contains labeled documents and the label
+    hierarchy.
+    """
 
     def __init__(self, eurovoc_labels, crovoc_labels, documents, mappings, fields=None):
-        """Dataset constructor.
+        """
+        Dataset constructor.
 
         Parameters
         ----------
@@ -50,7 +56,8 @@ class EuroVocDataset(Dataset):
         super(EuroVocDataset, self).__init__(**{"examples": examples, "fields": fields})
 
     def get_eurovoc_label_hierarchy(self):
-        """Returns the EuroVoc label hierarchy.
+        """
+        Returns the EuroVoc label hierarchy.
 
         Returns
         -------
@@ -60,7 +67,8 @@ class EuroVocDataset(Dataset):
         return self._eurovoc_label_hierarchy
 
     def get_crovoc_label_hierarchy(self):
-        """Returns CroVoc label hierarchy.
+        """
+        Returns CroVoc label hierarchy.
 
         Returns
         -------
@@ -73,7 +81,8 @@ class EuroVocDataset(Dataset):
     def _create_examples(
         fields, documents, mappings, eurovoc_label_hierarchy, crovoc_label_hierarchy
     ):
-        """Method creates examples for EuroVoc dataset.
+        """
+        Method creates examples for EuroVoc dataset.
 
         Examples are created from the given documents and mappings. Documents that don't
         have a matching entry in the mappings are ignored. Mappings that don't match to
@@ -141,7 +150,9 @@ class EuroVocDataset(Dataset):
         return examples
 
     def is_ancestor(self, label_id, example):
-        """Checks if the given label_id is an ancestor of any labels of the example.
+        """
+        Checks if the given label_id is an ancestor of any labels of the
+        example.
 
         Parameters
         ----------
@@ -172,7 +183,8 @@ class EuroVocDataset(Dataset):
         return False
 
     def get_direct_parents(self, label_id):
-        """Returns ids of direct parents of the label with the given label id.
+        """
+        Returns ids of direct parents of the label with the given label id.
 
         Parameters
         ----------
@@ -184,7 +196,6 @@ class EuroVocDataset(Dataset):
         list(int)
             list of label_ids of all direct parents of the given label or None if the
             label is not present in the dataset label hierarchies
-
         """
         if label_id in self._eurovoc_label_hierarchy:
             label = self._eurovoc_label_hierarchy[label_id]
@@ -197,7 +208,8 @@ class EuroVocDataset(Dataset):
         return None
 
     def get_all_ancestors(self, label_id):
-        """Returns ids of all ancestors of the label with the given label id.
+        """
+        Returns ids of all ancestors of the label with the given label id.
 
         Parameters
         ----------
@@ -209,7 +221,6 @@ class EuroVocDataset(Dataset):
         list(int)
             list of label_ids of all ancestors of the given label or None if the
             label is not present in the dataset label hierarchies
-
         """
         if label_id in self._eurovoc_label_hierarchy:
             label = self._eurovoc_label_hierarchy[label_id]
@@ -223,7 +234,9 @@ class EuroVocDataset(Dataset):
 
     @staticmethod
     def get_default_fields():
-        """Method returns default EuroVoc fields: title, text, eurovoc and crovoc labels.
+        """
+        Method returns default EuroVoc fields: title, text, eurovoc and crovoc
+        labels.
 
         Returns
         -------
@@ -259,7 +272,8 @@ class EuroVocDataset(Dataset):
 
 
 def remove_nonalpha_and_stopwords(raw, tokenized, stop_words):
-    """Removes all non alphabetical characters and stop words from tokens.
+    """
+    Removes all non alphabetical characters and stop words from tokens.
 
     Parameters
     ----------

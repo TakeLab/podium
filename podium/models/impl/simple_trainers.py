@@ -1,10 +1,13 @@
-"""Module contains simple trainer classes."""
+"""
+Module contains simple trainer classes.
+"""
 from podium.datasets import Iterator
 from podium.models.trainer import AbstractTrainer
 
 
 class SimpleTrainer(AbstractTrainer):
-    """Simple trainer class.
+    """
+    Simple trainer class.
 
     Attributes
     ----------
@@ -34,7 +37,8 @@ class SimpleTrainer(AbstractTrainer):
                 model.fit(X=x, y=y)
 
     def _check_kwargs(self, **kwargs):
-        """Method checks if kwargs contains necessary training parameters.
+        """
+        Method checks if kwargs contains necessary training parameters.
 
         Parameters
         ----------

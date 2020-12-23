@@ -1,4 +1,6 @@
-"""Example how to use BLCC model on Croatian NER dataset for NER task."""
+"""
+Example how to use BLCC model on Croatian NER dataset for NER task.
+"""
 
 import logging
 import os
@@ -26,17 +28,20 @@ from podium.storage.vectorizers.vectorizer import BasicVectorStorage
 
 
 class CroatianNER(Pipeline):
-    """Pipeline used to train named entity recognition for Croatian.
-    It is designed to work on the croopinion dataset, but makes no
-    assumptions on the underlying data, except that the data is tokenized
-    before hand and labeled with BIO tags."""
+    """
+    Pipeline used to train named entity recognition for Croatian.
+
+    It is designed to work on the croopinion dataset, but makes no assumptions
+    on the underlying data, except that the data is tokenized before hand and
+    labeled with BIO tags.
+    """
 
     def __init__(self, vector_path):
-        """Creates a new CroatianNER pipeline. Initializes fields and croopinion dataset.
-        Defines feature transform (word vector lookup) and output transform
-        (mapping labels back to BIO labels).
-        Uses the ```BLCCModel``` (BiLSTM + linear chain CRF)
-        Expects examples in DICT field format.
+        """
+        Creates a new CroatianNER pipeline. Initializes fields and croopinion
+        dataset. Defines feature transform (word vector lookup) and output
+        transform (mapping labels back to BIO labels). Uses the ```BLCCModel```
+        (BiLSTM + linear chain CRF) Expects examples in DICT field format.
 
         Parameters
         ----------
@@ -91,8 +96,7 @@ class CroatianNER(Pipeline):
         trainer=None,
     ):
         """
-        Fits the CroatianNER pipeline on a dataset using
-        provided parameters.
+        Fits the CroatianNER pipeline on a dataset using provided parameters.
 
         Parameters
         ----------
@@ -133,7 +137,7 @@ class CroatianNER(Pipeline):
 
     def predict_raw(self, raw_example, tokenizer=str.split):
         """
-        Predicts target Fields for raw_example
+        Predicts target Fields for raw_example.
 
         Parameters
         ----------

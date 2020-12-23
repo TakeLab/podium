@@ -9,7 +9,8 @@ from podium.storage.field import unpack_fields
 
 @dataclass
 class Node:
-    """Class defines a node in hierarhical dataset.
+    """
+    Class defines a node in hierarhical dataset.
 
     Attributes
         ----------
@@ -30,8 +31,9 @@ class Node:
 
 
 class HierarchicalDataset:
-    """Container for datasets with a hierarchical structure of examples which have the
-    same structure on every level of the hierarchy.
+    """
+    Container for datasets with a hierarchical structure of examples which have
+    the same structure on every level of the hierarchy.
     """
 
     def __init__(self, parser, fields):
@@ -111,8 +113,10 @@ class HierarchicalDataset:
 
     @staticmethod
     def get_default_dict_parser(child_attribute_name):
-        """Returns a callable instance that can be used for parsing datasets in which
-        examples on all levels in the hierarchy have children under the same key.
+        """
+        Returns a callable instance that can be used for parsing datasets in
+        which examples on all levels in the hierarchy have children under the
+        same key.
 
         Parameters
         ----------
@@ -122,7 +126,6 @@ class HierarchicalDataset:
         Returns
         -------
             Callable(raw_example, fields, depth) returning (example, raw_children).
-
         """
 
         def default_dict_parser(raw_example, example_factory, depth):
@@ -133,24 +136,27 @@ class HierarchicalDataset:
         return default_dict_parser
 
     def _load(self, root_examples):
-        """Starts the parsing of the dataset.
+        """
+        Starts the parsing of the dataset.
 
         Parameters
         ----------
         root_examples : iterable(dict(str, object))
             iterable containing the root examples in raw dict form.
-
         """
         self._root_nodes = tuple(self._parse(root, None, 0) for root in root_examples)
 
     def finalize_fields(self):
-        """Finalizes all fields in this dataset."""
+        """
+        Finalizes all fields in this dataset.
+        """
 
         for field in self.fields:
             field.finalize()
 
     def _parse(self, raw_object, parent, depth):
-        """Parses an raw example.
+        """
+        Parses an raw example.
 
         Parameters
         ----------
@@ -194,8 +200,8 @@ class HierarchicalDataset:
 
     def flatten(self):
         """
-        Returns an iterable iterating trough examples in the dataset as if it was a
-        standard Dataset. The iteration is done in pre-order.
+        Returns an iterable iterating trough examples in the dataset as if it
+        was a standard Dataset. The iteration is done in pre-order.
 
         Returns
         -------
@@ -206,8 +212,9 @@ class HierarchicalDataset:
             yield node.example
 
     def as_flat_dataset(self):
-        """Returns a standard Dataset containing the examples
-        in order as defined in 'flatten'.
+        """
+        Returns a standard Dataset containing the examples in order as defined
+        in 'flatten'.
 
         Returns
         -------
@@ -227,7 +234,8 @@ class HierarchicalDataset:
         return self._max_depth
 
     def _get_node_by_index(self, index):
-        """Returns the node with the provided index.
+        """
+        Returns the node with the provided index.
 
         Parameters
         ----------
@@ -243,7 +251,6 @@ class HierarchicalDataset:
         ------
         IndexError
             If the index is out of bounds.
-
         """
         if index < 0 or index >= len(self):
             raise IndexError(
@@ -251,7 +258,8 @@ class HierarchicalDataset:
             )
 
         def get_item(nodes, index):
-            """Right bisect binary search.
+            """
+            Right bisect binary search.
 
             Parameters
             ----------
@@ -265,7 +273,6 @@ class HierarchicalDataset:
             -------
             Node
                 the node with the provided index.
-
             """
             start = 0
             end = len(nodes)
@@ -290,7 +297,8 @@ class HierarchicalDataset:
 
     @staticmethod
     def _get_node_context(node, levels=None):
-        """Returns an Iterator iterating through the context of the passed node.
+        """
+        Returns an Iterator iterating through the context of the passed node.
 
         Parameters
         ----------
@@ -304,7 +312,6 @@ class HierarchicalDataset:
         -------
         Iterator(Node)
             an Iterator iterating through the context of the passed node
-
         """
         levels = float("Inf") if levels is None else levels
         if levels < 0:
@@ -340,8 +347,9 @@ class HierarchicalDataset:
         return context_iterator(parent, node)
 
     def get_context(self, index, levels=None):
-        """Returns an Iterator iterating through the context of the Example with the
-        passed index.
+        """
+        Returns an Iterator iterating through the context of the Example with
+        the passed index.
 
         Parameters
         ----------
@@ -372,8 +380,9 @@ class HierarchicalDataset:
         return self._get_node_by_index(index).example
 
     def __getstate__(self):
-        """Method obtains dataset state. It is used for pickling dataset data
-        to file.
+        """
+        Method obtains dataset state. It is used for pickling dataset data to
+        file.
 
         Returns
         -------
@@ -387,8 +396,9 @@ class HierarchicalDataset:
         return d
 
     def __setstate__(self, state):
-        """Method sets dataset state. It is used for unpickling dataset data
-        from file.
+        """
+        Method sets dataset state. It is used for unpickling dataset data from
+        file.
 
         Parameters
         ----------

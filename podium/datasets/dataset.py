@@ -1,4 +1,6 @@
-"""Module contains base classes for datasets."""
+"""
+Module contains base classes for datasets.
+"""
 import copy
 import itertools
 import random
@@ -9,10 +11,10 @@ from podium.storage.example_factory import Example
 
 
 class Dataset(DatasetABC):
-    """A general purpose container for datasets.
-    A dataset is a shallow wrapper for a list of `Example` classes which
-    store the instance data as well as the corresponding `Field` classes,
-    which process the columns of each example.
+    """
+    A general purpose container for datasets. A dataset is a shallow wrapper for
+    a list of `Example` classes which store the instance data as well as the
+    corresponding `Field` classes, which process the columns of each example.
 
     Attributes
     ----------
@@ -24,7 +26,8 @@ class Dataset(DatasetABC):
     """
 
     def __init__(self, examples, fields, sort_key=None):
-        """Creates a dataset with the given examples and their fields.
+        """
+        Creates a dataset with the given examples and their fields.
 
         Parameters
         ----------
@@ -44,7 +47,8 @@ class Dataset(DatasetABC):
     def __getitem__(
         self, i: Union[int, Iterable[int], slice]
     ) -> Union["DatasetABC", Example]:
-        """Returns an example or a new dataset containing the indexed examples.
+        """
+        Returns an example or a new dataset containing the indexed examples.
 
         If indexed with an int, only the example at that position will be returned.
         If Indexed with a slice or iterable, all examples indexed by the object
@@ -75,13 +79,13 @@ class Dataset(DatasetABC):
             If i is an int, a single example will be returned.
             If i is a slice or iterable, a copy of this dataset containing
             only the indexed examples will be returned.
-
         """
 
         return self.get(i)
 
     def get(self, i, deep_copy=False):
-        """Returns an example or a new dataset containing the indexed examples.
+        """
+        Returns an example or a new dataset containing the indexed examples.
 
         If indexed with an int, only the example at that position
         will be returned.
@@ -121,7 +125,6 @@ class Dataset(DatasetABC):
             If i is an int, a single example will be returned.
             If i is a slice or iterable, a dataset containing
             only the indexed examples will be returned.
-
         """
 
         if isinstance(i, slice):
@@ -137,7 +140,8 @@ class Dataset(DatasetABC):
             return self._dataset_copy_with_examples(indexed_examples, deep_copy=deep_copy)
 
     def __len__(self) -> int:
-        """Returns the number of examples in the dataset.
+        """
+        Returns the number of examples in the dataset.
 
         Returns
         -------
@@ -150,7 +154,8 @@ class Dataset(DatasetABC):
         return self._examples
 
     def __iter__(self):
-        """Iterates over all examples in the dataset in order.
+        """
+        Iterates over all examples in the dataset in order.
 
         Yields
         ------
@@ -160,7 +165,8 @@ class Dataset(DatasetABC):
         yield from self._examples
 
     def filter(self, predicate, inplace=False):
-        """Method filters examples with given predicate.
+        """
+        Method filters examples with given predicate.
 
         Parameters
         ----------
@@ -191,7 +197,8 @@ class Dataset(DatasetABC):
         random_state=None,
         shuffle=True,
     ):
-        """Creates train-(validation)-test splits from this dataset.
+        """
+        Creates train-(validation)-test splits from this dataset.
 
         The splits are new Dataset objects, each containing a part of this
         one's examples.
@@ -295,8 +302,12 @@ class Dataset(DatasetABC):
         return None
 
     def numericalize_examples(self):
-        """Generates and caches numericalized data for every example in the dataset.
-        Call before using the dataset to avoid lazy numericalization during iteration.
+        """
+        Generates and caches numericalized data for every example in the
+        dataset.
+
+        Call before using the dataset to avoid lazy numericalization during
+        iteration.
         """
         for example in self.examples:
             for field in self.fields:
@@ -305,8 +316,9 @@ class Dataset(DatasetABC):
                 field.get_numericalization_for_example(example)
 
     def __getstate__(self):
-        """Method obtains dataset state. It is used for pickling dataset data
-        to file.
+        """
+        Method obtains dataset state. It is used for pickling dataset data to
+        file.
 
         Returns
         -------
@@ -316,8 +328,9 @@ class Dataset(DatasetABC):
         return self.__dict__
 
     def __setstate__(self, state):
-        """Method sets dataset state. It is used for unpickling dataset data
-        from file.
+        """
+        Method sets dataset state. It is used for unpickling dataset data from
+        file.
 
         Parameters
         ----------
@@ -329,9 +342,10 @@ class Dataset(DatasetABC):
     def _dataset_copy_with_examples(
         self, examples: list, deep_copy: bool = False
     ) -> "Dataset":
-        """Creates a new dataset with the same fields and sort_key. The new dataset
-        contains only the fields passed to this function.Fields are deep-copied into
-        the new dataset, but examples are used as-is.
+        """
+        Creates a new dataset with the same fields and sort_key. The new dataset
+        contains only the fields passed to this function.Fields are deep-copied
+        into the new dataset, but examples are used as-is.
 
         Parameters
         ----------
@@ -346,7 +360,6 @@ class Dataset(DatasetABC):
         -------
         Dataset
             a copy of this dataset containing only the passed examples.
-
         """
         # Deep-copy if needed
         examples = copy.deepcopy(examples) if deep_copy else examples
@@ -355,7 +368,8 @@ class Dataset(DatasetABC):
         return Dataset(examples, fields, self.sort_key)
 
     def shuffle_examples(self, random_state=None):
-        """Shuffles the examples in this dataset
+        """
+        Shuffles the examples in this dataset.
 
         Parameters
         ----------
@@ -370,9 +384,10 @@ class Dataset(DatasetABC):
 
 
 def check_split_ratio(split_ratio):
-    """Checks that the split ratio argument is not malformed and if not
-    transforms it to a tuple of (train_size, valid_size, test_size) and
-    normalizes it if necessary so that all elements sum to 1.
+    """
+    Checks that the split ratio argument is not malformed and if not transforms
+    it to a tuple of (train_size, valid_size, test_size) and normalizes it if
+    necessary so that all elements sum to 1.
 
     (See Dataset.split docs for more info).
 
@@ -444,9 +459,9 @@ def check_split_ratio(split_ratio):
 
 
 def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
-    """Splits a list of examples according to the given ratios and returns
-    the splits as a tuple of lists (train_examples, valid_examples,
-    test_examples).
+    """
+    Splits a list of examples according to the given ratios and returns the
+    splits as a tuple of lists (train_examples, valid_examples, test_examples).
 
     The list can also be randomly shuffled before splitting.
 
@@ -514,8 +529,9 @@ def rationed_split(examples, train_ratio, val_ratio, test_ratio, shuffle):
 def stratified_split(
     examples, train_ratio, val_ratio, test_ratio, strata_field_name, shuffle
 ):
-    """Performs a stratified split on a list of examples according to the
-    given ratios and the given strata field.
+    """
+    Performs a stratified split on a list of examples according to the given
+    ratios and the given strata field.
 
     Returns the splits as a tuple of lists (train_examples, valid_examples,
     test_examples).

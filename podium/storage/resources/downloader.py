@@ -1,9 +1,9 @@
-"""Module downloader offers classes for downloading files from the given uri.
-It is consisted from base class BaseDownloader that every downloader
-implements. Special class of downloaders are downloaders that use HTTP
-protocol, their base class is HTTPDownloader and its simple implementation
-is SimpleHttpDownloader.
+"""
+Module downloader offers classes for downloading files from the given uri.
 
+It is consisted from base class BaseDownloader that every downloader implements.
+Special class of downloaders are downloaders that use HTTP protocol, their base
+class is HTTPDownloader and its simple implementation is SimpleHttpDownloader.
 """
 import os
 from abc import ABC, abstractclassmethod
@@ -15,13 +15,16 @@ from podium.storage.resources.util import copyfileobj_with_tqdm
 
 
 class BaseDownloader(ABC):
-    """BaseDownloader interface for downloader classes."""
+    """
+    BaseDownloader interface for downloader classes.
+    """
 
     @abstractclassmethod
     def download(cls, uri, path, overwrite=False, **kwargs):
-        """Function downloades file from given URI to given path.
-        If the overwrite variable is true and given path already exists
-        it will be overwriten with new file.
+        """
+        Function downloades file from given URI to given path. If the overwrite
+        variable is true and given path already exists it will be overwriten
+        with new file.
 
         Parameters
         ----------
@@ -43,14 +46,13 @@ class BaseDownloader(ABC):
             if given uri or path are None
         RuntimeError
             if there was an error while obtaining resource from uri
-
         """
         pass
 
 
 class SCPDownloader(BaseDownloader):
-    """Class for downloading file from server using sftp on top of
-    ssh protocol.
+    """
+    Class for downloading file from server using sftp on top of ssh protocol.
 
     Attributes
     ----------
@@ -65,7 +67,6 @@ class SCPDownloader(BaseDownloader):
         key for defining keyword argument for private key location
         if the user uses default linux private key location this argument
         can be set to None
-
     """
 
     USER_NAME_KEY = "scp_user"
@@ -75,8 +76,9 @@ class SCPDownloader(BaseDownloader):
 
     @classmethod
     def download(cls, uri, path, overwrite=False, **kwargs):
-        """Method downloads a file from the remote machine and saves it to the local
-        path. If the overwrite variable is true and given path already
+        """
+        Method downloads a file from the remote machine and saves it to the
+        local path. If the overwrite variable is true and given path already
         exists it will be overwriten with new file.
 
         Parameters
@@ -140,11 +142,14 @@ class SCPDownloader(BaseDownloader):
 
 
 class HttpDownloader(BaseDownloader):
-    """Interface for downloader that uses http protocol for data transfer."""
+    """
+    Interface for downloader that uses http protocol for data transfer.
+    """
 
     @classmethod
     def _process_response(cls, response, output_file, chunk_length=1024 * 16):
-        """Function process given HTTP response and copies it to the given
+        """
+        Function process given HTTP response and copies it to the given
         outputfile. Data is processed in chunks of given length.
 
         Parameters
@@ -182,10 +187,11 @@ class HttpDownloader(BaseDownloader):
 
 
 class SimpleHttpDownloader(HttpDownloader):
-    """Downloader that uses HTTP protocol for downloading. It doesn't offer
-    content confirmation (as needed for example in google drive)
-    or any kind of authentication.
+    """
+    Downloader that uses HTTP protocol for downloading.
 
+    It doesn't offer content confirmation (as needed for example in google
+    drive) or any kind of authentication.
     """
 
     @classmethod

@@ -13,7 +13,8 @@ from podium.storage.vectorizers.impl import GloVe
 
 
 def lowercase(raw, tokenized):
-    """Applies lowercasing as a post-tokenization hook
+    """
+    Applies lowercasing as a post-tokenization hook.
 
     Parameters
     ----------
@@ -32,7 +33,8 @@ def lowercase(raw, tokenized):
 
 
 def max_length(raw, data, length=200):
-    """Applies lowercasing as a post-tokenization hook
+    """
+    Applies lowercasing as a post-tokenization hook.
 
     Parameters
     ----------

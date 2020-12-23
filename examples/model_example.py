@@ -1,4 +1,6 @@
-"""Example how to use model on simple PauzaHR dataset."""
+"""
+Example how to use model on simple PauzaHR dataset.
+"""
 
 from podium.datasets.impl.pauza_dataset import PauzaHRDataset
 from podium.datasets.iterator import Iterator
@@ -9,25 +11,34 @@ from podium.storage import Field, LargeResource, Vocab
 
 
 def numericalize_pauza_rating(rating):
-    """Function numericalizes pauza_hr dataset rating field"""
+    """
+    Function numericalizes pauza_hr dataset rating field.
+    """
     label = round(float(rating) * 2) - 1
     return label
 
 
 def label_extraction_fun(y_batch):
-    """Label transform function that returns a 1-d array of rating labels."""
+    """
+    Label transform function that returns a 1-d array of rating labels.
+    """
     return y_batch.Rating.ravel()
 
 
 def feature_extraction_fn(x_batch):
-    """Feature transform function that returns an matrix containing word indexes.
-    Serves only as a simple demonstration."""
+    """
+    Feature transform function that returns an matrix containing word indexes.
+
+    Serves only as a simple demonstration.
+    """
     x_tensor = x_batch.Text
     return x_tensor
 
 
 def basic_pauza_hr_fields():
-    """Function returns pauza-hr fields used for classification."""
+    """
+    Function returns pauza-hr fields used for classification.
+    """
     rating = Field(
         name="Rating",
         vocab=Vocab(specials=()),
@@ -49,8 +60,10 @@ def basic_pauza_hr_fields():
 
 
 def pauza_mlp_example():
-    """Adjustable example that demonstrates how to use pauzahr dataset
-    with scikit MLP classifier using podium"""
+    """
+    Adjustable example that demonstrates how to use pauzahr dataset with scikit
+    MLP classifier using podium.
+    """
 
     # Set the base repository directory
     # This directory will be used by podium to cache all LargeResources

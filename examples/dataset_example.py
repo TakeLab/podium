@@ -1,4 +1,6 @@
-"""Example how to use simple PauzaHR dataset."""
+"""
+Example how to use simple PauzaHR dataset.
+"""
 import dill
 
 from podium.datasets.impl.pauza_dataset import PauzaHRDataset

@@ -1,4 +1,6 @@
-"""Module contains storage utility methods."""
+"""
+Module contains storage utility methods.
+"""
 import os
 import tarfile
 import zipfile
@@ -7,9 +9,10 @@ from tqdm import tqdm
 
 
 def copyfileobj_with_tqdm(finput, foutput, total_size, buffer_size=16 * 1024):
-    """Function copies file like input finput to file like output foutput.
-    Total size is used to display progress bar and buffer size to determine
-    size of the buffer used for copying. The implementation is based on
+    """
+    Function copies file like input finput to file like output foutput. Total
+    size is used to display progress bar and buffer size to determine size of
+    the buffer used for copying. The implementation is based on
     shutil.copyfileobj.
 
     Parameters
@@ -33,7 +36,8 @@ def copyfileobj_with_tqdm(finput, foutput, total_size, buffer_size=16 * 1024):
 
 
 def extract_zip_file(archive_file, destination_dir):
-    """Method extracts zip archive to destination.
+    """
+    Method extracts zip archive to destination.
 
     Parameters
     ----------
@@ -55,8 +59,9 @@ def extract_zip_file(archive_file, destination_dir):
 
 
 def extract_tar_file(archive_file, destination_dir, encoding="uft-8"):
-    """Method extracts tar archive to destination, including those archives
-    that are created using gzip, bz2 and lzma compression.
+    """
+    Method extracts tar archive to destination, including those archives that
+    are created using gzip, bz2 and lzma compression.
 
     Parameters
     ----------

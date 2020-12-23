@@ -1,4 +1,6 @@
-"""Module contains interfaces for a trainer."""
+"""
+Module contains interfaces for a trainer.
+"""
 from abc import ABC, abstractmethod
 from typing import Callable, NamedTuple
 
@@ -11,7 +13,9 @@ from .transformers import FeatureTransformer
 
 
 class AbstractTrainer(ABC):
-    """Interface for base trainer that can train the model."""
+    """
+    Interface for base trainer that can train the model.
+    """
 
     @abstractmethod
     def train(
@@ -23,7 +27,8 @@ class AbstractTrainer(ABC):
         **kwargs,
     ):
 
-        """Method trains a model with data from given Iterator.
+        """
+        Method trains a model with data from given Iterator.
 
         Parameters
         ----------

@@ -5,7 +5,9 @@ from podium.storage import ExampleFactory, Field, MultilabelField, Vocab
 
 
 class CatacxDataset(HierarchicalDataset):
-    """Catacx dataset."""
+    """
+    Catacx dataset.
+    """
 
     NAME = "CatacxDataset"
     DATASET_FILE_NAME = "catacx_dataset.json"
@@ -13,8 +15,9 @@ class CatacxDataset(HierarchicalDataset):
     URL = None  # TODO Add real URL
 
     def __init__(self, dir_path, fields=None):
-        """Dataset constructor, should be given the path to the .json file which contains
-        the Catacx dataset.
+        """
+        Dataset constructor, should be given the path to the .json file which
+        contains the Catacx dataset.
 
         Parameters
         ----------
@@ -30,7 +33,8 @@ class CatacxDataset(HierarchicalDataset):
 
     @staticmethod
     def get_dataset(fields=None):
-        """Downloads (if necessary) and loads the dataset. Not supported yet.
+        """
+        Downloads (if necessary) and loads the dataset. Not supported yet.
         Raises NotImplementedError if called.
 
         Parameters

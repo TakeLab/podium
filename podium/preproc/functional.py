@@ -1,10 +1,14 @@
-"""Module contains functional preprocessing hooks."""
+"""
+Module contains functional preprocessing hooks.
+"""
 import warnings
 from typing import Callable, List, Tuple
 
 
 def truecase(oov: str = "title") -> Callable[[str], str]:
-    """Returns a pretokenization hook that applies truecasing to the raw textual data.
+    """
+    Returns a pretokenization hook that applies truecasing to the raw textual
+    data.
 
     To use this hook, the truecase library has to be installed.
 
@@ -52,8 +56,9 @@ def truecase(oov: str = "title") -> Callable[[str], str]:
 def remove_stopwords(
     language: str = "en",
 ) -> Callable[[str, List[str]], Tuple[str, List[str]]]:
-    """Returns a posttokenization hook that removes stop words
-    from the tokenized textual data. The raw part is left unchanged.
+    """
+    Returns a posttokenization hook that removes stop words from the tokenized
+    textual data. The raw part is left unchanged.
 
     Stop words are obtained from the corresponding SpaCy language model.
 

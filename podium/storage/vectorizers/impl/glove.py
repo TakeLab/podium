@@ -5,9 +5,10 @@ from ..vectorizer import BasicVectorStorage, random_normal_default_vector
 
 
 class GloVe(BasicVectorStorage):
-    """Class represents concrete vector storage for GloVe vectors described in
-    https://nlp.stanford.edu/projects/glove/ . Class contains a Large resource so
-    that vectors could be automatically downloaded on first use.
+    """
+    Class represents concrete vector storage for GloVe vectors described in
+    https://nlp.stanford.edu/projects/glove/ . Class contains a Large resource
+    so that vectors could be automatically downloaded on first use.
 
     Attributes
     ----------
@@ -61,8 +62,8 @@ class GloVe(BasicVectorStorage):
         max_vectors=None,
     ):
         """
-        GloVe constructor that initializes vector storage and downloads vectors if
-        necessary.
+        GloVe constructor that initializes vector storage and downloads vectors
+        if necessary.
 
         Parameters
         ----------

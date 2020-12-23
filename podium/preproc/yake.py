@@ -1,4 +1,6 @@
-"""This module contains wrapper for Yet Another Keyword Extractor library."""
+"""
+This module contains wrapper for Yet Another Keyword Extractor library.
+"""
 try:
     import yake
 except ImportError:
@@ -11,10 +13,14 @@ except ImportError:
 
 
 class YAKE:
-    """Yet Another Keyword Extractor is an unsupervised, corpus-independent, and
-    domain and language independent keyword extraction algorithm for extraction from
-    single documents. This class is a wrapper of the official implementation available
-    at https://github.com/LIAAD/yake."""
+    """
+    Yet Another Keyword Extractor is an unsupervised, corpus-independent, and
+    domain and language independent keyword extraction algorithm for extraction
+    from single documents.
+
+    This class is a wrapper of the official implementation available at
+    https://github.com/LIAAD/yake.
+    """
 
     def __init__(
         self,
@@ -25,7 +31,8 @@ class YAKE:
         windowsSize: int = 1,
         top: int = 20,
     ):
-        """Constructor that initializes YAKE.
+        """
+        Constructor that initializes YAKE.
 
         Parameters
         ----------
@@ -54,11 +61,16 @@ class YAKE:
         )  # features dict
 
     def __call__(self, string):
-        """Extracts keywords from the string. See transform function for details."""
+        """
+        Extracts keywords from the string.
+
+        See transform function for details.
+        """
         return self.transform(string)
 
     def transform(self, string):
-        """Extracts keywords from the string.
+        """
+        Extracts keywords from the string.
 
         Parameters
         ----------

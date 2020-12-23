@@ -1,4 +1,6 @@
-"""Module contains classes related to creating tfidf vectors from examples."""
+"""
+Module contains classes related to creating tfidf vectors from examples.
+"""
 import array
 from collections import Counter
 from functools import partial
@@ -9,13 +11,17 @@ from sklearn.feature_extraction.text import TfidfTransformer
 
 
 class CountVectorizer:
-    """Class converts data from one field in examples to matrix of bag of words features.
+    """
+    Class converts data from one field in examples to matrix of bag of words
+    features.
+
     It is equivalent to scikit-learn CountVectorizer available at
     https://scikit-learn.org.
     """
 
     def __init__(self, vocab=None, specials=None):
-        """Method initializes count vectorizer.
+        """
+        Method initializes count vectorizer.
 
         Parameters
         ----------
@@ -32,13 +38,17 @@ class CountVectorizer:
         self._fitted = False
 
     def _init_special_indexes(self):
-        """Initializes set of special symbol indexes in vocabulary.
-        Used to skip special symbols while calculating count matrix."""
+        """
+        Initializes set of special symbol indexes in vocabulary.
+
+        Used to skip special symbols while calculating count matrix.
+        """
         special_symbols = self._vocab.specials if not self._specials else self._specials
         self._special_indexes = set([self._vocab.stoi[s] for s in special_symbols])
 
     def _build_count_matrix(self, data, unpack_data):
-        """Method builds sparse count feature matrix. It is equivalent with using
+        """
+        Method builds sparse count feature matrix. It is equivalent with using
         CountVectorizer in scikit-learn.
 
         Parameters
@@ -48,7 +58,6 @@ class CountVectorizer:
         unpack_data : callable
             callable that can transform one instance from data to numericalized
             tokens array
-
         """
         j_indices = []
         indptr = []
@@ -81,9 +90,10 @@ class CountVectorizer:
         return count_matrix
 
     def _get_tensor_values(self, data):
-        """Method obtains data for example in numericalized matrix. This method
-        is used when transforming data with vectorizer and in general pipeline it should
-        be in moment when vectorization of numericalized batch happens.
+        """
+        Method obtains data for example in numericalized matrix. This method is
+        used when transforming data with vectorizer and in general pipeline it
+        should be in moment when vectorization of numericalized batch happens.
 
         Parameters
         ----------
@@ -98,9 +108,10 @@ class CountVectorizer:
         return data
 
     def _get_example_values(self, example, field):
-        """Method obtains data for given field in example. This method is used
-        when fitting vectorizer with dataset. Fields that are not numericalized
-        but are eager will be numericalized.
+        """
+        Method obtains data for given field in example. This method is used when
+        fitting vectorizer with dataset. Fields that are not numericalized but
+        are eager will be numericalized.
 
         Parameters
         ----------
@@ -119,7 +130,8 @@ class CountVectorizer:
         return values
 
     def _check_fitted(self):
-        """Method checks if the current vectorizer is fitted.
+        """
+        Method checks if the current vectorizer is fitted.
 
         Raises
         ------
@@ -130,7 +142,8 @@ class CountVectorizer:
             raise RuntimeError("Vectorizer has not been fitted.")
 
     def fit(self, dataset, field):
-        """Method initializes count vectorizer.
+        """
+        Method initializes count vectorizer.
 
         Parameters
         ----------
@@ -166,8 +179,9 @@ class CountVectorizer:
         self._fitted = True
 
     def transform(self, examples, **kwargs):
-        """Method transforms given examples to count matrix where rows are examples and
-        columns represent token counts.
+        """
+        Method transforms given examples to count matrix where rows are examples
+        and columns represent token counts.
 
         Parameters
         ----------
@@ -211,10 +225,12 @@ class CountVectorizer:
 
 
 class TfIdfVectorizer(CountVectorizer):
-    """Class converts data from one field in examples to matrix of tf-idf features.
+    """
+    Class converts data from one field in examples to matrix of tf-idf features.
+
     It is equivalent to scikit-learn TfidfVectorizer available at
-    https://scikit-learn.org.
-    Class is dependant on TfidfTransformer defined in scikit-learn library.
+    https://scikit-learn.org. Class is dependant on TfidfTransformer defined in
+    scikit-learn library.
     """
 
     def __init__(
@@ -226,9 +242,10 @@ class TfIdfVectorizer(CountVectorizer):
         sublinear_tf=False,
         specials=None,
     ):
-        """Constructor that initializes tfidf vectorizer. Parameters besides vocab
-        are passed to TfidfTransformer, for further details on these parameters see
-        scikit-learn documentation.
+        """
+        Constructor that initializes tfidf vectorizer. Parameters besides vocab
+        are passed to TfidfTransformer, for further details on these parameters
+        see scikit-learn documentation.
 
         Parameters
         ----------
@@ -254,7 +271,8 @@ class TfIdfVectorizer(CountVectorizer):
         self._fitted = False
 
     def fit(self, dataset, field):
-        """Learn idf from dataset on data in given field.
+        """
+        Learn idf from dataset on data in given field.
 
         Parameters
         ----------
@@ -271,7 +289,6 @@ class TfIdfVectorizer(CountVectorizer):
         ------
         ValueError
             If dataset or field are None and if name of given field is not in dataset.
-
         """
         super(TfIdfVectorizer, self).fit(dataset=dataset, field=field)
         if dataset is None or field is None:
@@ -289,8 +306,9 @@ class TfIdfVectorizer(CountVectorizer):
         return self
 
     def transform(self, examples, **kwargs):
-        """Transforms examples to example-term matrix. Uses vocabulary that is given
-        in constructor.
+        """
+        Transforms examples to example-term matrix. Uses vocabulary that is
+        given in constructor.
 
         Parameters
         ----------

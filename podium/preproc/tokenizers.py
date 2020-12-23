@@ -1,9 +1,12 @@
-"""Module contains text tokenizers."""
+"""
+Module contains text tokenizers.
+"""
 import warnings
 
 
 def get_tokenizer(tokenizer):
-    """Returns a tokenizer according to the parameters given.
+    """
+    Returns a tokenizer according to the parameters given.
 
     Parameters
     ----------
@@ -13,14 +16,22 @@ def get_tokenizer(tokenizer):
         tokenizers. The string must be of format 'tokenizer' or `tokenizer-args`
 
         The available premade tokenizers are:
-            - 'split' - default str.split()
+            - 'split' - default str.split(). Custom separator can be provided as
+              `split-sep` where `sep` is the separator string.
 
             - 'spacy' - the spacy tokenizer, using the 'en' language
-              model by default (unless the user provides a different
-              language through args). If spacy model is used for the first time
-              user should download it by using command similar to the following
-              `python -m spacy download en`. More details can be found in spacy
-              documentation https://spacy.io/usage/models
+              model by default . Different language model can be provided as
+              'spacy-lang' where `lang` is the language model name (e.g. `spacy-en`).
+              If spacy model is used for the first time, an attempt to install it will be
+              made. If that fails, user should download it by using command similar
+              to the following `python -m spacy download en`.
+              More details can be found in spacy documentation https://spacy.io/usage/models.
+
+            - toktok - NLTK's toktok tokenizer. For more details
+              see https://www.nltk.org/_modules/nltk/tokenize/toktok.html.
+
+            - moses - Sacremoses's moses tokenizer. For more details
+              see https://github.com/alvations/sacremoses.
 
     Returns
     -------
@@ -35,9 +46,7 @@ def get_tokenizer(tokenizer):
         string that doesn't correspond to any of the supported tokenizers.
     """
 
-    # Add every new tokenizer to this "factory" method
     if callable(tokenizer):
-        # if arg is already a function, just return it
         return tokenizer
 
     if not isinstance(tokenizer, str):
@@ -46,17 +55,14 @@ def get_tokenizer(tokenizer):
             f"and strings. The provided type is {type(tokenizer)}"
         )
 
-    tokenizer_split = tokenizer.split("-", 1)
-    if len(tokenizer_split) == 1:
-        tokenizer, parameters = tokenizer_split[0], None
-    else:
-        tokenizer, parameters = tokenizer_split
+    tokenizer, *language_or_sep = tokenizer.split("-", 1)
+    language_or_sep = language_or_sep[0] if language_or_sep else None
 
     if tokenizer == "spacy":
         try:
             import spacy
 
-            language = parameters or "en"
+            language = language_or_sep or "en"
             disable = ["parser", "ner"]
             spacy_tokenizer = spacy.load(language, disable=disable)
         except OSError:
@@ -77,9 +83,10 @@ def get_tokenizer(tokenizer):
         return spacy_tokenize
 
     elif tokenizer == "split":
+        sep = language_or_sep
 
         def _split(string):
-            return string.split(sep=parameters)
+            return string.split(sep)
 
         return _split
 
@@ -103,5 +110,4 @@ def get_tokenizer(tokenizer):
             )
             raise
     else:
-        # if tokenizer not found
         raise ValueError(f"Wrong value given for the tokenizer: {tokenizer}")

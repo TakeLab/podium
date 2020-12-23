@@ -1,5 +1,6 @@
-"""Module contains IMDB Large Movie Review Dataset
-Dataset webpage: http://ai.stanford.edu/~amaas/data/sentiment/
+"""
+Module contains IMDB Large Movie Review Dataset Dataset webpage:
+http://ai.stanford.edu/~amaas/data/sentiment/
 
 When using this dataset, please cite:
     @InProceedings{maas-EtAl:2011:ACL-HLT2011,
@@ -27,7 +28,8 @@ from podium.storage.vocab import Vocab
 
 
 class IMDB(Dataset):
-    """Simple Imdb dataset with only supervised data which uses non processed data.
+    """
+    Simple Imdb dataset with only supervised data which uses non processed data.
 
     Attributes
     ----------
@@ -73,8 +75,9 @@ class IMDB(Dataset):
     NEGATIVE_LABEL = "negative"
 
     def __init__(self, dir_path, fields):
-        """Dataset constructor. User should use static method
-        get_dataset_splits rather than using directly constructor.
+        """
+        Dataset constructor. User should use static method get_dataset_splits
+        rather than using directly constructor.
 
         Parameters
         ----------
@@ -96,9 +99,10 @@ class IMDB(Dataset):
 
     @staticmethod
     def _create_examples(dir_path, fields):
-        """Method creates examples for imdb dataset. Examples are arranged in two
-        folders, one for examples with positive sentiment and other with negative
-        sentiment. One file in each folder represents one example.
+        """
+        Method creates examples for imdb dataset. Examples are arranged in two
+        folders, one for examples with positive sentiment and other with
+        negative sentiment. One file in each folder represents one example.
 
         Parameters
         ----------
@@ -125,7 +129,8 @@ class IMDB(Dataset):
 
     @staticmethod
     def _create_labeled_examples(dir_path, label, fields):
-        """Method creates examples for imdb dataset with given label. Examples are
+        """
+        Method creates examples for imdb dataset with given label. Examples are
         positioned in multiple files that are in one folder.
 
         Parameters
@@ -155,7 +160,8 @@ class IMDB(Dataset):
 
     @staticmethod
     def get_dataset_splits(fields=None):
-        """Method creates train and test dataset for Imdb dataset.
+        """
+        Method creates train and test dataset for Imdb dataset.
 
         Parameters
         ----------
@@ -186,7 +192,8 @@ class IMDB(Dataset):
 
     @staticmethod
     def get_default_fields():
-        """Method returns default Imdb fields: text and label.
+        """
+        Method returns default Imdb fields: text and label.
 
         Returns
         -------

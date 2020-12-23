@@ -27,11 +27,15 @@ class TorchModel(AbstractSupervisedModel):
         return self._model
 
     def __call__(self, X):
-        """Call the forward method of the internalized model"""
+        """
+        Call the forward method of the internalized model.
+        """
         return self.model(X)
 
     def fit(self, X, y, **kwargs):
-        """Fit the model on (X, y).
+        """
+        Fit the model on (X, y).
+
         Assumes that the model is in training mode.
         """
         # Train-specific boilerplate code
@@ -51,7 +55,9 @@ class TorchModel(AbstractSupervisedModel):
         return return_dict
 
     def predict(self, X, return_as_numpy=True, **kwargs):
-        """Return the outputs of the model for inputs X."""
+        """
+        Return the outputs of the model for inputs X.
+        """
         self.model.eval()
         with torch.no_grad():
             return_dict = self(X)
@@ -66,7 +72,9 @@ class TorchModel(AbstractSupervisedModel):
             return return_dict
 
     def evaluate(self, X, y, **kwargs):
-        """Evaluate the model (compute loss) on (X, y).
+        """
+        Evaluate the model (compute loss) on (X, y).
+
         Assumes that the model is in evaluation mode.
         """
 
@@ -79,7 +87,9 @@ class TorchModel(AbstractSupervisedModel):
             return return_dict
 
     def reset(self, **kwargs):
-        """Reset (re-initialize) the model.
+        """
+        Reset (re-initialize) the model.
+
         Also resets the internal state of the optimizer.
         """
         self._model = self.model_class(self.model_config).to(self.model_config["device"])
