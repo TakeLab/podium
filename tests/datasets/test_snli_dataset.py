@@ -43,16 +43,15 @@ EXPECTED_EXAMPLES_SIMPLE = [
 ]
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="module", autouse=True)
 def mock_dataset_path():
-    base_temp = tempfile.mkdtemp()
-    assert os.path.exists(base_temp)
-    LargeResource.BASE_RESOURCE_DIR = base_temp
-    base_dataset_dir = os.path.join(base_temp, "snli_1.0")
-    os.makedirs(base_dataset_dir)
-    dataset_simple = os.path.join(base_dataset_dir, "simple.jsonl")
-    create_examples(dataset_simple, TRAIN_EXAMPLES_SIMPLE)
-    return dataset_simple
+    with tempfile.TemporaryDirectory() as base_temp:
+        LargeResource.BASE_RESOURCE_DIR = base_temp
+        base_dataset_dir = os.path.join(base_temp, "snli_1.0")
+        os.makedirs(base_dataset_dir)
+        dataset_simple = os.path.join(base_dataset_dir, "simple.jsonl")
+        create_examples(dataset_simple, TRAIN_EXAMPLES_SIMPLE)
+        yield dataset_simple
 
 
 def create_examples(file_name, raw_examples):

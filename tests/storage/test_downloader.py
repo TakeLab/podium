@@ -1,6 +1,5 @@
 import io
 import os
-import tempfile
 from unittest.mock import Mock
 
 import pytest
@@ -20,19 +19,15 @@ def test_http_downloader_abstract():
         downloader.HttpDownloader()
 
 
-def test_simple_url_downloader_small_file():
+def test_simple_url_downloader_small_file(tmpdir):
     URL = "https://www.fake.hr/file.htm"
     test_string = "test string\nnewline"
     test_string_bytes = b"test string\nnewline"
 
-    # temporary directory
-    base = tempfile.mkdtemp()
-    assert os.path.exists(base)
-
     _mock_response(url=URL, data_bytes=test_string_bytes)
 
     # testing download
-    result_file_path = os.path.join(base, "result.txt")
+    result_file_path = os.path.join(tmpdir, "result.txt")
     assert not os.path.exists(result_file_path)
     dl = downloader.SimpleHttpDownloader
     return_value = dl.download(path=result_file_path, uri=URL)
@@ -44,13 +39,10 @@ def test_simple_url_downloader_small_file():
         assert result_content == test_string
 
 
-def test_simple_url_downloader_file_already_exists_no_overwrite():
+def test_simple_url_downloader_file_already_exists_no_overwrite(tmpdir):
     URL = "https://www.fake.hr/file.htm"
-    # temporary directory
-    base = tempfile.mkdtemp()
-    assert os.path.exists(base)
 
-    file_path = os.path.join(base, "file.txt")
+    file_path = os.path.join(tmpdir, "file.txt")
     with open(file_path, "w") as original_fp:
         original_fp.write("original")
 
@@ -61,13 +53,10 @@ def test_simple_url_downloader_file_already_exists_no_overwrite():
         assert original_fp.read() == "original"
 
 
-def test_simple_url_downloader_file_already_exists_overwrite():
+def test_simple_url_downloader_file_already_exists_overwrite(tmpdir):
     URL = "https://www.fake.hr/file.htm"
-    # temporary directory
-    base = tempfile.mkdtemp()
-    assert os.path.exists(base)
 
-    file_path = os.path.join(base, "file.txt")
+    file_path = os.path.join(tmpdir, "file.txt")
     with open(file_path, "w") as original_fp:
         original_fp.write("original")
 
@@ -87,11 +76,8 @@ def test_simple_url_downloader_none_path():
         dl.download(path=None, uri=URL)
 
 
-def test_simple_url_downloader_resource_not_found():
+def test_simple_url_downloader_resource_not_found(tmpdir):
     URL = "https://www.fake.hr/file.htm"
-    # temporary directory
-    base = tempfile.mkdtemp()
-    assert os.path.exists(base)
 
     _mock_response(
         url=URL,
@@ -101,7 +87,7 @@ def test_simple_url_downloader_resource_not_found():
     )
 
     dl = downloader.SimpleHttpDownloader
-    file_path = os.path.join(base, "file.txt")
+    file_path = os.path.join(tmpdir, "file.txt")
     with pytest.raises(RuntimeError):
         dl.download(path=file_path, uri=URL)
 
@@ -170,12 +156,8 @@ def test_scp_downloader_no_host_name():
         dl.download(**config)
 
 
-def test_scp_downloader_file_already_exists_no_overwrite():
-    # temporary directory
-    base = tempfile.mkdtemp()
-    assert os.path.exists(base)
-
-    file_path = os.path.join(base, "file.txt")
+def test_scp_downloader_file_already_exists_no_overwrite(tmpdir):
+    file_path = os.path.join(tmpdir, "file.txt")
     with open(file_path, "w") as original_fp:
         original_fp.write("original")
 

@@ -79,25 +79,26 @@ TEST_EXAMPLES = [
 ]
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="module", autouse=True)
 def mock_dataset_path():
-    base_temp = tempfile.mkdtemp()
-    assert os.path.exists(base_temp)
-    LargeResource.BASE_RESOURCE_DIR = base_temp
-    base_dataset_dir = os.path.join(
-        base_temp, "croopinion", "CropinionDataset", "reviews_original"
-    )
+    with tempfile.TemporaryDirectory() as base_temp:
+        assert os.path.exists(base_temp)
+        LargeResource.BASE_RESOURCE_DIR = base_temp
+        base_dataset_dir = os.path.join(
+            base_temp, "croopinion", "CropinionDataset", "reviews_original"
+        )
 
-    train_dir = os.path.join(base_dataset_dir, "Train")
-    os.makedirs(train_dir)
-    assert os.path.exists(train_dir)
-    test_dir = os.path.join(base_dataset_dir, "Test")
-    os.makedirs(test_dir)
-    assert os.path.exists(test_dir)
+        train_dir = os.path.join(base_dataset_dir, "Train")
+        os.makedirs(train_dir)
+        assert os.path.exists(train_dir)
+        test_dir = os.path.join(base_dataset_dir, "Test")
+        os.makedirs(test_dir)
+        assert os.path.exists(test_dir)
 
-    create_examples(train_dir, TRAIN_EXAMPLES)
-    create_examples(test_dir, TEST_EXAMPLES)
-    return base_temp
+        create_examples(train_dir, TRAIN_EXAMPLES)
+        create_examples(test_dir, TEST_EXAMPLES)
+
+        yield base_temp
 
 
 def create_examples(base_dir, examples):
