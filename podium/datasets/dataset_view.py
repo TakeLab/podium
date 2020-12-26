@@ -82,11 +82,6 @@ class DatasetConcatView(DatasetABC):
         eager_fields = {
             n: f for n, f in self._field_overrides.items() if not f.finalized and f.eager
         }
-        non_eager_fields = {
-            n: f
-            for n, f in self._field_overrides.items()
-            if not f.finalized and not f.eager
-        }
 
         if eager_fields:
             original_examples = chain(*self._datasets)
@@ -96,15 +91,6 @@ class DatasetConcatView(DatasetABC):
                     override_field.update(tokenized)
             for eager_field in eager_fields.values():
                 eager_field.finalize()
-
-        if non_eager_fields:
-            original_examples = chain(*self._datasets)
-            for ex in original_examples:
-                for original_field_name, override_field in non_eager_fields:
-                    _, tokenized = ex[original_field_name]
-                    override_field.update(tokenized)
-            for non_eager_field in non_eager_fields.values():
-                non_eager_field.finalize()
 
     def _map_example(self, example: Example) -> Example:
         new_example = Example()
