@@ -9,7 +9,7 @@ from podium.storage import Example, Field
 
 class DatasetConcatView(DatasetABC):
     def __init__(
-        self, datasets: List[DatasetABC], field_overrides: Dict[str, Field] = None
+            self, datasets: List[DatasetABC], field_overrides: Dict[str, Field] = None
     ):
         if isinstance(datasets, DatasetABC):
             # Wrap single dataset in a list
@@ -218,15 +218,19 @@ class DatasetSlicedView(DatasetABC):
         self._dataset = dataset
         start, stop, step = s.indices(len(dataset))
         self._slice = slice(start, stop, step)
-        super().__init__(dataset.field_dict)
+        self._len = self._calculate_length()
+        super().__init__(dataset.fields)
 
-    def __len__(self):
+    def _calculate_length(self):
         start, stop, step = self._slice.start, self._slice.stop, self._slice.step
         if step < 0:
             start, stop = stop, start
             step *= -1
 
         return ceil(max(stop - start, 0) / step)
+
+    def __len__(self):
+        return self._len
 
     def __iter__(self):
         start, stop, step = self._slice.start, self._slice.stop, self._slice.step
@@ -235,7 +239,13 @@ class DatasetSlicedView(DatasetABC):
 
     def __getitem__(self, item):
         if isinstance(item, int):
-            # TODO check bounds
+            if item >= len(self):
+                err_msg = f"Index {item} out of bounds. Length: {len(self)}."
+                raise IndexError(err_msg)
+
+            if item < 0:
+                item %= len(self)
+
             index = self._slice.start + item * self._slice.step
             return self._dataset[index]
 
