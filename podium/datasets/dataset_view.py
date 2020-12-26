@@ -169,8 +169,10 @@ def create_view(dataset: DatasetABC, i: Union[Sequence[int], slice]) -> DatasetA
 class DatasetIndexedView(DatasetABC):
     def __init__(self, dataset: DatasetABC, indices: Sequence[int]):
         if not isinstance(dataset, DatasetABC):
-            err_msg = f"'dataset' parameter must be of type DatasetABC. " \
-                      f"Passed type: {type(dataset).__name__}"
+            err_msg = (
+                f"'dataset' parameter must be of type DatasetABC. "
+                f"Passed type: {type(dataset).__name__}"
+            )
             raise TypeError(err_msg)
 
         self._dataset = dataset
@@ -200,13 +202,17 @@ class DatasetIndexedView(DatasetABC):
 class DatasetSlicedView(DatasetABC):
     def __init__(self, dataset: DatasetABC, s: slice):
         if not isinstance(dataset, DatasetABC):
-            err_msg = f"'dataset' parameter must be of type DatasetABC. " \
-                      f"Passed type: {type(dataset).__name__}"
+            err_msg = (
+                f"'dataset' parameter must be of type DatasetABC. "
+                f"Passed type: {type(dataset).__name__}"
+            )
             raise TypeError(err_msg)
 
         if not isinstance(s, slice):
-            err_msg = f"'s' parameter must be of type slice. " \
-                      f"Passed type: {type(S).__name__}"
+            err_msg = (
+                f"'s' parameter must be of type slice. "
+                f"Passed type: {type(s).__name__}"
+            )
             raise TypeError(err_msg)
 
         self._dataset = dataset
