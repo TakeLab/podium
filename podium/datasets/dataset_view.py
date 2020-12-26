@@ -27,7 +27,7 @@ class DatasetConcatView(DatasetABC):
         self._len = sum(map(len, datasets))
 
         self._cumulative_lengths = [len(self._datasets[0])]
-        for dataset in datasets[1:]:
+        for dataset in islice(datasets, 1):
             cumulative_len = self._cumulative_lengths[-1] + len(dataset)
             self._cumulative_lengths.append(cumulative_len)
 
@@ -56,6 +56,7 @@ class DatasetConcatView(DatasetABC):
                 raise ValueError(err_msg)
 
         field_mapping = {}
+        default_field_dict = self._datasets[0].field_dict
         for f_name in intersection_field_names:
             if f_name in self._field_overrides:
                 # ignore field and take the override
@@ -63,7 +64,7 @@ class DatasetConcatView(DatasetABC):
                 field_mapping[f_name] = override_field
             else:
                 # take the field from the first dataset
-                original_field = self._datasets[0].field_dict[f_name]
+                original_field = default_field_dict[f_name]
                 field_mapping[f_name] = original_field
 
         self._field_mapping = field_mapping
@@ -71,10 +72,10 @@ class DatasetConcatView(DatasetABC):
             mapped_field.name: orig_fname
             for orig_fname, mapped_field in self._field_mapping.items()
         }
-        field_dict = {f.name: f for f in field_mapping.values()}
+        fields = list(self._field_mapping.values())
 
+        super().__init__(fields)
         self._update_override_fields()
-        super().__init__(field_dict)
 
     def __len__(self) -> int:
         return self._len
@@ -85,10 +86,17 @@ class DatasetConcatView(DatasetABC):
         yield from mapped_examples
 
     def __getattr__(self, field: Union[str, Field]) -> Iterator[Tuple[Any, Any]]:
-        field_name = field if isinstance(field, str) else field.name
-        field_name = self._reverse_field_name_mapping[field_name]
-        attr_getters = [getattr(ds, field_name) for ds in self._datasets]
-        yield from chain(*attr_getters)
+        view_field_name = field if isinstance(field, str) else field.name
+        if view_field_name not in self._reverse_field_name_mapping:
+            # TODO better error message?
+            err_msg = f'Field "{view_field_name}" not present in this ' \
+                      f'{type(self).__name__}. ' \
+                      f'Fields: {list(f.name for f in self.fields)}'
+            raise ValueError(err_msg)
+
+        original_field_name = self._reverse_field_name_mapping[view_field_name]
+        for ds in self._datasets:
+            yield from getattr(ds, original_field_name)
 
     def __getitem__(self, item):
 
@@ -124,7 +132,8 @@ class DatasetConcatView(DatasetABC):
         return new_example
 
     def _translate_index(self, index: int) -> Tuple[DatasetABC, int]:
-        assert index < len(self), f"Index {index} out of range. Length: {len(self)}"
+        if index >= len(self):
+            raise IndexError(f"Index {index} out of range. Length: {len(self)}")
 
         if index < 0:
             # correct for negative indexing
