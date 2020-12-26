@@ -1,3 +1,4 @@
+from bisect import bisect_right
 from itertools import chain
 from math import ceil
 from typing import Any, Dict, Iterator, List, Sequence, Tuple, Union
@@ -139,13 +140,8 @@ class DatasetConcatView(DatasetABC):
             # correct for negative indexing
             index %= len(self)
 
-        # TODO implement better search alg? Binary search?
-        dataset_index = 0
-        for cumulative_len in self._cumulative_lengths:
-            if index < cumulative_len:
-                break
-            dataset_index += 1
-
+        # Use binary search to determine the index of the containing dataset
+        dataset_index = bisect_right(self._cumulative_lengths, index)
         offset = self._cumulative_lengths[dataset_index - 1] if dataset_index > 0 else 0
         translated_index = index - offset
         dataset = self._datasets[dataset_index]
