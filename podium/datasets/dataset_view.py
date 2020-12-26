@@ -90,9 +90,11 @@ class DatasetConcatView(DatasetABC):
         view_field_name = field if isinstance(field, str) else field.name
         if view_field_name not in self._reverse_field_name_mapping:
             # TODO better error message?
-            err_msg = f'Field "{view_field_name}" not present in this ' \
-                      f'{type(self).__name__}. ' \
-                      f'Fields: {list(f.name for f in self.fields)}'
+            err_msg = (
+                f'Field "{view_field_name}" not present in this '
+                f"{type(self).__name__}. "
+                f"Fields: {list(f.name for f in self.fields)}"
+            )
             raise ValueError(err_msg)
 
         original_field_name = self._reverse_field_name_mapping[view_field_name]
