@@ -1,5 +1,5 @@
 from bisect import bisect_right
-from itertools import chain
+from itertools import chain, islice
 from math import ceil
 from typing import Any, Dict, Iterator, List, Sequence, Tuple, Union
 
