@@ -12,10 +12,18 @@ class DatasetConcatView(DatasetABC):
     ):
         if isinstance(datasets, DatasetABC):
             # Wrap single dataset in a list
-            datasets = [datasets]
+            self._datasets = [datasets]
+        elif isinstance(datasets, (list, tuple)):
+            self._datasets = list(datasets)
+        else:
+            err_msg = (
+                f"Invalid 'dataset' argument to {type(self).__name__}. "
+                f"Supported values are lists or tuples of DatasetABC instances, "
+                f"or a single DatasetABC instance. "
+                f"Passed type: {type(datasets).__name__}"
+            )
+            raise TypeError(err_msg)
 
-        self._datasets = list(datasets)
-        # TODO add warning for no datasets ?
         self._len = sum(map(len, datasets))
 
         self._cumulative_lengths = [len(self._datasets[0])]
@@ -24,12 +32,29 @@ class DatasetConcatView(DatasetABC):
             self._cumulative_lengths.append(cumulative_len)
 
         self._field_overrides = field_overrides or {}
-        # TODO add warning for non-existing override mapping
-        # TODO add warning for empty field intersection
-
         intersection_field_names = DatasetConcatView._get_intersection_field_names(
             datasets
         )
+
+        # Check for empty intersection
+        if len(intersection_field_names) == 0:
+            err_msg = (
+                "Empty field name intersection. "
+                "No field name is contained in all passed Datasets."
+            )
+            raise ValueError(err_msg)
+
+        # Check for invalid overrides
+        intersection_field_names_set = set(intersection_field_names)
+        for fname in self._field_overrides:
+            if fname not in intersection_field_names_set:
+                err_msg = (
+                    f'Override field name "{fname}" not contained in the '
+                    f"intersection of passed datasets' fields: "
+                    f"{intersection_field_names}"
+                )
+                raise ValueError(err_msg)
+
         field_mapping = {}
         for f_name in intersection_field_names:
             if f_name in self._field_overrides:
