@@ -168,9 +168,14 @@ def create_view(dataset: DatasetABC, i: Union[Sequence[int], slice]) -> DatasetA
 
 class DatasetIndexedView(DatasetABC):
     def __init__(self, dataset: DatasetABC, indices: Sequence[int]):
+        if not isinstance(dataset, DatasetABC):
+            err_msg = f"'dataset' parameter must be of type DatasetABC. " \
+                      f"Passed type: {type(dataset).__name__}"
+            raise TypeError(err_msg)
+
         self._dataset = dataset
         self._indices = indices
-        super().__init__(dataset.field_dict)
+        super().__init__(dataset.fields)
 
     def __len__(self):
         return len(self._indices)
@@ -194,6 +199,16 @@ class DatasetIndexedView(DatasetABC):
 
 class DatasetSlicedView(DatasetABC):
     def __init__(self, dataset: DatasetABC, s: slice):
+        if not isinstance(dataset, DatasetABC):
+            err_msg = f"'dataset' parameter must be of type DatasetABC. " \
+                      f"Passed type: {type(dataset).__name__}"
+            raise TypeError(err_msg)
+
+        if not isinstance(s, slice):
+            err_msg = f"'s' parameter must be of type slice. " \
+                      f"Passed type: {type(S).__name__}"
+            raise TypeError(err_msg)
+
         self._dataset = dataset
         start, stop, step = s.indices(len(dataset))
         self._slice = slice(start, stop, step)
