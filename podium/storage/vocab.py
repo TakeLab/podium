@@ -42,6 +42,29 @@ class Special(str):
     each special token will be present in the Vocab.
     """
 
+    default_value = None
+
+    def __new__(cls, token=None):
+        """
+        Provides default value initialization for subclasses.
+
+        If creating a new instance without a string argument, the
+        `default_value` class attribute must be set in the subclass
+        implementation.
+        """
+
+        if token is None and cls.default_value is None:
+            error_msg = (
+                "When initializing a special token without argument"
+                f" the {cls.__class__}.default_value attribute must be set."
+            )
+            raise RuntimeError(error_msg)
+
+        if token is None:
+            token = cls.default_value
+
+        return super(Special, cls).__new__(cls, token)
+
     def __hash__(self):
         """
         Overrides hash.
@@ -74,11 +97,7 @@ class BOS(Special):
     The beginning-of-sequence special token.
     """
 
-    def __new__(cls, token="<BOS>"):
-        """
-        Provides default value upon creation for the BOS token.
-        """
-        return super(BOS, cls).__new__(cls, token)
+    default_value = "<BOS>"
 
     def apply(self, sequence):
         """
@@ -92,11 +111,7 @@ class EOS(Special):
     The end-of-sequence special token.
     """
 
-    def __new__(cls, token="<EOS>"):
-        """
-        Provides default value upon creation for the EOS token.
-        """
-        return super(EOS, cls).__new__(cls, token)
+    default_value = "<EOS>"
 
     def apply(self, sequence):
         """
@@ -115,11 +130,7 @@ class UNK(Special):
     The unknown core special token.
     """
 
-    def __new__(cls, token="<UNK>"):
-        """
-        Provides default value upon creation for the UNK token.
-        """
-        return super(UNK, cls).__new__(cls, token)
+    default_value = "<UNK>"
 
     def apply(self, sequence):
         """
@@ -134,11 +145,7 @@ class PAD(Special):
     The padding core special token.
     """
 
-    def __new__(cls, token="<PAD>"):
-        """
-        Provides default value upon creation for the PAD token.
-        """
-        return super(PAD, cls).__new__(cls, token)
+    default_value = "<PAD>"
 
     def apply(self, sequence):
         """
