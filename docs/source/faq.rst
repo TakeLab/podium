@@ -12,7 +12,7 @@ FAQ
   >>> from podium.datasets import SST
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits()
   >>> x, y = sst_train.batch()
-  >>> print(f"{x.text.shape}\n{y.label.shape}")
+  >>> print(x.text.shape, y.label.shape, sep='\n')
   (6920, 52)
   (6920, 1)
 
