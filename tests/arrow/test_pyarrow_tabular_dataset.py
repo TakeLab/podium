@@ -58,7 +58,7 @@ def pyarrow_dataset_fixture(data, fields):
 
 def test_from_examples(data, fields):
     example_factory = ExampleFactory(fields)
-    examples = map(example_factory.from_list, iter(data))
+    examples = [example_factory.from_list(ex) for ex in data]
     ad = ArrowDataset.from_examples(fields, examples)
 
     for (raw, tokenized), (num, _) in zip(ad.number, data):
@@ -166,6 +166,8 @@ def test_finalize_fields(data, fields, mocker):
         f.finalize.assert_called_once()
         # all fields should be finalized
         assert f.finalized
+
+    dataset.delete_cache()
 
 
 def test_filtered(data, pyarrow_dataset):
