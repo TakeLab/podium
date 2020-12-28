@@ -10,6 +10,7 @@ import numpy as np
 
 from podium.preproc.tokenizers import get_tokenizer
 from podium.storage.vocab import Vocab
+from podium.utils import add_repr
 
 
 PretokenizationHookType = Callable[[Any], Any]
@@ -65,6 +66,7 @@ class PosttokenizationPipeline:
         self.hooks.clear()
 
 
+@add_repr(inspect_init=True, exclude_attrs=["pretokenize_hooks"])
 class MultioutputField:
     """
     Field that does pretokenization and tokenization once and passes it to its
@@ -107,7 +109,7 @@ class MultioutputField:
         """
 
         self._tokenizer_arg = tokenizer
-        self._pretokenization_pipeline = PretokenizationPipeline()
+        self._pretokenize_pipeline = PretokenizationPipeline()
 
         if pretokenize_hooks is not None:
             if not isinstance(pretokenize_hooks, (list, tuple)):
@@ -141,7 +143,7 @@ class MultioutputField:
         hook : Callable[[Any], Any]
             The pre-tokenization hook that we want to add to the field.
         """
-        self._pretokenization_pipeline.add_hook(hook)
+        self._pretokenize_pipeline.add_hook(hook)
 
     def _run_pretokenization_hooks(self, data: Any) -> Any:
         """
@@ -158,7 +160,7 @@ class MultioutputField:
             processed data
         """
 
-        return self._pretokenization_pipeline(data)
+        return self._pretokenize_pipeline(data)
 
     def add_output_field(self, field: "Field"):
         """
@@ -213,9 +215,10 @@ class MultioutputField:
         Remove all the pre-tokenization hooks that were added to the
         MultioutputField.
         """
-        self._pretokenization_pipeline.clear()
+        self._pretokenize_pipeline.clear()
 
 
+@add_repr(inspect_init=True, exclude_attrs=["pretokenize_hooks", "posttokenize_hooks"])
 class Field:
     """
     Holds the preprocessing and numericalization logic for a single field of a
@@ -274,7 +277,7 @@ class Field:
             If None, numericalization won't be attempted and batches will be created as
             lists instead of numpy matrices.
 
-         is_target : bool
+        is_target : bool
             Whether this field is a target variable. Affects iteration over
             batches.
 
@@ -861,16 +864,6 @@ class Field:
         if self._tokenizer_arg_string is not None:
             self._tokenizer = get_tokenizer(self._tokenizer_arg_string)
 
-    def __repr__(self):
-        if self.use_vocab:
-            return "{}[name: {}, is_target: {}, vocab: {}]".format(
-                self.__class__.__name__, self.name, self.is_target, self.vocab
-            )
-        else:
-            return "{}[name: {}, is_target: {}]".format(
-                self.__class__.__name__, self.name, self.is_target
-            )
-
     def get_output_fields(self) -> Iterable["Field"]:
         """
         Returns an Iterable of the contained output fields.
@@ -961,6 +954,7 @@ class LabelField(Field):
         )
 
 
+@add_repr(inspect_init=True, exclude_attrs=["pretokenize_hooks", "posttokenize_hooks"])
 class MultilabelField(Field):
     """
     Field subclass used to get multihot encoded vectors in batches.

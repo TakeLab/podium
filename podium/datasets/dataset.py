@@ -8,8 +8,10 @@ from typing import Callable, Iterable, List, Union
 
 from podium.datasets.dataset_abc import DatasetABC
 from podium.storage.example_factory import Example
+from podium.utils import add_repr
 
 
+@add_repr(inspect_init=True)
 class Dataset(DatasetABC):
     """
     A general purpose container for datasets. A dataset is a shallow wrapper for

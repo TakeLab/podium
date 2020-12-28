@@ -7,6 +7,7 @@ import numpy as np
 
 from podium.datasets.dataset import Dataset
 from podium.datasets.iterator import Iterator, SingleBatchIterator
+from podium.utils import add_repr
 
 from .batch_transform_functions import default_feature_transform, default_label_transform
 from .model import AbstractSupervisedModel
@@ -14,6 +15,7 @@ from .trainer import AbstractTrainer
 from .transformers import FeatureTransformer
 
 
+@add_repr(include_attrs=["model", "trainer"])
 class Experiment:
     """
     Class used to streamline model fitting and prediction.
@@ -310,6 +312,3 @@ class Experiment:
                 "a model instance in the constructor or call `fit` "
                 "before calling `partial_fit.`"
             )
-
-    def __repr__(self):
-        return f"{type(self).__name__}[model: {self.model}, trainer: {self.trainer}]"

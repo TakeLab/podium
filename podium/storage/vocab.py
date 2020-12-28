@@ -9,6 +9,8 @@ from typing import Iterable, Union
 
 import numpy as np
 
+from podium.utils import add_repr
+
 
 def unique(values: Iterable):
     """
@@ -66,6 +68,7 @@ class SpecialVocabSymbols(Enum):
     PAD = "<pad>"
 
 
+@add_repr(inspect_init=True, include_attrs=["finalized"])
 class Vocab:
     """
     Class for storing vocabulary. It supports frequency counting and size
@@ -513,9 +516,6 @@ class Vocab:
         if not self.finalized:
             return iter(self._freqs.keys())
         return iter(self.itos)
-
-    def __repr__(self):
-        return f"{type(self).__name__}[finalized: {self.finalized}, size: {len(self)}]"
 
     def __getitem__(self, token):
         """

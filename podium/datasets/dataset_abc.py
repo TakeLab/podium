@@ -16,11 +16,13 @@ from typing import (
 import numpy as np
 
 from podium.storage import Example, Field, unpack_fields
+from podium.utils import add_repr
 
 
 FieldType = Optional[Union[Field, List[Field]]]
 
 
+@add_repr(inspect_init=True)
 class DatasetABC(ABC):
     def __init__(self, fields: Union[Dict[str, FieldType], List[FieldType]]):
         self._fields = tuple(unpack_fields(fields))
@@ -207,9 +209,6 @@ class DatasetABC(ABC):
         """
         shuffled_indices = np.random.permutation(len(self))
         return self[shuffled_indices]
-
-    def __repr__(self):
-        return f"{type(self).__name__}[Size: {len(self)}, Fields: {self.fields}]"
 
     # ================= Abstract methods =======================
 

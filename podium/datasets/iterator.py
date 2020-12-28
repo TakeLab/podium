@@ -13,6 +13,7 @@ import numpy as np
 
 from podium.datasets.dataset import Dataset, DatasetABC
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
+from podium.utils import add_repr
 
 
 class IteratorABC(ABC):
@@ -84,6 +85,7 @@ class IteratorABC(ABC):
     pass
 
 
+@add_repr(inspect_init=True, exclude_attrs=["seed", "internal_random_state"])
 class Iterator(IteratorABC):
     """
     An iterator that batches data from a dataset after numericalization.
@@ -401,14 +403,6 @@ class Iterator(IteratorABC):
 
         return max(map(numericalization_length, numericalizations))
 
-    def __repr__(self) -> str:
-        return "{}[batch_size: {}, sort_key: {}, shuffle: {}]".format(
-            self.__class__.__name__,
-            self._batch_size,
-            self._sort_key,
-            self._shuffle,
-        )
-
 
 class SingleBatchIterator(Iterator):
     """
@@ -445,6 +439,7 @@ class SingleBatchIterator(Iterator):
         return 1
 
 
+@add_repr(inspect_init=True, exclude_attrs=["seed"])
 class BucketIterator(Iterator):
     """
     Creates a bucket iterator that uses a look-ahead heuristic to try and batch
@@ -528,20 +523,8 @@ class BucketIterator(Iterator):
         self._iterations = 0
         self._epoch += 1
 
-    def __repr__(self) -> str:
-        return (
-            "{}[batch_size: {}, sort_key: {}, "
-            "shuffle: {}, look_ahead_multiplier: {}, bucket_sort_key: {}]".format(
-                self.__class__.__name__,
-                self._batch_size,
-                self._sort_key,
-                self._shuffle,
-                self.look_ahead_multiplier,
-                self.bucket_sort_key,
-            )
-        )
 
-
+@add_repr(inspect_init=True, exclude_attrs=["seed", "internal_random_state"])
 class HierarchicalDatasetIterator(Iterator):
     """
     Iterator used to create batches for Hierarchical Datasets.
@@ -637,11 +620,11 @@ class HierarchicalDatasetIterator(Iterator):
         if context_max_depth is not None and context_max_depth < 0:
             raise ValueError(
                 "'context_max_depth' must not be negative. "
-                f"'context_max_depth' : {context_max_length}"
+                f"'context_max_depth' : {context_max_depth}"
             )
 
         self._context_max_depth = context_max_depth
-        self._context_max_size = context_max_length
+        self._context_max_length = context_max_length
 
         super().__init__(
             dataset,
@@ -685,9 +668,9 @@ class HierarchicalDatasetIterator(Iterator):
         )
         context = list(context_iterator)
 
-        if self._context_max_size is not None:
+        if self._context_max_length is not None:
             # if context max size is defined, truncate it
-            context = context[-self._context_max_size :]
+            context = context[-self._context_max_length :]
 
         # add the example to the end of its own context
         context.append(node.example)
@@ -766,16 +749,3 @@ class HierarchicalDatasetIterator(Iterator):
         # prepare for new epoch
         self._iterations = 0
         self._epoch += 1
-
-    def __repr__(self) -> str:
-        return (
-            "{}[batch_size: {}, sort_key: {}, "
-            "shuffle: {}, context_max_length: {}, context_max_depth: {}]".format(
-                self.__class__.__name__,
-                self._batch_size,
-                self._sort_key,
-                self._shuffle,
-                self._context_max_size,
-                self._context_max_depth,
-            )
-        )

@@ -9,6 +9,8 @@ import xml.etree.ElementTree as ET
 from enum import Enum
 from typing import Union
 
+from podium.utils import add_repr
+
 
 class ExampleFormat(Enum):
     LIST = "list"
@@ -67,6 +69,7 @@ class Example(dict):
         return ExampleFactory(fields)
 
 
+@add_repr(inspect_init=True)
 class ExampleFactory:
     """
     Class used to create Example instances.
