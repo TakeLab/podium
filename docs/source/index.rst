@@ -26,7 +26,7 @@ The documentation is organized in four parts:
     :caption: Getting started
 
     installation
-    walkthrough
+    notebooks/Walkthrough
     faq
 
 .. toctree::

@@ -37,13 +37,14 @@ master_doc = 'index'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'nbsphinx',
+    'recommonmark',
+    'sphinx_copybutton',
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'sphinx.ext.doctest',
     'sphinx.ext.viewcode',
     'sphinx.ext.autosummary',
-    'recommonmark',
-    'sphinx_copybutton',
 ]
 
 source_suffix = ['.rst', '.md']
@@ -57,7 +58,7 @@ html_static_path = ['_static']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = ['_build', '**.ipynb_checkpoints']
 
 copybutton_prompt_text = ">>> "
 
@@ -75,10 +76,31 @@ html_theme_options = {
 }
 
 
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-# html_static_path = ['_static']     # right now we don't use that
+# Nbsphinx options
+
+# Execute notebooks before conversion: 'always', 'never', 'auto' (default)
+# We never execute notebooks to avoid problems if nbsphinx won't find all dependencies.
+nbsphinx_execute = 'never'
+
+# If True, the build process is continued even if an exception occurs:
+nbsphinx_allow_errors = True
+
+# Controls when a cell will time out (defaults to 30; use -1 for no timeout):
+nbsphinx_timeout = 180
+
+# Default Pygments lexer for syntax highlighting in code cells:
+nbsphinx_codecell_lexer = 'ipython3'
+
+# This won't work until repo is public
+nbsphinx_prolog = """
+{% set docname = 'docs/source/' + env.doc2path(env.docname, base=None) %}
+.. only:: html
+    .. role:: raw-html(raw)
+        :format: html
+    .. nbinfo::
+        Interactive online version:
+        :raw-html:`<a href="https://colab.research.google.com/github/mttk/podium/blob/master/{{ docname }}"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" style="vertical-align:text-bottom"></a>`
+"""
 
 # Napoleon settings
 napoleon_google_docstring = True
