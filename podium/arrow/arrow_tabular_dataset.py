@@ -25,7 +25,7 @@ except ImportError:
 
 def _chunkify(iterable, n):
     """
-    Splits an iterable into chunks of size n
+    Splits an iterable into chunks of size n.
     """
     it = iter(iterable)
     while True:

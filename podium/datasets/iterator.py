@@ -16,7 +16,9 @@ from podium.datasets.hierarhical_dataset import HierarchicalDataset
 
 
 class IteratorABC(ABC):
-    """Abstract base class for all Iterators in Podium."""
+    """
+    Abstract base class for all Iterators in Podium.
+    """
 
     def __call__(
         self, dataset: DatasetABC
