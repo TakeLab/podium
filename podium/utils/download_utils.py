@@ -165,7 +165,7 @@ def http_get(url: str, temp_file: BinaryIO, cookies=None, max_retries: int = 0) 
         unit="B",
         unit_scale=True,
         total=total,
-        desc="Downloading resource",
+        desc="Downloading data",
         disable=disable,
     ) as progress_bar:
         for chunk in response.iter_content(chunk_size=1024):
