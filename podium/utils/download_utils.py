@@ -269,6 +269,7 @@ def get_url_manager(url: str, max_retries: int = 0) -> ContextManager[str]:
             yield temp_file.name
         finally:
             os.remove(temp_file.name)
+
     return url_resource
 
 
