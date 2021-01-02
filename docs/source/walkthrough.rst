@@ -260,7 +260,7 @@ You can load a dataset in 🤗/datasets and then convert it to a Podium dataset 
 
 .. code-block:: python
 
-  >>> from podium import HFDatasetConverter
+  >>> from podium.dataload.hf import HFDatasetConverter
   >>> import datasets
   >>> # Loading a huggingface dataset returns an instance of DatasetDict
   >>> # which contains the dataset splits (usually: train, valid, test, 
