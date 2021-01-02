@@ -1,7 +1,7 @@
 from bisect import bisect_right
 from itertools import chain, islice
 from math import ceil
-from typing import Any, Dict, Iterator, List, Sequence, Tuple, Union
+from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple, Union
 
 from podium.datasets.dataset_abc import DatasetABC
 from podium.storage import Example, Field
@@ -9,7 +9,9 @@ from podium.storage import Example, Field
 
 class DatasetConcatView(DatasetABC):
     def __init__(
-            self, datasets: List[DatasetABC], field_overrides: Dict[str, Field] = None
+        self,
+        datasets: List[DatasetABC],
+        field_overrides: Optional[Dict[str, Field]] = None,
     ):
         if isinstance(datasets, DatasetABC):
             # Wrap single dataset in a list
@@ -25,7 +27,7 @@ class DatasetConcatView(DatasetABC):
             )
             raise TypeError(err_msg)
 
-        self._len = sum(map(len, datasets))
+        self._len = sum([len(ds) for ds in datasets])
 
         self._cumulative_lengths = [len(self._datasets[0])]
         for dataset in islice(datasets, 1):
@@ -122,9 +124,9 @@ class DatasetConcatView(DatasetABC):
         if eager_fields:
             original_examples = chain(*self._datasets)
             for ex in original_examples:
-                for original_field_name, override_field in eager_fields:
+                for original_field_name, override_field in eager_fields.items():
                     _, tokenized = ex[original_field_name]
-                    override_field.update(tokenized)
+                    override_field.update_vocab(tokenized)
             for eager_field in eager_fields.values():
                 eager_field.finalize()
 

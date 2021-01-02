@@ -4,6 +4,7 @@ Package contains datasets.
 
 from .dataset import Dataset, rationed_split, stratified_split
 from .dataset_abc import DatasetABC
+from .dataset_view import DatasetConcatView, DatasetIndexedView, DatasetSlicedView
 from .hierarhical_dataset import HierarchicalDataset
 from .impl.catacx_dataset import CatacxDataset
 from .impl.conllu_dataset import CoNLLUDataset
