@@ -20,8 +20,8 @@ except ImportError:
 
 
 CornellMovieDialogsNamedTuple = namedtuple(
-    typename="CornellMovieDialogsNamedTuple",
-    field_names=["titles", "conversations", "lines", "characters", "url"],
+    "CornellMovieDialogsNamedTuple",
+    ["titles", "conversations", "lines", "characters", "url"],
 )
 
 

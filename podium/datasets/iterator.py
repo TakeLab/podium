@@ -16,8 +16,9 @@ from podium.datasets.hierarhical_dataset import HierarchicalDataset
 
 
 class IteratorABC(ABC):
-
-    # ============== Default methods ==============
+    """
+    Abstract base class for all Iterators in Podium.
+    """
 
     def __call__(
         self, dataset: DatasetABC
@@ -34,12 +35,10 @@ class IteratorABC(ABC):
 
         Returns
         -------
-        Iterable over batches in the Dataset.
+            Iterable over batches in the Dataset.
         """
         self.set_dataset(dataset)
         return iter(self)
-
-    # ============== Abstract methods =============
 
     @abstractmethod
     def set_dataset(self, dataset: DatasetABC) -> None:
@@ -80,20 +79,12 @@ class IteratorABC(ABC):
         int
             Number of batches s provided in one epoch.
         """
-
-    pass
+        pass
 
 
 class Iterator(IteratorABC):
     """
     An iterator that batches data from a dataset after numericalization.
-
-    Attributes
-    ----------
-    _epoch : int
-        The number of epochs elapsed up to this point.
-    _iterations : int
-        The number of iterations elapsed in the current epoch.
     """
 
     def __init__(
@@ -351,7 +342,7 @@ class Iterator(IteratorABC):
 
         if not self._shuffle:
             raise RuntimeError(
-                "Iterator with shuffle=False does not have " "an internal random state."
+                "Iterator with shuffle=False does not have an internal random state."
             )
 
         return self._shuffler.getstate()
@@ -376,7 +367,7 @@ class Iterator(IteratorABC):
 
         if not self._shuffle:
             raise RuntimeError(
-                "Iterator with shuffle=False does not have " "an internal random state."
+                "Iterator with shuffle=False does not have an internal random state."
             )
 
         self._shuffler.setstate(state)

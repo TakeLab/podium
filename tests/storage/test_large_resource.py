@@ -151,7 +151,7 @@ def test_scp_download_file():
             SCPLargeResource.SCP_HOST_KEY: "djurdja.fer.hr",
             SCPLargeResource.SCP_USER_KEY: "user",
             SCPLargeResource.SCP_PASS_KEY: "password",
-            SCPLargeResource.SCP_PRIVATE_KEY: "D:\\TakeLab\\" "takleab_ssh",
+            SCPLargeResource.SCP_PRIVATE_KEY: "D:\\TakeLab\\takleab_ssh",
         }
     )
 
@@ -178,7 +178,7 @@ def test_scp_download_file_paraminko_mock():
             SCPLargeResource.SCP_HOST_KEY: "djurdja.fer.hr",
             SCPLargeResource.SCP_USER_KEY: "user",
             SCPLargeResource.SCP_PASS_KEY: "password",
-            SCPLargeResource.SCP_PRIVATE_KEY: "D:\\TakeLab\\" "takleab_ssh",
+            SCPLargeResource.SCP_PRIVATE_KEY: "D:\\TakeLab\\takleab_ssh",
         }
     )
 

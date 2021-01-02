@@ -1,10 +1,10 @@
 ---
-name: "\U0001F320 Feature Request"
+name: "\U0001F680 Feature Request"
 about: Submit a request for a new Podium feature
 
 ---
 
-## 🌠 Feature
+## 🚀 Feature
 <!-- A clear and concise description of the feature proposal. -->
 
 ## Motivation

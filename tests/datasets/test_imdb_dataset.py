@@ -25,7 +25,7 @@ TRAIN_EXAMPLES = {
 
 EXPECTED_TRAIN_EXAMPLES = [
     {
-        "text": "If you like comedy cartoons then " "this is nearly a similar " "format",
+        "text": "If you like comedy cartoons then this is nearly a similar format",
         "label": "positive",
     },
     {
@@ -35,7 +35,7 @@ EXPECTED_TRAIN_EXAMPLES = [
         "label": "positive",
     },
     {
-        "text": "The production quality, cast, " "premise, authentic New " "England",
+        "text": "The production quality, cast, premise, authentic New England",
         "label": "positive",
     },
     {
@@ -44,7 +44,7 @@ EXPECTED_TRAIN_EXAMPLES = [
         "film",
         "label": "negative",
     },
-    {"text": "There are lots of extremely " "good-looking people", "label": "negative"},
+    {"text": "There are lots of extremely good-looking people", "label": "negative"},
 ]
 
 TEST_EXAMPLES = {

@@ -67,7 +67,7 @@ def get_tokenizer(tokenizer):
             spacy_tokenizer = spacy.load(language, disable=disable)
         except OSError:
             warnings.warn(
-                f"SpaCy model {language} not found. " "Trying to download and install."
+                f"SpaCy model {language} not found. Trying to download and install."
             )
 
             from spacy.cli.download import download

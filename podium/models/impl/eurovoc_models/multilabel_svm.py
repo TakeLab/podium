@@ -228,7 +228,7 @@ class MultilabelSVM(AbstractSupervisedModel):
         """
         if self._models is None:
             raise RuntimeError(
-                "Trying to get missing model indices on an unfitted model" "instance."
+                "Trying to get missing model indices on an unfitted model instance."
             )
         return self._missing_indexes
 

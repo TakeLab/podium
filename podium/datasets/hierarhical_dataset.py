@@ -104,7 +104,7 @@ class HierarchicalDataset:
         root_examples = json.loads(dataset)
         if not isinstance(root_examples, list):
             raise ValueError(
-                "The base element in the JSON string must be a list " "of root elements."
+                "The base element in the JSON string must be a list of root elements."
             )
 
         ds._load(root_examples)
@@ -254,7 +254,7 @@ class HierarchicalDataset:
         """
         if index < 0 or index >= len(self):
             raise IndexError(
-                f"Index {index} out of bounds. Must be within " "[0, len(dataset) - 1]"
+                f"Index {index} out of bounds. Must be within [0, len(dataset) - 1]"
             )
 
         def get_item(nodes, index):

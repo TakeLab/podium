@@ -24,20 +24,18 @@ TRAIN_EXAMPLES_SIMPLE = [
 EXPECTED_EXAMPLES_SIMPLE = [
     {
         "gold_label": "neutral",
-        "sentence1": (
-            "Lorem ipsum dolor sit amet, " "consectetur adipiscing elit."
-        ).split(),
+        "sentence1": ("Lorem ipsum dolor sit amet, consectetur adipiscing elit.").split(),
         "sentence2": (
-            "Vestibulum vehicula, eros at bibendum " "convallis, nulla eros luctus dui."
+            "Vestibulum vehicula, eros at bibendum convallis, nulla eros luctus dui."
         ).split(),
     },
     {
         "gold_label": "contradiction",
         "sentence1": (
-            "Fusce vehicula suscipit diam eu " "posuere. Aliquam ante diam."
+            "Fusce vehicula suscipit diam eu posuere. Aliquam ante diam."
         ).split(),
         "sentence2": (
-            "Mauris eros libero, mattis quis " "odio ut, dictum consequat lorem."
+            "Mauris eros libero, mattis quis odio ut, dictum consequat lorem."
         ).split(),
     },
 ]

@@ -168,7 +168,7 @@ class VectorStorage(ABC):
     @abstractmethod
     def get_vector_dim(self):
         """
-        "Method returns vector dimension.
+        Method returns vector dimension.
 
         Returns
         -------
@@ -251,7 +251,7 @@ class BasicVectorStorage(VectorStorage):
         encoding="utf-8",
         binary=True,
     ):
-        self._vectors = dict()
+        self._vectors = {}
         self._dim = None
         self._initialized = False
         self._binary = binary
@@ -318,12 +318,14 @@ class BasicVectorStorage(VectorStorage):
 
         Raises
         ------
+        AssertionError
+            If word is not an instance of bytes.
         UnicodeDecodeError
             If given word cannot be decoded in unicode.
         """
-        if isinstance(word, bytes):
-            decoded = word.decode("utf-8")
-            return decoded
+        assert isinstance(word, bytes)
+        decoded = word.decode("utf-8")
+        return decoded
 
     def _load_vectors(self, vocab=None):
         """
@@ -365,7 +367,7 @@ class BasicVectorStorage(VectorStorage):
                 stripped_line = line.rstrip()
                 if not stripped_line:
                     raise RuntimeError(
-                        "Vectors file contains empty lines which is" " not supported."
+                        "Vectors file contains empty lines which is not supported."
                     )
 
                 word, vector_entries_str = stripped_line.split(split_delimiter, 1)
@@ -380,7 +382,7 @@ class BasicVectorStorage(VectorStorage):
                     header_lines += 1
                     if header_lines > 1:
                         raise RuntimeError(
-                            "Found more than one header line in " "vectors file."
+                            "Found more than one header line in vectors file."
                         )
                     continue  # probably a header, reference torch text
                 # second reference:
@@ -411,7 +413,7 @@ class BasicVectorStorage(VectorStorage):
     def get_vector_dim(self):
         if not self._initialized:
             raise RuntimeError(
-                "Vector storage must be initialized to obtain " "vector dimenstion."
+                "Vector storage must be initialized to obtain vector dimenstion."
             )
         return self._dim
 

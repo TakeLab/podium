@@ -87,7 +87,7 @@ def test_field_preprocess_eager():
 
 
 @pytest.mark.parametrize(
-    "value, store_raw, tokenize, expected_raw_value, " "expected_tokenized_value",
+    "value, store_raw, tokenize, expected_raw_value, expected_tokenized_value",
     [
         ("some text", True, True, "some text", ["some", "text"]),
         ("some text", True, False, "some text", "some text"),
@@ -108,7 +108,7 @@ def test_field_preprocess_raw_sequential(
 
 
 @pytest.mark.parametrize(
-    "value, store_raw, tokenize, expected_raw_value, " "expected_tokenized_value",
+    "value, store_raw, tokenize, expected_raw_value, expected_tokenized_value",
     [
         ("some text", True, True, "some text", ["some", "text"]),
         ("some text", True, False, "some text", "some text"),

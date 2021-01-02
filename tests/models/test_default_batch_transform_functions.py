@@ -9,8 +9,8 @@ from podium.models.batch_transform_functions import (
 
 
 def test_default_batch_transform_functions():
-    x_batch_class = namedtuple("x_batch_class", ("x_field_1",))
-    y_batch_class = namedtuple("y_batch_class", ("y_field_1",))
+    x_batch_class = namedtuple("x_batch_class", ["x_field_1"])
+    y_batch_class = namedtuple("y_batch_class", ["y_field_1"])
 
     x_batch = x_batch_class(x_field_1=1)
     y_batch = y_batch_class(y_field_1=2)
@@ -24,8 +24,8 @@ def test_default_batch_transform_functions():
 
 def test_default_batch_transform_raise_error():
 
-    x_batch_class_2 = namedtuple("x_batch_class_2", ("x_field_1", "x_field_2"))
-    y_batch_class_2 = namedtuple("y_batch_class_2", ("y_field_1", "y_field_2"))
+    x_batch_class_2 = namedtuple("x_batch_class_2", ["x_field_1", "x_field_2"])
+    y_batch_class_2 = namedtuple("y_batch_class_2", ["y_field_1", "y_field_2"])
 
     x_batch = x_batch_class_2(x_field_1=1, x_field_2=2)
     y_batch = y_batch_class_2(y_field_1=2, y_field_2=3)

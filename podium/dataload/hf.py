@@ -175,16 +175,16 @@ class HFDatasetConverter:
                 f"but got {type(dataset).__name__}"
             )
 
-        self.dataset = dataset
-        self.fields = fields or convert_features_to_fields(dataset.features)
+        self._dataset = dataset
+        self._fields = fields or convert_features_to_fields(dataset.features)
 
     def __iter__(self) -> Iterator[Example]:
         """
         Iterate through the dataset and convert the examples.
         """
-        example_factory = ExampleFactory(self.fields)
+        example_factory = ExampleFactory(self._fields)
 
-        for raw_example in self.dataset:
+        for raw_example in self._dataset:
             yield example_factory.from_dict(raw_example)
 
     def as_dataset(self) -> Dataset:
@@ -196,7 +196,7 @@ class HFDatasetConverter:
         podium.storage.Dataset
             podium.storage.Dataset instance.
         """
-        return Dataset(list(self), self.fields)
+        return Dataset(list(self), self._fields)
 
     @staticmethod
     def from_dataset_dict(
