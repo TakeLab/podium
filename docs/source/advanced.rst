@@ -165,8 +165,8 @@ We have so far covered the case where you have a single input column, tokenize a
 
 .. code-block:: python
 
-  >>> from podium.datasets import SST
   >>> from podium import Vocab, Field, LabelField
+  >>> from podium.datasets import SST
   >>> char = Field(name='char', numericalizer=Vocab(), tokenizer=list)
   >>> text = Field(name='word', numericalizer=Vocab())
   >>> label = LabelField(name='label')
@@ -199,8 +199,8 @@ One example of such a use-case would be extracting both word tokens as well as t
   >>>   return raw, [token.pos_ for token in tokenized]
   >>>
   >>> # Define the output Fields and the MultioutputField
-  >>> word = Field(name='word', numericalizer=Vocab(), posttokenize_hooks=(extract_text_hook,))
-  >>> pos = Field(name='pos', numericalizer=Vocab(), posttokenize_hooks=(extract_pos_hook,))
+  >>> word = Field(name='word', numericalizer=Vocab(), posttokenize_hooks=[extract_text_hook])
+  >>> pos = Field(name='pos', numericalizer=Vocab(), posttokenize_hooks=[extract_pos_hook])
   >>>
   >>> spacy_tokenizer = spacy.load('en', disable=['parser', 'ner'])
   >>> text = MultioutputField([word, pos], tokenizer=spacy_tokenizer)
@@ -218,7 +218,7 @@ MultioutputFields accept three parameters upon construction, which encapsulate t
 
   - :obj:`output_fields` ``(List[Field])``: a sequence of Fields which will map tokenized data to outputs by applying posttokenization hooks and numericalization.
   - :obj:`tokenizer` ``(str | Callable)``: the tokenizer to use (keyword string or callable function). The same tokenizer will be used prior to passing data to all output Fields.
-  - :obj:`pretokenization_hooks` ``(tuple(Callable))``: a sequence of pretokenization hooks to apply to the raw data.
+  - :obj:`pretokenization_hooks` ``(Tuple(Callable))``: a sequence of pretokenization hooks to apply to the raw data.
 
 After tokenization, the processed data will be sent to all of the output Fields. Note that only the post-tokenization part of the output fields will be used.
 
@@ -232,8 +232,8 @@ For this reason, usage of :class:`podium.datasets.BucketIterator` is recommended
 .. code-block:: python
   :emphasize-lines: 8 
 
-  >>> from podium.datasets import SST, IMDB
   >>> from podium import Vocab, Field, LabelField
+  >>> from podium.datasets import SST, IMDB
   >>> vocab = Vocab()
   >>> text = Field(name='text', numericalizer=vocab)
   >>> label = LabelField(name='label')
