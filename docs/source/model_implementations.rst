@@ -2,12 +2,12 @@
 Concrete implementations of models
 ==================================
 
-.. automodule:: podium.models.impl
+.. automodule:: podium.experimental.models.impl
    :members:
    :no-undoc-members:
    :show-inheritance:
 
-.. automodule:: podium.models.impl.pytorch
+.. automodule:: podium.experimental.models.impl.pytorch
    :members:
    :no-undoc-members:
    :show-inheritance:
