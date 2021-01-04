@@ -9,9 +9,10 @@ from podium.storage import Example, Field
 
 class DatasetConcatView(DatasetABC):
     """
-    View used for dataset concatenation. Two or more datasets can be concatenated.
-    New fields can be provided as 'field_overrides' that will be updated with all
-    examples.
+    View used for dataset concatenation.
+
+    Two or more datasets can be concatenated. New fields can be provided as
+    'field_overrides' that will be updated with all examples.
     """
 
     def __init__(
@@ -20,19 +21,21 @@ class DatasetConcatView(DatasetABC):
         field_overrides: Optional[Dict[str, Field]] = None,
     ):
         """
-        View used for dataset concatenation. Two or more datasets can be concatenated.
-        New fields can be provided as 'field_overrides' that will be updated with all
-        examples.
+        View used for dataset concatenation.
 
-            Parameters
-            ----------
-            datasets: List[DatasetABC]
-                A list datasets to be concatenated.
-            field_overrides: Dict[str, Field]
-                A dict mapping field names to the fields they will be overridden with.
-                The overridden field will not be present in the concatenated view. The
-                override field (if eager) will be updated with wit all examples from
-                the concatenation.
+        Two or more datasets can be
+        concatenated. New fields can be provided as 'field_overrides' that will
+        be updated with all examples.
+
+        Parameters
+        ----------
+        datasets: List[DatasetABC]
+            A list datasets to be concatenated.
+        field_overrides: Dict[str, Field]
+            A dict mapping field names to the fields they will be overridden
+            with. The overridden field will not be present in the
+            concatenated view. The override field (if eager) will be updated
+            with wit all examples from the concatenation.
         """
         if isinstance(datasets, DatasetABC):
             # Wrap single dataset in a list
@@ -155,8 +158,8 @@ class DatasetConcatView(DatasetABC):
 
     def _map_example(self, example: Example) -> Example:
         """
-        Transforms an example from a backing dataset into the format of the view,
-        respecting field overrides.
+        Transforms an example from a backing dataset into the format of the
+        view, respecting field overrides.
 
         Parameters
         ----------
@@ -174,8 +177,8 @@ class DatasetConcatView(DatasetABC):
 
     def _translate_index(self, index: int) -> Tuple[DatasetABC, int]:
         """
-        For an index in the view, returns the backing Dataset it belongs to and the
-        index of the example in that Dataset.
+        For an index in the view, returns the backing Dataset it belongs to and
+        the index of the example in that Dataset.
 
         Parameters
         ----------
@@ -185,7 +188,8 @@ class DatasetConcatView(DatasetABC):
         Returns
         -------
         (DatasetABC, int)
-            The dataset that contains the indexed example and its index in that dataset.
+            The dataset that contains the indexed example and its index in that
+            dataset.
         """
         if index >= len(self):
             raise IndexError(f"Index {index} out of range. Length: {len(self)}")
@@ -246,9 +250,9 @@ class DatasetIndexedView(DatasetABC):
         dataset: DatasetABC
             The dataset the view will be created over.
         indices: Sequence[int]
-            A sequence of ints that represent the indices of the examples in the dataset
-            that will be contained in the view. Ordering and duplication will be
-            respected.
+            A sequence of ints that represent the indices of the examples in the
+            dataset that will be contained in the view. Ordering and duplication
+            will be respected.
         """
         if not isinstance(dataset, DatasetABC):
             err_msg = (
@@ -290,7 +294,8 @@ class DatasetSlicedView(DatasetABC):
     """
 
     def __init__(self, dataset: DatasetABC, s: slice):
-        """Creates a view over the passed dataset.
+        """
+        Creates a view over the passed dataset.
 
         Parameters
         ----------
