@@ -4,11 +4,9 @@ Module contains base classes for datasets.
 import copy
 import itertools
 import random
-from itertools import chain
-from typing import Callable, Dict, Iterable, List, Union
+from typing import Callable, Iterable, List, Union
 
 from podium.datasets.dataset_abc import DatasetABC
-from podium.storage import Field
 from podium.storage.example_factory import Example
 
 
@@ -382,58 +380,6 @@ class Dataset(DatasetABC):
             random.seed(random_state)
 
         random.shuffle(self.examples)
-
-    @staticmethod
-    def merge(datasets: List[DatasetABC], field_overrides: Dict[str, Field] = None):
-        if field_overrides is None:
-            field_overrides = {}
-
-        field_dict = datasets[0].field_dict
-        merged_field_names = set(field_dict.keys())
-        for ds in datasets[1:]:
-            # Calculate the intersection of all fields.
-            # the merged dataset will contain only the fields that appear, by name,
-            # in all datasets.
-            merged_field_names.intersection_update(ds.field_dict.keys())
-
-        assert len(merged_field_names) > 0, "No Field name overlap"
-        # TODO better error
-        assert all(f in merged_field_names for f in field_overrides.keys())
-
-        field_mapping = {
-            name: field_overrides[name] if name in field_overrides else field_dict[name]
-            for name in merged_field_names
-        }
-
-        non_final_fields = [f for f in field_mapping.values() if not f.finalized]
-        eager_fields = [f for f in non_final_fields if f.eager]
-        non_eager_fields = [f for f in non_final_fields if not f.eager]
-
-        merged_examples = []
-        for ex in chain(*datasets):
-            new_ex = Example()
-            for field_name, field in field_mapping.items():
-                field_data = ex[field_name]
-                new_ex[field.name] = field_data
-                if not field.finalized and field.eager:
-                    _, tokenized = field_data
-                    field.update_vocab(tokenized)
-            merged_examples.append(new_ex)
-
-        for f in eager_fields:
-            f.finalize()
-
-        for ex in merged_examples:
-            for f in non_eager_fields:
-                _, tokenized = ex[f.name]
-                f.update_vocab(tokenized)
-
-        for f in non_eager_fields:
-            f.finalize()
-
-        merged_fields = list(field_overrides.values())
-
-        return Dataset(merged_examples, merged_fields)
 
 
 def check_split_ratio(split_ratio):
