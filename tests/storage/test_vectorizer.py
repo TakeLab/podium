@@ -1,4 +1,6 @@
+import contextlib
 import os
+import shutil
 import tempfile
 
 import numpy as np
@@ -43,145 +45,138 @@ def test_base_class_abstract():
 
 
 def test_basic_not_initialized():
-    vect_file_path = create_temp_vect_file(
+    with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
-    )
-    vect = vectorizer.BasicVectorStorage(path=vect_file_path)
-    with pytest.raises(RuntimeError):
-        vect["."]
-    with pytest.raises(RuntimeError):
-        vect.token_to_vector(".")
+    ) as vect_file_path:
+        vect = vectorizer.BasicVectorStorage(path=vect_file_path)
+        with pytest.raises(RuntimeError):
+            vect["."]
+        with pytest.raises(RuntimeError):
+            vect.token_to_vector(".")
 
 
 def test_basic_load_all_vectors():
-    vect_file_path = create_temp_vect_file(
+    with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
-    )
-
-    vect = vectorizer.BasicVectorStorage(path=vect_file_path)
-    vect.load_all()
-    assert len(vect._vectors) == 4
-    assert vect["."].shape == (3,)
-    assert vect.token_to_vector(",").shape == (3,)
-    assert np.allclose(a=vect["."], b=BASIC_VECT_DATA_DICT["."], rtol=0, atol=1.0e-6)
-    assert np.allclose(
-        a=vect.token_to_vector(","), b=BASIC_VECT_DATA_DICT[","], rtol=0, atol=1.0e-6
-    )
+    ) as vect_file_path:
+        vect = vectorizer.BasicVectorStorage(path=vect_file_path)
+        vect.load_all()
+        assert len(vect._vectors) == 4
+        assert vect["."].shape == (3,)
+        assert vect.token_to_vector(",").shape == (3,)
+        assert np.allclose(a=vect["."], b=BASIC_VECT_DATA_DICT["."], rtol=0, atol=1.0e-6)
+        assert np.allclose(
+            a=vect.token_to_vector(","), b=BASIC_VECT_DATA_DICT[","], rtol=0, atol=1.0e-6
+        )
 
 
 def test_get_vector_dimension():
-    vect_file_path = create_temp_vect_file(
+    with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
-    )
-
-    vect = vectorizer.BasicVectorStorage(path=vect_file_path)
-    vect.load_all()
-    assert vect.get_vector_dim() == vect["."].shape[0]
-    assert vect.get_vector_dim() == 3
+    ) as vect_file_path:
+        vect = vectorizer.BasicVectorStorage(path=vect_file_path)
+        vect.load_all()
+        assert vect.get_vector_dim() == vect["."].shape[0]
+        assert vect.get_vector_dim() == 3
 
 
 def test_get_vector_dim_not_initialized_vector_storage():
-    vect_file_path = create_temp_vect_file(
+    with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
-    )
-
-    vect = vectorizer.BasicVectorStorage(path=vect_file_path)
-    with pytest.raises(RuntimeError):
-        vect.get_vector_dim()
+    ) as vect_file_path:
+        vect = vectorizer.BasicVectorStorage(path=vect_file_path)
+        with pytest.raises(RuntimeError):
+            vect.get_vector_dim()
 
 
 def test_basic_load_with_header():
-    vect_file_path = create_temp_vect_file(
+    with create_temp_vect_file(
         vect_file_name="vect1", file_header=BASIC_VECT_HEADING, file_data=BASIC_VECT_DATA
-    )
-
-    vect = vectorizer.BasicVectorStorage(path=vect_file_path)
-    vect.load_all()
-    assert len(vect._vectors) == 4
-    assert vect["."].shape == (3,)
-    assert vect.token_to_vector(",").shape == (3,)
-    assert np.allclose(a=vect["."], b=BASIC_VECT_DATA_DICT["."], rtol=0, atol=1.0e-6)
-    assert np.allclose(
-        a=vect.token_to_vector(","), b=BASIC_VECT_DATA_DICT[","], rtol=0, atol=1.0e-6
-    )
+    ) as vect_file_path:
+        vect = vectorizer.BasicVectorStorage(path=vect_file_path)
+        vect.load_all()
+        assert len(vect._vectors) == 4
+        assert vect["."].shape == (3,)
+        assert vect.token_to_vector(",").shape == (3,)
+        assert np.allclose(a=vect["."], b=BASIC_VECT_DATA_DICT["."], rtol=0, atol=1.0e-6)
+        assert np.allclose(
+            a=vect.token_to_vector(","), b=BASIC_VECT_DATA_DICT[","], rtol=0, atol=1.0e-6
+        )
 
 
 def test_basic_no_token():
-    vect_file_path = create_temp_vect_file(
+    with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
-    )
-
-    vect = vectorizer.BasicVectorStorage(
-        path=vect_file_path, default_vector_function=None
-    )
-    vect.load_all()
-    with pytest.raises(KeyError):
-        print(vect["a"])
-    with pytest.raises(KeyError):
-        vect.token_to_vector("a")
+    ) as vect_file_path:
+        vect = vectorizer.BasicVectorStorage(
+            path=vect_file_path, default_vector_function=None
+        )
+        vect.load_all()
+        with pytest.raises(KeyError):
+            print(vect["a"])
+        with pytest.raises(KeyError):
+            vect.token_to_vector("a")
 
 
 def test_basic_token_none():
-    vect_file_path = create_temp_vect_file(
+    with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
-    )
-
-    vect = vectorizer.BasicVectorStorage(
-        path=vect_file_path, default_vector_function=None
-    )
-    vect.load_all()
-    with pytest.raises(ValueError):
-        vect[None]
-    with pytest.raises(ValueError):
-        vect.token_to_vector(None)
+    ) as vect_file_path:
+        vect = vectorizer.BasicVectorStorage(
+            path=vect_file_path, default_vector_function=None
+        )
+        vect.load_all()
+        with pytest.raises(ValueError):
+            vect[None]
+        with pytest.raises(ValueError):
+            vect.token_to_vector(None)
 
 
 def test_basic_token_default():
-    vect_file_path = create_temp_vect_file(
+    with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
-    )
-
-    vect = vectorizer.BasicVectorStorage(
-        path=vect_file_path, default_vector_function=vectorizer.zeros_default_vector
-    )
-    vect.load_all()
-    assert "a" not in vect._vectors
-    assert vect["a"].shape == (3,)
-    assert np.allclose(a=vect.token_to_vector("a"), b=np.zeros(3), rtol=0, atol=1.0e-6)
+    ) as vect_file_path:
+        vect = vectorizer.BasicVectorStorage(
+            path=vect_file_path, default_vector_function=vectorizer.zeros_default_vector
+        )
+        vect.load_all()
+        assert "a" not in vect._vectors
+        assert vect["a"].shape == (3,)
+        assert np.allclose(
+            a=vect.token_to_vector("a"), b=np.zeros(3), rtol=0, atol=1.0e-6
+        )
 
 
 def test_basic_load_vocab():
-    vect_file_path = create_temp_vect_file(
+    with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
-    )
+    ) as vect_file_path:
+        vect = vectorizer.BasicVectorStorage(
+            path=vect_file_path, default_vector_function=None
+        )
+        vocab = [".", ":"]
+        vect.load_vocab(vocab=vocab)
+        assert len(vect._vectors) == 2
+        assert vect["."].shape == (3,)
+        assert vect.token_to_vector(":").shape == (3,)
+        assert np.allclose(a=vect[":"], b=BASIC_VECT_DATA_DICT[":"], rtol=0, atol=1.0e-6)
+        assert np.allclose(
+            a=vect.token_to_vector("."), b=BASIC_VECT_DATA_DICT["."], rtol=0, atol=1.0e-6
+        )
 
-    vect = vectorizer.BasicVectorStorage(
-        path=vect_file_path, default_vector_function=None
-    )
-    vocab = [".", ":"]
-    vect.load_vocab(vocab=vocab)
-    assert len(vect._vectors) == 2
-    assert vect["."].shape == (3,)
-    assert vect.token_to_vector(":").shape == (3,)
-    assert np.allclose(a=vect[":"], b=BASIC_VECT_DATA_DICT[":"], rtol=0, atol=1.0e-6)
-    assert np.allclose(
-        a=vect.token_to_vector("."), b=BASIC_VECT_DATA_DICT["."], rtol=0, atol=1.0e-6
-    )
-
-    with pytest.raises(KeyError):
-        vect[","]
-    with pytest.raises(KeyError):
-        vect.token_to_vector(",")
+        with pytest.raises(KeyError):
+            vect[","]
+        with pytest.raises(KeyError):
+            vect.token_to_vector(",")
 
 
 def test_basic_load_vocab_none():
-    vect_file_path = create_temp_vect_file(
+    with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
-    )
-
-    vect = vectorizer.BasicVectorStorage(path=vect_file_path)
-    with pytest.raises(ValueError):
-        vect.load_vocab(vocab=None)
+    ) as vect_file_path:
+        vect = vectorizer.BasicVectorStorage(path=vect_file_path)
+        with pytest.raises(ValueError):
+            vect.load_vocab(vocab=None)
 
 
 @pytest.mark.parametrize(
@@ -203,26 +198,24 @@ def test_basic_load_vocab_none():
     ],
 )
 def test_get_embedding_matrix(tokens, expected_matrix, expected_shape):
-    vect_file_path = create_temp_vect_file(
+    with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
-    )
+    ) as vect_file_path:
+        vect = vectorizer.BasicVectorStorage(path=vect_file_path)
+        vect.load_all()
 
-    vect = vectorizer.BasicVectorStorage(path=vect_file_path)
-    vect.load_all()
-
-    embedding_matrix = vect.get_embedding_matrix(vocab=tokens)
-    assert embedding_matrix.shape == expected_shape
-    assert np.allclose(a=embedding_matrix, b=expected_matrix, rtol=0, atol=1e-6)
+        embedding_matrix = vect.get_embedding_matrix(vocab=tokens)
+        assert embedding_matrix.shape == expected_shape
+        assert np.allclose(a=embedding_matrix, b=expected_matrix, rtol=0, atol=1e-6)
 
 
 def test_basic_diff_dimensions():
-    vect_file_path = create_temp_vect_file(
+    with create_temp_vect_file(
         vect_file_name="vect1", file_data=DIFF_DIM_VECT_DATA
-    )
-
-    vect = vectorizer.BasicVectorStorage(path=vect_file_path)
-    with pytest.raises(RuntimeError):
-        vect.load_all()
+    ) as vect_file_path:
+        vect = vectorizer.BasicVectorStorage(path=vect_file_path)
+        with pytest.raises(RuntimeError):
+            vect.load_all()
 
 
 def test_default_vectors_zeros():
@@ -240,44 +233,41 @@ def test_default_vectors_zeros_none_arguments():
 
 
 def test_basic_max_vectors_less_than_num_lines():
-    vect_file_path = create_temp_vect_file(
+    with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
-    )
-
-    vect = vectorizer.BasicVectorStorage(path=vect_file_path, max_vectors=2)
-    vect.load_all()
-    assert len(vect._vectors) == 2
-    contained_elements = [".", "'"]
-    assert all(elem in vect._vectors for elem in contained_elements)
-    uncontained_elements = [":", ","]
-    assert all(elem not in vect._vectors for elem in uncontained_elements)
+    ) as vect_file_path:
+        vect = vectorizer.BasicVectorStorage(path=vect_file_path, max_vectors=2)
+        vect.load_all()
+        assert len(vect._vectors) == 2
+        contained_elements = [".", "'"]
+        assert all(elem in vect._vectors for elem in contained_elements)
+        uncontained_elements = [":", ","]
+        assert all(elem not in vect._vectors for elem in uncontained_elements)
 
 
 def test_basic_max_vectors_vocab():
-    vect_file_path = create_temp_vect_file(
+    with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
-    )
-
-    vect = vectorizer.BasicVectorStorage(path=vect_file_path, max_vectors=2)
-    vocab = [".", ":", ","]
-    vect.load_vocab(vocab)
-    assert len(vect._vectors) == 2
-    contained_elements = [".", ":"]
-    assert all(elem in vect._vectors for elem in contained_elements)
-    uncontained_elements = ["'", ","]
-    assert all(elem not in vect._vectors for elem in uncontained_elements)
+    ) as vect_file_path:
+        vect = vectorizer.BasicVectorStorage(path=vect_file_path, max_vectors=2)
+        vocab = [".", ":", ","]
+        vect.load_vocab(vocab)
+        assert len(vect._vectors) == 2
+        contained_elements = [".", ":"]
+        assert all(elem in vect._vectors for elem in contained_elements)
+        uncontained_elements = ["'", ","]
+        assert all(elem not in vect._vectors for elem in uncontained_elements)
 
 
 def test_basic_max_vectors_bigger_than_num_lines():
-    vect_file_path = create_temp_vect_file(
+    with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
-    )
-
-    vect = vectorizer.BasicVectorStorage(path=vect_file_path, max_vectors=20)
-    vect.load_all()
-    assert len(vect._vectors) == 4
-    contained_elements = [".", "'", ":", ","]
-    assert all(elem in vect._vectors for elem in contained_elements)
+    ) as vect_file_path:
+        vect = vectorizer.BasicVectorStorage(path=vect_file_path, max_vectors=20)
+        vect.load_all()
+        assert len(vect._vectors) == 4
+        contained_elements = [".", "'", ":", ","]
+        assert all(elem in vect._vectors for elem in contained_elements)
 
 
 def test_basic_both_paths_none():
@@ -310,48 +300,47 @@ def test_basic_path_none_cache_doesnt_exist(tmpdir):
         vect.load_all()
 
 
-def test_basic_cache_max_vectors():
-    base = tempfile.mkdtemp()
-    assert os.path.exists(base)
-    vect_file_path = create_temp_vect_file(
-        vect_file_name="vect1", file_data=BASIC_VECT_DATA, base_dir=base
-    )
-    assert os.path.exists(vect_file_path)
-    cache_path = os.path.join(base, "cache.t")
-    assert not os.path.exists(cache_path)
-    vect = vectorizer.BasicVectorStorage(
-        path=vect_file_path, max_vectors=2, cache_path=cache_path
-    )
-    vect.load_all()
-    assert os.path.exists(cache_path)
-    with open(cache_path, "rb") as cache_file:
-        content = cache_file.readlines()
-        assert len(content) == 2
-        first_line_parts = content[0].split(b" ")
-        word, values = first_line_parts[0], first_line_parts[1:]
-        assert word == b"."
-        assert len(values) == 3
+def test_basic_cache_max_vectors(tmpdir):
+    with create_temp_vect_file(
+        vect_file_name="vect1", file_data=BASIC_VECT_DATA, base_dir=tmpdir
+    ) as vect_file_path:
+        assert os.path.exists(vect_file_path)
+        cache_path = os.path.join(tmpdir, "cache.t")
+        assert not os.path.exists(cache_path)
+        vect = vectorizer.BasicVectorStorage(
+            path=vect_file_path, max_vectors=2, cache_path=cache_path
+        )
+        vect.load_all()
+        assert os.path.exists(cache_path)
+        with open(cache_path, "rb") as cache_file:
+            content = cache_file.readlines()
+            assert len(content) == 2
+            first_line_parts = content[0].split(b" ")
+            word, values = first_line_parts[0], first_line_parts[1:]
+            assert word == b"."
+            assert len(values) == 3
 
 
 def test_basic_cache_vocab():
-    base = tempfile.mkdtemp()
-    assert os.path.exists(base)
-    vect_file_path = create_temp_vect_file(
-        vect_file_name="vect1", file_data=BASIC_VECT_DATA, base_dir=base
-    )
-    assert os.path.exists(vect_file_path)
-    cache_path = os.path.join(base, "cache.t")
-    assert not os.path.exists(cache_path)
-    vect = vectorizer.BasicVectorStorage(path=vect_file_path, cache_path=cache_path)
+    with tempfile.TemporaryDirectory() as base:
+        with create_temp_vect_file(
+            vect_file_name="vect1", file_data=BASIC_VECT_DATA, base_dir=base
+        ) as vect_file_path:
+            assert os.path.exists(vect_file_path)
+            cache_path = os.path.join(base, "cache.t")
+            assert not os.path.exists(cache_path)
+            vect = vectorizer.BasicVectorStorage(
+                path=vect_file_path, cache_path=cache_path
+            )
 
-    vocab = [".", ":", ","]
-    vect.load_vocab(vocab)
+            vocab = [".", ":", ","]
+            vect.load_vocab(vocab)
 
-    assert os.path.exists(cache_path)
+            assert os.path.exists(cache_path)
 
-    with open(cache_path, "rb") as cache_file:
-        content = cache_file.readlines()
-        assert len(content) == 3
+            with open(cache_path, "rb") as cache_file:
+                content = cache_file.readlines()
+                assert len(content) == 3
 
 
 def test_load_plain_text():
@@ -384,6 +373,7 @@ def test_glove_wrong_params(name, dim):
         GloVe(name=name, dim=dim)
 
 
+@contextlib.contextmanager
 def create_temp_vect_file(
     vect_file_name, file_data, file_header=None, base_dir=None, binary=True
 ):
@@ -406,16 +396,20 @@ def create_temp_vect_file(
     vect_file_path : str
         path to the created vector file
     """
-    if base_dir is None:
-        base_dir = tempfile.mkdtemp()
-        assert os.path.exists(base_dir)
+    try:
+        is_base_created = False
+        if base_dir is None:
+            is_base_created = True
+            base_dir = tempfile.mkdtemp()
 
-    file_path = os.path.join(base_dir, vect_file_name)
+        file_path = os.path.join(base_dir, vect_file_name)
 
-    with open(file_path, "wb") as vect_file:
-        if file_header is not None:
-            vect_file.write(file_header + b"\n")
-        vect_file.writelines(file_data)
+        with open(file_path, "wb") as vect_file:
+            if file_header is not None:
+                vect_file.write(file_header + b"\n")
+            vect_file.writelines(file_data)
 
-    assert os.path.exists(file_path)
-    return file_path
+        yield file_path
+    finally:
+        if is_base_created:
+            shutil.rmtree(base_dir)

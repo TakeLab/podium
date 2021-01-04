@@ -51,12 +51,14 @@ def pyarrow_dataset(data, fields):
 
 @pytest.fixture(name="pyarrow_dataset")
 def pyarrow_dataset_fixture(data, fields):
-    return pyarrow_dataset(data, fields)
+    ad = pyarrow_dataset(data, fields)
+    yield ad
+    ad.delete_cache()
 
 
 def test_from_examples(data, fields):
     example_factory = ExampleFactory(fields)
-    examples = map(example_factory.from_list, iter(data))
+    examples = [example_factory.from_list(ex) for ex in data]
     ad = ArrowDataset.from_examples(fields, examples)
 
     for (raw, tokenized), (num, _) in zip(ad.number, data):
@@ -66,6 +68,8 @@ def test_from_examples(data, fields):
     for (raw, tokenized), (_, tok) in zip(ad.tokens, data):
         assert raw == tok
         assert tokenized == tok.split(" ")
+
+    ad.delete_cache()
 
 
 @pytest.mark.parametrize(
@@ -96,7 +100,7 @@ def test_slicing(index, data, fields, pyarrow_dataset):
         assert tok_raw == tok
 
 
-def test_dump_and_load(pyarrow_dataset):
+def test_dump_and_load(pyarrow_dataset, tmpdir):
     cache_dir = pyarrow_dataset.dump_cache(cache_path=None)
     loaded_dataset = ArrowDataset.load_cache(cache_dir)
 
@@ -108,6 +112,8 @@ def test_dump_and_load(pyarrow_dataset):
         pyarrow_dataset.field_dict["tokens"].vocab.stoi
         == loaded_dataset.field_dict["tokens"].vocab.stoi
     )
+
+    loaded_dataset.delete_cache()
 
     dataset_sliced = pyarrow_dataset[8:2:-2]
     cache_dir_sliced = dataset_sliced.dump_cache(cache_path=None)
@@ -122,9 +128,10 @@ def test_dump_and_load(pyarrow_dataset):
         == loaded_dataset_sliced.field_dict["tokens"].vocab.stoi
     )
 
-    cache_dir = tempfile.mkdtemp()
-    pyarrow_dataset.dump_cache(cache_path=cache_dir)
-    loaded_dataset = ArrowDataset.load_cache(cache_dir)
+    loaded_dataset_sliced.delete_cache()
+
+    pyarrow_dataset.dump_cache(cache_path=tmpdir)
+    loaded_dataset = ArrowDataset.load_cache(tmpdir)
 
     assert len(loaded_dataset) == len(pyarrow_dataset)
     for ex_original, ex_loaded in zip(pyarrow_dataset, loaded_dataset):
@@ -134,6 +141,8 @@ def test_dump_and_load(pyarrow_dataset):
         pyarrow_dataset.field_dict["tokens"].vocab.stoi
         == loaded_dataset.field_dict["tokens"].vocab.stoi
     )
+
+    loaded_dataset.delete_cache()
 
 
 def test_finalize_fields(data, fields, mocker):
@@ -157,6 +166,8 @@ def test_finalize_fields(data, fields, mocker):
         f.finalize.assert_called_once()
         # all fields should be finalized
         assert f.finalized
+
+    dataset.delete_cache()
 
 
 def test_filtered(data, pyarrow_dataset):
@@ -203,25 +214,28 @@ def test_from_dataset(data, fields):
         assert ds_ex.number == arrow_ex.number
         assert ds_ex.tokens == arrow_ex.tokens
 
+    pyarrow_dataset.delete_cache()
+
 
 @pytest.mark.skipif(
     sys.platform.startswith("win"),
     reason="the reason for failure on Windows is not known at the moment",
 )
-def test_from_tabular(data, fields):
-    with tempfile.TemporaryDirectory() as tdir:
-        test_file = os.path.join(tdir, "test.csv")
-        with open(test_file, "w") as f:
-            writer = csv.writer(f)
-            writer.writerows(data)
+def test_from_tabular(data, fields, tmpdir):
+    test_file = os.path.join(tmpdir, "test.csv")
+    with open(test_file, "w") as f:
+        writer = csv.writer(f)
+        writer.writerows(data)
 
-        csv_dataset = ArrowDataset.from_tabular_file(test_file, "csv", fields)
-        for ex, d in zip(csv_dataset, data):
-            assert int(ex.number[0]) == d[0]
-            assert ex.tokens[0] == d[1]
+    csv_dataset = ArrowDataset.from_tabular_file(test_file, "csv", fields)
+    for ex, d in zip(csv_dataset, data):
+        assert int(ex.number[0]) == d[0]
+        assert ex.tokens[0] == d[1]
+
+    csv_dataset.delete_cache()
 
 
-def test_missing_datatype_exception(data, fields):
+def test_missing_datatype_exception(data, fields, tmpdir):
     data_null = [(*d, None) for d in data]
     null_field = Field(
         "null_field", keep_raw=True, allow_missing_data=True, numericalizer=Vocab()
@@ -232,7 +246,7 @@ def test_missing_datatype_exception(data, fields):
     examples = map(exf.from_list, data_null)
 
     with pytest.raises(RuntimeError):
-        ArrowDataset.from_examples(fields_null, examples)
+        ArrowDataset.from_examples(fields_null, examples, cache_path=tmpdir)
 
 
 def test_datatype_definition(data, fields):
@@ -252,16 +266,14 @@ def test_datatype_definition(data, fields):
         assert int(ex["number"][0]) == d[0]
         assert ex["tokens"][0] == d[1]
 
+    dataset.delete_cache()
 
-@pytest.mark.skipif(
-    sys.platform.startswith("win"),
-    reason="shutil.rmtree has issues with the recursive removal on Windows",
-)
+
 def test_delete_cache(data, fields):
     cache_dir = tempfile.mkdtemp()
 
     example_factory = ExampleFactory(fields)
-    examples = map(example_factory.from_list, iter(data))
+    examples = map(example_factory.from_list, data)
     ad = ArrowDataset.from_examples(fields, examples, cache_path=cache_dir)
 
     assert os.path.exists(cache_dir)

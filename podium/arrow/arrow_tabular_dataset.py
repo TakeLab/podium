@@ -126,7 +126,7 @@ class ArrowDataset(DatasetABC):
         examples: Iterable[Example],
         cache_path: str = None,
         data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
-        chunk_size=10_000,
+        chunk_size=1024,
     ) -> "ArrowDataset":
         """
         Creates an ArrowDataset from the provided Examples.
@@ -705,8 +705,9 @@ class ArrowDataset(DatasetABC):
         if self.mmapped_file is not None:
             self.mmapped_file.close()
             self.mmapped_file = None
+            self.table = None
 
-        else:  # Do nothing
+        else:
             warnings.warn("Attempted closing an already closed ArrowDataset.")
 
     def delete_cache(self):
@@ -715,4 +716,5 @@ class ArrowDataset(DatasetABC):
         """
         if self.mmapped_file is not None:
             self.close()
+
         shutil.rmtree(self.cache_path)
