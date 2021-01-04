@@ -2,10 +2,37 @@ from typing import Callable, List, Optional, Tuple, Union
 
 import numpy as np
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+from sklearn.model_selection import KFold
 
 from podium.datasets import Dataset
 from podium.models.experiment import Experiment
-from podium.validation import KFold
+
+
+class _KFold(KFold):
+    """
+    Adapter class for the scikit-learn KFold class.
+
+    Works with podium datasets directly.
+    """
+
+    def split(self, dataset):
+        """
+        Splits the dataset into multiple train and test folds often used in
+        model validation.
+
+        Parameters
+        ----------
+        dataset : dataset
+            The dataset to be split into folds.
+
+        Yields
+        -------
+        train_set, test_set
+            Yields the train and test datasets for every fold.
+        """
+        indices = np.arange(len(dataset))
+        for train_indices, test_indices in super().split(indices):
+            yield dataset[train_indices], dataset[test_indices]
 
 
 def kfold_scores(
@@ -52,7 +79,7 @@ def kfold_scores(
     -------
         a List of scores provided by score_fun for every fold.
     """
-    kfold = KFold(n_splits=n_splits, shuffle=shuffle, random_state=random_state)
+    kfold = _KFold(n_splits=n_splits, shuffle=shuffle, random_state=random_state)
     results = []
     for train_split, test_split in kfold.split(dataset):
         experiment.fit(train_split)
