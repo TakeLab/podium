@@ -8,11 +8,30 @@ from podium.storage import Example, Field
 
 
 class DatasetConcatView(DatasetABC):
+    """View used for dataset concatenation. Two or more datasets can be concatenated.
+    New fields can be provided as 'field_overrides' that will be updated with all
+    examples.
+    """
+
     def __init__(
         self,
         datasets: List[DatasetABC],
         field_overrides: Optional[Dict[str, Field]] = None,
     ):
+        """View used for dataset concatenation. Two or more datasets can be concatenated.
+        New fields can be provided as 'field_overrides' that will be updated with all
+        examples.
+
+            Parameters
+            ----------
+            datasets: List[DatasetABC]
+                A list datasets to be concatenated.
+            field_overrides: Dict[str, Field]
+                A dict mapping field names to the fields they will be overridden with.
+                The overridden field will not be present in the concatenated view. The
+                override field (if eager) will be updated with wit all examples from
+                the concatenation.
+        """
         if isinstance(datasets, DatasetABC):
             # Wrap single dataset in a list
             self._datasets = [datasets]
@@ -113,10 +132,11 @@ class DatasetConcatView(DatasetABC):
             return create_view(self, item)
 
     def _get_examples(self) -> List[Example]:
-        sublists = map(lambda ds: ds.examples, self._datasets)
+        sublists = (ds.examples for ds in self._datasets)
         return [ex for sublist in sublists for ex in sublist]
 
-    def _update_override_fields(self):
+    def _update_override_fields(self) -> None:
+        """Updates and finalizes all eager override fields."""
         eager_fields = {
             n: f for n, f in self._field_overrides.items() if not f.finalized and f.eager
         }
@@ -131,12 +151,37 @@ class DatasetConcatView(DatasetABC):
                 eager_field.finalize()
 
     def _map_example(self, example: Example) -> Example:
+        """Transforms an example from a backing dataset into the format of the view,
+        respecting field overrides.
+
+        Parameters
+        ----------
+        example: Example
+            Original Example to be mapped.
+        Returns
+        -------
+        Example
+            An example mapped to the format of this view.
+        """
         new_example = Example()
         for original_field_name, mapped_field in self._field_mapping.items():
             new_example[mapped_field.name] = example[original_field_name]
         return new_example
 
     def _translate_index(self, index: int) -> Tuple[DatasetABC, int]:
+        """For an index in the view, returns the backing Dataset it belongs to and the
+        index of the example in that Dataset.
+
+        Parameters
+        ----------
+        index: int
+            The index to be translated.
+
+        Returns
+        -------
+        (DatasetABC, int)
+            The dataset that contains the indexed example and its index in that dataset.
+        """
         if index >= len(self):
             raise IndexError(f"Index {index} out of range. Length: {len(self)}")
 
@@ -162,6 +207,19 @@ class DatasetConcatView(DatasetABC):
 
 
 def create_view(dataset: DatasetABC, i: Union[Sequence[int], slice]) -> DatasetABC:
+    """Creates a view that is appropriate for the passed indexing method.
+
+    Parameters
+    ----------
+    dataset: DatasetABC
+        The dataset the view will be created on.
+    i: Union[Sequence[int], slice]
+        The indices contained in the view.
+
+    Returns
+    -------
+        A view on the passed dataset.
+    """
     if isinstance(i, slice):
         return DatasetSlicedView(dataset, i)
     else:
@@ -169,7 +227,20 @@ def create_view(dataset: DatasetABC, i: Union[Sequence[int], slice]) -> DatasetA
 
 
 class DatasetIndexedView(DatasetABC):
+    """View over a DatasetABC class."""
+
     def __init__(self, dataset: DatasetABC, indices: Sequence[int]):
+        """Creates a view over the passed dataset.
+
+        Parameters
+        ----------
+        dataset: DatasetABC
+            The dataset the view will be created over.
+        indices: Sequence[int]
+            A sequence of ints that represent the indices of the examples in the dataset
+            that will be contained in the view. Ordering and duplication will be
+            respected.
+        """
         if not isinstance(dataset, DatasetABC):
             err_msg = (
                 f"'dataset' parameter must be of type DatasetABC. "
@@ -202,7 +273,18 @@ class DatasetIndexedView(DatasetABC):
 
 
 class DatasetSlicedView(DatasetABC):
+    """View over a DatasetABC class."""
+
     def __init__(self, dataset: DatasetABC, s: slice):
+        """Creates a view over the passed dataset.
+
+        Parameters
+        ----------
+        dataset: DatasetABC
+            The dataset the view will be created over.
+        s: slice
+            A slice indexing the wanted examples.
+        """
         if not isinstance(dataset, DatasetABC):
             err_msg = (
                 f"'dataset' parameter must be of type DatasetABC. "
@@ -223,7 +305,14 @@ class DatasetSlicedView(DatasetABC):
         self._len = self._calculate_length()
         super().__init__(dataset.fields)
 
-    def _calculate_length(self):
+    def _calculate_length(self) -> int:
+        """Calculates the number of examples in this view.
+
+        Returns
+        -------
+        int:
+            The number of examples in this view.
+        """
         start, stop, step = self._slice.start, self._slice.stop, self._slice.step
         if step < 0:
             start, stop = stop, start
