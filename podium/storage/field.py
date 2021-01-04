@@ -152,7 +152,7 @@ class Field:
             numericalization (numericalization is nondeterministic when, for the same instance,
             it can be differ between function calls). When set to False, it Disables
             numericalization caching for this Field. The flag is passed to the numericalizer
-            to indicate to use the nondeterministic setting. This flag should be used in the 
+            to indicate to use the nondeterministic setting. This flag should be used in the
             case of masked language modelling, where we wish the inputs to be masked
             (nondeterministic), and the outputs (labels) to not be masked while using the
             same vocabulary.

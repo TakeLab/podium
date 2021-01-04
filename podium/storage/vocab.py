@@ -415,7 +415,7 @@ class Vocab:
         ----------
         values : Iterable or Vocab
             If Vocab, a new Vocab will be created containing all of the special symbols
-            and tokens from both Vocabs. Wheen adding two Vocabs with a different string 
+            and tokens from both Vocabs. Wheen adding two Vocabs with a different string
             values for a special token, only the special token instance with the value
             from the first operand will be used.
             If Iterable, a new Vocab will be returned containing a copy of this Vocab
