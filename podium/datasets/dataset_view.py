@@ -8,7 +8,8 @@ from podium.storage import Example, Field
 
 
 class DatasetConcatView(DatasetABC):
-    """View used for dataset concatenation. Two or more datasets can be concatenated.
+    """
+    View used for dataset concatenation. Two or more datasets can be concatenated.
     New fields can be provided as 'field_overrides' that will be updated with all
     examples.
     """
@@ -18,7 +19,8 @@ class DatasetConcatView(DatasetABC):
         datasets: List[DatasetABC],
         field_overrides: Optional[Dict[str, Field]] = None,
     ):
-        """View used for dataset concatenation. Two or more datasets can be concatenated.
+        """
+        View used for dataset concatenation. Two or more datasets can be concatenated.
         New fields can be provided as 'field_overrides' that will be updated with all
         examples.
 
@@ -136,7 +138,9 @@ class DatasetConcatView(DatasetABC):
         return [ex for sublist in sublists for ex in sublist]
 
     def _update_override_fields(self) -> None:
-        """Updates and finalizes all eager override fields."""
+        """
+        Updates and finalizes all eager override fields.
+        """
         eager_fields = {
             n: f for n, f in self._field_overrides.items() if not f.finalized and f.eager
         }
@@ -151,7 +155,8 @@ class DatasetConcatView(DatasetABC):
                 eager_field.finalize()
 
     def _map_example(self, example: Example) -> Example:
-        """Transforms an example from a backing dataset into the format of the view,
+        """
+        Transforms an example from a backing dataset into the format of the view,
         respecting field overrides.
 
         Parameters
@@ -169,7 +174,8 @@ class DatasetConcatView(DatasetABC):
         return new_example
 
     def _translate_index(self, index: int) -> Tuple[DatasetABC, int]:
-        """For an index in the view, returns the backing Dataset it belongs to and the
+        """
+        For an index in the view, returns the backing Dataset it belongs to and the
         index of the example in that Dataset.
 
         Parameters
@@ -207,7 +213,8 @@ class DatasetConcatView(DatasetABC):
 
 
 def create_view(dataset: DatasetABC, i: Union[Sequence[int], slice]) -> DatasetABC:
-    """Creates a view that is appropriate for the passed indexing method.
+    """
+    Creates a view that is appropriate for the passed indexing method.
 
     Parameters
     ----------
@@ -227,10 +234,13 @@ def create_view(dataset: DatasetABC, i: Union[Sequence[int], slice]) -> DatasetA
 
 
 class DatasetIndexedView(DatasetABC):
-    """View over a DatasetABC class."""
+    """
+    View over a DatasetABC class.
+    """
 
     def __init__(self, dataset: DatasetABC, indices: Sequence[int]):
-        """Creates a view over the passed dataset.
+        """
+        Creates a view over the passed dataset.
 
         Parameters
         ----------
@@ -273,7 +283,9 @@ class DatasetIndexedView(DatasetABC):
 
 
 class DatasetSlicedView(DatasetABC):
-    """View over a DatasetABC class."""
+    """
+    View over a DatasetABC class.
+    """
 
     def __init__(self, dataset: DatasetABC, s: slice):
         """Creates a view over the passed dataset.
@@ -306,7 +318,8 @@ class DatasetSlicedView(DatasetABC):
         super().__init__(dataset.fields)
 
     def _calculate_length(self) -> int:
-        """Calculates the number of examples in this view.
+        """
+        Calculates the number of examples in this view.
 
         Returns
         -------
