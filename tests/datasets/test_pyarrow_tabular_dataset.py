@@ -10,9 +10,10 @@ import pytest
 
 pa = pytest.importorskip("pyarrow")
 
-from podium.arrow import ArrowDataset
-from podium.datasets import Dataset
-from podium.storage import ExampleFactory, Field, Vocab
+from podium.datasets import ArrowDataset, Dataset
+from podium.field import Field
+from podium.storage import ExampleFactory
+from podium.vocab import Vocab
 
 
 @pytest.fixture

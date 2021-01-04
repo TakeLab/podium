@@ -1,8 +1,10 @@
 import pytest
 
 from podium.datasets import Dataset
+from podium.field import Field
 from podium.models import Experiment, FeatureTransformer
-from podium.storage import ExampleFactory, Field, Vocab
+from podium.storage import ExampleFactory
+from podium.vocab import Vocab
 
 
 def get_dataset():

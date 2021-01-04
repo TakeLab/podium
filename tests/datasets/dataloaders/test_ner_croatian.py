@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from podium.dataload.ner_croatian import (
+from podium.datasets.impl.croatian_ner_dataset import (
     NERCroatianXMLLoader,
     convert_sequence_to_entities,
 )

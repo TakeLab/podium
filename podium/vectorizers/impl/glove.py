@@ -1,7 +1,8 @@
 import os
 
-from ...resources import LargeResource
-from ..vectorizer import BasicVectorStorage, random_normal_default_vector
+from podium.storage import LargeResource
+
+from podium.vectorizers.vectorizer import BasicVectorStorage, random_normal_default_vector
 
 
 class GloVe(BasicVectorStorage):

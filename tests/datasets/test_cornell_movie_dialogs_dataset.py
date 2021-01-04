@@ -1,7 +1,9 @@
 import pytest
 
-from podium.dataload.cornell_movie_dialogs import CornellMovieDialogsNamedTuple
 from podium.datasets import CornellMovieDialogsConversationalDataset
+from podium.datasets.impl.cornell_movie_dialogs_dataset import (
+    CornellMovieDialogsNamedTuple,
+)
 
 
 EXPECTED_EXAMPLES = [

@@ -2,8 +2,8 @@
 Package contains datasets.
 """
 
-from .dataset import Dataset, rationed_split, stratified_split
-from .dataset_abc import DatasetABC
+from .arrow_tabular_dataset import ArrowDataset
+from .dataset import Dataset, DatasetBase, rationed_split, stratified_split
 from .hierarhical_dataset import HierarchicalDataset
 from .impl.catacx_dataset import CatacxDataset
 from .impl.conllu_dataset import CoNLLUDataset

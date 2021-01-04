@@ -6,7 +6,9 @@ or check the README.txt file in the dataset directory.
 import os
 
 from podium.datasets import Dataset
-from podium.storage import ExampleFactory, Field, LabelField, LargeResource, Vocab
+from podium.field import Field, LabelField
+from podium.storage import ExampleFactory, LargeResource
+from podium.vocab import Vocab
 
 
 class SNLISimple(Dataset):

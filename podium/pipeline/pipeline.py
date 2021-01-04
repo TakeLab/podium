@@ -3,6 +3,7 @@ from typing import Any, Callable, Dict, Iterable, List, NamedTuple, Type, Union
 import numpy as np
 
 from podium.datasets import Dataset
+from podium.field import Field, MultioutputField
 from podium.models import (
     AbstractSupervisedModel,
     AbstractTrainer,
@@ -10,7 +11,6 @@ from podium.models import (
     FeatureTransformer,
 )
 from podium.storage import ExampleFactory, ExampleFormat
-from podium.storage.field import Field, MultioutputField
 
 
 class Pipeline(Experiment):

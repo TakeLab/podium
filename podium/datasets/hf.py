@@ -4,7 +4,9 @@ Module contains the converter class for processing the HuggingFace Datasets.
 from typing import Dict, Iterator, Optional
 
 from podium.datasets import Dataset
-from podium.storage import Example, ExampleFactory, Field, LabelField, Vocab
+from podium.field import Field, LabelField
+from podium.storage import Example, ExampleFactory
+from podium.vocab import Vocab
 
 
 try:

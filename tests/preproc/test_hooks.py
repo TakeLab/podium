@@ -2,6 +2,7 @@ import inspect
 
 import pytest
 
+from podium.field import Field
 from podium.preproc.functional import remove_stopwords, truecase
 from podium.preproc.hooks import (
     MosesNormalizer,
@@ -10,7 +11,7 @@ from podium.preproc.hooks import (
     SpacyLemmatizer,
     TextCleanUp,
 )
-from podium.storage import ExampleFactory, Field
+from podium.storage import ExampleFactory
 
 from ..util import run_spacy
 

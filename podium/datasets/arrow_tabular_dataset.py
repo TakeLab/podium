@@ -8,9 +8,10 @@ import warnings
 from collections import defaultdict
 from typing import Any, Dict, Iterable, Iterator, List, Tuple, Union
 
-from podium.datasets import Dataset, DatasetABC
-from podium.storage import ExampleFactory, Field, unpack_fields
-from podium.storage.example_factory import Example
+from podium.field import Field, unpack_fields
+from podium.storage import Example, ExampleFactory
+
+from .dataset import Dataset, DatasetBase
 
 
 try:
@@ -35,7 +36,7 @@ def _chunkify(iterable, n):
         yield chunk
 
 
-class ArrowDataset(DatasetABC):
+class ArrowDataset(DatasetBase):
     """
     Podium dataset implementation which uses PyArrow as its data storage
     backend.

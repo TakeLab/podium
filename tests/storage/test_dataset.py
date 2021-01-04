@@ -11,9 +11,9 @@ from podium.datasets.dataset import Dataset
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
 from podium.datasets.iterator import Iterator
 from podium.datasets.tabular_dataset import TabularDataset
+from podium.field import Field, MultioutputField, unpack_fields
 from podium.storage.example_factory import ExampleFactory
-from podium.storage.field import Field, MultioutputField, unpack_fields
-from podium.storage.vocab import Vocab
+from podium.vocab import Vocab
 
 
 FORMAT_USE_DICT_COMBINATIONS = (

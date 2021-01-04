@@ -4,8 +4,8 @@ import tempfile
 import numpy as np
 import pytest
 
-from podium.storage.vectorizers import vectorizer
-from podium.storage.vectorizers.impl import GloVe
+from podium.vectorizers import vectorizer
+from podium.vectorizers.impl import GloVe
 
 
 BASIC_VECT_HEADING = b"251518 300"

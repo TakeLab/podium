@@ -4,8 +4,8 @@ import pandas as pd
 import pytest
 
 from podium.datasets.tabular_dataset import TabularDataset
-from podium.storage.field import Field, LabelField
-from podium.storage.vocab import Vocab
+from podium.field import Field, LabelField
+from podium.vocab import Vocab
 
 
 @pytest.fixture

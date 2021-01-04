@@ -9,7 +9,7 @@ from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
 import numpy as np
 
 from podium.preproc.tokenizers import get_tokenizer
-from podium.storage.vocab import Vocab
+from podium.vocab import Vocab
 
 
 PretokenizationHookType = Callable[[Any], Any]

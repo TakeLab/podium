@@ -34,8 +34,8 @@ from sklearn.model_selection import GridSearchCV
 
 from podium.datasets.iterator import Iterator
 from podium.models import AbstractSupervisedModel
-from podium.storage.vectorizers.tfidf import TfIdfVectorizer
 from podium.validation.validation import KFold
+from podium.vectorizers.tfidf import TfIdfVectorizer
 
 
 class MultilabelSVM(AbstractSupervisedModel):

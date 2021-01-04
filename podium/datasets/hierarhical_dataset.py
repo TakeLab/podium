@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from typing import Optional, Tuple
 
 from podium.datasets.dataset import Dataset
+from podium.field import unpack_fields
 from podium.storage import Example, ExampleFactory
-from podium.storage.field import unpack_fields
 
 
 @dataclass

@@ -4,10 +4,10 @@ Module contains PauzaHR datasets.
 import os
 
 from podium.datasets.dataset import Dataset
+from podium.field import Field
 from podium.storage.example_factory import ExampleFactory
-from podium.storage.field import Field
 from podium.storage.resources.large_resource import LargeResource
-from podium.storage.vocab import Vocab
+from podium.vocab import Vocab
 
 
 class PauzaHRDataset(Dataset):

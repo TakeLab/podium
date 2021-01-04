@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from podium.dataload.cornell_movie_dialogs import CornellMovieDialogsLoader
+from podium.datasets.impl.cornell_movie_dialogs_dataset import CornellMovieDialogsLoader
 from podium.storage import LargeResource
 
 

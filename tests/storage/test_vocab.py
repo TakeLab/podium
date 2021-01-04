@@ -3,7 +3,7 @@ import os
 import dill
 import pytest
 
-from podium.storage import vocab
+from podium import vocab
 
 
 def test_default_vocab_add_set_words():

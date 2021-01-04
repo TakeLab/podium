@@ -2,8 +2,12 @@ from unittest.mock import patch
 
 import pytest
 
-from podium.dataload.eurovoc import Document, Label, LabelRank
-from podium.datasets.impl.eurovoc_dataset import EuroVocDataset
+from podium.datasets.impl.eurovoc_dataset import (
+    Document,
+    EuroVocDataset,
+    Label,
+    LabelRank,
+)
 from podium.preproc.lemmatizer.croatian_lemmatizer import CroatianLemmatizer
 
 

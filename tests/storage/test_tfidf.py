@@ -2,9 +2,9 @@ import numpy as np
 import pytest
 from sklearn.feature_extraction import text
 
-from podium.storage.field import Field
-from podium.storage.vectorizers.tfidf import CountVectorizer, TfIdfVectorizer
-from podium.storage.vocab import SpecialVocabSymbols, Vocab
+from podium.field import Field
+from podium.vectorizers.tfidf import CountVectorizer, TfIdfVectorizer
+from podium.vocab import SpecialVocabSymbols, Vocab
 
 from .conftest import TABULAR_TEXT
 

@@ -23,6 +23,7 @@ def test_get_label_matrix():
 
 @pytest.mark.filterwarnings("ignore::sklearn.exceptions.ConvergenceWarning")
 @pytest.mark.filterwarnings("ignore::sklearn.exceptions.FitFailedWarning")
+@pytest.mark.filterwarnings("ignore::sklearn.exceptions.UndefinedMetricWarning")
 def test_fitting_multilable_svm():
     clf = ms.MultilabelSVM()
     parameter_grid = {"C": [1]}

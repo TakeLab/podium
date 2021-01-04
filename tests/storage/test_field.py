@@ -5,14 +5,8 @@ import dill
 import numpy as np
 import pytest
 
-from podium.storage import (
-    Field,
-    LabelField,
-    MultilabelField,
-    MultioutputField,
-    SpecialVocabSymbols,
-    Vocab,
-)
+from podium.field import Field, LabelField, MultilabelField, MultioutputField
+from podium.vocab import SpecialVocabSymbols, Vocab
 
 
 ONE_TO_FIVE = [1, 2, 3, 4, 5]

@@ -11,7 +11,9 @@ from podium.datasets.iterator import (
     Iterator,
     SingleBatchIterator,
 )
-from podium.storage import ExampleFactory, Field, Vocab
+from podium.field import Field
+from podium.storage import ExampleFactory
+from podium.vocab import Vocab
 
 from .conftest import (
     TABULAR_TEXT,

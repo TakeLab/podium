@@ -6,12 +6,18 @@ from unittest.mock import patch
 import dill
 import pytest
 
-from podium.dataload.eurovoc import EuroVocLoader, Label, LabelRank, dill_dataset
-from podium.datasets.impl.eurovoc_dataset import EuroVocDataset
-from podium.storage import Field, MultilabelField, Vocab
+from podium.datasets.impl.eurovoc_dataset import (
+    EuroVocDataset,
+    EuroVocLoader,
+    Label,
+    LabelRank,
+    dill_dataset,
+)
+from podium.field import Field, MultilabelField
 from podium.storage.resources.large_resource import LargeResource, SCPLargeResource
+from podium.vocab import Vocab
 
-from ..datasets.test_eurovoc_dataset import (
+from ..test_eurovoc_dataset import (
     crovoc_label_hierarchy,
     documents,
     eurovoc_label_hierarchy,
@@ -283,7 +289,7 @@ def create_mock_dataset(
 
     mappings_path = os.path.join(base_dataset_dir, EuroVocLoader.MAPPING_FILENAME)
 
-    with open("tests/dataload/mock_mapping.xls", mode="rb") as input_file:
+    with open("tests/datasets/dataloaders/mock_mapping.xls", mode="rb") as input_file:
         mappings_content = input_file.read()
     with open(file=mappings_path, mode="wb") as fp:
         fp.write(mappings_content)

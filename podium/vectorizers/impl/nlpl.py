@@ -1,7 +1,7 @@
 import os
 
 from podium.storage import LargeResource
-from podium.storage.vectorizers.vectorizer import BasicVectorStorage, zeros_default_vector
+from podium.vectorizers.vectorizer import BasicVectorStorage, zeros_default_vector
 
 
 class NlplVectorizer(BasicVectorStorage):
