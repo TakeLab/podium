@@ -22,10 +22,12 @@ FieldType = Optional[Union[Field, List[Field]]]
 
 
 class DatasetABC(ABC):
+    """
+    Abstract base class for all datasets in Podium.
+    """
+
     def __init__(self, fields: Union[Dict[str, FieldType], List[FieldType]]):
         self._fields = tuple(unpack_fields(fields))
-
-    # ==================== Properties =========================
 
     @property
     def fields(self) -> Tuple[Field]:
@@ -48,8 +50,6 @@ class DatasetABC(ABC):
         List containing all Examples.
         """
         return self._get_examples()
-
-    # ================= Default methods =======================
 
     def __iter__(self) -> Iterator[Example]:
         """
@@ -210,8 +210,6 @@ class DatasetABC(ABC):
 
     def __repr__(self):
         return f"{type(self).__name__}[Size: {len(self)}, Fields: {self.fields}]"
-
-    # ================= Abstract methods =======================
 
     @abstractmethod
     def __len__(self) -> int:

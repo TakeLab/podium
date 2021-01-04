@@ -12,6 +12,8 @@ if "%1"!="" goto error
     black --check --line-length 90 --target-version py36 podium tests examples
     echo isort --check-only podium tests examples
     isort --check-only podium tests examples
+    echo docformatter podium tests examples --check --recursive --wrap-descriptions 80 --wrap-summaries 80 --pre-summary-newline --make-summary-multi-line
+    docformatter podium tests examples --check --recursive --wrap-descriptions 80 --wrap-summaries 80 --pre-summary-newline --make-summary-multi-line
     echo flake8 podium tests examples
     flake8 podium tests examples
     goto :EOF
@@ -22,6 +24,8 @@ if "%1"!="" goto error
     black --line-length 90 --target-version py36 podium tests examples
     echo isort podium tests examples
     isort podium tests examples
+    echo docformatter podium tests examples -i --recursive --wrap-descriptions 80 --wrap-summaries 80 --pre-summary-newline --make-summary-multi-line
+    docformatter podium tests examples -i --recursive --wrap-descriptions 80 --wrap-summaries 80 --pre-summary-newline --make-summary-multi-line
     goto :EOF
 
 :test

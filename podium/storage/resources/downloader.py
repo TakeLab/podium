@@ -171,7 +171,7 @@ class HttpDownloader(BaseDownloader):
             If given HTTP response wasn't successful (response code >= 300).
         """
         if response is None or output_file is None:
-            raise ValueError("Response object and output file object mustn't" " be None.")
+            raise ValueError("Response object and output file object mustn't be None.")
         if response.status_code >= 300:
             raise RuntimeError(
                 f"Given file is not accessible because {response.reason}, "

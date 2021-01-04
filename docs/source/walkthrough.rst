@@ -254,13 +254,13 @@ For this dataset, we need to define three Fields. We also might want the fields 
 Loading 🤗 datasets
 --------------------
 
-The recently released `huggingface/datasets <https://github.com/huggingface/datasets>`__ library implements a large number of NLP datasets. For your convenience (and not to reimplement data loading for each one of them), we have created a wrapper for 🤗/datasets, which allows you to map all of the 140+ datasets directly to your Podium pipeline.
+The recently released `huggingface/datasets <https://github.com/huggingface/datasets>`__ library implements a large number of NLP datasets. For your convenience (and not to reimplement data loading for each one of them), we have created a wrapper for 🤗/datasets, which allows you to map all of the 600+ datasets directly to your Podium pipeline.
 
 You can load a dataset in 🤗/datasets and then convert it to a Podium dataset as follows:
 
 .. code-block:: python
 
-  >>> from podium import HuggingFaceDatasetConverter as hfd
+  >>> from podium.dataload.hf import HFDatasetConverter
   >>> import datasets
   >>> # Loading a huggingface dataset returns an instance of DatasetDict
   >>> # which contains the dataset splits (usually: train, valid, test, 
@@ -272,8 +272,7 @@ You can load a dataset in 🤗/datasets and then convert it to a Podium dataset 
   >>> # We create an adapter for huggingface dataset schema to podium Fields.
   >>> # These are not yet Podium datasets, but behave as such (you can iterate
   >>> # over them as if they were).
-  >>> imdb = hfd.from_dataset_dict(imdb)
-  >>> imdb_train, imdb_test, imdb_unsupervised = hfd.from_dataset_dict(imdb).values()
+  >>> imdb_train, imdb_test, imdb_unsupervised = HFDatasetConverter.from_dataset_dict(imdb).values()
   >>>
   >>> print(imdb_train.fields)
   {'text': Field[name: text, is_target: False, vocab: Vocab[finalized: False, size: 0]], 'label': LabelField[name: label, is_target: True]}

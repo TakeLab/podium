@@ -107,7 +107,7 @@ def create_molex_file(filepath, content):
 
 @pytest.fixture
 def molex14_lemma2word(molexdir):
-    content = "mama#mame,mami,mamama,mamu,mamo,mamom,mama\n" "tata#tate,tati,tatata,tatu"
+    content = "mama#mame,mami,mamama,mamu,mamo,mamom,mama\ntata#tate,tati,tatata,tatu"
     path = os.path.join(molexdir, "molex14_lemma2word.txt")
     create_molex_file(path, content)
     return path
@@ -115,7 +115,7 @@ def molex14_lemma2word(molexdir):
 
 @pytest.fixture
 def molex14_word2lemma(molexdir):
-    content = "mamama mama\n" "mami mama\n" "parkira parkirati"
+    content = "mamama mama\nmami mama\nparkira parkirati"
     path = os.path.join(molexdir, "molex14_word2lemma.txt")
     create_molex_file(path, content)
     return path

@@ -12,7 +12,7 @@ Y = np.array([[1, 0, 1], [1, 1, 0], [0, 1, 1], [1, 0, 1]])
 
 Y_missing = np.array([[1, 0, 0], [0, 1, 0], [1, 0, 0], [0, 1, 0]])
 
-Target = namedtuple("Target", "eurovoc_labels")
+Target = namedtuple("Target", ["eurovoc_labels"])
 target = Target(eurovoc_labels=Y)
 
 

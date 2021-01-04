@@ -1,5 +1,4 @@
 import os
-import shutil
 import tempfile
 import xml.etree.ElementTree as ET
 
@@ -44,25 +43,24 @@ def create_ner_file(filepath, title_element, body_element):
     tree.write(filepath, encoding="utf-8")
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="function", autouse=True)
 def base_download_dir():
-    base_temp = tempfile.mkdtemp()
-    assert os.path.isdir(base_temp)
+    with tempfile.TemporaryDirectory() as base_temp:
+        assert os.path.isdir(base_temp)
 
-    base_dataset_dir = os.path.join(base_temp, "CroatianNERDataset")
-    os.makedirs(base_dataset_dir)
+        base_dataset_dir = os.path.join(base_temp, "CroatianNERDataset")
+        os.makedirs(base_dataset_dir)
 
-    ner_file_name = os.path.join(base_dataset_dir, "example.xml")
-    create_ner_file(ner_file_name, title_1, body_1)
+        ner_file_name = os.path.join(base_dataset_dir, "example.xml")
+        create_ner_file(ner_file_name, title_1, body_1)
 
-    return base_temp
+        yield base_temp
 
 
 def test_return_params(base_download_dir):
     LargeResource.BASE_RESOURCE_DIR = base_download_dir
 
     dataset = CroatianNERDataset.get_dataset()
-    shutil.rmtree(base_download_dir)
 
     assert isinstance(dataset, Dataset)
 
@@ -77,7 +75,6 @@ def test_default_fields():
 def test_dataset_loading(base_download_dir):
     LargeResource.BASE_RESOURCE_DIR = base_download_dir
     dataset = CroatianNERDataset.get_dataset()
-    shutil.rmtree(base_download_dir)
 
     assert len(dataset) == 2
 

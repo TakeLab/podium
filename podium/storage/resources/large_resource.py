@@ -122,11 +122,12 @@ class LargeResource:
         Method downloades resource and decompresses it to resource location.
         """
         os.makedirs(name=self.resource_location)
-        download_dir = os.path.join(
-            tempfile.mkdtemp(), self.config[LargeResource.RESOURCE_NAME]
-        )
-        self._download(download_destination=download_dir)
-        self._unarchive(archive_file=download_dir)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            download_dir = os.path.join(
+                temp_dir, self.config[LargeResource.RESOURCE_NAME]
+            )
+            self._download(download_destination=download_dir)
+            self._unarchive(archive_file=download_dir)
 
     def _check_args(self, arguments):
         """

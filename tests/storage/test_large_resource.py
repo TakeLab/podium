@@ -1,5 +1,4 @@
 import os
-import tempfile
 import zipfile
 
 import paramiko
@@ -34,16 +33,13 @@ def test_arguments_resource_name_missing():
         LargeResource(**{LargeResource.URI: "http://fer.hr"})
 
 
-def test_resource_not_archive():
+def test_resource_not_archive(tmpdir):
     def download(uri, path, overwrite):
         create_mock_file(path)
 
     SimpleHttpDownloader.download = download
 
-    base = tempfile.mkdtemp()
-    assert os.path.exists(base)
-
-    LargeResource.BASE_RESOURCE_DIR = base
+    LargeResource.BASE_RESOURCE_DIR = tmpdir
     LargeResource(
         **{
             LargeResource.URI: "http://fer.hr",
@@ -51,23 +47,20 @@ def test_resource_not_archive():
         }
     )
 
-    abs_file_path = os.path.join(base, MOCK_RESOURCE_NAME)
+    abs_file_path = os.path.join(tmpdir, MOCK_RESOURCE_NAME)
     assert os.path.exists(abs_file_path)
     with open(file=abs_file_path, mode="r") as fpr:
         content = fpr.read()
         assert content == MOCK_FILE_CONTENT
 
 
-def test_resource_downloading_unzip():
+def test_resource_downloading_unzip(tmpdir):
     def download(uri, path, overwrite):
         create_mock_zip_archive(file_name=MOCK_FILE_NAME, file_path=path)
 
     SimpleHttpDownloader.download = download
 
-    base = tempfile.mkdtemp()
-    assert os.path.exists(base)
-
-    LargeResource.BASE_RESOURCE_DIR = base
+    LargeResource.BASE_RESOURCE_DIR = tmpdir
     LargeResource(
         **{
             LargeResource.URI: "http://fer.hr",
@@ -76,19 +69,18 @@ def test_resource_downloading_unzip():
         }
     )
 
-    abs_file_path = os.path.join(base, MOCK_RESOURCE_NAME, MOCK_FILE_NAME)
+    abs_file_path = os.path.join(tmpdir, MOCK_RESOURCE_NAME, MOCK_FILE_NAME)
     assert os.path.exists(abs_file_path)
     with open(file=abs_file_path, mode="r") as fpr:
         content = fpr.read()
         assert content == MOCK_FILE_CONTENT
 
 
-def test_file_zip_exists():
+def test_file_zip_exists(tmpdir):
     SimpleHttpDownloader.download = lambda uri, path, overwrite: None
 
-    base = tempfile.mkdtemp()
-    assert os.path.exists(base)
-    os.mkdir(os.path.join(base, MOCK_RESOURCE_NAME))
+    os.mkdir(os.path.join(tmpdir, MOCK_RESOURCE_NAME))
+    LargeResource.BASE_RESOURCE_DIR = tmpdir
     LargeResource(
         **{
             LargeResource.URI: "http://fer.hr",
@@ -98,12 +90,10 @@ def test_file_zip_exists():
     )
 
 
-def test_file_not_original_archive_exists():
+def test_file_not_original_archive_exists(tmpdir):
     SimpleHttpDownloader.download = lambda uri, path, overwrite: None
 
-    base = tempfile.mkdtemp()
-    assert os.path.exists(base)
-    os.mkdir(os.path.join(base, MOCK_RESOURCE_NAME))
+    os.mkdir(os.path.join(tmpdir, MOCK_RESOURCE_NAME))
     LargeResource(
         **{
             LargeResource.URI: "http://fer.hr",
@@ -112,16 +102,13 @@ def test_file_not_original_archive_exists():
     )
 
 
-def test_unsupported_archive_type():
+def test_unsupported_archive_type(tmpdir):
     def download(uri, path, overwrite):
         create_mock_zip_archive(file_name=MOCK_FILE_NAME, file_path=path)
 
     SimpleHttpDownloader.download = download
 
-    base = tempfile.mkdtemp()
-    assert os.path.exists(base)
-
-    LargeResource.BASE_RESOURCE_DIR = base
+    LargeResource.BASE_RESOURCE_DIR = tmpdir
 
     with pytest.raises(ValueError):
         LargeResource(
@@ -133,16 +120,13 @@ def test_unsupported_archive_type():
         )
 
 
-def test_scp_download_file():
+def test_scp_download_file(tmpdir):
     def download(uri, path, overwrite, **kwargs):
         create_mock_file(path)
 
     SCPDownloader.download = download
 
-    base = tempfile.mkdtemp()
-    assert os.path.exists(base)
-
-    LargeResource.BASE_RESOURCE_DIR = base
+    LargeResource.BASE_RESOURCE_DIR = tmpdir
 
     SCPLargeResource(
         **{
@@ -151,25 +135,22 @@ def test_scp_download_file():
             SCPLargeResource.SCP_HOST_KEY: "djurdja.fer.hr",
             SCPLargeResource.SCP_USER_KEY: "user",
             SCPLargeResource.SCP_PASS_KEY: "password",
-            SCPLargeResource.SCP_PRIVATE_KEY: "D:\\TakeLab\\" "takleab_ssh",
+            SCPLargeResource.SCP_PRIVATE_KEY: "D:\\TakeLab\\takleab_ssh",
         }
     )
 
-    abs_file_path = os.path.join(base, MOCK_RESOURCE_NAME)
+    abs_file_path = os.path.join(tmpdir, MOCK_RESOURCE_NAME)
     assert os.path.exists(abs_file_path)
     with open(file=abs_file_path, mode="r") as fpr:
         content = fpr.read()
         assert content == MOCK_FILE_CONTENT
 
 
-def test_scp_download_file_paraminko_mock():
+def test_scp_download_file_paraminko_mock(tmpdir):
     paramiko.SSHClient.connect = lambda **kwards: None
     paramiko.SFTPClient.get = lambda remotepath, localpath: create_mock_file(remotepath)
 
-    base = tempfile.mkdtemp()
-    assert os.path.exists(base)
-
-    LargeResource.BASE_RESOURCE_DIR = base
+    LargeResource.BASE_RESOURCE_DIR = tmpdir
 
     SCPLargeResource(
         **{
@@ -178,11 +159,11 @@ def test_scp_download_file_paraminko_mock():
             SCPLargeResource.SCP_HOST_KEY: "djurdja.fer.hr",
             SCPLargeResource.SCP_USER_KEY: "user",
             SCPLargeResource.SCP_PASS_KEY: "password",
-            SCPLargeResource.SCP_PRIVATE_KEY: "D:\\TakeLab\\" "takleab_ssh",
+            SCPLargeResource.SCP_PRIVATE_KEY: "D:\\TakeLab\\takleab_ssh",
         }
     )
 
-    abs_file_path = os.path.join(base, MOCK_RESOURCE_NAME)
+    abs_file_path = os.path.join(tmpdir, MOCK_RESOURCE_NAME)
     assert os.path.exists(abs_file_path)
     with open(file=abs_file_path, mode="r") as fpr:
         content = fpr.read()

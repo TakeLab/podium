@@ -25,7 +25,7 @@ TRAIN_EXAMPLES = {
 
 EXPECTED_TRAIN_EXAMPLES = [
     {
-        "text": "If you like comedy cartoons then " "this is nearly a similar " "format",
+        "text": "If you like comedy cartoons then this is nearly a similar format",
         "label": "positive",
     },
     {
@@ -35,7 +35,7 @@ EXPECTED_TRAIN_EXAMPLES = [
         "label": "positive",
     },
     {
-        "text": "The production quality, cast, " "premise, authentic New " "England",
+        "text": "The production quality, cast, premise, authentic New England",
         "label": "positive",
     },
     {
@@ -44,7 +44,7 @@ EXPECTED_TRAIN_EXAMPLES = [
         "film",
         "label": "negative",
     },
-    {"text": "There are lots of extremely " "good-looking people", "label": "negative"},
+    {"text": "There are lots of extremely good-looking people", "label": "negative"},
 ]
 
 TEST_EXAMPLES = {
@@ -56,23 +56,24 @@ TEST_EXAMPLES = {
 }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="module", autouse=True)
 def mock_dataset_path():
-    base_temp = tempfile.mkdtemp()
-    assert os.path.exists(base_temp)
-    LargeResource.BASE_RESOURCE_DIR = base_temp
-    base_dataset_dir = os.path.join(base_temp, "imdb", "aclImdb")
+    with tempfile.TemporaryDirectory() as base_temp:
+        assert os.path.exists(base_temp)
+        LargeResource.BASE_RESOURCE_DIR = base_temp
+        base_dataset_dir = os.path.join(base_temp, "imdb", "aclImdb")
 
-    train_dir = os.path.join(base_dataset_dir, "train")
-    os.makedirs(train_dir)
-    assert os.path.exists(train_dir)
-    test_dir = os.path.join(base_dataset_dir, "test")
-    os.makedirs(test_dir)
-    assert os.path.exists(test_dir)
+        train_dir = os.path.join(base_dataset_dir, "train")
+        os.makedirs(train_dir)
+        assert os.path.exists(train_dir)
+        test_dir = os.path.join(base_dataset_dir, "test")
+        os.makedirs(test_dir)
+        assert os.path.exists(test_dir)
 
-    create_examples_set(train_dir, TRAIN_EXAMPLES)
-    create_examples_set(test_dir, TEST_EXAMPLES)
-    return base_temp
+        create_examples_set(train_dir, TRAIN_EXAMPLES)
+        create_examples_set(test_dir, TEST_EXAMPLES)
+
+        yield base_temp
 
 
 def create_examples_set(base_dir, examples):
