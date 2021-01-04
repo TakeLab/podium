@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from podium.models.impl.eurovoc_models import multilabel_svm as ms
+from podium.experimental.models.impl.eurovoc_models import multilabel_svm as ms
 
 
 X = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 0, 0]])

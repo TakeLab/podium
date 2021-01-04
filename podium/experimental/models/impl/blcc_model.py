@@ -5,8 +5,8 @@ import tempfile
 
 import numpy as np
 
-from podium.models import AbstractSupervisedModel
-from podium.models.impl.blcc.chain_crf import ChainCRF, create_custom_objects
+from podium.experimental.models import AbstractSupervisedModel
+from podium.experimental.models.impl.blcc.chain_crf import ChainCRF, create_custom_objects
 
 
 try:

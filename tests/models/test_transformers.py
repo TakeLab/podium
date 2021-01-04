@@ -2,7 +2,7 @@ from collections import namedtuple
 
 import numpy as np
 
-from podium.models import (
+from podium.experimental.models import (
     FeatureTransformer,
     SklearnTensorTransformerWrapper,
     TensorTransformer,

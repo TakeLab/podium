@@ -1,7 +1,7 @@
 """
 Module contains fully connected neural network models.
 """
-from podium.models.model import AbstractSupervisedModel
+from podium.experimental.models.model import AbstractSupervisedModel
 
 
 try:

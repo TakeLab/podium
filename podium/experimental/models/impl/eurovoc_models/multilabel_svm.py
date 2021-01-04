@@ -33,8 +33,8 @@ from sklearn.metrics import f1_score, precision_score, recall_score
 from sklearn.model_selection import GridSearchCV
 
 from podium.datasets.iterator import Iterator
-from podium.models import AbstractSupervisedModel
-from podium.validation.validation import KFold
+from podium.experimental.models import AbstractSupervisedModel
+from podium.experimental.validation.validation import KFold
 from podium.vectorizers.tfidf import TfIdfVectorizer
 
 

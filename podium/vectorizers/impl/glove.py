@@ -1,7 +1,6 @@
 import os
 
 from podium.storage import LargeResource
-
 from podium.vectorizers.vectorizer import BasicVectorStorage, random_normal_default_vector
 
 

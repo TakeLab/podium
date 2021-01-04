@@ -2,9 +2,9 @@ import pytest
 import pytest_mock  # noqa
 
 from podium.datasets.iterator import Iterator
-from podium.models import FeatureTransformer
-from podium.models.impl.simple_trainers import SimpleTrainer
-from podium.models.model import AbstractSupervisedModel
+from podium.experimental.models import FeatureTransformer
+from podium.experimental.models.impl.simple_trainers import SimpleTrainer
+from podium.experimental.models.model import AbstractSupervisedModel
 
 from ..storage.conftest import json_file_path, tabular_dataset  # noqa
 

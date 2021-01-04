@@ -1,6 +1,6 @@
 import torch
 
-from podium.models import AbstractSupervisedModel
+from podium.experimental.models import AbstractSupervisedModel
 
 
 class TorchModel(AbstractSupervisedModel):

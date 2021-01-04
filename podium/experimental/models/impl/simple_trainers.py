@@ -2,7 +2,7 @@
 Module contains simple trainer classes.
 """
 from podium.datasets import Iterator
-from podium.models.trainer import AbstractTrainer
+from podium.experimental.models.trainer import AbstractTrainer
 
 
 class SimpleTrainer(AbstractTrainer):

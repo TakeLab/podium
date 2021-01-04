@@ -2,7 +2,7 @@ import time
 
 import torch
 
-from podium.models.trainer import AbstractTrainer
+from podium.experimental.models.trainer import AbstractTrainer
 
 
 class TorchTrainer(AbstractTrainer):

@@ -5,8 +5,8 @@ from sklearn.model_selection import ParameterGrid
 from tqdm import tqdm
 
 from podium.datasets import Dataset
-from podium.models import Experiment
-from podium.validation import k_fold_validation
+from podium.experimental.models import Experiment
+from podium.experimental.validation import k_fold_validation
 
 
 def grid_search(

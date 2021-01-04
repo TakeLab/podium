@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from podium.models.impl.svm_model import ScikitSVCModel
+from podium.experimental.models.impl.svm_model import ScikitSVCModel
 
 
 X = np.array([[1, 0, 1], [1, 1, 1], [0, 0, 1]])

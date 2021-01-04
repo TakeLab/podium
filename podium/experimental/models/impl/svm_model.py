@@ -1,7 +1,7 @@
 """
 Module contains svm models.
 """
-from podium.models.model import AbstractSupervisedModel
+from podium.experimental.models.model import AbstractSupervisedModel
 
 
 try:

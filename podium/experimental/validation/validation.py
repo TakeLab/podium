@@ -5,7 +5,7 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 from sklearn.model_selection import KFold
 
 from podium.datasets import Dataset
-from podium.models.experiment import Experiment
+from podium.experimental.models.experiment import Experiment
 
 
 class _KFold(KFold):

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from podium.models.impl.fc_model import ScikitMLPClassifier
+from podium.experimental.models.impl.fc_model import ScikitMLPClassifier
 
 
 X = np.array([[1, 0, 1], [1, 1, 1], [0, 0, 1]])
