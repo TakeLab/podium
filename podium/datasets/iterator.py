@@ -388,7 +388,10 @@ class Iterator(IteratorABC):
         # if fixed_length is None, then return the maximum length of all the
         # examples in the batch
         def numericalization_length(n):
-            return 1 if n is None else len(n)
+            if n is None or isinstance(n, (int, float)):
+                return 1
+            else:
+                return len(n)
 
         return max(map(numericalization_length, numericalizations))
 
