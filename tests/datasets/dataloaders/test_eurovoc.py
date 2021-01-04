@@ -1,3 +1,4 @@
+import contextlib
 import os
 import shutil
 import tempfile
@@ -230,6 +231,7 @@ def test_creating_thesaurus_label():
     assert label.micro_thesaurus is None
 
 
+@contextlib.contextmanager
 def create_mock_dataset(
     load_missing_doc=False,
     load_invalid_doc=False,
@@ -239,62 +241,65 @@ def create_mock_dataset(
     non_existing_thesaurus=False,
     create_parent_dir=True,
 ):
-    base_temp = tempfile.mkdtemp()
-    assert os.path.exists(base_temp)
+    try:
+        base_temp = tempfile.mkdtemp()
+        assert os.path.exists(base_temp)
 
-    if create_parent_dir:
-        base_dataset_dir = os.path.join(base_temp, EuroVocLoader.NAME)
-        os.makedirs(base_dataset_dir)
-    else:
-        base_dataset_dir = base_temp
+        if create_parent_dir:
+            base_dataset_dir = os.path.join(base_temp, EuroVocLoader.NAME)
+            os.makedirs(base_dataset_dir)
+        else:
+            base_dataset_dir = base_temp
 
-    eurovoc_labels_path = os.path.join(
-        base_dataset_dir, EuroVocLoader.EUROVOC_LABELS_FILENAME
-    )
-    if invalid_labels:
-        create_file(eurovoc_labels_path, INVALID_LABELS)
-    elif non_existing_thesaurus:
-        create_file(eurovoc_labels_path, NON_EXISTING_THESAURUS)
-    else:
-        create_file(eurovoc_labels_path, EUROVOC_LABELS)
+        eurovoc_labels_path = os.path.join(
+            base_dataset_dir, EuroVocLoader.EUROVOC_LABELS_FILENAME
+        )
+        if invalid_labels:
+            create_file(eurovoc_labels_path, INVALID_LABELS)
+        elif non_existing_thesaurus:
+            create_file(eurovoc_labels_path, NON_EXISTING_THESAURUS)
+        else:
+            create_file(eurovoc_labels_path, EUROVOC_LABELS)
 
-    crovoc_labels_path = os.path.join(
-        base_dataset_dir, EuroVocLoader.CROVOC_LABELS_FILENAME
-    )
-    create_file(crovoc_labels_path, CROVOC_LABELS)
+        crovoc_labels_path = os.path.join(
+            base_dataset_dir, EuroVocLoader.CROVOC_LABELS_FILENAME
+        )
+        create_file(crovoc_labels_path, CROVOC_LABELS)
 
-    dataset_dir = os.path.join(base_dataset_dir, EuroVocLoader.DATASET_DIR)
-    os.makedirs(dataset_dir)
-    document_1_path = os.path.join(dataset_dir, "NN00001.xml")
-    create_file(document_1_path, DOCUMENT_1)
+        dataset_dir = os.path.join(base_dataset_dir, EuroVocLoader.DATASET_DIR)
+        os.makedirs(dataset_dir)
+        document_1_path = os.path.join(dataset_dir, "NN00001.xml")
+        create_file(document_1_path, DOCUMENT_1)
 
-    document_2_path = os.path.join(dataset_dir, "NN00002.xml")
-    if load_doc_with_br_tag:
-        create_file(document_2_path, DOCUMENT_2_BR)
-    else:
         document_2_path = os.path.join(dataset_dir, "NN00002.xml")
-        create_file(document_2_path, DOCUMENT_2)
+        if load_doc_with_br_tag:
+            create_file(document_2_path, DOCUMENT_2_BR)
+        else:
+            document_2_path = os.path.join(dataset_dir, "NN00002.xml")
+            create_file(document_2_path, DOCUMENT_2)
 
-    if load_invalid_doc:
-        document_3_path = os.path.join(dataset_dir, "NN00003.xml")
-        create_file(document_3_path, INVALID_DOCUMENT)
+        if load_invalid_doc:
+            document_3_path = os.path.join(dataset_dir, "NN00003.xml")
+            create_file(document_3_path, INVALID_DOCUMENT)
 
-    if load_missing_doc:
-        document_4_path = os.path.join(dataset_dir, "NN00004.xml")
-        create_file(document_4_path, MISSING_DOCUMENT)
+        if load_missing_doc:
+            document_4_path = os.path.join(dataset_dir, "NN00004.xml")
+            create_file(document_4_path, MISSING_DOCUMENT)
 
-    if load_doc_with_invalid_title:
-        document_5_path = os.path.join(dataset_dir, "NN00005.xml")
-        create_file(document_5_path, INVALID_DOCUMENT_TITLE)
+        if load_doc_with_invalid_title:
+            document_5_path = os.path.join(dataset_dir, "NN00005.xml")
+            create_file(document_5_path, INVALID_DOCUMENT_TITLE)
 
-    mappings_path = os.path.join(base_dataset_dir, EuroVocLoader.MAPPING_FILENAME)
+        mappings_path = os.path.join(base_dataset_dir, EuroVocLoader.MAPPING_FILENAME)
 
-    with open("tests/datasets/dataloaders/mock_mapping.xls", mode="rb") as input_file:
-        mappings_content = input_file.read()
-    with open(file=mappings_path, mode="wb") as fp:
-        fp.write(mappings_content)
+        with open("tests/datasets/dataloaders/mock_mapping.xls", mode="rb") as input_file:
+            mappings_content = input_file.read()
+        with open(file=mappings_path, mode="wb") as fp:
+            fp.write(mappings_content)
 
-    return base_temp
+        yield base_temp
+    finally:
+        shutil.rmtree(base_temp)
 
 
 def create_file(file_path, file_content):
@@ -305,8 +310,9 @@ def create_file(file_path, file_content):
 def test_loading_dataset():
     pytest.importorskip("xlrd")
 
-    path = create_mock_dataset()
-    with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+    with create_mock_dataset() as path, patch.object(
+        LargeResource, "BASE_RESOURCE_DIR", path
+    ):
         loader = EuroVocLoader()
 
         with pytest.warns(RuntimeWarning):
@@ -394,15 +400,13 @@ def test_loading_dataset():
         assert documents[1].title == "document title 2"
         assert documents[1].text == "document body 2"
 
-        shutil.rmtree(path)
-        assert not os.path.exists(path)
-
 
 def test_loading_dataset_with_missing_document():
     pytest.importorskip("xlrd")
 
-    path = create_mock_dataset(load_missing_doc=True)
-    with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+    with create_mock_dataset(load_missing_doc=True) as path, patch.object(
+        LargeResource, "BASE_RESOURCE_DIR", path
+    ):
         loader = EuroVocLoader()
 
         with pytest.warns(RuntimeWarning):
@@ -416,16 +420,14 @@ def test_loading_dataset_with_missing_document():
 
         assert documents[0].filename == "NN00001.xml"
         assert documents[1].filename == "NN00002.xml"
-
-        shutil.rmtree(path)
-        assert not os.path.exists(path)
 
 
 def test_loading_dataset_with_invalid_document():
     pytest.importorskip("xlrd")
 
-    path = create_mock_dataset(load_invalid_doc=True)
-    with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+    with create_mock_dataset(load_invalid_doc=True) as path, patch.object(
+        LargeResource, "BASE_RESOURCE_DIR", path
+    ):
         loader = EuroVocLoader()
 
         with pytest.warns(RuntimeWarning):
@@ -440,15 +442,13 @@ def test_loading_dataset_with_invalid_document():
         assert documents[0].filename == "NN00001.xml"
         assert documents[1].filename == "NN00002.xml"
 
-        shutil.rmtree(path)
-        assert not os.path.exists(path)
-
 
 def test_loading_dataset_with_document_containing_br():
     pytest.importorskip("xlrd")
 
-    path = create_mock_dataset(load_doc_with_br_tag=True)
-    with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+    with create_mock_dataset(load_doc_with_br_tag=True) as path, patch.object(
+        LargeResource, "BASE_RESOURCE_DIR", path
+    ):
         loader = EuroVocLoader()
 
         with pytest.warns(RuntimeWarning):
@@ -465,15 +465,13 @@ def test_loading_dataset_with_document_containing_br():
         assert documents[1].title == "document title 2"
         assert documents[1].text == "document body \n2"
 
-        shutil.rmtree(path)
-        assert not os.path.exists(path)
-
 
 def test_loading_dataset_with_invalid_title():
     pytest.importorskip("xlrd")
 
-    path = create_mock_dataset(load_doc_with_invalid_title=True)
-    with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+    with create_mock_dataset(load_doc_with_invalid_title=True) as path, patch.object(
+        LargeResource, "BASE_RESOURCE_DIR", path
+    ):
         loader = EuroVocLoader()
 
         with pytest.warns(RuntimeWarning):
@@ -492,16 +490,14 @@ def test_loading_dataset_with_invalid_title():
         assert documents[2].title == "hidra"
         assert documents[2].text == "document body 5"
 
-        shutil.rmtree(path)
-        assert not os.path.exists(path)
-
 
 def test_loading_dataset_with_invalid_labels():
     pytest.importorskip("xlrd")
 
     with pytest.raises(ValueError):
-        path = create_mock_dataset(invalid_labels=True)
-        with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+        with create_mock_dataset(invalid_labels=True) as path, patch.object(
+            LargeResource, "BASE_RESOURCE_DIR", path
+        ):
             loader = EuroVocLoader()
             loader.load_dataset()
 
@@ -509,8 +505,9 @@ def test_loading_dataset_with_invalid_labels():
 def test_loading_dataset_with_non_existing_thesaurus():
     pytest.importorskip("xlrd")
 
-    path = create_mock_dataset(non_existing_thesaurus=True)
-    with patch.object(LargeResource, "BASE_RESOURCE_DIR", path):
+    with create_mock_dataset(non_existing_thesaurus=True) as path, patch.object(
+        LargeResource, "BASE_RESOURCE_DIR", path
+    ):
         loader = EuroVocLoader()
 
         with pytest.warns(RuntimeWarning):
@@ -527,11 +524,10 @@ def mock_download(self):
 
 
 @patch.object(LargeResource, "_download_unarchive", mock_download)
-def test_download_dataset_using_scp():
+def test_download_dataset_using_scp(tmpdir):
     pytest.importorskip("xlrd")
 
-    base = tempfile.mkdtemp()
-    with patch.object(LargeResource, "BASE_RESOURCE_DIR", base):
+    with patch.object(LargeResource, "BASE_RESOURCE_DIR", tmpdir):
         assert os.path.exists(LargeResource.BASE_RESOURCE_DIR)
 
         EuroVocLoader(

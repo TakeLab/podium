@@ -1,5 +1,4 @@
 import os
-import shutil
 import tempfile
 import xml.etree.ElementTree as ET
 import zipfile
@@ -101,11 +100,9 @@ expected_output_2 = [
     ],
 )
 def test_load_dataset(tmpdir, expected_data, expected_output):
-    base = tempfile.mkdtemp()
-    assert os.path.exists(base)
-    LargeResource.BASE_RESOURCE_DIR = base
+    LargeResource.BASE_RESOURCE_DIR = tmpdir
 
-    unzipped_xml_directory = os.path.join(base, NERCroatianXMLLoader.NAME)
+    unzipped_xml_directory = os.path.join(tmpdir, NERCroatianXMLLoader.NAME)
 
     os.makedirs(unzipped_xml_directory)
 
@@ -113,7 +110,7 @@ def test_load_dataset(tmpdir, expected_data, expected_output):
     create_ner_file(os.path.join(unzipped_xml_directory, "file.xml"), title, body)
 
     ner_croatian_xml_loader = NERCroatianXMLLoader(
-        base, tokenizer="split", tag_schema="IOB"
+        tmpdir, tokenizer="split", tag_schema="IOB"
     )
 
     documents = ner_croatian_xml_loader.load_dataset()
@@ -121,16 +118,11 @@ def test_load_dataset(tmpdir, expected_data, expected_output):
     assert len(documents) == 1
     assert documents[0] == expected_output
 
-    shutil.rmtree(base)
-    assert not os.path.exists(base)
 
+def test_load_dataset_with_multiple_documents(tmpdir):
+    LargeResource.BASE_RESOURCE_DIR = tmpdir
 
-def test_load_dataset_with_multiple_documents():
-    base = tempfile.mkdtemp()
-    assert os.path.exists(base)
-    LargeResource.BASE_RESOURCE_DIR = base
-
-    unzipped_xml_directory = os.path.join(base, NERCroatianXMLLoader.NAME)
+    unzipped_xml_directory = os.path.join(tmpdir, NERCroatianXMLLoader.NAME)
 
     os.makedirs(unzipped_xml_directory)
 
@@ -138,7 +130,7 @@ def test_load_dataset_with_multiple_documents():
     create_ner_file(os.path.join(unzipped_xml_directory, "file_2.xml"), title_2, body_2)
 
     ner_croatian_xml_loader = NERCroatianXMLLoader(
-        base, tokenizer="split", tag_schema="IOB"
+        tmpdir, tokenizer="split", tag_schema="IOB"
     )
 
     documents = ner_croatian_xml_loader.load_dataset()
@@ -147,9 +139,6 @@ def test_load_dataset_with_multiple_documents():
 
     assert documents[0] == expected_output_1
     assert documents[1] == expected_output_2
-
-    shutil.rmtree(base)
-    assert not os.path.exists(base)
 
 
 def test_load_dataset_with_unsupported_tokenizer():
@@ -167,23 +156,17 @@ def mock_download(uri, path, overwrite=False, **kwargs):
 
 
 @patch.object(SCPDownloader, "download", mock_download)
-def test_download_dataset_using_scp():
-    base = tempfile.mkdtemp()
-    assert os.path.exists(base)
-
-    LargeResource.BASE_RESOURCE_DIR = base
+def test_download_dataset_using_scp(tmpdir):
+    LargeResource.BASE_RESOURCE_DIR = tmpdir
 
     ner_croatian_xml_loader = NERCroatianXMLLoader(
-        base, scp_user="username", scp_private_key="private_key", scp_pass_key="pass"
+        tmpdir, scp_user="username", scp_private_key="private_key", scp_pass_key="pass"
     )
 
     tokenized_documents = ner_croatian_xml_loader.load_dataset()
 
     assert len(tokenized_documents) == 1
     assert tokenized_documents[0] == expected_output_1
-
-    shutil.rmtree(base)
-    assert not os.path.exists(base)
 
 
 @pytest.mark.parametrize(
@@ -312,13 +295,10 @@ def test_invalid_sequence_len():
 
 
 def create_mock_zip_archive_with_xml_file(dir_path):
-    base = tempfile.mkdtemp()
-    mock_xml_name = "mock.xml"
-    mock_xml_path = os.path.join(base, mock_xml_name)
-    create_ner_file(mock_xml_path, title_1, body_1)
+    with tempfile.TemporaryDirectory() as base:
+        mock_xml_name = "mock.xml"
+        mock_xml_path = os.path.join(base, mock_xml_name)
+        create_ner_file(mock_xml_path, title_1, body_1)
 
-    with zipfile.ZipFile(file=dir_path, mode="w") as zipfp:
-        zipfp.write(filename=mock_xml_path, arcname=mock_xml_name)
-
-    shutil.rmtree(base)
-    assert not os.path.exists(base)
+        with zipfile.ZipFile(file=dir_path, mode="w") as zipfp:
+            zipfp.write(filename=mock_xml_path, arcname=mock_xml_name)
