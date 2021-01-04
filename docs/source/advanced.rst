@@ -133,6 +133,64 @@ We can see that our hooks worked: the raw data was lowercased prior to tokenizat
 
 We have prepared a number of predefined hooks which are ready for you to use. You can see them here: :ref:`predefined-hooks`.
 
+Special tokens
+===============
+We have earlier mentioned special tokens, but now is the time to elaborate on what exactly they are. In Podium, each special token is a subclass of the python ``string`` which also encapsulates the functionality for adding that special token in the tokenized sequence. The Vocab handles special tokens differently -- each special token is *guaranteed* a place in the Vocab, which is what makes them... special.
+
+Since our idea of special tokens was made to be extensible, we will take a brief look at how they are implemented, so we can better understand how to use them. We mentioned that each special token is a subclass of the python string, but there is an intermediary -- the :class:`podium.storage.vocab.Special` base class. The ``Special`` base class implements the following functionality, while still being an instance of a string:
+
+  1. Extending the constructor of the special token with a default value functionality. The default value for each special token should be set via the ``default_value`` class attribute, while if another value is passed upon creation, it will be used.
+  2. Adds a stub ``apply`` method which accepts a sequence of tokens and adds the special token to that sequence. In its essence, the apply method is a post-tokenization hook which doesn't see the raw data whose job is to add the special token to the sequence of replace some of the existing tokens with the special token. The special tokens are applied after all post-tokenization hooks in the order they are passed to the :class:`podium.storage.vocab.Vocab` constructor. Each concrete implementation of a Special token has to implement this method.
+  3. Implements singleton-like hash and equality checks. The ``Special`` class overrides the default hash and equals and instead of checking for string value equality, it checks for *class name equality*. We use this type of check to ensure that each Vocab has a single instance of each Special and for simpler referencing and contains checks.
+
+To better understand how specials work, we will walk through the implementation of one of special tokens implemented in Podium: the beginning-of-sequence (BOS) token.
+
+.. code-block:: python
+
+  >>> from podium.storage.vocab import Special
+  >>> class BOS(Special):
+  >>>   default_value = "<BOS>"
+  >>>
+  >>>  def apply(self, sequence):
+  >>>      # Prepend to the sequence
+  >>>      return [self] + sequence
+  >>>
+  >>> bos = BOS()
+  >>> print(bos)
+  <BOS>
+
+This code block is the full implementation of a special token! All we needed to do is set the default value and implement the ``apply`` function. The default value is ``None`` by default and if not set, you have to make sure it is passed upon construction, like so:
+
+.. code-block:: python
+
+  >>> my_bos = BOS("<MY_BOS>")
+  >>> print(my_bos)
+  <MY_BOS>
+  >>> print(bos == my_bos)
+  True
+
+We can also see that although we have changed the string representation of the special token, the equality check will still return True due to the ``Special`` base class changes mentioned earlier.
+
+To see the effect of the ``apply`` method, we will once again take a look at the SST dataset:
+
+.. code-block:: python
+
+  >>> from podium import Vocab, Field, LabelField
+  >>> from podium.datasets import SST
+  >>> 
+  >>> vocab = Vocab(specials=(bos))
+  >>> text = Field(name='text', numericalizer=vocab)
+  >>> label = LabelField(name='label')
+  >>> fields = {'text': text, 'label': label}
+  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>> print(sst_train[222].text)
+  (None, ['<BOS>', 'A', 'slick', ',', 'engrossing', 'melodrama', '.'])
+
+Where we can see that the special token was indeed added to the beginning of the tokenized sequence.
+
+Finally, it is important to note that there is an implicit distinction between special tokens. The unknown (:class:`podium.storage.vocab.UNK`) and padding (:class:`podium.storage.vocab.PAD`) special tokens are something we refer to as **core** special tokens, whose functionality is hardcoded in the implementation of the Vocab due to them being deeply integrated with the way iterators and numericalization work.
+The only difference between normal and core specials is that core specials have an identity ``apply`` function, which simply returns the argument, while the tokens themselves are added to the sequence by other Podium classes.
+
 Custom numericalization functions
 ===========================================
 

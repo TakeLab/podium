@@ -246,7 +246,7 @@ For this dataset, we need to define three Fields. We also might want the fields 
   >>> print(dataset)
   TabularDataset[Size: 1, Fields: ['premise', 'hypothesis', 'label']]
   >>> print(shared_vocab.itos)
-  [<SpecialVocabSymbols.UNK: '<unk>'>, <SpecialVocabSymbols.PAD: '<pad>'>, 'man', 'A', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.', 'The', 'is', 'sleeping']
+  ['<UNK>', '<PAD>', 'man', 'A', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.', 'The', 'is', 'sleeping']
 
 
 .. _hf-loading:
