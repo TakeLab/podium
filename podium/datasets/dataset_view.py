@@ -134,8 +134,7 @@ class DatasetConcatView(DatasetABC):
             return create_view(self, item)
 
     def _get_examples(self) -> List[Example]:
-        sublists = (ds.examples for ds in self._datasets)
-        return [ex for sublist in sublists for ex in sublist]
+        return list(self)
 
     def _update_override_fields(self) -> None:
         """
@@ -281,6 +280,9 @@ class DatasetIndexedView(DatasetABC):
     def __iter__(self):
         yield from (self._dataset[i] for i in self._indices)
 
+    def _get_examples(self) -> List[Example]:
+        return list(self)
+
 
 class DatasetSlicedView(DatasetABC):
     """
@@ -355,3 +357,6 @@ class DatasetSlicedView(DatasetABC):
 
         else:
             return create_view(self, item)
+
+    def _get_examples(self) -> List[Example]:
+        return list(self)
