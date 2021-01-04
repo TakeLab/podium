@@ -148,11 +148,12 @@ class Field:
             instead. For missing data, the value in the list will be None.
 
         deterministic : bool
-            Flag which determines whether this Field has deterministic or nondeterministic
-            numericalization (numericalization for the same instance can be different between
-            function calls). Disables numericalization caching for this Field. The flag is
-            passed to the numericalizer to indicate to use the nondeterministic setting.
-            E.g., in the case of masked language modelling, we wish the inputs to be masked
+            The Flag which determines whether this Field has deterministic or nondeterministic
+            numericalization (numericalization is nondeterministic when, for the same instance,
+            it can be differ between function calls). When set to False, it Disables
+            numericalization caching for this Field. The flag is passed to the numericalizer
+            to indicate to use the nondeterministic setting. This flag should be used in the 
+            case of masked language modelling, where we wish the inputs to be masked
             (nondeterministic), and the outputs (labels) to not be masked while using the
             same vocabulary.
 

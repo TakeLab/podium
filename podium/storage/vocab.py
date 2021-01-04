@@ -170,6 +170,9 @@ class Vocab:
         mapping from word string to index
     """
 
+    _unk = UNK()
+    _pad = PAD()
+
     def __init__(
         self,
         max_size=None,
@@ -327,9 +330,9 @@ class Vocab:
         ValueError
             If the padding symbol is not present in the vocabulary.
         """
-        if PAD() not in self.stoi:
+        if Vocab._pad not in self.stoi:
             raise ValueError("Padding symbol is not in the vocabulary.")
-        return self.stoi[PAD()]
+        return self.stoi[Vocab._pad]
 
     def __iadd__(self, values: Union["Vocab", Iterable]):
         """
@@ -340,7 +343,9 @@ class Vocab:
         values : Iterable or Vocab
             Values to be added to this Vocab.
             If Vocab, all of the token frequencies and specials from that Vocab will be
-            added to this Vocab.
+            added to this Vocab. Wheen adding two Vocabs with a different string values
+            for a special token, only the special token instance with the valuefrom the
+            LHS operand will be used.
 
             If Iterable, all of the tokens from the Iterable will be added to this Vocab,
             increasing the frequencies of those tokens.
@@ -410,7 +415,9 @@ class Vocab:
         ----------
         values : Iterable or Vocab
             If Vocab, a new Vocab will be created containing all of the special symbols
-            and tokens from both Vocabs.
+            and tokens from both Vocabs. Wheen adding two Vocabs with a different string 
+            values for a special token, only the special token instance with the value
+            from the first operand will be used.
             If Iterable, a new Vocab will be returned containing a copy of this Vocab
             with the iterables' tokens added.
 
@@ -546,10 +553,10 @@ class Vocab:
             # Wrap string into list
             data = [data]
 
-        if UNK() in self.stoi:
+        if Vocab._unk in self.stoi:
             # If UNK is not in the vocabulary, we _erase_ the unknown tokens
             # from the instances.
-            unk_token = self.stoi[UNK()]
+            unk_token = self.stoi[Vocab._unk]
             return np.array(
                 [self.stoi[token] if token in self.stoi else unk_token for token in data]
             )
