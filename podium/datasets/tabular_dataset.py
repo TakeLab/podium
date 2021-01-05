@@ -84,20 +84,29 @@ class TabularDataset(Dataset):
 
         format = format.lower()
 
-        class WrappedReader:
-            def __init__(self, file, transform):
-                self._file = file
-                self.transform = transform
-
-            def __next__(self):
-                return self.transform(next(self._file))
-
-            def __iter__(self):
-                return self
-
         with open(os.path.expanduser(path), encoding="utf8") as f:
+
+            # Skip header prior to custom line2example in case
+            # the header is in a different format so we don't
+            # cause an error.
+            if skip_header:
+                if format == "json":
+                    raise ValueError(
+                        f"When using a {format} file, skip_header \
+                                       must be False."
+                    )
+                elif format in {"csv", "tsv", "custom"} and isinstance(fields, dict):
+                    raise ValueError(
+                        f"When using a dict to specify fields with a {format} "
+                        "file, skip_header must be False and the file must "
+                        "have a header."
+                    )
+
+                # skip the header
+                next(f)
+
             if line2example is not None:
-                reader = WrappedReader(f, line2example)
+                reader = (line2example(line) for line in f)
                 format = "custom"
             elif format in {"csv", "tsv"}:
                 delimiter = "," if format == "csv" else "\t"
@@ -108,14 +117,14 @@ class TabularDataset(Dataset):
                 raise ValueError(f"Invalid format: {format}")
 
             # create a list of examples
-            examples = create_examples(reader, format, fields, skip_header, line2example)
+            examples = create_examples(reader, format, fields)
 
         # create a Dataset with lists of examples and fields
         super(TabularDataset, self).__init__(examples, fields, **kwargs)
         self.finalize_fields()
 
 
-def create_examples(reader, format, fields, skip_header, line2example):
+def create_examples(reader, format, fields):
     """
     Creates a list of examples from the given line reader and fields (see
     TabularDataset.__init__ docs for more info on the fields).
@@ -131,14 +140,6 @@ def create_examples(reader, format, fields, skip_header, line2example):
     fields : (list | dict)
         A list or dict of fields (see TabularDataset.__init__ docs for more
         info).
-    skip_header : bool
-        Whether to skip the first line of the input file. (see
-        TabularDataset.__init__ docs for more info).
-    line2example : callable
-        The function mapping from a file line to Field components.
-        In case your dataset is not in one of the standardized formats,
-        you can provide a function which performs a custom split for
-        each input line.
 
     Returns
     -------
@@ -152,19 +153,6 @@ def create_examples(reader, format, fields, skip_header, line2example):
         If format is CSV/TSV, the fields are given as a dict and
         skip_header is True.
     """
-
-    if skip_header:
-        if format == "json":
-            raise ValueError(f"When using a {format} file, skip_header must be False.")
-        elif format in {"csv", "tsv", "custom"} and isinstance(fields, dict):
-            raise ValueError(
-                f"When using a dict to specify fields with a {format} "
-                "file, skip_header must be False and the file must "
-                "have a header."
-            )
-
-        # skipping the header
-        next(reader)
 
     # if format is CSV/TSV and fields is a dict, transform it to a list
     if format in {"csv", "tsv", "custom"} and isinstance(fields, dict):
