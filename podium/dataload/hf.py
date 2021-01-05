@@ -177,15 +177,28 @@ class HFDatasetConverter:
 
         self._dataset = dataset
         self._fields = fields or convert_features_to_fields(dataset.features)
+        self._example_factory = ExampleFactory(self._fields)
+
+    @property
+    def fields(self):
+        return list(self._fields.values())
+
+    @property
+    def dataset(self):
+        return self._dataset
+
+    def __getitem__(self, i):
+        return self.dataset[i]
 
     def __iter__(self) -> Iterator[Example]:
         """
         Iterate through the dataset and convert the examples.
         """
-        example_factory = ExampleFactory(self._fields)
-
         for raw_example in self._dataset:
-            yield example_factory.from_dict(raw_example)
+            yield self._example_factory.from_dict(raw_example)
+
+    def __len__(self) -> int:
+        return len(self.dataset)
 
     def as_dataset(self) -> Dataset:
         """
