@@ -7,12 +7,12 @@ import dill
 import numpy as np
 import pytest
 
+from podium.datasets import ExampleFactory
 from podium.datasets.dataset import Dataset
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
 from podium.datasets.iterator import Iterator
 from podium.datasets.tabular_dataset import TabularDataset
 from podium.field import Field, MultioutputField, unpack_fields
-from podium.storage.example_factory import ExampleFactory
 from podium.vocab import Vocab
 
 

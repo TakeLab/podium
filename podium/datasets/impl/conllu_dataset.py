@@ -4,8 +4,8 @@ Module contains the CoNLL-U dataset.
 import collections
 
 from podium.datasets import Dataset
+from podium.datasets.example_factory import ExampleFactory
 from podium.field import Field
-from podium.storage import ExampleFactory
 from podium.vocab import Vocab
 
 

@@ -5,8 +5,8 @@ import json
 import os
 
 from podium.datasets.dataset import Dataset
+from podium.datasets.example_factory import ExampleFactory
 from podium.field import Field
-from podium.storage import ExampleFactory
 from podium.storage.resources.large_resource import LargeResource
 
 

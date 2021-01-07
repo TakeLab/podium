@@ -4,6 +4,7 @@ Package contains datasets.
 
 from .arrow_tabular_dataset import ArrowDataset
 from .dataset import Dataset, DatasetBase, rationed_split, stratified_split
+from .example_factory import Example, ExampleFactory, ExampleFormat
 from .hierarhical_dataset import HierarchicalDataset
 from .impl.catacx_dataset import CatacxDataset
 from .impl.conllu_dataset import CoNLLUDataset

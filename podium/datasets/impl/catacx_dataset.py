@@ -1,8 +1,8 @@
 import os
 
+from podium.datasets.example_factory import ExampleFactory
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
 from podium.field import Field, MultilabelField
-from podium.storage import ExampleFactory
 from podium.vocab import Vocab
 
 

@@ -2,10 +2,10 @@ from unittest.mock import Mock
 
 import numpy as np
 
+from podium.datasets import ExampleFormat
 from podium.experimental.models import AbstractSupervisedModel, FeatureTransformer
 from podium.experimental.pipeline import Pipeline
 from podium.field import Field, LabelField, MultioutputField
-from podium.storage import ExampleFormat
 
 
 name_dict = {"Marko": 1, "Darko": 2, "Ivana": 3}

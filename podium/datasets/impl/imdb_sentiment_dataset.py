@@ -21,8 +21,8 @@ When using this dataset, please cite:
 import os
 
 from podium.datasets.dataset import Dataset
+from podium.datasets.example_factory import ExampleFactory
 from podium.field import Field, LabelField
-from podium.storage.example_factory import ExampleFactory
 from podium.storage.resources.large_resource import LargeResource
 from podium.vocab import Vocab
 

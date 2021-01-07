@@ -1,7 +1,7 @@
 import pytest
 
+from podium.datasets import Example, ExampleFactory, ExampleFormat
 from podium.field import Field
-from podium.storage import Example, ExampleFactory, ExampleFormat
 
 
 name_field = Field("Name", keep_raw=True, tokenizer="split")

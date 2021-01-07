@@ -9,9 +9,9 @@ from collections import defaultdict
 from typing import Any, Dict, Iterable, Iterator, List, Tuple, Union
 
 from podium.field import Field, unpack_fields
-from podium.storage import Example, ExampleFactory
 
 from .dataset import Dataset, DatasetBase
+from .example_factory import Example, ExampleFactory
 
 
 try:

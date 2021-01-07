@@ -4,7 +4,8 @@ from typing import Optional, Tuple
 
 from podium.datasets.dataset import Dataset
 from podium.field import unpack_fields
-from podium.storage import Example, ExampleFactory
+
+from .example_factory import Example, ExampleFactory
 
 
 @dataclass

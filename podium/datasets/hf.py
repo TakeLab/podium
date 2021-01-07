@@ -5,8 +5,9 @@ from typing import Dict, Iterator, Optional
 
 from podium.datasets import Dataset
 from podium.field import Field, LabelField
-from podium.storage import Example, ExampleFactory
 from podium.vocab import Vocab
+
+from .example_factory import Example, ExampleFactory
 
 
 try:

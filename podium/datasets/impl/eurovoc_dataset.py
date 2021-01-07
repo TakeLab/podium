@@ -15,10 +15,10 @@ from typing import List, Optional, Set
 import dill
 
 from podium.datasets.dataset import Dataset
+from podium.datasets.example_factory import ExampleFactory
 from podium.field import Field, MultilabelField
 from podium.preproc.lemmatizer.croatian_lemmatizer import get_croatian_lemmatizer_hook
 from podium.preproc.stop_words import CROATIAN_EXTENDED
-from podium.storage.example_factory import ExampleFactory
 from podium.storage.resources.large_resource import (
     LargeResource,
     init_scp_large_resource_from_kwargs,

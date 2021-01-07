@@ -22,7 +22,8 @@ from typing import (
 import numpy as np
 
 from podium.field import Field, unpack_fields
-from podium.storage.example_factory import Example
+
+from .example_factory import Example
 
 
 FieldType = Optional[Union[Field, List[Field]]]

@@ -3,7 +3,7 @@ import random
 import numpy as np
 import pytest
 
-from podium.datasets import Dataset
+from podium.datasets import Dataset, ExampleFactory
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
 from podium.datasets.iterator import (
     BucketIterator,
@@ -12,7 +12,6 @@ from podium.datasets.iterator import (
     SingleBatchIterator,
 )
 from podium.field import Field
-from podium.storage import ExampleFactory
 from podium.vocab import Vocab
 
 from .conftest import (

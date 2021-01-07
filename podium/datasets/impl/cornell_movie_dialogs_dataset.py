@@ -7,9 +7,9 @@ import re
 from collections import namedtuple
 
 from podium.datasets.dataset import Dataset
+from podium.datasets.example_factory import ExampleFactory
 from podium.field import Field
 from podium.storage import LargeResource
-from podium.storage.example_factory import ExampleFactory
 from podium.vocab import Vocab
 
 

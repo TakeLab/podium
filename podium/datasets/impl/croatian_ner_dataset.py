@@ -6,9 +6,9 @@ import os
 import xml.etree.ElementTree as ET
 
 from podium.datasets.dataset import Dataset
+from podium.datasets.example_factory import ExampleFactory
 from podium.field import Field
 from podium.preproc.tokenizers import get_tokenizer
-from podium.storage import ExampleFactory
 from podium.storage.resources.large_resource import (
     LargeResource,
     init_scp_large_resource_from_kwargs,

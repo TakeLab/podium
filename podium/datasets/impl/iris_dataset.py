@@ -1,8 +1,8 @@
 from sklearn.datasets import load_iris
 
 from podium.datasets import Dataset
+from podium.datasets.example_factory import ExampleFactory
 from podium.field import Field
-from podium.storage import ExampleFactory
 
 
 class IrisDataset(Dataset):

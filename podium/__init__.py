@@ -9,6 +9,7 @@ import logging
 from .datasets import (
     BucketIterator,
     Dataset,
+    Example,
     HierarchicalDataset,
     HierarchicalDatasetIterator,
     Iterator,
