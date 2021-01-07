@@ -262,14 +262,20 @@ def test_field_get_tokenizer_exception():
 
 
 def test_field_get_tokenizer_spacy_ok():
-    patch.dict("sys.modules", spacy=MockSpacy()).start()
+    mp = patch.dict("sys.modules", spacy=MockSpacy())
+    mp.start()
+
     f = Field(name="F", numericalizer=MockVocab(), tokenizer="spacy")
     _, data = f.preprocess("bla blu")[0]
     assert data == (None, ["bla", "blu"])
 
+    mp.stop()
+
 
 def test_field_pickle_spacy_tokenizer(tmpdir):
-    patch.dict("sys.modules", spacy=MockSpacy()).start()
+    mp = patch.dict("sys.modules", spacy=MockSpacy())
+    mp.start()
+
     fld = Field(name="F", numericalizer=None, tokenizer="spacy")
     _, data = fld.preprocess("bla blu")[0]
     assert data == (None, ["bla", "blu"])
@@ -286,6 +292,8 @@ def test_field_pickle_spacy_tokenizer(tmpdir):
 
         _, data = loaded_fld.preprocess("bla blu")[0]
         assert data == (None, ["bla", "blu"])
+
+    mp.stop()
 
 
 def test_field_pretokenize_hooks():

@@ -14,7 +14,7 @@ from podium.datasets.iterator import (
 from podium.field import Field
 from podium.vocab import Vocab
 
-from .conftest import (
+from ..conftest import (
     TABULAR_TEXT,
     create_tabular_dataset_from_json,
     tabular_dataset_fields,

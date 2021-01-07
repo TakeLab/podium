@@ -8,7 +8,7 @@ from podium.datasets.dataset import Dataset
 from podium.datasets.impl.imdb_sentiment_dataset import IMDB
 from podium.storage.resources.large_resource import LargeResource
 
-from ..util import run_spacy
+from ...util import run_spacy
 
 
 TRAIN_EXAMPLES = {

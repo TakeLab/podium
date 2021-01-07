@@ -6,8 +6,8 @@ from podium.field import Field
 from podium.vectorizers.tfidf import CountVectorizer, TfIdfVectorizer
 from podium.vocab import SpecialVocabSymbols, Vocab
 
-from .conftest import TABULAR_TEXT
 
+TABULAR_TEXT = ("a b c", "a", "a b c d", "a", "d b", "d c g", "b b b b b b")
 
 DATA = [
     "this is the first document",
