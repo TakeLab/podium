@@ -2,7 +2,8 @@ import csv
 import os
 
 from podium.datasets.dataset import Dataset
-from podium.storage.example_factory import ExampleFactory
+
+from .example_factory import ExampleFactory
 
 
 class TabularDataset(Dataset):

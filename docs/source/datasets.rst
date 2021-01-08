@@ -16,13 +16,13 @@ TabularDataset
 
 ArrowDataset
 --------------------
-.. autoclass:: podium.arrow.ArrowDataset
+.. autoclass:: podium.datasets.ArrowDataset
    :members:
    :no-undoc-members:
 
 HuggingFaceDatasetConverter
 ---------------------------
-.. autoclass:: podium.dataload.hf.HFDatasetConverter
+.. autoclass:: podium.datasets.hf.HFDatasetConverter
    :members:
    :no-undoc-members:
 
@@ -88,31 +88,3 @@ Catacx Datasets
 .. autoclass:: podium.datasets.impl.CatacxDataset
    :members:
    :no-undoc-members:
-
-
-Various helpers for data loading
---------------------------------
-
-podium.dataload.cornell\_movie\_dialogs module
------------------------------------------------
-
-.. automodule:: podium.dataload.cornell_movie_dialogs
-   :members:
-   :no-undoc-members:
-   :show-inheritance:
-
-podium.dataload.eurovoc module
--------------------------------
-
-.. automodule:: podium.dataload.eurovoc
-   :members:
-   :no-undoc-members:
-   :show-inheritance:
-
-podium.dataload.ner\_croatian module
--------------------------------------
-
-.. automodule:: podium.dataload.ner_croatian
-   :members:
-   :no-undoc-members:
-   :show-inheritance:

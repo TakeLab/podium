@@ -9,13 +9,15 @@ import logging
 from .datasets import (
     BucketIterator,
     Dataset,
+    Example,
     HierarchicalDataset,
     HierarchicalDatasetIterator,
     Iterator,
     SingleBatchIterator,
     TabularDataset,
 )
-from .storage import Field, LabelField, MultilabelField, MultioutputField, Vocab
+from .field import Field, LabelField, MultilabelField, MultioutputField
+from .vocab import Vocab
 
 
 __name__ = "podium"
