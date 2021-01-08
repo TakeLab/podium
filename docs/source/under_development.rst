@@ -3,28 +3,28 @@ Abstractions for model training with Podium
 
 Models
 ------
-.. automodule:: podium.models
+.. automodule:: podium.experimental.models
    :members:
    :no-undoc-members:
    :show-inheritance:
 
 Pipeline
 --------
-.. automodule:: podium.pipeline
+.. automodule:: podium.experimental.pipeline
    :members:
    :no-undoc-members:
    :show-inheritance:
 
 Model selection
 ----------------
-.. automodule:: podium.model_selection.model_selection
+.. automodule:: podium.experimental.model_selection.model_selection
    :members:
    :no-undoc-members:
    :show-inheritance:
 
 Model validation
 -----------------
-.. automodule:: podium.validation
+.. automodule:: podium.experimental.validation
    :members:
    :no-undoc-members:
    :show-inheritance:

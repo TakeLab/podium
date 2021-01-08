@@ -2,18 +2,18 @@ Data vectorizers
 ================
 
 
-podium.storage.vectorizers.tfidf module
+Tf-Idf vectorizer
 ----------------------------------------
 
-.. automodule:: podium.storage.vectorizers.tfidf
+.. automodule:: podium.vectorizers.tfidf
    :members:
    :no-undoc-members:
    :show-inheritance:
 
-podium.storage.vectorizers.vectorizer module
+Loader classes for dense word vectorizers
 ---------------------------------------------
 
-.. automodule:: podium.storage.vectorizers.vectorizer
+.. automodule:: podium.vectorizers.vectorizer
    :members:
    :no-undoc-members:
    :show-inheritance:
@@ -22,7 +22,7 @@ podium.storage.vectorizers.vectorizer module
 Module contents
 ---------------
 
-.. automodule:: podium.storage.vectorizers
+.. automodule:: podium.vectorizers
    :members:
    :no-undoc-members:
    :show-inheritance:
