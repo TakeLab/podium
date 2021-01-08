@@ -54,7 +54,6 @@ The documentation is organized in four parts:
 
    under_development
    model_implementations
-   metrics
 
 Indices and tables
 ==================

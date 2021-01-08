@@ -1,5 +1,6 @@
-from podium.arrow import ArrowDataset
-from podium.storage import Field, Vocab
+from podium.datasets import ArrowDataset
+from podium.field import Field
+from podium.vocab import Vocab
 
 
 class PandoraDataset(ArrowDataset):

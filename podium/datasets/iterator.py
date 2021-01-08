@@ -11,17 +11,17 @@ from typing import List, NamedTuple, Tuple
 
 import numpy as np
 
-from podium.datasets.dataset import Dataset, DatasetABC
+from podium.datasets.dataset import Dataset, DatasetBase
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
 
 
-class IteratorABC(ABC):
+class IteratorBase(ABC):
     """
     Abstract base class for all Iterators in Podium.
     """
 
     def __call__(
-        self, dataset: DatasetABC
+        self, dataset: DatasetBase
     ) -> PythonIterator[Tuple[NamedTuple, NamedTuple]]:
         """
         Sets the dataset for this Iterator and returns an iterable over the
@@ -41,14 +41,14 @@ class IteratorABC(ABC):
         return iter(self)
 
     @abstractmethod
-    def set_dataset(self, dataset: DatasetABC) -> None:
+    def set_dataset(self, dataset: DatasetBase) -> None:
         """
         Sets the dataset for this Iterator to iterate over. Resets the epoch
         count.
 
         Parameters
         ----------
-        dataset: DatasetABC
+        dataset: DatasetBase
             Dataset to iterate over.
         """
         pass
@@ -82,7 +82,7 @@ class IteratorABC(ABC):
         pass
 
 
-class Iterator(IteratorABC):
+class Iterator(IteratorBase):
     """
     An iterator that batches data from a dataset after numericalization.
     """
@@ -101,7 +101,7 @@ class Iterator(IteratorABC):
 
         Parameters
         ----------
-        dataset : DatasetABC
+        dataset : DatasetBase
             The dataset whose examples the iterator will iterate over.
         batch_size : int
             The size of the batches that the iterator will return. If the
@@ -192,14 +192,14 @@ class Iterator(IteratorABC):
         """
         return self._iterations
 
-    def set_dataset(self, dataset: DatasetABC) -> None:
+    def set_dataset(self, dataset: DatasetBase) -> None:
         """
         Sets the dataset for this Iterator to iterate over. Resets the epoch
         count.
 
         Parameters
         ----------
-        dataset: DatasetABC
+        dataset: DatasetBase
             Dataset to iterate over.
         """
         self._epoch = 0
@@ -263,7 +263,7 @@ class Iterator(IteratorABC):
         self._iterations = 0
         self._epoch += 1
 
-    def _create_batch(self, dataset: DatasetABC) -> Tuple[NamedTuple, NamedTuple]:
+    def _create_batch(self, dataset: DatasetBase) -> Tuple[NamedTuple, NamedTuple]:
 
         examples = dataset.examples
 
@@ -407,14 +407,14 @@ class SingleBatchIterator(Iterator):
     dataset.
     """
 
-    def __init__(self, dataset: DatasetABC = None, shuffle=True):
+    def __init__(self, dataset: DatasetBase = None, shuffle=True):
         """
         Creates an Iterator that creates one batch per epoch containing all
         examples in the dataset.
 
         Parameters
         ----------
-        dataset : DatasetABC
+        dataset : DatasetBase
             The dataset whose examples the iterator will iterate over.
 
         shuffle : bool
@@ -428,7 +428,7 @@ class SingleBatchIterator(Iterator):
         """
         super().__init__(dataset=dataset, batch_size=len(dataset), shuffle=shuffle)
 
-    def set_dataset(self, dataset: DatasetABC) -> None:
+    def set_dataset(self, dataset: DatasetBase) -> None:
         super().set_dataset(dataset)
         self._batch_size = len(dataset)
 
@@ -562,7 +562,7 @@ class HierarchicalDatasetIterator(Iterator):
 
         Parameters
         ----------
-        dataset : DatasetABC
+        dataset : DatasetBase
             The dataset whose examples the iterator will iterate over.
         batch_size : int
             The size of the batches that the iterator will return. If the

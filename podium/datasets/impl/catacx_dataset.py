@@ -1,7 +1,9 @@
 import os
 
+from podium.datasets.example_factory import ExampleFactory
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
-from podium.storage import ExampleFactory, Field, MultilabelField, Vocab
+from podium.field import Field, MultilabelField
+from podium.vocab import Vocab
 
 
 class CatacxDataset(HierarchicalDataset):
