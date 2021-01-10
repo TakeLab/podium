@@ -3,12 +3,14 @@ import pytest
 
 from podium.datasets import (
     Dataset,
-    DatasetABC,
+    DatasetBase,
     DatasetConcatView,
     DatasetIndexedView,
     DatasetSlicedView,
+    ExampleFactory,
 )
-from podium.storage import ExampleFactory, Field, Vocab
+from podium.field import Field
+from podium.vocab import Vocab
 
 
 TEST_DATA = [
@@ -36,7 +38,7 @@ def fields():
 
 
 @pytest.fixture(scope="module")
-def dataset(fields) -> DatasetABC:
+def dataset(fields) -> DatasetBase:
     example_factory = ExampleFactory(fields)
     examples = [example_factory.from_list(e) for e in TEST_DATA]
     ds = Dataset(examples, fields)

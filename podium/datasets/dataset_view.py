@@ -3,11 +3,41 @@ from itertools import chain, islice
 from math import ceil
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple, Union
 
-from podium.datasets.dataset_abc import DatasetABC
-from podium.storage import Example, Field
+from podium.datasets.dataset import DatasetBase, Example
+from podium.field import Field
 
 
-class DatasetConcatView(DatasetABC):
+def concat_datasets(
+    datasets: List[DatasetBase],
+    field_overrides: Optional[Union[Dict[str, Field], List[Field]]] = None,
+) -> DatasetBase:
+    """
+    Concatenate datasets in the passed order.
+
+    Two or more datasets can be concatenated. New fields can be provided as
+    'field_overrides' that will be updated with all examples.
+
+    Parameters
+    ----------
+        datasets: List[DatasetBase]
+            A list datasets to be concatenated.
+        field_overrides: Union[Dict[str, Field], List[Field]]
+            A dict or list containing fields that will be used to override
+            existing fields. Can be either a dict mapping old field names to new
+            ones, or a list, in which case the field with the same name will be
+            overridden. The overridden field will not be present in the
+            concatenated view. The override field (if eager) will be updated
+            with all examples from the concatenation.
+
+    Returns
+    -------
+    DatasetBase
+        A view of the concatenated Datasets.
+    """
+    return DatasetConcatView(datasets, field_overrides)
+
+
+class DatasetConcatView(DatasetBase):
     """
     View used for dataset concatenation.
 
@@ -17,7 +47,7 @@ class DatasetConcatView(DatasetABC):
 
     def __init__(
         self,
-        datasets: List[DatasetABC],
+        datasets: List[DatasetBase],
         field_overrides: Optional[Union[Dict[str, Field], List[Field]]] = None,
     ):
         """
@@ -29,7 +59,7 @@ class DatasetConcatView(DatasetABC):
 
         Parameters
         ----------
-        datasets: List[DatasetABC]
+        datasets: List[DatasetBase]
             A list datasets to be concatenated.
         field_overrides: Union[Dict[str, Field], List[Field]]
             A dict or list containing fields that will be used to override
@@ -39,7 +69,7 @@ class DatasetConcatView(DatasetABC):
             concatenated view. The override field (if eager) will be updated
             with all examples from the concatenation.
         """
-        if isinstance(datasets, DatasetABC):
+        if isinstance(datasets, DatasetBase):
             # Wrap single dataset in a list
             self._datasets = [datasets]
         elif isinstance(datasets, (list, tuple)):
@@ -47,8 +77,8 @@ class DatasetConcatView(DatasetABC):
         else:
             err_msg = (
                 f"Invalid 'dataset' argument to {type(self).__name__}. "
-                f"Supported values are lists or tuples of DatasetABC instances, "
-                f"or a single DatasetABC instance. "
+                f"Supported values are lists or tuples of DatasetBase instances, "
+                f"or a single DatasetBase instance. "
                 f"Passed type: {type(datasets).__name__}"
             )
             raise TypeError(err_msg)
@@ -187,7 +217,7 @@ class DatasetConcatView(DatasetABC):
             new_example[mapped_field.name] = example[original_field_name]
         return new_example
 
-    def _translate_index(self, index: int) -> Tuple[DatasetABC, int]:
+    def _translate_index(self, index: int) -> Tuple[DatasetBase, int]:
         """
         For an index in the view, returns the backing Dataset it belongs to and
         the index of the example in that Dataset.
@@ -199,7 +229,7 @@ class DatasetConcatView(DatasetABC):
 
         Returns
         -------
-        (DatasetABC, int)
+        (DatasetBase, int)
             The dataset that contains the indexed example and its index in that
             dataset.
         """
@@ -218,7 +248,7 @@ class DatasetConcatView(DatasetABC):
         return dataset, translated_index
 
     @staticmethod
-    def _get_intersection_field_names(datasets: List[DatasetABC]) -> List[str]:
+    def _get_intersection_field_names(datasets: List[DatasetBase]) -> List[str]:
         field_dict = datasets[0].field_dict
         intersection_field_names = set(field_dict.keys())
         for ds in datasets[1:]:
@@ -227,13 +257,13 @@ class DatasetConcatView(DatasetABC):
         return list(intersection_field_names)
 
 
-def create_view(dataset: DatasetABC, i: Union[Sequence[int], slice]) -> DatasetABC:
+def create_view(dataset: DatasetBase, i: Union[Sequence[int], slice]) -> DatasetBase:
     """
     Creates a view that is appropriate for the passed indexing method.
 
     Parameters
     ----------
-    dataset: DatasetABC
+    dataset: DatasetBase
         The dataset the view will be created on.
     i: Union[Sequence[int], slice]
         The indices contained in the view.
@@ -248,27 +278,27 @@ def create_view(dataset: DatasetABC, i: Union[Sequence[int], slice]) -> DatasetA
         return DatasetIndexedView(dataset, i)
 
 
-class DatasetIndexedView(DatasetABC):
+class DatasetIndexedView(DatasetBase):
     """
-    View over a DatasetABC class.
+    View over a DatasetBase class.
     """
 
-    def __init__(self, dataset: DatasetABC, indices: Sequence[int]):
+    def __init__(self, dataset: DatasetBase, indices: Sequence[int]):
         """
         Creates a view over the passed dataset.
 
         Parameters
         ----------
-        dataset: DatasetABC
+        dataset: DatasetBase
             The dataset the view will be created over.
         indices: Sequence[int]
             A sequence of ints that represent the indices of the examples in the
             dataset that will be contained in the view. Ordering and duplication
             will be respected.
         """
-        if not isinstance(dataset, DatasetABC):
+        if not isinstance(dataset, DatasetBase):
             err_msg = (
-                f"'dataset' parameter must be of type DatasetABC. "
+                f"'dataset' parameter must be of type DatasetBase. "
                 f"Passed type: {type(dataset).__name__}"
             )
             raise TypeError(err_msg)
@@ -300,25 +330,25 @@ class DatasetIndexedView(DatasetABC):
         return list(self)
 
 
-class DatasetSlicedView(DatasetABC):
+class DatasetSlicedView(DatasetBase):
     """
-    View over a DatasetABC class.
+    View over a DatasetBase class.
     """
 
-    def __init__(self, dataset: DatasetABC, s: slice):
+    def __init__(self, dataset: DatasetBase, s: slice):
         """
         Creates a view over the passed dataset.
 
         Parameters
         ----------
-        dataset: DatasetABC
+        dataset: DatasetBase
             The dataset the view will be created over.
         s: slice
             A slice indexing the wanted examples.
         """
-        if not isinstance(dataset, DatasetABC):
+        if not isinstance(dataset, DatasetBase):
             err_msg = (
-                f"'dataset' parameter must be of type DatasetABC. "
+                f"'dataset' parameter must be of type DatasetBase. "
                 f"Passed type: {type(dataset).__name__}"
             )
             raise TypeError(err_msg)

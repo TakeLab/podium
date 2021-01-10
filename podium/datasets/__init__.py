@@ -4,8 +4,14 @@ Package contains datasets.
 
 from .arrow_tabular_dataset import ArrowDataset
 from .dataset import Dataset, DatasetBase, rationed_split, stratified_split
+from .dataset_view import (
+    DatasetConcatView,
+    DatasetIndexedView,
+    DatasetSlicedView,
+    concat_datasets,
+    create_view,
+)
 from .example_factory import Example, ExampleFactory, ExampleFormat
-from .dataset_view import DatasetConcatView, DatasetIndexedView, DatasetSlicedView
 from .hierarhical_dataset import HierarchicalDataset
 from .impl.catacx_dataset import CatacxDataset
 from .impl.conllu_dataset import CoNLLUDataset
