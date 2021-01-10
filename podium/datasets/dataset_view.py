@@ -35,7 +35,7 @@ class DatasetConcatView(DatasetABC):
             A dict mapping field names to the fields they will be overridden
             with. The overridden field will not be present in the
             concatenated view. The override field (if eager) will be updated
-            with wit all examples from the concatenation.
+            with all examples from the concatenation.
         """
         if isinstance(datasets, DatasetABC):
             # Wrap single dataset in a list
