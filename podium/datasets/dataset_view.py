@@ -18,7 +18,7 @@ class DatasetConcatView(DatasetABC):
     def __init__(
         self,
         datasets: List[DatasetABC],
-        field_overrides: Optional[Dict[str, Field]] = None,
+        field_overrides: Optional[Union[Dict[str, Field], List[Field]]] = None,
     ):
         """
         View used for dataset concatenation.
@@ -31,9 +31,11 @@ class DatasetConcatView(DatasetABC):
         ----------
         datasets: List[DatasetABC]
             A list datasets to be concatenated.
-        field_overrides: Dict[str, Field]
-            A dict mapping field names to the fields they will be overridden
-            with. The overridden field will not be present in the
+        field_overrides: Union[Dict[str, Field], List[Field]]
+            A dict or list containing fields that will be used to override
+            existing fields. Can be either a dict mapping old field names to new
+            ones, or a list, in which case the field with the same name will be
+            overridden. The overridden field will not be present in the
             concatenated view. The override field (if eager) will be updated
             with all examples from the concatenation.
         """
@@ -50,6 +52,9 @@ class DatasetConcatView(DatasetABC):
                 f"Passed type: {type(datasets).__name__}"
             )
             raise TypeError(err_msg)
+
+        if isinstance(field_overrides, list):
+            field_overrides = {f.name: f for f in field_overrides}
 
         self._len = sum([len(ds) for ds in datasets])
 
