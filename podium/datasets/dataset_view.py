@@ -100,10 +100,8 @@ class DatasetConcatView(DatasetABC):
                 field_mapping[f_name] = original_field
 
         self._field_mapping = field_mapping
-        self._reverse_field_name_mapping = {
-            mapped_field.name: orig_fname
-            for orig_fname, mapped_field in self._field_mapping.items()
-        }
+        self._reverse_field_name_mapping_dict = None
+
         fields = list(self._field_mapping.values())
 
         super().__init__(fields)
@@ -143,6 +141,15 @@ class DatasetConcatView(DatasetABC):
 
     def _get_examples(self) -> List[Example]:
         return list(self)
+
+    @property
+    def _reverse_field_name_mapping(self):
+        if self._reverse_field_name_mapping_dict is None:
+            self._reverse_field_name_mapping_dict = {
+                mapped_field.name: orig_fname
+                for orig_fname, mapped_field in self._field_mapping.items()
+            }
+        return self._reverse_field_name_mapping_dict
 
     def _update_override_fields(self) -> None:
         """
