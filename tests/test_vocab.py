@@ -119,30 +119,21 @@ def test_no_unk_filters_unknown_tokens():
     assert len(voc.numericalize(["tree", "apple"])) == 1
 
 
-def test_specials_uniqueness():
+@pytest.mark.parametrize(
+    "default_instance, second_default_instance, custom_instance",
+    [
+        (vocab.UNK(), vocab.UNK(), vocab.UNK("<my_unknown>")),
+        (vocab.PAD(), vocab.PAD(), vocab.PAD("<my_pad>")),
+        (vocab.BOS(), vocab.BOS(), vocab.BOS("<my_bos>")),
+        (vocab.EOS(), vocab.EOS(), vocab.EOS("<my_eos>")),
+    ],
+)
+def test_specials_uniqueness(default_instance, second_default_instance, custom_instance):
     with pytest.raises(ValueError):
-        vocab.Vocab(specials=[vocab.UNK(), vocab.UNK()])
+        vocab.Vocab(specials=[default_instance, second_default_instance])
 
     with pytest.raises(ValueError):
-        vocab.Vocab(specials=[vocab.UNK(), vocab.UNK("<my_unknown>")])
-
-    with pytest.raises(ValueError):
-        vocab.Vocab(specials=[vocab.PAD(), vocab.PAD()])
-
-    with pytest.raises(ValueError):
-        vocab.Vocab(specials=[vocab.PAD(), vocab.PAD("<my_pad>")])
-
-    with pytest.raises(ValueError):
-        vocab.Vocab(specials=[vocab.BOS(), vocab.BOS()])
-
-    with pytest.raises(ValueError):
-        vocab.Vocab(specials=[vocab.BOS(), vocab.BOS("<my_bos>")])
-
-    with pytest.raises(ValueError):
-        vocab.Vocab(specials=[vocab.EOS(), vocab.EOS()])
-
-    with pytest.raises(ValueError):
-        vocab.Vocab(specials=[vocab.EOS(), vocab.EOS("<my_eos>")])
+        vocab.Vocab(specials=[default_instance, custom_instance])
 
 
 def test_specials_get_pad_symbol():

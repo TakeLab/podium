@@ -173,7 +173,7 @@ def test_caching_disabled(tabular_dataset):
     for _ in Iterator(dataset=tabular_dataset, batch_size=10):
         pass
 
-    cache_disabled_fields = [f for f in tabular_dataset.fields if not f.deterministic]
+    cache_disabled_fields = [f for f in tabular_dataset.fields if f.disable_numericalize_caching]
     # Test if cached data is equal to numericalized data
     for example in tabular_dataset:
         for field in cache_disabled_fields:

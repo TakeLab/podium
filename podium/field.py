@@ -81,7 +81,7 @@ class Field:
         fixed_length: Optional[int] = None,
         allow_missing_data: bool = False,
         disable_batch_matrix: bool = False,
-        deterministic: bool = True,
+        disable_numericalize_caching: bool = False,
         padding_token: Union[int, float] = -999,
         missing_data_token: Union[int, float] = -1,
         pretokenize_hooks: Optional[Iterable[PretokenizationHookType]] = None,
@@ -147,12 +147,13 @@ class Field:
             If True, a list of unpadded vectors(or other data type) will be returned
             instead. For missing data, the value in the list will be None.
 
-        deterministic : bool
-            The Flag which determines whether this Field has deterministic or nondeterministic
-            numericalization (numericalization is nondeterministic when, for the same instance,
-            it can be differ between function calls). When set to False, it Disables
-            numericalization caching for this Field. The flag is passed to the numericalizer
-            to indicate to use the nondeterministic setting. This flag should be used in the
+        disable_numericalize_caching : bool
+            The flag which determines whether the numericalization of this field should be
+            cached. This flag should be set to True if the numericalization can differ
+            between `numericalize` function calls for the same instance. When set to False,
+            the numericalization values will be cached and reused each time the instance
+            is used as part of a batch. The flag is passed to the numericalizer to indicate
+            use of its nondeterministic setting. This flag is mainly intended be used in the
             case of masked language modelling, where we wish the inputs to be masked
             (nondeterministic), and the outputs (labels) to not be masked while using the
             same vocabulary.
@@ -187,7 +188,7 @@ class Field:
             )
         self._name = name
         self._disable_batch_matrix = disable_batch_matrix
-        self._deterministic = deterministic
+        self._disable_numericalize_caching = disable_numericalize_caching
         self._tokenizer_arg_string = tokenizer if isinstance(tokenizer, str) else None
 
         if tokenizer is None:
@@ -277,8 +278,8 @@ class Field:
         return self._vocab
 
     @property
-    def deterministic(self):
-        return self._deterministic
+    def disable_numericalize_caching(self):
+        return self._disable_numericalize_caching
 
     @property
     def use_vocab(self):
@@ -698,10 +699,9 @@ class Field:
         cache_field_name = f"{self.name}_"
         numericalization = example.get(cache_field_name)
 
-        # Check if this concrete field can be cached. Fields that have
-        # non-deterministic numericalizers cannot be cached.
+        # Check if this concrete field can be cached.
 
-        cache = cache and self.deterministic
+        cache = cache and not self.disable_numericalize_caching
 
         if numericalization is None:
             example_data = example[self.name]
@@ -926,7 +926,7 @@ class LabelField(Field):
         numericalizer: Optional[Union[Vocab, NumericalizerType]] = None,
         allow_missing_data: bool = False,
         disable_batch_matrix: bool = False,
-        deterministic: bool = True,
+        disable_numericalize_caching: bool = False,
         is_target: bool = True,
         missing_data_token: Union[int, float] = -1,
         pretokenize_hooks: Optional[Iterable[PretokenizationHookType]] = None,
@@ -963,12 +963,14 @@ class LabelField(Field):
             If True, a list of unpadded vectors(or other data type) will be returned
             instead. For missing data, the value in the list will be None.
 
-        deterministic : bool
-            Flag which determines whether this Field has deterministic or nondeterministic
-            numericalization (numericalization for the same instance can be different between
-            function calls). Disables numericalization caching for this Field. The flag is
-            passed to the numericalizer to indicate to use the nondeterministic setting.
-            E.g., in the case of masked language modelling, we wish the inputs to be masked
+        disable_numericalize_caching : bool
+            The flag which determines whether the numericalization of this field should be
+            cached. This flag should be set to True if the numericalization can differ
+            between `numericalize` function calls for the same instance. When set to False,
+            the numericalization values will be cached and reused each time the instance
+            is used as part of a batch. The flag is passed to the numericalizer to indicate
+            use of its nondeterministic setting. This flag is mainly intended be used in the
+            case of masked language modelling, where we wish the inputs to be masked
             (nondeterministic), and the outputs (labels) to not be masked while using the
             same vocabulary.
 
@@ -1005,7 +1007,7 @@ class LabelField(Field):
             fixed_length=1,
             allow_missing_data=allow_missing_data,
             disable_batch_matrix=disable_batch_matrix,
-            deterministic=deterministic,
+            disable_numericalize_caching=disable_numericalize_caching,
             missing_data_token=missing_data_token,
             pretokenize_hooks=pretokenize_hooks,
         )
@@ -1027,7 +1029,7 @@ class MultilabelField(Field):
         is_target: bool = True,
         allow_missing_data: bool = False,
         disable_batch_matrix: bool = False,
-        deterministic: bool = True,
+        disable_numericalize_caching: bool = False,
         missing_data_token: Union[int, float] = -1,
         pretokenize_hooks: Optional[Iterable[PretokenizationHookType]] = None,
         posttokenize_hooks: Optional[Iterable[PosttokenizationHookType]] = None,
@@ -1086,12 +1088,14 @@ class MultilabelField(Field):
             If True, a list of unpadded vectors(or other data type) will be returned
             instead. For missing data, the value in the list will be None.
 
-        deterministic : bool
-            Flag which determines whether this Field has deterministic or nondeterministic
-            numericalization (numericalization for the same instance can be different between
-            function calls). Disables numericalization caching for this Field. The flag is
-            passed to the numericalizer to indicate to use the nondeterministic setting.
-            E.g., in the case of masked language modelling, we wish the inputs to be masked
+        disable_numericalize_caching : bool
+            The flag which determines whether the numericalization of this field should be
+            cached. This flag should be set to True if the numericalization can differ
+            between `numericalize` function calls for the same instance. When set to False,
+            the numericalization values will be cached and reused each time the instance
+            is used as part of a batch. The flag is passed to the numericalizer to indicate
+            use of its nondeterministic setting. This flag is mainly intended be used in the
+            case of masked language modelling, where we wish the inputs to be masked
             (nondeterministic), and the outputs (labels) to not be masked while using the
             same vocabulary.
 
@@ -1134,7 +1138,7 @@ class MultilabelField(Field):
             fixed_length=num_of_classes,
             allow_missing_data=allow_missing_data,
             disable_batch_matrix=disable_batch_matrix,
-            deterministic=deterministic,
+            disable_numericalize_caching=disable_numericalize_caching,
             missing_data_token=missing_data_token,
             pretokenize_hooks=pretokenize_hooks,
             posttokenize_hooks=posttokenize_hooks,
