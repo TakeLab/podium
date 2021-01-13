@@ -10,7 +10,7 @@ from typing import Any, Dict, Iterable, Iterator, List, Tuple, Union
 
 from podium.field import Field, unpack_fields
 
-from .dataset import Dataset, DatasetBase
+from .dataset import DatasetBase
 from .example_factory import Example, ExampleFactory
 
 
