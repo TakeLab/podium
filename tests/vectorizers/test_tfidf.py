@@ -4,7 +4,7 @@ from sklearn.feature_extraction import text
 
 from podium.field import Field
 from podium.vectorizers.tfidf import CountVectorizer, TfIdfVectorizer
-from podium.vocab import SpecialVocabSymbols, Vocab
+from podium.vocab import PAD, UNK, Vocab
 
 
 TABULAR_TEXT = ("a b c", "a", "a b c d", "a", "d b", "d c g", "b b b b b b")
@@ -49,7 +49,7 @@ def test_build_count_matrix_from_tensor_without_specials():
 
 
 def test_build_count_matrix_from_tensor_with_specials():
-    vocab = Vocab(specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD))
+    vocab = Vocab(specials=(UNK(), PAD()))
     for i in DATA:
         vocab += i.split(" ")
     vocab.finalize()
@@ -72,7 +72,7 @@ def test_build_count_matrix_from_tensor_with_specials():
 
 
 def test_build_count_matrix_out_of_vocab_words():
-    vocab = Vocab(specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD))
+    vocab = Vocab(specials=(UNK(), PAD()))
     vocab_words = ["this", "is", "the", "first", "document"]
     vocab += vocab_words
     vocab.finalize()
@@ -108,13 +108,11 @@ def test_build_count_matrix_costum_specials_vocab_without_specials():
 
 
 def test_build_count_matrix_costum_specials_vocab_with_specials():
-    vocab = Vocab(specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD))
+    vocab = Vocab(specials=(UNK(), PAD()))
     vocab_words = ["this", "is", "the", "first", "document"]
     vocab += vocab_words
     vocab.finalize()
-    tfidf = TfIdfVectorizer(
-        vocab=vocab, specials=[SpecialVocabSymbols.PAD, "this", "first"]
-    )
+    tfidf = TfIdfVectorizer(vocab=vocab, specials=[PAD(), "this", "first"])
     tfidf._init_special_indexes()
 
     numericalized_data = get_numericalized_data(data=DATA, vocab=vocab)
@@ -126,7 +124,7 @@ def test_build_count_matrix_costum_specials_vocab_with_specials():
 
 
 def test_specials_indexes():
-    specials = (SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD)
+    specials = (UNK(), PAD())
     vocab = Vocab(specials=specials)
     for i in DATA:
         vocab += i.split(" ")
@@ -247,7 +245,7 @@ def test_count_vectorizer_examples_none(tabular_dataset):
 
 
 def test_count_matrix_specials_indexes():
-    specials = (SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD)
+    specials = (UNK(), PAD())
     vocab = Vocab(specials=specials)
     for i in DATA:
         vocab += i.split(" ")

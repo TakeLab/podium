@@ -167,6 +167,24 @@ def test_lazy_numericalization_caching(tabular_dataset):
             assert np.all(numericalized_data == cached_data)
 
 
+@pytest.mark.usefixtures("cache_disabled_tabular_dataset")
+def test_caching_disabled(tabular_dataset):
+    # Run one epoch to cause lazy numericalization
+    for _ in Iterator(dataset=tabular_dataset, batch_size=10):
+        pass
+
+    cache_disabled_fields = [
+        f for f in tabular_dataset.fields if f.disable_numericalize_caching
+    ]
+    # Test if cached data is equal to numericalized data
+    for example in tabular_dataset:
+        for field in cache_disabled_fields:
+
+            cache_field_name = f"{field.name}_"
+            numericalization = example.get(cache_field_name)
+            assert numericalization is None
+
+
 @pytest.mark.usefixtures("tabular_dataset")
 def test_sort_key(tabular_dataset):
     def text_len_sort_key(example):
