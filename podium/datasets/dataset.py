@@ -656,7 +656,20 @@ class Dataset(DatasetBase):
         random.shuffle(self.examples)
 
     @staticmethod
-    def from_dataset(dataset: DatasetBase) -> 'Dataset':
+    def from_dataset(dataset: DatasetBase) -> "Dataset":
+        """
+        Creates an Dataset instance from a podium.datasets.DatasetBase instance.
+
+        Parameters
+        ----------
+        dataset: DatasetBase
+            DatasetBase instance to be used to create the Dataset.
+
+        Returns
+        -------
+        Dataset
+            Dataset instance created from the passed DatasetBase instance.
+        """
         return Dataset(dataset.examples, dataset.fields)
 
 

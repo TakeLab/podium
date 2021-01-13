@@ -95,12 +95,13 @@ class ArrowDataset(DatasetBase):
         data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
     ) -> "ArrowDataset":
         """
-        Creates an ArrowDataset instance from a podium.datasets.Dataset.
+        Creates an ArrowDataset instance from a podium.datasets.DatasetBase
+        instance.
 
         Parameters
         ----------
         dataset: DatasetBase
-            Dataset to be used to create an ArrowDataset.
+            DatasetBase instance to be used to create the ArrowDataset.
 
         cache_path: str
             Path to the directory where the cache file will saved.
@@ -115,7 +116,7 @@ class ArrowDataset(DatasetBase):
         Returns
         -------
         ArrowDataset
-            ArrowDataset instance created from the passed Dataset.
+            ArrowDataset instance created from the passed DatasetBase instance.
         """
         return ArrowDataset.from_examples(
             dataset.fields, iter(dataset), cache_path, data_types
@@ -123,7 +124,7 @@ class ArrowDataset(DatasetBase):
 
     @staticmethod
     def from_examples(
-        fields: Union[Dict[str, Field], List[Field]],
+        fields: Union[Dict[str, Field], List[Field], Tuple[Field]],
         examples: Iterable[Example],
         cache_path: str = None,
         data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,

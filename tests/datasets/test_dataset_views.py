@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 
 from podium.datasets import (
-    Dataset,
     ArrowDataset,
+    Dataset,
     DatasetBase,
     DatasetConcatView,
     DatasetIndexedView,
@@ -258,11 +258,13 @@ def test_slice_view_to_dataset(dataset, tmp_path):
     assert isinstance(ds, Dataset)
     assert len(ds) == len(dataset_view)
     for ex_view, ex_dataset in zip(dataset_view, ds):
-        assert ex_view == ex_dataset
+        for f in dataset.fields:
+            assert ex_view[f.name] == ex_dataset[f.name]
 
     # cast to ArrowDataset
     ds = ArrowDataset.from_dataset(dataset_view, cache_path=tmp_path)
     assert isinstance(ds, ArrowDataset)
     assert len(ds) == len(dataset_view)
     for ex_view, ex_dataset in zip(dataset_view, ds):
-        assert ex_view == ex_dataset
+        for f in dataset.fields:
+            assert ex_view[f.name] == ex_dataset[f.name]
