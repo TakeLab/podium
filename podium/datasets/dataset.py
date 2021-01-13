@@ -655,6 +655,10 @@ class Dataset(DatasetBase):
 
         random.shuffle(self.examples)
 
+    @staticmethod
+    def from_dataset(dataset: DatasetBase) -> 'Dataset':
+        return Dataset(dataset.examples, dataset.fields)
+
 
 def check_split_ratio(split_ratio):
     """

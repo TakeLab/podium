@@ -90,7 +90,7 @@ class ArrowDataset(DatasetBase):
 
     @staticmethod
     def from_dataset(
-        dataset: Dataset,
+        dataset: DatasetBase,
         cache_path: str = None,
         data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
     ) -> "ArrowDataset":
@@ -99,7 +99,7 @@ class ArrowDataset(DatasetBase):
 
         Parameters
         ----------
-        dataset: Dataset
+        dataset: DatasetBase
             Dataset to be used to create an ArrowDataset.
 
         cache_path: str
