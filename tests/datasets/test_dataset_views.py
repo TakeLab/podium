@@ -3,6 +3,7 @@ import pytest
 
 from podium.datasets import (
     Dataset,
+    ArrowDataset,
     DatasetBase,
     DatasetConcatView,
     DatasetIndexedView,
@@ -245,3 +246,23 @@ def test_sliced_view_batching(dataset):
 
     assert np.all(view_input_batch.number == dataset_input_batch.number[indices])
     assert np.all(view_target_batch.name == dataset_target_batch.name[indices])
+
+
+def test_slice_view_to_dataset(dataset, tmp_path):
+    start, stop, step = 3, 8, 2
+    slc = slice(start, stop, step)
+    dataset_view = DatasetSlicedView(dataset, s=slc)
+
+    # cast to Dataset
+    ds = Dataset.from_dataset(dataset_view)
+    assert isinstance(ds, Dataset)
+    assert len(ds) == len(dataset_view)
+    for ex_view, ex_dataset in zip(dataset_view, ds):
+        assert ex_view == ex_dataset
+
+    # cast to ArrowDataset
+    ds = ArrowDataset.from_dataset(dataset_view, cache_path=tmp_path)
+    assert isinstance(ds, ArrowDataset)
+    assert len(ds) == len(dataset_view)
+    for ex_view, ex_dataset in zip(dataset_view, ds):
+        assert ex_view == ex_dataset
