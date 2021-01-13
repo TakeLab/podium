@@ -94,42 +94,10 @@ class DatasetConcatView(DatasetBase):
             self._cumulative_lengths.append(cumulative_len)
 
         self._field_overrides = field_overrides or {}
-        intersection_field_names = DatasetConcatView._get_intersection_field_names(
-            datasets
+
+        self._field_mapping = DatasetConcatView._create_field_mapping(
+            self._datasets, self._field_overrides
         )
-
-        # Check for empty intersection
-        if len(intersection_field_names) == 0:
-            err_msg = (
-                "Empty field name intersection. "
-                "No field name is contained in all passed Datasets."
-            )
-            raise ValueError(err_msg)
-
-        # Check for invalid overrides
-        intersection_field_names_set = set(intersection_field_names)
-        for fname in self._field_overrides:
-            if fname not in intersection_field_names_set:
-                err_msg = (
-                    f'Override field name "{fname}" not contained in the '
-                    f"intersection of passed datasets' fields: "
-                    f"{intersection_field_names}"
-                )
-                raise ValueError(err_msg)
-
-        field_mapping = {}
-        default_field_dict = self._datasets[0].field_dict
-        for f_name in intersection_field_names:
-            if f_name in self._field_overrides:
-                # ignore field and take the override
-                override_field = self._field_overrides[f_name]
-                field_mapping[f_name] = override_field
-            else:
-                # take the field from the first dataset
-                original_field = default_field_dict[f_name]
-                field_mapping[f_name] = original_field
-
-        self._field_mapping = field_mapping
         self._reverse_field_name_mapping_dict = None
 
         fields = list(self._field_mapping.values())
@@ -168,6 +136,65 @@ class DatasetConcatView(DatasetBase):
 
         else:
             return create_view(self, item)
+
+    @staticmethod
+    def _create_field_mapping(
+        datasets: List[DatasetBase], field_overrides: Dict[str, Field]
+    ) -> Dict[str, Field]:
+        """
+        Creates a dict mapping field names in the original datasets to fields
+        they were overridden with: {"field_name" -> Field('override_field')}
+
+        Parameters
+        ----------
+        datasets: List[DatasetBase]
+            List of original datasets.
+
+        field_overrides: Dict[str, Field]
+            Dict mapping field names to override fields.
+
+        Returns
+        -------
+        Dict[str, Field]
+            A dict mapping all field names from the original datasets to Field
+            instances. Respects field overrides.
+        """
+        intersection_field_names = DatasetConcatView._get_intersection_field_names(
+            datasets
+        )
+
+        # Check for empty intersection
+        if len(intersection_field_names) == 0:
+            err_msg = (
+                "Empty field name intersection. "
+                "No field name is contained in all passed Datasets."
+            )
+            raise ValueError(err_msg)
+
+        # Check for invalid overrides
+        intersection_field_names_set = set(intersection_field_names)
+        for fname in field_overrides:
+            if fname not in intersection_field_names_set:
+                err_msg = (
+                    f'Override field name "{fname}" not contained in the '
+                    f"intersection of passed datasets' fields: "
+                    f"{intersection_field_names}"
+                )
+                raise ValueError(err_msg)
+
+        field_mapping = {}
+        default_field_dict = datasets[0].field_dict
+        for f_name in intersection_field_names:
+            if f_name in field_overrides:
+                # ignore field and take the override
+                override_field = field_overrides[f_name]
+                field_mapping[f_name] = override_field
+            else:
+                # take the field from the first dataset
+                original_field = default_field_dict[f_name]
+                field_mapping[f_name] = original_field
+
+        return field_mapping
 
     def _get_examples(self) -> List[Example]:
         return list(self)
