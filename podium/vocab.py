@@ -3,7 +3,6 @@ Module contains classes related to the vocabulary.
 """
 import warnings
 from collections import Counter
-from enum import Enum
 from itertools import chain
 from typing import Iterable, Union
 
@@ -32,38 +31,120 @@ def unique(values: Iterable):
         yield element
 
 
-class VocabDict(dict):
+class Special(str):
     """
-    Vocab dictionary class that is used like default dict but without adding
-    missing key to the dictionary.
+    Base class for a special token.
+
+    Every special token is a subclass of string (this way one can) easily modify
+    the concrete string representation of the special. The functionality of the
+    special token, which acts the same as a post-tokenization hook should be
+    implemented in the `apply` instance method for each subclass. We ensure that
+    each special token will be present in the Vocab.
     """
 
-    def __init__(self, default_factory=None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._default_factory = default_factory
+    default_value = None
 
-    def __missing__(self, key):
-        if self._default_factory is None:
-            raise KeyError(
-                "Default factory is not defined and key is not in the dictionary."
+    def __new__(cls, token=None):
+        """
+        Provides default value initialization for subclasses.
+
+        If creating a new instance without a string argument, the
+        `default_value` class attribute must be set in the subclass
+        implementation.
+        """
+
+        if token is None and cls.default_value is None:
+            error_msg = (
+                "When initializing a special token without argument"
+                f" the {cls.__class__}.default_value attribute must be set."
             )
-        return self._default_factory()
+            raise RuntimeError(error_msg)
+
+        if token is None:
+            token = cls.default_value
+
+        return super(Special, cls).__new__(cls, token)
+
+    def __hash__(self):
+        """
+        Overrides hash.
+
+        Check docs of `__eq__` for motivation.
+        """
+        return hash(self.__class__)
+
+    def __eq__(self, other):
+        """
+        Check equals via class instead of value.
+
+        The motivation behind this is that we want to be able to match the
+        special token by class and not by value, as it is the type of the
+        special token that determines its functionality. This way we allow for
+        the concrete string representation of the special to be easily changed,
+        while retaining simple existence checks for vocab functionality.
+        """
+        return self.__class__ == other.__class__
+
+    def apply(self, sequence):
+        """
+        Apply (insert) the special token in the adequate place in the sequence.
+
+        By default, returns the unchanged sequence.
+        """
+        return sequence
 
 
-class SpecialVocabSymbols(Enum):
+class BOS(Special):
     """
-    Class for special vocabular symbols.
-
-    Attributes
-    ----------
-    UNK : str
-        Tag for unknown word
-    PAD : str
-        TAG for padding symbol
+    The beginning-of-sequence special token.
     """
 
-    UNK = "<unk>"
-    PAD = "<pad>"
+    default_value = "<BOS>"
+
+    def apply(self, sequence):
+        """
+        Apply the BOS token, adding it to the start of the sequence.
+        """
+        return [self] + sequence
+
+
+class EOS(Special):
+    """
+    The end-of-sequence special token.
+    """
+
+    default_value = "<EOS>"
+
+    def apply(self, sequence):
+        """
+        Apply the EOS token, adding it to the end of the sequence.
+        """
+        return sequence + [self]
+
+
+#################
+# Core specials #
+#################
+
+
+class UNK(Special):
+    """
+    The unknown core special token.
+
+    Functionality handled by Vocab.
+    """
+
+    default_value = "<UNK>"
+
+
+class PAD(Special):
+    """
+    The padding core special token.
+
+    Functionality handled by Vocab.
+    """
+
+    default_value = "<PAD>"
 
 
 class Vocab:
@@ -81,11 +162,14 @@ class Vocab:
         mapping from word string to index
     """
 
+    _unk = UNK()
+    _pad = PAD()
+
     def __init__(
         self,
         max_size=None,
         min_freq=1,
-        specials=(SpecialVocabSymbols.UNK, SpecialVocabSymbols.PAD),
+        specials=(UNK(), PAD()),
         keep_freqs=False,
         eager=True,
     ):
@@ -104,67 +188,103 @@ class Vocab:
         keep_freqs : bool
             if true word frequencies will be saved for later use on
             the finalization
+        eager : bool
+            if `True` the frequencies will be built immediately upon
+            dataset loading. While not obvious, the main effect of
+            this argument if set to `True` is that the frequencies of
+            the vocabulary will be built on based _all_ datasets
+            that use this vocabulary, while if set to `False`, the
+            vocabulary will be built by iterating again over the
+            datasets passed as argument to the `finalize_fields`
+            function.
         """
         self._freqs = Counter()
         self._keep_freqs = keep_freqs
         self._min_freq = min_freq
 
-        self.specials = () if specials is None else specials
+        self._specials = () if specials is None else specials
         if not isinstance(self.specials, (tuple, list)):
-            self.specials = (self.specials,)
+            self._specials = (self._specials,)
         self._has_specials = len(self.specials) > 0
 
-        self.itos = list(self.specials)
-        self._default_unk_index = self._init_default_unk_index(self.specials)
-        self.stoi = VocabDict(self._default_unk)
-        self.stoi.update({k: v for v, k in enumerate(self.itos)})
+        # Apply uniqueness check
+        if len(self.specials) > len(set(self.specials)):
+            error_msg = "Specials may not contain multiple instances of same type."
+            raise ValueError(error_msg)
+
+        self._itos = list(self.specials)
+        # self._default_unk_index = self._init_default_unk_index(self.specials)
+        self._stoi = {k: v for v, k in enumerate(self.itos)}
 
         self._max_size = max_size
-        self.eager = eager
-        self.finalized = False  # flag to know if we're ready to numericalize
+        self._eager = eager
+        self._finalized = False  # flag to know if we're ready to numericalize
 
-    @staticmethod
-    def _init_default_unk_index(specials):
+    @property
+    def freqs(self):
+        return self._freqs
+
+    @property
+    def eager(self):
+        return self._eager
+
+    @property
+    def finalized(self):
+        return self._finalized
+
+    @property
+    def specials(self):
+        return self._specials
+
+    @property
+    def itos(self):
+        return self._itos
+
+    @property
+    def stoi(self):
+        return self._stoi
+
+    @classmethod
+    def from_itos(cls, itos):
         """
-        Method computes index of default unknown symbol in given collection.
+        Method constructs a vocab from a predefined index-to-string mapping.
 
         Parameters
         ----------
-        specials : iter(SpecialVocabSymbols)
-            collection of special vocab symbols
-
-        Returns
-        -------
-        index : int or None
-            index of default unkwnown symbol or None if it doesn't exist
+            itos: list | tuple
+                The index-to-string mapping for tokens in the vocabulary
         """
-        ind = 0
-        for spec in specials:
-            if spec == SpecialVocabSymbols.UNK:
-                return ind
-            ind += 1
-        return None
+        specials = [token for token in itos if isinstance(token, Special)]
 
-    def _default_unk(self):
+        vocab = cls(specials=specials)
+        vocab._itos = itos
+        vocab._stoi = {v: k for k, v in enumerate(itos)}
+        vocab._finalized = True
+
+        return vocab
+
+    @classmethod
+    def from_stoi(cls, stoi):
         """
-        Method obtains default unknown symbol index. Used for stoi.
+        Method constructs a vocab from a predefined index-to-string mapping.
 
-        Returns
-        -------
-        index: int
-            index of default unknown symbol
-
-        Raises
-        ------
-        ValueError
-            If unknown symbol is not present in the vocab.
+        Parameters
+        ----------
+            stoi: dict
+                The string-to-index mapping for the vocabulary
         """
-        if self._default_unk_index is None:
-            raise ValueError(
-                "Unknown symbol is not present in the vocab but "
-                "the user asked for the word that isn't in the vocab."
-            )
-        return self._default_unk_index
+        specials = [token for token in stoi.keys() if isinstance(token, Special)]
+
+        vocab = cls(specials=specials)
+        vocab._stoi = stoi
+        vocab_max_index = max(stoi.values())
+        itos = [None] * (vocab_max_index + 1)
+        for token, index in stoi.items():
+            itos[index] = token
+        vocab._itos = itos
+        vocab._finalized = True
+
+        return vocab
 
     def get_freqs(self):
         """
@@ -186,7 +306,7 @@ class Vocab:
                 "User specified that frequencies aren't kept in "
                 "vocabulary but the get_freqs method is called."
             )
-        return self._freqs
+        return self.freqs
 
     def padding_index(self):
         """
@@ -202,9 +322,9 @@ class Vocab:
         ValueError
             If the padding symbol is not present in the vocabulary.
         """
-        if SpecialVocabSymbols.PAD not in self.stoi:
+        if Vocab._pad not in self.stoi:
             raise ValueError("Padding symbol is not in the vocabulary.")
-        return self.stoi[SpecialVocabSymbols.PAD]
+        return self.stoi[Vocab._pad]
 
     def __iadd__(self, values: Union["Vocab", Iterable]):
         """
@@ -215,7 +335,9 @@ class Vocab:
         values : Iterable or Vocab
             Values to be added to this Vocab.
             If Vocab, all of the token frequencies and specials from that Vocab will be
-            added to this Vocab.
+            added to this Vocab. Wheen adding two Vocabs with a different string values
+            for a special token, only the special token instance with the valuefrom the
+            LHS operand will be used.
 
             If Iterable, all of the tokens from the Iterable will be added to this Vocab,
             increasing the frequencies of those tokens.
@@ -258,7 +380,7 @@ class Vocab:
                 )
 
             # unique is used instead of set to somewhat preserve ordering
-            self.specials = list(unique(chain(self.specials, other_vocab.specials)))
+            self._specials = list(unique(chain(self.specials, other_vocab.specials)))
             self._has_specials = len(self.specials) > 0
             self._itos = list(self.specials)
             self._freqs += other_vocab._freqs  # add freqs to this instance
@@ -285,7 +407,9 @@ class Vocab:
         ----------
         values : Iterable or Vocab
             If Vocab, a new Vocab will be created containing all of the special symbols
-            and tokens from both Vocabs.
+            and tokens from both Vocabs. Wheen adding two Vocabs with a different string
+            values for a special token, only the special token instance with the value
+            from the first operand will be used.
             If Iterable, a new Vocab will be returned containing a copy of this Vocab
             with the iterables' tokens added.
 
@@ -390,7 +514,7 @@ class Vocab:
 
         if not self._keep_freqs:
             self._freqs = None  # release memory
-        self.finalized = True
+        self._finalized = True
 
     def numericalize(self, data):
         """
@@ -398,8 +522,8 @@ class Vocab:
 
         Parameters
         ----------
-        data : iter(str)
-            iterable collection of tokens
+        data : str | iter(str)
+            a single token or iterable collection of tokens
 
         Returns
         -------
@@ -416,7 +540,20 @@ class Vocab:
                 "Cannot numericalize if the vocabulary has not been "
                 "finalized because itos and stoi are not yet built."
             )
-        return np.array([self.stoi[token] for token in data])
+
+        if isinstance(data, str):
+            # Wrap string into list
+            data = [data]
+
+        if Vocab._unk in self.stoi:
+            # If UNK is in the vocabulary, substitute unknown words with its value
+            unk_token = self.stoi[Vocab._unk]
+            return np.array(
+                [self.stoi[token] if token in self.stoi else unk_token for token in data]
+            )
+        else:
+            # If UNK is not in the vocabulary we filter out unknown words
+            return np.array([self.stoi[token] for token in data if token in self.stoi])
 
     def reverse_numericalize(self, numericalized_data: Iterable):
         """
@@ -469,7 +606,7 @@ class Vocab:
         """
         if self.finalized:
             return len(self.itos)
-        return len(self._freqs)
+        return len(self.freqs)
 
     def __eq__(self, other):
         """
@@ -490,7 +627,7 @@ class Vocab:
             return False
         if self.finalized != other.finalized:
             return False
-        if self._freqs != other._freqs:
+        if self.freqs != other.freqs:
             return False
         if self.stoi != other.stoi:
             return False
@@ -511,7 +648,7 @@ class Vocab:
             iterator over vocab tokens
         """
         if not self.finalized:
-            return iter(self._freqs.keys())
+            return iter(self.freqs.keys())
         return iter(self.itos)
 
     def __repr__(self):

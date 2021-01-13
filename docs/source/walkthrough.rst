@@ -127,7 +127,7 @@ That's it! We have defined our Fields. In order for them to be initialized, we n
   >>> print(small_vocabulary)
   Vocab[finalized: True, size: 5000]
 
-Our new Vocab has been limited to the 5000 most frequent words. The remaining words will be replaced by the unknown (``<UNK>``) token, which is one of the default `special` tokens in the Vocab.
+Our new Vocab has been limited to the 5000 most frequent words. If your `Vocab` contains the unknown special token :class:`podium.vocab.UNK`, the words not present in the vocabulary will be set to the value of the unknown token. The unknown token is one of the default `special` tokens in the Vocab, alongside the padding token :class:`podium.vocab.PAD`. You can read more about these in :ref:`specials`.
 
 You might have noticed that we used a different type of Field: :class:`podium.storage.LabelField` for the label. LabelField is one of the predefined custom Field classes with sensible default constructor arguments for its concrete use-case. We'll take a closer look at LabelFields in the following subsection.
 
@@ -246,7 +246,7 @@ For this dataset, we need to define three Fields. We also might want the fields 
   >>> print(dataset)
   TabularDataset[Size: 1, Fields: ['premise', 'hypothesis', 'label']]
   >>> print(shared_vocab.itos)
-  [<SpecialVocabSymbols.UNK: '<unk>'>, <SpecialVocabSymbols.PAD: '<pad>'>, 'man', 'A', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.', 'The', 'is', 'sleeping']
+  ['<UNK>', '<PAD>', 'man', 'A', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.', 'The', 'is', 'sleeping']
 
 
 .. _hf-loading:
