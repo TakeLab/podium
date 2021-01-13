@@ -55,7 +55,7 @@ class TabularDataset(Dataset):
             "JSON" (case-insensitive). Ignored if `line2example` is
             not None. Defaults to "CSV".
         line2example : callable
-            The function mapping from a file line to Field components.
+            The function mapping from a file line to Fields.
             In case your dataset is not in one of the standardized formats,
             you can provide a function which performs a custom split for
             each input line.

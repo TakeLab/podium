@@ -553,6 +553,10 @@ def test_tabular_dataset_exception(
     with pytest.raises(ValueError):
         TabularDataset(file_path, fields=tabular_dataset_fields, format="wrong_format")
 
+    # Test that custom file_format doesn't pass
+    with pytest.raises(ValueError):
+        TabularDataset(file_path, fields=tabular_dataset_fields, format="custom")
+
     td = TabularDataset(file_path, fields=tabular_dataset_fields, format=file_format)
 
     # accessing a non-existing field
