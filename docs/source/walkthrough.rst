@@ -249,6 +249,32 @@ For this dataset, we need to define three Fields. We also might want the fields 
   ['<UNK>', '<PAD>', 'man', 'A', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.', 'The', 'is', 'sleeping']
 
 
+Our ``TabularDataset`` has supports three keyword formats out-of-the-box:
+
+1. **csv**: the comma-separated values format, which uses python's ``csv.reader`` to read comma delimited files. Additional arguments to the reader can be passed via the ``csv_reader_params`` argument.
+2. **tsv**: the tab-separated values format, handled similarly to csv except that the delimiter is ``"\t"``.
+3. **json**: the line-json format, where each line of the input file in in json format.
+
+Since we are aware that these formats are not exhaustive, we have also added support for loading other custom file formats by setting the ``line2example`` argument of ``TabularDataset``.
+The ``line2example`` function should accept a single line of the dataset file as its argument and output a sequence of input data which will be mapped to the Fields. An example definition of a function which splits a csv dataset line into its components is below:
+
+.. code-block:: python
+
+  >>> def custom_split(line):
+  >>>   line_parts = line.strip().split(",")
+  >>>   return line_parts
+  >>> 
+  >>> dataset = TabularDataset('my_dataset.csv', fields=fields, line2example=custom_split)
+  >>> print(dataset[0])
+  Example[premise: (None, ['A', 'man', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.']); hypothesis: (None, ['The', 'man', 'is', 'sleeping']); label: (None, 'contradiction')]
+
+
+Here, for simplicity, we (naively) assume that the content of the Field data will not contain commas. 
+Please note that the line which we pass to the ``line2example`` function still contains the newline symbol which you need to strip.
+
+When the ``line2example`` argument is not ``None``, the ``format`` argument will be ignored.
+
+
 .. _hf-loading:
 
 Loading 🤗 datasets
