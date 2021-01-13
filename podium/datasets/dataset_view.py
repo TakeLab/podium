@@ -7,7 +7,7 @@ from podium.datasets.dataset import DatasetBase, Example
 from podium.field import Field
 
 
-def concat_datasets(
+def concat(
     datasets: List[DatasetBase],
     field_overrides: Optional[Union[Dict[str, Field], List[Field]]] = None,
 ) -> DatasetBase:

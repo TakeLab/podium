@@ -8,7 +8,7 @@ from .dataset_view import (
     DatasetConcatView,
     DatasetIndexedView,
     DatasetSlicedView,
-    concat_datasets,
+    concat,
     create_view,
 )
 from .example_factory import Example, ExampleFactory, ExampleFormat
