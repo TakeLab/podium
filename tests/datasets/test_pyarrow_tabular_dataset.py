@@ -1,6 +1,5 @@
 import csv
 import os
-import sys
 import tempfile
 from functools import partial
 
@@ -217,13 +216,9 @@ def test_from_dataset(data, fields):
     pyarrow_dataset.delete_cache()
 
 
-@pytest.mark.skipif(
-    sys.platform.startswith("win"),
-    reason="the reason for failure on Windows is not known at the moment",
-)
 def test_from_tabular(data, fields, tmpdir):
     test_file = os.path.join(tmpdir, "test.csv")
-    with open(test_file, "w") as f:
+    with open(test_file, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerows(data)
 
