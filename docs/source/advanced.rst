@@ -133,6 +133,8 @@ We can see that our hooks worked: the raw data was lowercased prior to tokenizat
 
 We have prepared a number of predefined hooks which are ready for you to use. You can see them here: :ref:`predefined-hooks`.
 
+.. _specials:
+
 Special tokens
 ===============
 We have earlier mentioned special tokens, but now is the time to elaborate on what exactly they are. In Podium, each special token is a subclass of the python ``str`` which also encapsulates the functionality for adding that special token in the tokenized sequence. The ``Vocab`` handles special tokens differently -- each special token is guaranteed a place in the ``Vocab``, which is what makes them... *special*.

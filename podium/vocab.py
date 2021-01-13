@@ -88,8 +88,10 @@ class Special(str):
     def apply(self, sequence):
         """
         Apply (insert) the special token in the adequate place in the sequence.
+
+        By default, returns the unchanged sequence.
         """
-        raise NotImplementedError
+        return sequence
 
 
 class BOS(Special):
@@ -128,31 +130,21 @@ class EOS(Special):
 class UNK(Special):
     """
     The unknown core special token.
+
+    Functionality handled by Vocab.
     """
 
     default_value = "<UNK>"
-
-    def apply(self, sequence):
-        """
-        Core special, handled by Vocab.
-        """
-        # Perhaps indicate somehow that this call isn't an op.
-        return sequence
 
 
 class PAD(Special):
     """
     The padding core special token.
+
+    Functionality handled by Vocab.
     """
 
     default_value = "<PAD>"
-
-    def apply(self, sequence):
-        """
-        Core special, handled by Vocab.
-        """
-        # Perhaps indicate somehow that this call isn't an op.
-        return sequence
 
 
 class Vocab:
@@ -554,15 +546,13 @@ class Vocab:
             data = [data]
 
         if Vocab._unk in self.stoi:
-            # If UNK is not in the vocabulary, we _erase_ the unknown tokens
-            # from the instances.
+            # If UNK is in the vocabulary, substitute unknown words with its value
             unk_token = self.stoi[Vocab._unk]
             return np.array(
                 [self.stoi[token] if token in self.stoi else unk_token for token in data]
             )
         else:
-            # Either UNK is not in Vocab or the user has requested unknown tokens
-            # to be filtered out of the instances.
+            # If UNK is not in the vocabulary we filter out unknown words
             return np.array([self.stoi[token] for token in data if token in self.stoi])
 
     def reverse_numericalize(self, numericalized_data: Iterable):
