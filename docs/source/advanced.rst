@@ -80,7 +80,7 @@ If we want to define some text processing which requires some external attribute
 
 .. doctest:: hooks
 
-  >>> class Pretokenization_hook:
+  >>> class PretokenizationHook:
   ...   def __init__(self, metadata):
   ...     self.metadata = metadata
   ...
