@@ -1,4 +1,11 @@
 
+.. testsetup:: *
+
+  from podium import Field, LabelField, Vocab, Iterator, TabularDataset
+  from podium.datasets import SST
+  from podium.vectorizers import GloVe, TfIdfVectorizer
+
+
 Walkthrough
 ============
 
@@ -19,14 +26,19 @@ Loading built-in datasets
 
 One built-in dataset available in Podium is the `Stanford Sentiment Treebank <https://nlp.stanford.edu/sentiment/treebank.html>`__. In order to load the dataset, it is enough to call the :meth:`get_dataset_splits` method.
 
-.. code-block:: python
+.. doctest:: sst
+  :options: +NORMALIZE_WHITESPACE
 
   >>> from podium.datasets import SST
-  >>> sst_train, sst_test, sst_valid = SST.get_dataset_splits()
+  >>> sst_train, sst_test, sst_valid = SST.get_dataset_splits() # doctest:+ELLIPSIS
   >>> print(sst_train)
-  SST[Size: 6920, Fields: ['text', 'label']]
+  SST[Size: 6920, Fields:
+     (Field[name: text, is_target: False, vocab: Vocab[finalized: True, size: 16284]]
+      LabelField[name: label, is_target: True, vocab: Vocab[finalized: True, size: 2]])
+  ]
   >>> print(sst_train[222]) # A short example
-  Example[label: (None, 'positive'); text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])]
+  Example[text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']); label: (None, 'positive')]
+
 
 Each built-in Podium dataset has a :meth:`get_dataset_splits` method, which returns the `train`, `test` and `validation` split of that dataset, if available.
 
@@ -35,7 +47,8 @@ Iterating over datasets
 
 Podium contains methods to iterate over data. Let's take a look at :class:`podium.Iterator`, the simplest data iterator. The default batch size of the iterator is `32` but we will reduce it for the sake of space.
 
-.. code-block:: python
+.. doctest:: sst
+  :options: +NORMALIZE_WHITESPACE
 
   >>> from podium import Iterator
   >>> train_iter = Iterator(sst_train, batch_size=2)
@@ -61,8 +74,7 @@ The Vocabulary
 
 We saw earlier that our dataset has two Fields: text and label. We will touch on what exactly Fields are later, but for now let's retrieve and print them out.
 
-.. code-block:: python
-  :emphasize-lines: 3
+.. doctest:: sst
 
   >>> text_field, label_field = sst_train.fields
   >>> print(text_field, label_field, sep='\n')
@@ -78,7 +90,7 @@ In highligted code block we can see that the Vocab for the ``text`` field has a 
 
 You might want to limit the size of your Vocab for larger datasets. To do so, define your own vocabulary as follows:
 
-.. code-block:: python
+.. doctest:: small_vocab
   
   >>> from podium import Vocab
   >>> small_vocabulary = Vocab(max_size=5000, min_freq=2)
@@ -109,7 +121,7 @@ Fields have a number of constructor arguments, only some of which we will enumer
 
 The SST dataset has two textual data columns (fields): (1) the input text of the movie review and (2) the label. We need to define a ``podium.Field`` for each of these.
 
-.. code-block:: python
+.. doctest:: small_vocab
 
   >>> from podium import Field, LabelField
   >>> text = Field(name='text', numericalizer=small_vocabulary)
@@ -120,7 +132,7 @@ The SST dataset has two textual data columns (fields): (1) the input text of the
 
 That's it! We have defined our Fields. In order for them to be initialized, we need to `show` them a dataset. For built-in datasets, this is done behind the scenes in the ``get_dataset_splits`` method. We will elaborate how to do this yourself in :ref:`custom-loading`.
 
-.. code-block:: python
+.. doctest:: small_vocab
 
   >>> fields = {'text': text, 'label': label}
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
@@ -158,7 +170,7 @@ The output of the function call is a numpy matrix of word embeddings which you c
 
 .. code-block:: python
 
-  >>> from takepod.storage.vectorizers import GloVe
+  >>> from podium.vectorizers import GloVe
   >>> vocab = fields['text'].vocab
   >>> glove = GloVe()
   >>> embeddings = glove.load_vocab(vocab)
@@ -179,7 +191,7 @@ In the case you wish to use a standard shallow model, Podium also supports TF-ID
 
 As we intend to use the whole dataset at once, we will also set ``disable_batch_matrix=True`` in the constructor for the text Field. This option will return our dataset as a list of numericalized instances during batching instead of a numpy matrix. The benefit here is that if returned as a numpy matrix, all of the instances have to be padded, using up a lot of memory.
 
-.. code-block:: python
+.. doctest:: vectorizer
 
   >>> from podium.datasets import SST
   >>> from podium import Vocab, Field, LabelField
@@ -191,23 +203,24 @@ As we intend to use the whole dataset at once, we will also set ``disable_batch_
 
 Since the Tf-Idf vectorizer needs information from the dataset to compute the inverse document frequency, we first need to fit it on the dataset.
 
-.. code-block:: python
+.. doctest:: vectorizer
 
-  >>> from podium.storage.vectorizers.tfidf import TfIdfVectorizer
+  >>> from podium.vectorizers.tfidf import TfIdfVectorizer
   >>> tfidf_vectorizer = TfIdfVectorizer()
   >>> tfidf_vectorizer.fit(dataset=sst_train, field=text)
 
 Now our vectorizer has seen the dataset as well as the vocabulary and has all the required information to compute Tf-Idf value for each instance. As is standard in using shallow models, we want to convert all of the instances in a dataset to a Tf-Idf matrix which can then be used with a support vector machine (SVM) model.
 
-.. code-block:: python
+.. doctest:: vectorizer
+  :options: +NORMALIZE_WHITESPACE
 
   >>> # Obtain the whole dataset as a batch
   >>> x, y = sst_train.batch()
   >>> tfidf_batch = tfidf_vectorizer.transform(x.text)
   >>>
   >>> print(type(tfidf_batch), tfidf_batch.shape)
-  >>> print(tfidf_batch[222])
   <class 'scipy.sparse.csr.csr_matrix'> (6920, 4998)
+  >>> print(tfidf_batch[222])
   (0, 1658) 0.617113703893198
   (0, 654)  0.5208201737884445
   (0, 450)  0.5116152860290002
@@ -234,17 +247,20 @@ Let's take an example of a natural language inference (NLI) dataset. In NLI, dat
 For this dataset, we need to define three Fields. We also might want the fields for `premise` and `hypothesis` to share their Vocab.
 
 
-.. code-block:: python
+.. code-block::
 
   >>> from podium import TabularDataset, Vocab, Field, LabelField
   >>> shared_vocab = Vocab()
   >>> fields = {'premise':   Field('premise', numericalizer=shared_vocab, tokenizer="spacy-en"),
-  >>>           'hypothesis':Field('hypothesis', numericalizer=shared_vocab, tokenizer="spacy-en"),
-  >>>           'label':     LabelField('label')}
+  ...           'hypothesis':Field('hypothesis', numericalizer=shared_vocab, tokenizer="spacy-en"),
+  ...           'label':     LabelField('label')}
   >>>
   >>> dataset = TabularDataset('my_dataset.csv', format='csv', fields=fields)
   >>> print(dataset)
-  TabularDataset[Size: 1, Fields: ['premise', 'hypothesis', 'label']]
+  TabularDataset[Size: 1, Fields:
+   (Field[name: premise, is_target: False, vocab: Vocab[finalized: True, size: 19]]
+    Field[name: hypothesis, is_target: False, vocab: Vocab[finalized: True, size: 19]]
+    LabelField[name: label, is_target: True, vocab: Vocab[finalized: True, size: 1]])]
   >>> print(shared_vocab.itos)
   ['<UNK>', '<PAD>', 'man', 'A', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.', 'The', 'is', 'sleeping']
 
@@ -258,7 +274,7 @@ Our ``TabularDataset`` has supports three keyword formats out-of-the-box:
 Since we are aware that these formats are not exhaustive, we have also added support for loading other custom file formats by setting the ``line2example`` argument of ``TabularDataset``.
 The ``line2example`` function should accept a single line of the dataset file as its argument and output a sequence of input data which will be mapped to the Fields. An example definition of a function which splits a csv dataset line into its components is below:
 
-.. code-block:: python
+.. code-block::
 
   >>> def custom_split(line):
   >>>   line_parts = line.strip().split(",")
@@ -303,3 +319,8 @@ You can load a dataset in 🤗/datasets and then convert it to a Podium dataset 
   >>> print(imdb_train.fields)
   {'text': Field[name: text, is_target: False, vocab: Vocab[finalized: False, size: 0]], 'label': LabelField[name: label, is_target: True]}
 
+
+.. testcleanup::
+
+  import shutil
+  shutil.rmtree('sst')
