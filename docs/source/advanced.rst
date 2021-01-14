@@ -216,6 +216,7 @@ It is often the case you want to use a predefined numericalization function, be 
 To do that, you should pass your own callable function as the ``numericalizer`` for the corresponding Field. Please also beware that in this case, you also need to define the padding token index in order for Podium to be able to batch your data. A common example, where you want to use a tokenizer and a numericalization function from a pretrained BERT model using the ``huggingface/transformers`` library can be implemented as follows:
 
 .. doctest:: transformers
+  :skipif: transformers is None
 
   >>> from transformers import BertTokenizer
   >>> tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')

@@ -109,3 +109,10 @@ def setup(app):
 
 # only run doctests marked with a ".. doctest::" directive
 doctest_test_doctest_blocks = ''
+
+doctest_global_setup = '''
+try:
+    import transformers
+except ImportError:
+    transformers = None
+'''
