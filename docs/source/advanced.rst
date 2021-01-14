@@ -2,9 +2,7 @@
 
   from podium import Field, LabelField, Vocab, Iterator, TabularDataset
   from podium.datasets import SST
-  from podium.vectorizers import GloVe
-  from podium.vectorizers.tfidf import TfIdfVectorizer
-
+  from podium.vectorizers import GloVe, TfIdfVectorizer
 
 The Podium data flow
 ====================
@@ -42,7 +40,7 @@ What are the ``None`` s? This is the `raw` data, which by default isn't stored i
   >>> fields = {'text': text, 'label': label}
   >>>
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
-  >>> print(sst_train[222].text)
+  >>> print(sst_train[222]['text'])
   ('A slick , engrossing melodrama .', ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])
 
 We can see that now we also have the pre-tokenized text available to us. In the case of SST this is not very useful because the tokenizer is simply ``str.split``, an easyily reversible function. In the case of non-reversible tokenizers (e.g. the ones in ``spacy``), you might want to keep the raw instance for future reference.
@@ -64,7 +62,7 @@ Pretokenization hooks have the following signature:
 
 .. doctest:: hooks
 
-  >>> def pretokenization_hook(raw):
+  >>> def pretokenizationHook(raw):
   ...   raw = do_something(raw)
   ...   return raw
 
@@ -134,7 +132,7 @@ Putting it all together
   >>> fields = {'text': text, 'label': label}
   >>>
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
-  >>> print(sst_train[222].text)
+  >>> print(sst_train[222]['text'])
   ('a slick , engrossing melodrama .', ['a', 'slick', 'engrossing', 'melodrama'])
 
 We can see that our hooks worked: the raw data was lowercased prior to tokenization, and the punctuation is not present in the processed data. You can similarly define other hooks and pass them as arguments to your Fields. It is important to take care of the order in which you pass the hooks -- they will be executed in the same order as you passed them to the constructor, so take care that you don't modify some aspect of data crucial for your next hook.
@@ -196,7 +194,7 @@ To see the effect of the ``apply`` method, we will once again take a look at the
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
-  >>> print(sst_train[222].text)
+  >>> print(sst_train[222]['text'])
   (None, ['<BOS>', 'A', 'slick', ',', 'engrossing', 'melodrama', '.'])
 
 Where we can see that the special token was indeed added to the beginning of the tokenized sequence.
@@ -226,7 +224,7 @@ To do that, you should pass your own callable function as the ``numericalizer`` 
   >>> fields = {'text': subword_field, 'label': label}
   >>>
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
-  >>> print(sst_train[222].text)
+  >>> print(sst_train[222]['text'])
   (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.'])
 
 
@@ -245,7 +243,7 @@ We have so far covered the case where you have a single input column, tokenize a
   >>> fields = {'text': (char, text), 'label': label}
   >>>
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
-  >>> print(sst_train[222].word, sst_train[222].char, sep='\n')
+  >>> print(sst_train[222]['word'], sst_train[222]['char'], sep='\n')
   (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])
   (None, ['A', ' ', 's', 'l', 'i', 'c', 'k', ' ', ',', ' ', 'e', 'n', 'g', 'r', 'o', 's', 's', 'i', 'n', 'g', ' ', 'm', 'e', 'l', 'o', 'd', 'r', 'a', 'm', 'a', ' ', '.'])
 
@@ -282,7 +280,7 @@ One example of such a use-case would be extracting both word tokens as well as t
   >>> fields = {'text': text, 'label': label}
   >>>
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
-  >>> print(sst_train[222].word, sst_train[222].pos, sep='\n')
+  >>> print(sst_train[222]['word'], sst_train[222]['pos'], sep='\n')
   (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])
   (None, ['DET', 'ADJ', 'PUNCT', 'VERB', 'NOUN', 'PUNCT'])
 
