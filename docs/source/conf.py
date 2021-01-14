@@ -119,7 +119,7 @@ except ImportError:
 try:
     import spacy
     spacy.load('en', disable=['parser', 'ner'])
-except ImportError, IOError:
+except (ImportError, IOError):
     spacy = None
 
 '''

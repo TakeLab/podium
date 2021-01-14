@@ -36,7 +36,9 @@ One built-in dataset available in Podium is the `Stanford Sentiment Treebank <ht
   >>> from podium.datasets import SST
   >>> sst_train, sst_test, sst_valid = SST.get_dataset_splits() # doctest:+ELLIPSIS
   >>> print(sst_train)
-  SST[Size: 6920, Fields: (Field[name: text, is_target: False, vocab: Vocab[finalized: True, size: 16284]], LabelField[name: label, is_target: True, vocab: Vocab[finalized: True, size: 2]])]
+  SST[Size: 6920, Fields:
+     (Field[name: text, is_target: False, vocab: Vocab[finalized: True, size: 16284]]
+      LabelField[name: label, is_target: True, vocab: Vocab[finalized: True, size: 2]])]
   >>> print(sst_train[222]) # A short example
   Example[text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']); label: (None, 'positive')]
 
@@ -258,7 +260,10 @@ For this dataset, we need to define three Fields. We also might want the fields 
   >>>
   >>> dataset = TabularDataset('my_dataset.csv', format='csv', fields=fields)
   >>> print(dataset)
-  TabularDataset[Size: 1, Fields: ['premise', 'hypothesis', 'label']]
+  TabularDataset[Size: 1, Fields:
+   (Field[name: premise, is_target: False, vocab: Vocab[finalized: True, size: 19]]
+    Field[name: hypothesis, is_target: False, vocab: Vocab[finalized: True, size: 19]]
+    LabelField[name: label, is_target: True, vocab: Vocab[finalized: True, size: 1]])]
   >>> print(shared_vocab.itos)
   ['<UNK>', '<PAD>', 'man', 'A', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.', 'The', 'is', 'sleeping']
 
