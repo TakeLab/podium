@@ -3,13 +3,16 @@ Package contains datasets.
 """
 
 from .arrow_tabular_dataset import ArrowDataset
-from .dataset import Dataset, DatasetBase, rationed_split, stratified_split
-from .dataset_view import (
+from .dataset import (
+    Dataset,
+    DatasetBase,
     DatasetConcatView,
     DatasetIndexedView,
     DatasetSlicedView,
     concat,
     create_view,
+    rationed_split,
+    stratified_split,
 )
 from .example_factory import Example, ExampleFactory, ExampleFormat
 from .hierarhical_dataset import HierarchicalDataset
