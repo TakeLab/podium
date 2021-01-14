@@ -693,9 +693,11 @@ class DatasetConcatView(DatasetBase):
         """
         View used for dataset concatenation.
 
-        Two or more datasets can be
-        concatenated. New fields can be provided as 'field_overrides' that will
-        be updated with all examples.
+        Two or more datasets can be concatenated. The concatenated dataset will
+        contain only those fields which all datasets have in common, by name.
+
+        New fields can be provided as 'field_overrides' that will be updated
+        with all examples.
 
         Parameters
         ----------
@@ -729,7 +731,7 @@ class DatasetConcatView(DatasetBase):
         self._len = sum([len(ds) for ds in datasets])
 
         self._cumulative_lengths = [len(self._datasets[0])]
-        for dataset in islice(datasets, 1):
+        for dataset in islice(datasets, 1, None):
             cumulative_len = self._cumulative_lengths[-1] + len(dataset)
             self._cumulative_lengths.append(cumulative_len)
 
@@ -821,6 +823,22 @@ class DatasetConcatView(DatasetBase):
                     f"{intersection_field_names}"
                 )
                 raise ValueError(err_msg)
+
+        # Check for vocab equality
+        for fname in intersection_field_names:
+            if fname in field_overrides:
+                continue
+            fields = [ds.field_dict[fname] for ds in datasets]
+            vocabs = [f.vocab if f.use_vocab else None for f in fields]
+            for i, v in enumerate(vocabs):
+                if v != vocabs[0]:
+                    raise ValueError(
+                        f'Vocab inequality detected between datasets at positions 0 and '
+                        f'{i} in field "{fname}". Vocab inequality can cause unexpected '
+                        f'token indexing behavior during batching. Please ensure all '
+                        f'datasets have equal Vocabs or provide override fields for '
+                        f'mismatched Vocabs.'
+                    )
 
         field_mapping = {}
         default_field_dict = datasets[0].field_dict
