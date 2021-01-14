@@ -5,10 +5,6 @@
   from podium.vectorizers import GloVe
   from podium.vectorizers.tfidf import TfIdfVectorizer
 
-.. testcleanup:: multioutput_field
-
-  import shutil
-  shutil.rmtree('sst/')
 
 The Podium data flow
 ====================
@@ -362,3 +358,8 @@ And re-running the code, we obtain the following, still significant improvement:
   For BucketIterator, padding = 259800 out of 6104480 = 4.255890755641758%
 
 Generally, using bucketing when iterating over your NLP dataset is preferred and will save you quite a bit of processing time.
+
+.. testcleanup::
+
+  import shutil
+  shutil.rmtree('sst')

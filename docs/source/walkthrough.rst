@@ -6,10 +6,6 @@
   from podium.vectorizers import GloVe
   from podium.vectorizers.tfidf import TfIdfVectorizer
 
-.. testcleanup:: vectorizer
-
-  import shutil
-  shutil.rmtree('sst/')
 
 Walkthrough
 ============
@@ -32,13 +28,15 @@ Loading built-in datasets
 One built-in dataset available in Podium is the `Stanford Sentiment Treebank <https://nlp.stanford.edu/sentiment/treebank.html>`__. In order to load the dataset, it is enough to call the :meth:`get_dataset_splits` method.
 
 .. doctest:: sst
+  :options: +NORMALIZE_WHITESPACE
 
   >>> from podium.datasets import SST
   >>> sst_train, sst_test, sst_valid = SST.get_dataset_splits() # doctest:+ELLIPSIS
   >>> print(sst_train)
   SST[Size: 6920, Fields:
      (Field[name: text, is_target: False, vocab: Vocab[finalized: True, size: 16284]]
-      LabelField[name: label, is_target: True, vocab: Vocab[finalized: True, size: 2]])]
+      LabelField[name: label, is_target: True, vocab: Vocab[finalized: True, size: 2]])
+  ]
   >>> print(sst_train[222]) # A short example
   Example[text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']); label: (None, 'positive')]
 
@@ -322,3 +320,8 @@ You can load a dataset in 🤗/datasets and then convert it to a Podium dataset 
   >>> print(imdb_train.fields)
   {'text': Field[name: text, is_target: False, vocab: Vocab[finalized: False, size: 0]], 'label': LabelField[name: label, is_target: True]}
 
+
+.. testcleanup::
+
+  import shutil
+  shutil.rmtree('sst')
