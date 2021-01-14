@@ -216,7 +216,7 @@ Now our vectorizer has seen the dataset as well as the vocabulary and has all th
 
   >>> # Obtain the whole dataset as a batch
   >>> x, y = sst_train.batch()
-  >>> tfidf_batch = tfidf_vectorizer.transform(x['text'])
+  >>> tfidf_batch = tfidf_vectorizer.transform(x.text)
   >>>
   >>> print(type(tfidf_batch), tfidf_batch.shape)
   <class 'scipy.sparse.csr.csr_matrix'> (6920, 4998)
