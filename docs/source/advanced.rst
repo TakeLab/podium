@@ -263,6 +263,7 @@ Multioutput Fields are `fake` Fields which simply handle the shared pretokenizat
 One example of such a use-case would be extracting both word tokens as well as their corresponding part-of-speech tags, both to be used as inputs to a model. For this example, we will still use the SST dataset as a demo, but we will use the spacy tokenizer.
 
 .. doctest:: multioutput_field
+  :skipif: spacy is None
 
   >>> from podium import MultioutputField
   >>> import spacy

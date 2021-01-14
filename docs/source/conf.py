@@ -115,4 +115,11 @@ try:
     import transformers
 except ImportError:
     transformers = None
+
+try:
+    import spacy
+    spacy.load('en', disable=['parser', 'ner'])
+except ImportError, IOError:
+    spacy = None
+
 '''

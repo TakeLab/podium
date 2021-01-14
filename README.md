@@ -75,7 +75,7 @@ Load your own dataset from a standardized format (`csv`, `tsv` or `jsonl`):
 ...           'label':     LabelField('label')}
 >>> dataset = TabularDataset('my_dataset.csv', format='csv', fields=fields)
 >>> print(dataset)
-TabularDataset[Size: 1, Fields: ['premise', 'hypothesis', 'label']]
+TabularDataset[Size: 1, Fields: (Field[name: premise, is_target: False, vocab: Vocab[finalized: True, size: 19]], Field[name: hypothesis, is_target: False, vocab: Vocab[finalized: True, size: 19]], LabelField[name: label, is_target: True, vocab: Vocab[finalized: True, size: 1]])]
 
 ```
 

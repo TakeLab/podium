@@ -5,6 +5,7 @@ import copy
 import itertools
 import random
 from abc import ABC, abstractmethod
+from pprint import pformat
 from typing import (
     Any,
     Callable,
@@ -217,7 +218,7 @@ class DatasetBase(ABC):
         return self[shuffled_indices]
 
     def __repr__(self):
-        return f"{type(self).__name__}[Size: {len(self)}, Fields: {self.fields}]"
+        return f"{type(self).__name__}[Size: {len(self)}, Fields: {pformat(self.fields)}]"
 
     @abstractmethod
     def __len__(self) -> int:
