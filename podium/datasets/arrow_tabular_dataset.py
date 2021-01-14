@@ -1,4 +1,3 @@
-import csv
 import itertools
 import os
 import pickle
@@ -11,7 +10,7 @@ from typing import Any, Dict, Iterable, Iterator, List, Tuple, Union
 from podium.field import Field, unpack_fields
 
 from .dataset import Dataset, DatasetBase
-from .example_factory import Example, ExampleFactory
+from .example_factory import Example
 from .tabular_dataset import load_tabular_file
 
 

@@ -86,9 +86,9 @@ class TabularDataset(Dataset):
         examples = load_tabular_file(
             path, fields, format, line2example, skip_header, csv_reader_params
         )
+        # Make the examples concrete here by casting to list
         examples = list(examples)
 
-        # Make the examples concrete here by casting to list
         super(TabularDataset, self).__init__(examples, fields, **kwargs)
         self.finalize_fields()
 
