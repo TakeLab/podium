@@ -58,10 +58,12 @@ Use some of our pre-defined datasets:
 >>> from podium.datasets import SST
 >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits()
 >>> print(sst_train)
-SST[Size: 6920, Fields: ['text', 'label']]
+SST[Size: 6920, Fields: (Field[name: text, is_target: False, vocab: Vocab[finalized: True, size: 16284]], LabelField[name: label, is_target: True, vocab: Vocab[finalized: True, size: 2]])]
 >>> print(sst_train[222]) # A short example
 Example[text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']); label: (None, 'positive')]
+
 ```
+
 
 Load your own dataset from a standardized format (`csv`, `tsv` or `jsonl`):
 
@@ -69,11 +71,12 @@ Load your own dataset from a standardized format (`csv`, `tsv` or `jsonl`):
 >>> from podium.datasets import TabularDataset
 >>> from podium import Vocab, Field, LabelField
 >>> fields = {'premise':   Field('premise', numericalizer=Vocab()),
-              'hypothesis':Field('hypothesis', numericalizer=Vocab()),
-              'label':     LabelField('label')}
+...           'hypothesis':Field('hypothesis', numericalizer=Vocab()),
+...           'label':     LabelField('label')}
 >>> dataset = TabularDataset('my_dataset.csv', format='csv', fields=fields)
 >>> print(dataset)
 TabularDataset[Size: 1, Fields: ['premise', 'hypothesis', 'label']]
+
 ```
 
 Or define your own `Dataset` subclass (tutorial coming soon)
@@ -85,12 +88,13 @@ We wrap dataset pre-processing in customizable `Field` classes. Each `Field` has
 ```python
 >>> from podium import Vocab, Field, LabelField
 >>> vocab = Vocab(max_size=5000, min_freq=2)
->>> text = Field(name='text', vocab=vocab)
+>>> text = Field(name='text', numericalizer=vocab)
 >>> label = LabelField(name='label')
 >>> fields = {'text': text, 'label': label}
 >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
 >>> print(vocab)
 Vocab[finalized: True, size: 5000]
+
 ```
 
 Each `Field` allows the user full flexibility modify the data in multiple stages:
@@ -105,17 +109,20 @@ You could decide to lowercase all the characters and filter out all non-alphanum
 
 ```python
 >>> def lowercase(raw):
->>>     return raw.lower()
+...     return raw.lower()
 >>> def filter_alnum(raw, tokenized):
->>>     filtered_tokens = [token for token in tokenized if
-                           any([char.isalnum() for char in token])]
->>>     return raw, filtered_tokens
+...     filtered_tokens = [token for token in tokenized if
+...                        any([char.isalnum() for char in token])]
+...     return raw, filtered_tokens
 >>> text.add_pretokenize_hook(lowercase)
 >>> text.add_posttokenize_hook(filter_alnum)
->>> # ...
+>>> fields = {'text': text, 'label': label}
+>>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
 >>> print(sst_train[222])
-Example[label: ('positive', None); text: (None, ['a', 'slick', 'engrossing', 'melodrama'])]
+Example[text: (None, ['a', 'slick', 'engrossing', 'melodrama']); label: (None, 'positive')]
+
 ```
+
 **Pre-tokenization** hooks do not see the tokenized data and are applied (and modify) only `raw` data. 
 **Post-tokenization** hooks have access to tokenized data, and can be applied to either `raw` or `tokenized` data.
 
@@ -124,18 +131,21 @@ Example[label: ('positive', None); text: (None, ['a', 'slick', 'engrossing', 'me
 A common use-case is to incorporate existing components of pretrained language models, such as BERT. This is extremely simple to incorporate as part of our `Field`s. This snippet requires installation of the `transformers` (`pip install transformers`) library.
 
 ```python
+
 >>> from transformers import BertTokenizer
 >>> # Load the tokenizer and fetch pad index
 >>> tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 >>> pad_index = tokenizer.convert_tokens_to_ids(tokenizer.pad_token)
 >>> # Define a BERT subword Field
->>> bert_field = Field(name="subword",
-                       padding_token=pad_index,
-                       tokenizer=tokenizer.tokenize,
-                       numericalizer=tokenizer.convert_tokens_to_ids)
->>> # ...
+>>> subword_field = Field(name="subword",
+...                    padding_token=pad_index,
+...                    tokenizer=tokenizer.tokenize,
+...                    numericalizer=tokenizer.convert_tokens_to_ids)
+>>> fields = {'text': subword_field, 'label': label}
+>>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
 >>> print(sst_train[222])
-Example[label: ('positive', None); subword: (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.'])]
+Example[subword: (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.']); label: (None, 'positive')]
+
 ```
 
 ## Contributing
