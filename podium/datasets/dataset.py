@@ -833,11 +833,11 @@ class DatasetConcatView(DatasetBase):
             for i, v in enumerate(vocabs):
                 if v != vocabs[0]:
                     raise ValueError(
-                        f'Vocab inequality detected between datasets at positions 0 and '
+                        f"Vocab inequality detected between datasets at positions 0 and "
                         f'{i} in field "{fname}". Vocab inequality can cause unexpected '
-                        f'token indexing behavior during batching. Please ensure all '
-                        f'datasets have equal Vocabs or provide override fields for '
-                        f'mismatched Vocabs.'
+                        f"token indexing behavior during batching. Please ensure all "
+                        f"datasets have equal Vocabs or provide override fields for "
+                        f"mismatched Vocabs."
                     )
 
         field_mapping = {}
