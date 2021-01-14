@@ -1,3 +1,15 @@
+.. testsetup:: *
+
+  from podium import Field, LabelField, Vocab, Iterator, TabularDataset
+  from podium.datasets import SST
+  from podium.vectorizers import GloVe
+  from podium.vectorizers.tfidf import TfIdfVectorizer
+
+.. testcleanup:: multioutput_field
+
+  import shutil
+  shutil.rmtree('sst/')
+
 The Podium data flow
 ====================
 
@@ -6,27 +18,27 @@ In Podium, data exists in three states: **raw** (as read from the dataset), **pr
 The data is processed immediately when the instance is loaded from disk and then stored in the Example class. Each instance of an Example (a shallow wrapper of a python dictionary) contains one instance of the dataset. Both the `raw` and `processed` data are stored as a tuple attribute under the name of the Field in an Example. You can see this in the SST example:
 
 
-.. code-block:: python
+.. doctest:: sst_field
 
   >>> from podium.datasets import SST
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits()
   >>> print(sst_train[222]) 
-  Example[label: (None, 'positive'); text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])]
+  Example[text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']); label: (None, 'positive')]
 
 We can unpack the Example class with the bracket notation, as you would a dictionary.
 
-.. code-block:: python
+.. doctest:: sst_field
 
   >>> text_raw, text_processed = sst_train[222]['text']
   >>> label_raw, label_processed = sst_train[222]['label']
   >>> print(text_raw, text_processed)
-  >>> print(label_raw, label_processed)
   None ['A', 'slick', ',', 'engrossing', 'melodrama', '.']
+  >>> print(label_raw, label_processed)
   None positive
 
 What are the ``None`` s? This is the `raw` data, which by default isn't stored in Examples to save memory. If you want to keep the raw data as well (e.g. for future reference), you have to set the ``keep_raw=True`` in the corresponding Field.
 
-.. code-block:: python
+.. doctest:: sst_field
 
   >>> from podium import Vocab, Field, LabelField
   >>> text = Field(name='text', numericalizer=Vocab(), keep_raw=True)
@@ -54,33 +66,33 @@ As we said earlier, data in Podium exists in three states: raw, processed and nu
 
 Pretokenization hooks have the following signature:
 
-.. code-block:: python
+.. doctest:: hooks
 
   >>> def pretokenization_hook(raw):
-  >>>   raw = do_something(raw)
-  >>>   return raw
+  ...   raw = do_something(raw)
+  ...   return raw
 
 Each pretokenization hook accepts one argument, the raw data for that instance, and returns one output, the modified raw data. The raw data is then updated accordingly in the Example instance. Posttokenization hooks follow a similar signature:
 
-.. code-block:: python
+.. doctest:: hooks
 
   >>> def posttokenization_hook(raw, processed):
-  >>>   processed = do_something(raw, processed)
-  >>>   return raw, processed
+  ...   processed = do_something(raw, processed)
+  ...   return raw, processed
 
 Each posttokenization hook accepts two arguments, the raw and processed data for that instance and returns two outputs, which are the modified raw and tokenized data. Both of those are then updated in the Example instance for that data Field in each dataset instance.
 If we want to define some text processing which requires some external attribute (e.g. storing the list of stop words for removing stop words), our hook can be a class as long as it implements the ``__call__`` method.
 
 
-.. code-block:: python
+.. doctest:: hooks
 
   >>> class Pretokenization_hook:
-  >>>   def __init__(self, metadata):
-  >>>     self.metadata = metadata
-  >>>
-  >>>   def __call__(self, raw):
-  >>>     raw = do_something(raw, metadata)
-  >>>     return raw
+  ...   def __init__(self, metadata):
+  ...     self.metadata = metadata
+  ...
+  ...   def __call__(self, raw):
+  ...     raw = do_something(raw, metadata)
+  ...     return raw
 
 Let's now define a few concrete hooks and use them in our dataset.
 
@@ -89,11 +101,11 @@ Lowercase as a pretokenization hook
 
 We will first implement a pretokenization hook which will lowercase our raw data. Please beware that casing might influence your tokenizer, so it might be wiser to implement this as a posttokenization hook. In our case however, the tokenizer is ``str.split``, so we are safe. This hook is going to be very simple:
 
-.. code-block:: python
+.. doctest:: hooks
 
   >>> def lowercase(raw):
-  >>>   """Lowercases the input string"""
-  >>>   return raw.lower()
+  ...   """Lowercases the input string"""
+  ...   return raw.lower()
 
 And we're done! We can now add our hook to the text field either through the :meth:`podium.storage.Field.add_pretokenize_hook` method of the Field or through the ``pretokenize_hooks`` constructor argument. We will first define a posttokenization hook which removes punctuation and then apply them both to our text Field.
 
@@ -102,31 +114,31 @@ Removing punctuation as a posttokenization hook
 
 We will now similarly define a posttokenization hook to remove punctuation. We will use the punctuation list from python's built-in ``str`` module, which we will store as an attribute of our hook.
 
-.. code-block:: python
+.. doctest:: hooks
 
   >>> import string
   >>> class RemovePunct:
-  >>>   def __init__(self):
-  >>>     self.punct = set(string.punctuation)
-  >>>
-  >>>   def __call__(self, raw, tokenized):
-  >>>     """Remove punctuation from tokenized data"""
-  >>>     return raw, [tok for tok in tokenized if tok not in self.punct]
+  ...   def __init__(self):
+  ...     self.punct = set(string.punctuation)
+  ...
+  ...   def __call__(self, raw, tokenized):
+  ...     """Remove punctuation from tokenized data"""
+  ...     return raw, [tok for tok in tokenized if tok not in self.punct]
 
 Putting it all together
 -----------------------
 
-.. code-block:: python
+.. doctest:: hooks
 
   >>> text = Field(name='text', numericalizer=Vocab(), 
-  >>>              keep_raw=True,
-  >>>              pretokenize_hooks=[lowercase],
-  >>>              posttokenize_hooks=[RemovePunct()])
+  ...              keep_raw=True,
+  ...              pretokenize_hooks=[lowercase],
+  ...              posttokenize_hooks=[RemovePunct()])
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
   >>>
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
-  >>> print(sst_train[222])
+  >>> print(sst_train[222].text)
   ('a slick , engrossing melodrama .', ['a', 'slick', 'engrossing', 'melodrama'])
 
 We can see that our hooks worked: the raw data was lowercased prior to tokenization, and the punctuation is not present in the processed data. You can similarly define other hooks and pass them as arguments to your Fields. It is important to take care of the order in which you pass the hooks -- they will be executed in the same order as you passed them to the constructor, so take care that you don't modify some aspect of data crucial for your next hook.
@@ -150,15 +162,15 @@ Alongside these two, common special tokens include the beginning-of-sequence and
 
 To better understand how specials work, we will walk through the implementation of one of special tokens implemented in Podium: the beginning-of-sequence (BOS) token.
 
-.. code-block:: python
+.. doctest:: specials
 
-  >>> from podium.storage.vocab import Special
+  >>> from podium.vocab import Special
   >>> class BOS(Special):
-  >>>   default_value = "<BOS>"
-  >>>
-  >>>  def apply(self, sequence):
-  >>>      # Prepend to the sequence
-  >>>      return [self] + sequence
+  ...   default_value = "<BOS>"
+  ...
+  ...   def apply(self, sequence):
+  ...      # Prepend to the sequence
+  ...      return [self] + sequence
   >>>
   >>> bos = BOS()
   >>> print(bos)
@@ -166,7 +178,7 @@ To better understand how specials work, we will walk through the implementation 
 
 This code block is the full implementation of a special token! All we needed to do is set the default value and implement the ``apply`` function. The default value is ``None`` by default and if not set, you have to make sure it is passed upon construction, like so:
 
-.. code-block:: python
+.. doctest:: specials
 
   >>> my_bos = BOS("<MY_BOS>")
   >>> print(my_bos)
@@ -178,7 +190,7 @@ We can also see that although we have changed the string representation of the s
 
 To see the effect of the ``apply`` method, we will once again take a look at the SST dataset:
 
-.. code-block:: python
+.. doctest:: specials
 
   >>> from podium import Vocab, Field, LabelField
   >>> from podium.datasets import SST
@@ -203,21 +215,21 @@ It is often the case you want to use a predefined numericalization function, be 
 
 To do that, you should pass your own callable function as the ``numericalizer`` for the corresponding Field. Please also beware that in this case, you also need to define the padding token index in order for Podium to be able to batch your data. A common example, where you want to use a tokenizer and a numericalization function from a pretrained BERT model using the ``huggingface/transformers`` library can be implemented as follows:
 
-.. code-block:: python
+.. doctest:: transformers
 
   >>> from transformers import BertTokenizer
   >>> tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
   >>> pad_index = tokenizer.convert_tokens_to_ids(tokenizer.pad_token)
   >>>
   >>> subword_field = Field("text",
-  >>>                       padding_token=pad_index,
-  >>>                       tokenizer=tokenizer.tokenize,
-  >>>                       numericalizer=tokenizer.convert_tokens_to_ids)
+  ...                       padding_token=pad_index,
+  ...                       tokenizer=tokenizer.tokenize,
+  ...                       numericalizer=tokenizer.convert_tokens_to_ids)
   >>> label = LabelField('label')
   >>> fields = {'text': subword_field, 'label': label}
   >>>
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
-  >>> print(sst_train[222])
+  >>> print(sst_train[222].text)
   (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.'])
 
 
@@ -226,7 +238,7 @@ Fields with multiple outputs
 
 We have so far covered the case where you have a single input column, tokenize and numericalize it and then use it in your model. What if you want to obtain multiple outputs from the same input text? A common example is obtaining both words and characters for an input sequence. Let's see how we would implement this in Podium:
 
-.. code-block:: python
+.. doctest:: multioutput
 
   >>> from podium import Vocab, Field, LabelField
   >>> from podium.datasets import SST
@@ -249,7 +261,7 @@ Multioutput Fields are `fake` Fields which simply handle the shared pretokenizat
 
 One example of such a use-case would be extracting both word tokens as well as their corresponding part-of-speech tags, both to be used as inputs to a model. For this example, we will still use the SST dataset as a demo, but we will use the spacy tokenizer.
 
-.. code-block:: python
+.. doctest:: multioutput_field
 
   >>> from podium import MultioutputField
   >>> import spacy
@@ -257,9 +269,9 @@ One example of such a use-case would be extracting both word tokens as well as t
   >>> # Define hooks to extract raw text and POS tags
   >>> # from spacy token objects
   >>> def extract_text_hook(raw, tokenized):
-  >>>   return raw, [token.text for token in tokenized]
+  ...   return raw, [token.text for token in tokenized]
   >>> def extract_pos_hook(raw, tokenized):
-  >>>   return raw, [token.pos_ for token in tokenized]
+  ...   return raw, [token.pos_ for token in tokenized]
   >>>
   >>> # Define the output Fields and the MultioutputField
   >>> word = Field(name='word', numericalizer=Vocab(), posttokenize_hooks=[extract_text_hook])
@@ -293,7 +305,6 @@ When iterating over NLP datasets, it is common that instances in a batch do not 
 For this reason, usage of :class:`podium.datasets.BucketIterator` is recommended. The ``BucketIterator`` uses a lookahead heuristic and sorts the instances based on a user-defined sort function. Let's take a look at a short example:
 
 .. code-block:: python
-  :emphasize-lines: 8 
 
   >>> from podium import Vocab, Field, LabelField
   >>> from podium.datasets import SST, IMDB

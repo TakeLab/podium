@@ -303,7 +303,6 @@ class TfIdfVectorizer(CountVectorizer):
         )
         self._tfidf.fit(count_matrix)
         self._fitted = True
-        return self
 
     def transform(self, examples, **kwargs):
         """
