@@ -110,9 +110,11 @@ jobs:
     - name: Install dependencies
       run: |
         pip install .[docs]
-    - name: Build docs
+    - name: Test and build docs
       run: |
-        cd docs && make html SPHINXOPTS="-W"    
+        cd docs
+        make doctest
+        make html SPHINXOPTS="-W"    
     - name: Upload docs artifact
       uses: actions/upload-artifact@v2
       with:
