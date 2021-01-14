@@ -498,10 +498,12 @@ class Vocab:
             return False
         if self.itos != other.itos:
             return False
+        if self.specials != other.specials:
+            return False
         return True
 
     def __hash__(self):
-        return hash((self.finalized, self._freqs, self.stoi, self.itos))
+        return hash((self.finalized, self._freqs, self.stoi, self.itos, self.specials))
 
     def __iter__(self):
         """
