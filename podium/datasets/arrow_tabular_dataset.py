@@ -14,6 +14,7 @@ from .dataset import Dataset, DatasetBase
 from .example_factory import Example, ExampleFactory
 from .tabular_dataset import load_tabular_file
 
+
 try:
     import pyarrow as pa
 except ImportError:
@@ -280,8 +281,9 @@ class ArrowDataset(DatasetBase):
             ArrowDataset instance containing the examples from the tabular file.
         """
 
-        example_generator = load_tabular_file(path, fields, format, line2example,
-            skip_header, csv_reader_params)
+        example_generator = load_tabular_file(
+            path, fields, format, line2example, skip_header, csv_reader_params
+        )
 
         return ArrowDataset.from_examples(
             fields,
