@@ -4,6 +4,7 @@ Module contains base classes for datasets.
 import copy
 import itertools
 import random
+import textwrap
 from abc import ABC, abstractmethod
 from typing import (
     Any,
@@ -217,16 +218,16 @@ class DatasetBase(ABC):
         return self[shuffled_indices]
 
     def __repr__(self):
-        # Distribute field prints across lines for readability
-        fields_as_str = "\n   ".join([repr(f) for f in self.fields])
+        # if len(self.fields) > 1:
+        #     newline_or_empty = '\n' if len(self.fields) > 1 else ''
 
-        if len(self.fields) > 1:
-            # Prepend newline only in case there's multiple fields
-            fields_as_str = f"\n  ({fields_as_str})"
+        fields_str = ",\n".join([textwrap.indent(repr(f), " " * 8) for f in self.fields])
+        # fields_str = f"[{newline_or_empty}{fields_str}{newline_or_empty}]"
 
-        fields_as_str = f"Fields:{fields_as_str}\n"
-
-        return f"{type(self).__name__}[Size: {len(self)}, {fields_as_str}]"
+        return (
+            f"{type(self).__name__}"
+            f"({{\n    size: {len(self)},\n    fields: [\n{fields_str}\n    ]\n}})"
+        )
 
     @abstractmethod
     def __len__(self) -> int:

@@ -652,7 +652,13 @@ class Vocab:
         return iter(self.itos)
 
     def __repr__(self):
-        return f"{type(self).__name__}[finalized: {self.finalized}, size: {len(self)}]"
+        return (
+            f"{type(self).__name__}({{"
+            f"specials: {self.specials}, "
+            f"eager: {self.eager}, "
+            f"finalized: {self.finalized}, "
+            f"size: {len(self)}}})"
+        )
 
     def __getitem__(self, token):
         """

@@ -741,14 +741,14 @@ class Field:
             self._tokenizer = get_tokenizer(self._tokenizer_arg_string)
 
     def __repr__(self):
-        if self.use_vocab:
-            return "{}[name: {}, is_target: {}, vocab: {}]".format(
-                self.__class__.__name__, self.name, self.is_target, self.vocab
-            )
-        else:
-            return "{}[name: {}, is_target: {}]".format(
-                self.__class__.__name__, self.name, self.is_target
-            )
+        vocab_str = f",\n    vocab: {self.vocab}\n" if self.use_vocab else ""
+        return (
+            f"{type(self).__name__}({{"
+            f"\n    name: {self.name},"
+            f"\n    keep_raw: {self._keep_raw},"
+            f"\n    is_target: {self.is_target}"
+            f"{vocab_str}}})"
+        )
 
     def get_output_fields(self) -> Iterable["Field"]:
         """
