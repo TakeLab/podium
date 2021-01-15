@@ -2,7 +2,6 @@
 Example how to use BLCC model on Croatian NER dataset for NER task.
 """
 
-import logging
 import os
 import pickle
 import sys
@@ -54,15 +53,12 @@ class CroatianNER(Pipeline):
             If vector_path is None or is not a valid file path.
         """
         if vector_path is None or not os.path.exists(vector_path):
-            # provided path of {}, which does not exist
-            err_msg = (
+            raise ValueError(
                 f"Provided path {vector_path} is None or does not exist. "
                 "Path to word Croatian vectors must be defined. "
                 "You can use fastText vectors available at "
                 "https://fasttext.cc/docs/en/crawl-vectors.html"
             )
-            logging.error(err_msg)
-            raise ValueError
 
         self.fields = ner_dataset_classification_fields()
         self.dataset = CroatianNERDataset.get_dataset(fields=self.fields)
@@ -115,25 +111,25 @@ class CroatianNER(Pipeline):
 
         if model_kwargs is None:
             model_kwargs = self._define_model_params()
-            logging.debug(f"Using default model parameters {model_kwargs}")
+            print(f"Using default model parameters {model_kwargs}")
 
         if trainer_kwargs is None:
             # use bucket iterator to minimize padding in batch
             iterator = BucketIterator(batch_size=32, sort_key=example_word_count)
             trainer_kwargs = {"max_epoch": 10, "iterator": iterator}
-            logging.debug(f"Using default trainer parameters {trainer_kwargs}")
+            print(f"Using default trainer parameters {trainer_kwargs}")
 
         trainer = SimpleTrainer() if trainer is None else trainer
 
         start = time.time()
-        logging.info("Starting training")
+        print("Starting training")
         super().fit(
             dataset=dataset,
             model_kwargs=model_kwargs,
             trainer_kwargs=trainer_kwargs,
             trainer=trainer,
         )
-        logging.info(f"Training took {time.time() - start} seconds")
+        print(f"Training took {time.time() - start} seconds")
 
     def predict_raw(self, raw_example, tokenizer=str.split):
         """

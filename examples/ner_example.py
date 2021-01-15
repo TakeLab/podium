@@ -2,7 +2,6 @@
 Example how to use BLCC model on Croatian NER dataset for NER task.
 """
 
-import logging
 import pickle
 import sys
 from collections import namedtuple
@@ -131,7 +130,7 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
     trainer = SimpleTrainer()
     feature_transformer = FeatureTransformer(feature_transform)
 
-    logging.info("Training started")
+    print("Training started")
     trainer.train(
         model=model,
         dataset=train_set,
@@ -140,7 +139,7 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
         label_transform_fun=label_transform_fun,
         max_epoch=1,
     )
-    logging.info("Training finished")
+    print("Training finished")
 
     X_test_batch, y_test_batch = test_set[:32].batch()
     X_test = feature_transformer.transform(X_test_batch)
@@ -155,15 +154,15 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
         pad_symbol, prediction, y_test
     )
 
-    logging.info("Expected:")
-    logging.info(y_test_filtered)
+    print("Expected:")
+    print(y_test_filtered)
 
-    logging.info("Actual:")
-    logging.info(prediction_filtered)
+    print("Actual:")
+    print(prediction_filtered)
 
     f1 = multiclass_f1_metric(y_test_filtered, prediction_filtered, average="weighted")
     info_msg = f"F1: {f1}"
-    logging.info(info_msg)
+    print(info_msg)
 
 
 def filter_out_padding(pad_symbol, prediction, y_test):
