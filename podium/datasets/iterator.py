@@ -15,6 +15,13 @@ from podium.datasets.dataset import Dataset, DatasetBase
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
 
 
+def _batch_getitem(self, idx_or_field):
+    try:
+        return super(self.__class__, self).__getitem__(idx_or_field)
+    except TypeError:
+        return getattr(self, idx_or_field)
+
+
 class IteratorBase(ABC):
     """
     Abstract base class for all Iterators in Podium.
@@ -205,12 +212,23 @@ class Iterator(IteratorBase):
         self._epoch = 0
         self._iterations = 0
 
-        self.input_batch_class = namedtuple(
+        input_base_cls = namedtuple(
             "InputBatch", [field.name for field in dataset.fields if not field.is_target]
         )
 
-        self.target_batch_class = namedtuple(
+        target_base_cls = namedtuple(
             "TargetBatch", [field.name for field in dataset.fields if field.is_target]
+        )
+
+        self._input_batch_cls = type(
+            'InputBatch',
+            (input_base_cls,),
+            {'__slots__' : (), '__getitem__': _batch_getitem},
+        )
+        self._target_batch_cls = type(
+            'TargetBatch',
+            (target_base_cls,),
+            {'__slots__' : (), '__getitem__': _batch_getitem},
         )
 
         self._dataset = dataset
@@ -312,8 +330,8 @@ class Iterator(IteratorBase):
             else:
                 input_batch_dict[field.name] = batch
 
-        input_batch = self.input_batch_class(**input_batch_dict)
-        target_batch = self.target_batch_class(**target_batch_dict)
+        input_batch = self._input_batch_cls(**input_batch_dict)
+        target_batch = self._target_batch_cls(**target_batch_dict)
 
         return input_batch, target_batch
 
@@ -719,8 +737,8 @@ class HierarchicalDatasetIterator(Iterator):
                 value = getattr(target_sub_batch, key)
                 target_batch_dict[key].append(value)
 
-        input_batch = self.input_batch_class(**input_batch_dict)
-        target_batch = self.target_batch_class(**target_batch_dict)
+        input_batch = self._input_batch_cls(**input_batch_dict)
+        target_batch = self._target_batch_cls(**target_batch_dict)
 
         return input_batch, target_batch
 
