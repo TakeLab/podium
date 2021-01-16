@@ -119,6 +119,7 @@ class DatasetBase(ABC):
 
         # if there are non-eager fields, we need to build their vocabularies
         fields_to_build = [f for f in self.fields if not f.eager and f.use_vocab]
+        print(fields_to_build)
         if fields_to_build:
             # there can be multiple datasets we want to iterate over
             data_sources = [ds for ds in datasets if isinstance(ds, DatasetBase)]

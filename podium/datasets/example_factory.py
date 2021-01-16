@@ -118,6 +118,34 @@ class ExampleFactory:
 
         return example
 
+    def from_dict_list(self, data, size):
+        """
+        Method creates example from data in dictionary format.
+        Where each Field contains a list of values.
+
+        Parameters
+        ----------
+        data : dict(str, object)
+            dictionary that maps field name to list of 
+            field values.
+
+        Returns
+        -------
+        example : Example
+            example instance with given data saved to fields
+        """
+        examples = []
+        for i in range(size):
+            example = Example()
+
+            for key, fields in self.fields.items():
+                # Index into the returned list
+                val = data.get(key)[i]
+                set_example_attributes(example, fields, val)
+
+            examples.append(example)
+        return examples
+
     def from_list(self, data):
         """
         Method creates example from data in list format.

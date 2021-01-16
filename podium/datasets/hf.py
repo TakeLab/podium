@@ -1,9 +1,10 @@
 """
 Module contains the converter class for processing the HuggingFace Datasets.
 """
-from typing import Dict, Iterator, Optional
+from typing import Dict, Iterator, Optional, Union
 
-from podium.datasets import Dataset
+import podium
+from podium.datasets import Dataset, DatasetBase
 from podium.field import Field, LabelField
 from podium.vocab import Vocab
 
@@ -87,7 +88,10 @@ class _FeatureConverter:
                 }
 
             elif dtype in {"string", "utf8"}:
-                kwargs = {"numericalizer": Vocab()}
+                # Since the dataset won't _actually_ be loaded, we have to
+                # set eager to False here so .finalize_fields() triggers
+                # the Vocab construction later.
+                kwargs = {"numericalizer": Vocab(eager=False)}
 
             else:
                 # some dtypes are not processed and stored as-is
@@ -145,7 +149,7 @@ def convert_features_to_fields(
     }
 
 
-class HFDatasetConverter:
+class HFDatasetConverter(DatasetBase):
     """
     Class for converting rows from the HuggingFace Datasets to
     podium.storage.Example.
@@ -190,8 +194,26 @@ class HFDatasetConverter:
     def dataset(self):
         return self._dataset
 
+    def _get_examples(self):
+        yield from self
+
     def __getitem__(self, i):
-        return self.dataset[i]
+        # Index or slice
+        if isinstance(i, int):
+            raw_example = self.dataset[i]
+            print("Raw", type(raw_example), raw_example)
+            return self._example_factory.from_dict(raw_example)
+        else:
+            # Slice of a datasets.Dataset is a dictionary that maps
+            # to a list of values. To map this to a list of our examples,
+            # we need to find out the length of the slice.
+            raw_examples = self.dataset[i]
+
+            # Determing the length of the subset
+            size = len(next(iter(raw_examples.values())))
+
+            examples = self._example_factory.from_dict_list(raw_examples, size=size)
+            return Dataset(examples, self.fields, sort_key=None)
 
     def __iter__(self) -> Iterator[Example]:
         """
@@ -212,24 +234,32 @@ class HFDatasetConverter:
         podium.storage.Dataset
             podium.storage.Dataset instance.
         """
-        return Dataset(list(self), self._fields)
+        return Dataset(list(self), self.fields)
 
     @staticmethod
     def from_dataset_dict(
-        dataset_dict: Dict[str, datasets.Dataset]
-    ) -> Dict[str, "HFDatasetConverter"]:
+        dataset_dict: Dict[str, datasets.Dataset],
+        cast_to_podium: bool = True,
+    ) -> Dict[str, Union["HFDatasetConverter", podium.Dataset]]:
         """
         Copies the keys of given dictionary and converts the corresponding
         HuggingFace Datasets to the HFDatasetConverter instances.
 
         Parameters
         ----------
-        dataset_dict : dict(str, datasets.Dataset)
+        dataset_dict: dict(str, datasets.Dataset)
             Dictionary that maps dataset names to HuggingFace Datasets.
+
+        cast_to_podium: bool
+            Determines whether to immediately convert the HuggingFace dataset
+            to Podium dataset (if True), or shallowly wrap the HuggingFace dataset
+            in the HFDatasetConverter class.
+            The HFDatasetConverter class currently doesn't support full Podium
+            functionality and will not work with other components in the library.
 
         Returns
         -------
-        dict(str, HFDatasetConverter)
+        dict(str, Union[HFDatasetConverter, podium.Dataset])
             Dictionary that maps dataset names to HFDatasetConverter instances.
 
         Raises
@@ -243,7 +273,17 @@ class HFDatasetConverter:
                 f"but got {type(dataset_dict).__name__}"
             )
 
-        return {
+        dataset_dict = {
             dataset_name: HFDatasetConverter(dataset)
             for dataset_name, dataset in dataset_dict.items()
         }
+
+        if cast_to_podium:
+            dataset_dict = {
+                name: dataset.as_dataset()
+                for name, dataset in dataset_dict.items()
+            }
+            a_dataset = next(dataset_dict.values())
+            a_dataset.finalize_fields()
+
+        return dataset_dict
