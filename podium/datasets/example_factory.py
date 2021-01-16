@@ -120,13 +120,13 @@ class ExampleFactory:
 
     def from_dict_list(self, data, size):
         """
-        Method creates example from data in dictionary format.
-        Where each Field contains a list of values.
+        Method creates example from data in dictionary format. Where each Field
+        contains a list of values.
 
         Parameters
         ----------
         data : dict(str, object)
-            dictionary that maps field name to list of 
+            dictionary that maps field name to list of
             field values.
 
         Returns

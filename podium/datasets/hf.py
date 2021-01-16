@@ -239,7 +239,7 @@ class HFDatasetConverter(DatasetBase):
     @staticmethod
     def from_dataset_dict(
         dataset_dict: Dict[str, datasets.Dataset],
-        cast_to_podium: bool = True,
+        cast_to_podium: bool = False,
     ) -> Dict[str, Union["HFDatasetConverter", podium.Dataset]]:
         """
         Copies the keys of given dictionary and converts the corresponding
@@ -280,8 +280,7 @@ class HFDatasetConverter(DatasetBase):
 
         if cast_to_podium:
             dataset_dict = {
-                name: dataset.as_dataset()
-                for name, dataset in dataset_dict.items()
+                name: dataset.as_dataset() for name, dataset in dataset_dict.items()
             }
             a_dataset = next(dataset_dict.values())
             a_dataset.finalize_fields()
