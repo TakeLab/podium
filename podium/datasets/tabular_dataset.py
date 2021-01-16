@@ -2,7 +2,8 @@ import csv
 import os
 
 from podium.datasets.dataset import Dataset
-from podium.storage.example_factory import ExampleFactory
+
+from .example_factory import ExampleFactory
 
 
 class TabularDataset(Dataset):
@@ -12,7 +13,14 @@ class TabularDataset(Dataset):
     """
 
     def __init__(
-        self, path, format, fields, skip_header=False, csv_reader_params={}, **kwargs
+        self,
+        path,
+        fields,
+        format="csv",
+        line2example=None,
+        skip_header=False,
+        csv_reader_params={},
+        **kwargs,
     ):
         """
         Creates a TabularDataset from a file containing the data rows and an
@@ -22,9 +30,6 @@ class TabularDataset(Dataset):
         ----------
         path : str
             Path to the data file.
-        format : str
-            The format of the data file. Has to be either "CSV", "TSV", or
-            "JSON" (case-insensitive).
         fields : (list | dict)
             A mapping from data columns to example fields.
             This allows the user to rename columns from the data file,
@@ -45,6 +50,15 @@ class TabularDataset(Dataset):
             the dict's keys are ignored. If the format is CSV/TSV,
             then the data file must have a header
             (column names need to be known).
+        format : str
+            The format of the data file. Has to be either "CSV", "TSV",
+            "JSON" (case-insensitive). Ignored if `line2example` is
+            not None. Defaults to "CSV".
+        line2example : callable
+            The function mapping from a file line to Fields.
+            In case your dataset is not in one of the standardized formats,
+            you can provide a function which performs a custom split for
+            each input line.
         skip_header : bool
             Whether to skip the first line of the input file.
             If format is CSV/TSV and 'fields' is a dict, then skip_header
@@ -63,7 +77,8 @@ class TabularDataset(Dataset):
         Raises
         ------
         ValueError
-            If the format given is not one of "CSV", "TSV" or "JSON".
+            If the format given is not one of "CSV", "TSV" or "JSON"
+            and line2example is not set.
             If fields given as a dict and skip_header is True.
             If format is "JSON" and skip_header is True.
         """
@@ -71,7 +86,30 @@ class TabularDataset(Dataset):
         format = format.lower()
 
         with open(os.path.expanduser(path), encoding="utf8") as f:
-            if format in {"csv", "tsv"}:
+
+            # Skip header prior to custom line2example in case
+            # the header is in a different format so we don't
+            # cause an error.
+            if skip_header:
+                if format == "json":
+                    raise ValueError(
+                        f"When using a {format} file, skip_header \
+                                       must be False."
+                    )
+                elif format in {"csv", "tsv", "custom"} and isinstance(fields, dict):
+                    raise ValueError(
+                        f"When using a dict to specify fields with a {format} "
+                        "file, skip_header must be False and the file must "
+                        "have a header."
+                    )
+
+                # skip the header
+                next(f)
+
+            if line2example is not None:
+                reader = (line2example(line) for line in f)
+                format = "custom"
+            elif format in {"csv", "tsv"}:
                 delimiter = "," if format == "csv" else "\t"
                 reader = csv.reader(f, delimiter=delimiter, **csv_reader_params)
             elif format == "json":
@@ -80,14 +118,14 @@ class TabularDataset(Dataset):
                 raise ValueError(f"Invalid format: {format}")
 
             # create a list of examples
-            examples = create_examples(reader, format, fields, skip_header)
+            examples = create_examples(reader, format, fields)
 
         # create a Dataset with lists of examples and fields
         super(TabularDataset, self).__init__(examples, fields, **kwargs)
         self.finalize_fields()
 
 
-def create_examples(reader, format, fields, skip_header):
+def create_examples(reader, format, fields):
     """
     Creates a list of examples from the given line reader and fields (see
     TabularDataset.__init__ docs for more info on the fields).
@@ -103,9 +141,6 @@ def create_examples(reader, format, fields, skip_header):
     fields : (list | dict)
         A list or dict of fields (see TabularDataset.__init__ docs for more
         info).
-    skip_header : bool
-        Whether to skip the first line of the input file. (see
-        TabularDataset.__init__ docs for more info).
 
     Returns
     -------
@@ -120,24 +155,10 @@ def create_examples(reader, format, fields, skip_header):
         skip_header is True.
     """
 
-    if skip_header:
-        if format == "json":
-            raise ValueError(f"When using a {format} file, skip_header must be False.")
-        elif format in {"csv", "tsv"} and isinstance(fields, dict):
-            raise ValueError(
-                f"When using a dict to specify fields with a {format} "
-                "file, skip_header must be False and the file must "
-                "have a header."
-            )
-
-        # skipping the header
-        next(reader)
-
     # if format is CSV/TSV and fields is a dict, transform it to a list
-    if format in {"csv", "tsv"} and isinstance(fields, dict):
+    if format in {"csv", "tsv", "custom"} and isinstance(fields, dict):
         # we need a header to know the column names
         header = next(reader)
-
         # columns not present in the fields dict are ignored (None)
         fields = [fields.get(column, None) for column in header]
 
@@ -149,6 +170,7 @@ def create_examples(reader, format, fields, skip_header):
         "json": example_factory.from_json,
         "csv": example_factory.from_list,
         "tsv": example_factory.from_list,
+        "custom": example_factory.from_list,
     }
 
     make_example = make_example_function[format]
