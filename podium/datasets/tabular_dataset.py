@@ -105,7 +105,7 @@ def _load_tabular_file(
     Parameters same as in TabularDataset constructor.
     """
 
-    with open(os.path.expanduser(path), encoding="utf8") as f:
+    with open(os.path.expanduser(path), encoding="utf8", newline="") as f:
         # create a list of examples
         reader, format = _initialize_tabular_reader(
             f, format, fields, line2example, skip_header, csv_reader_params

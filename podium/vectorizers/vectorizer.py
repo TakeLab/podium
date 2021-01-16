@@ -91,9 +91,11 @@ class VectorStorage(ABC):
         max_vectors : int, optional
             maximum number of vectors to load in memory
         """
-        self._path = path
+        self._path = os.path.expanduser(path) if path is not None else path
         self._default_vector_function = default_vector_function
-        self._cache_path = cache_path
+        self._cache_path = (
+            os.path.expanduser(cache_path) if cache_path is not None else cache_path
+        )
         self._max_vectors = max_vectors
 
     @abstractmethod

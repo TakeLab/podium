@@ -99,7 +99,7 @@ class SNLISimple(Dataset):
         example_factory = ExampleFactory(fields)
         examples = []
 
-        with open(file=file_path, encoding="utf8") as in_file:
+        with open(file=os.path.expanduser(file_path), encoding="utf8") as in_file:
             for line in in_file:
                 examples.append(example_factory.from_json(line))
         return examples

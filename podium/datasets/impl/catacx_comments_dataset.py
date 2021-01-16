@@ -114,7 +114,7 @@ class CatacxCommentsDataset(Dataset):
             A list of examples containing comments from the Catacx dataset.
         """
         example_factory = ExampleFactory(fields)
-        with open(dir_path, encoding="utf8") as f:
+        with open(os.path.expanduser(dir_path), encoding="utf8") as f:
             ds = json.load(f)
 
         examples = []
