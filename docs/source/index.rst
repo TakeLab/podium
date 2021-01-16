@@ -41,7 +41,6 @@ The documentation is organized in four parts:
    :caption: Core package Reference:
 
    vocab_and_fields
-   specials
    datasets
    iterators
    vectorizers
