@@ -19,7 +19,7 @@ class TabularDataset(Dataset):
         format="csv",
         line2example=None,
         skip_header=False,
-        csv_reader_params={},
+        csv_reader_params=None,
         **kwargs,
     ):
         """
@@ -97,7 +97,7 @@ def load_tabular_file(path, fields, format, line2example, skip_header, csv_reade
 
     with open(os.path.expanduser(path), encoding="utf8") as f:
         # create a list of examples
-        reader = initialize_tabular_reader(
+        reader, format = initialize_tabular_reader(
             f, format, fields, line2example, skip_header, csv_reader_params
         )
         examples = create_examples(reader, format, fields)
@@ -134,13 +134,15 @@ def initialize_tabular_reader(
         format = "custom"
     elif format in {"csv", "tsv"}:
         delimiter = "," if format == "csv" else "\t"
+        if csv_reader_params is None:
+            csv_reader_params = {}
         reader = csv.reader(file, delimiter=delimiter, **csv_reader_params)
     elif format == "json":
         reader = file
     else:
         raise ValueError(f"Invalid format: {format}")
 
-    return reader
+    return reader, format
 
 
 def create_examples(reader, format, fields):

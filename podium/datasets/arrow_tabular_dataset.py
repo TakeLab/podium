@@ -5,7 +5,7 @@ import shutil
 import tempfile
 import warnings
 from collections import defaultdict
-from typing import Any, Dict, Iterable, Iterator, List, Tuple, Union
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 from podium.field import Field, unpack_fields
 
@@ -207,7 +207,7 @@ class ArrowDataset(DatasetBase):
         chunk_size=10_000,
         line2example=None,
         skip_header: bool = False,
-        csv_reader_params: Dict = {},
+        csv_reader_params: Optional[Dict] = None,
     ) -> "ArrowDataset":
         """
         Loads a tabular file format (csv, tsv, json) as an ArrowDataset.
