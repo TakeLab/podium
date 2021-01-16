@@ -218,12 +218,7 @@ class DatasetBase(ABC):
         return self[shuffled_indices]
 
     def __repr__(self):
-        # if len(self.fields) > 1:
-        #     newline_or_empty = '\n' if len(self.fields) > 1 else ''
-
         fields_str = ",\n".join([textwrap.indent(repr(f), " " * 8) for f in self.fields])
-        # fields_str = f"[{newline_or_empty}{fields_str}{newline_or_empty}]"
-
         return (
             f"{type(self).__name__}"
             f"({{\n    size: {len(self)},\n    fields: [\n{fields_str}\n    ]\n}})"
