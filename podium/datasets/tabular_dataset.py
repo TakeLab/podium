@@ -1,7 +1,9 @@
 import csv
 import os
+from typing import Callable, Dict, List, Optional, Union
 
 from podium.datasets.dataset import Dataset
+from podium.field import Field
 
 from .example_factory import ExampleFactory
 
@@ -14,12 +16,12 @@ class TabularDataset(Dataset):
 
     def __init__(
         self,
-        path,
-        fields,
-        format="csv",
-        line2example=None,
-        skip_header=False,
-        csv_reader_params=None,
+        path: str,
+        fields: Union[Dict[str, Field], List[Field]],
+        format: str = "csv",
+        line2example: Optional[Callable] = None,
+        skip_header: bool = False,
+        csv_reader_params: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -83,7 +85,7 @@ class TabularDataset(Dataset):
             If format is "JSON" and skip_header is True.
         """
 
-        examples = load_tabular_file(
+        examples = _load_tabular_file(
             path, fields, format, line2example, skip_header, csv_reader_params
         )
         # Make the examples concrete here by casting to list
@@ -93,20 +95,34 @@ class TabularDataset(Dataset):
         self.finalize_fields()
 
 
-def load_tabular_file(path, fields, format, line2example, skip_header, csv_reader_params):
+def _load_tabular_file(
+    path, fields, format, line2example, skip_header, csv_reader_params
+):
+    """
+    Loads examples as a generator from a dataset in tabular format.
+
+    Abstracted from TabularDataset due to duplicate usage in ArrowDataset.
+    Parameters same as in TabularDataset constructor.
+    """
 
     with open(os.path.expanduser(path), encoding="utf8") as f:
         # create a list of examples
-        reader, format = initialize_tabular_reader(
+        reader, format = _initialize_tabular_reader(
             f, format, fields, line2example, skip_header, csv_reader_params
         )
-        examples = create_examples(reader, format, fields)
+        examples = _create_examples(reader, format, fields)
         yield from examples
 
 
-def initialize_tabular_reader(
+def _initialize_tabular_reader(
     file, format, fields, line2example, skip_header, csv_reader_params
 ):
+    """
+    Initializes the input stream from a file.
+
+    In case of using a custom format handled by line2example, lazily applies the
+    row transfromation on the data.
+    """
 
     format = format.lower()
 
@@ -145,7 +161,7 @@ def initialize_tabular_reader(
     return reader, format
 
 
-def create_examples(reader, format, fields):
+def _create_examples(reader, format, fields):
     """
     Creates a list of examples from the given line reader and fields (see
     TabularDataset.__init__ docs for more info on the fields).
@@ -153,8 +169,10 @@ def create_examples(reader, format, fields):
     Parameters
     ----------
     reader
-        A reader object that reads one line at a time. Yields either strings
-        (when format is JSON) or lists of values (when format is CSV/TSV).
+        A reader object that reads one line at a time. Yields strings
+        (when format is JSON) or lists of values (when format is CSV/TSV)
+        or a sequence of pre-transformed lines if a custom format is used
+        via the `line2example` argument.
     format : str
         Format of the data file that is being read. Can be either CSV,
         TSV or JSON.

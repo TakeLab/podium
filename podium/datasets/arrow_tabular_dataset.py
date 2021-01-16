@@ -5,13 +5,13 @@ import shutil
 import tempfile
 import warnings
 from collections import defaultdict
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 from podium.field import Field, unpack_fields
 
 from .dataset import Dataset, DatasetBase
 from .example_factory import Example
-from .tabular_dataset import load_tabular_file
+from .tabular_dataset import _load_tabular_file
 
 
 try:
@@ -200,12 +200,12 @@ class ArrowDataset(DatasetBase):
     @staticmethod
     def from_tabular_file(
         path: str,
-        format: str,
         fields: Union[Dict[str, Field], List[Field]],
-        cache_path: str = None,
+        format: str = "csv",
+        cache_path: Optional[str] = None,
         data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
-        chunk_size=10_000,
-        line2example=None,
+        chunk_size: int = 1024,
+        line2example: Optional[Callable] = None,
         skip_header: bool = False,
         csv_reader_params: Optional[Dict] = None,
     ) -> "ArrowDataset":
@@ -280,7 +280,7 @@ class ArrowDataset(DatasetBase):
             ArrowDataset instance containing the examples from the tabular file.
         """
 
-        example_generator = load_tabular_file(
+        example_generator = _load_tabular_file(
             path, fields, format, line2example, skip_header, csv_reader_params
         )
 
