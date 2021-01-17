@@ -523,7 +523,7 @@ class ArrowDataset(DatasetBase):
         Parameters
         ----------
         cache_path: Optional[str]
-            Path to the directory where the cache file will saved.
+            Path to the directory where the cache file will be saved.
             The whole directory will be used as the cache and will be deleted
             when `delete_cache` is called. It is recommended to create a new
             directory to use exclusively as the cache, or to leave this as None.
