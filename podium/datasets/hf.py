@@ -202,7 +202,7 @@ class HFDatasetConverter(DatasetBase):
 
         # Index or slice
         if isinstance(i, int):
-            return self._example_factory.from_dict(raw_example)
+            return self._example_factory.from_dict(raw_examples)
         else:
             # Slice of hf.datasets.Dataset is a dictionary that maps
             # to a list of values. To map this to a list of our examples,
