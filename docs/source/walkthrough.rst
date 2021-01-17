@@ -33,22 +33,22 @@ One built-in dataset available in Podium is the `Stanford Sentiment Treebank <ht
   >>> sst_train, sst_test, sst_valid = SST.get_dataset_splits() # doctest:+ELLIPSIS
   >>> print(sst_train)
   SST({
-        size: 6920,
-        fields: [
-            Field({
-                name: text,
-                keep_raw: False,
-                is_target: False,
-                vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 16284})
-            }),
-            LabelField({
-                name: label,
-                keep_raw: False,
-                is_target: True,
-                vocab: Vocab({specials: (), eager: False, finalized: True, size: 2})
-            })
-        ]
-    })
+      size: 6920,
+      fields: [
+          Field({
+              name: text,
+              keep_raw: False,
+              is_target: False,
+              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 16284})
+          }),
+          LabelField({
+              name: label,
+              keep_raw: False,
+              is_target: True,
+              vocab: Vocab({specials: (), eager: False, finalized: True, size: 2})
+          })
+      ]
+  })
   >>> print(sst_train[222]) # A short example
   Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
 
