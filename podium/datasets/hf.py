@@ -210,8 +210,9 @@ class HFDatasetConverter(DatasetBase):
             raw_examples = self.dataset[i]
 
             # Unpack the dict, creating a dict for each value tuple
-            raw_examples = [{k:v for k, v in zip(raw_examples, values)}
-                                for values in zip(*raw_examples.values())
+            raw_examples = [
+                {k: v for k, v in zip(raw_examples, values)}
+                for values in zip(*raw_examples.values())
             ]
 
             # Map each raw example to a Podium example
