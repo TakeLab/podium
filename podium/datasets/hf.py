@@ -182,13 +182,13 @@ class HFDatasetConverter(DatasetBase):
                 f"but got {type(dataset).__name__}"
             )
 
+        super().__init__(fields or convert_features_to_fields(dataset.features))
         self._dataset = dataset
-        self._fields = fields or convert_features_to_fields(dataset.features)
-        self._example_factory = ExampleFactory(self._fields)
+        self._example_factory = ExampleFactory(self.field_dict)
 
     @property
     def fields(self):
-        return list(self._fields.values())
+        return list(self._fields)
 
     @property
     def dataset(self):
