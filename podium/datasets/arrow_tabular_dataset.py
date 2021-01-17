@@ -6,7 +6,7 @@ import shutil
 import tempfile
 import warnings
 from collections import defaultdict
-from typing import Any, Dict, Iterable, Iterator, List, Tuple, Union
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 from podium.field import Field, unpack_fields
 
@@ -53,7 +53,7 @@ class ArrowDataset(DatasetBase):
         self,
         table: pa.Table,
         fields: Union[Dict[str, Field], List[Field]],
-        cache_path: str,
+        cache_path: Optional[str],
         mmapped_file: pa.MemoryMappedFile,
         data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
     ):
@@ -69,7 +69,7 @@ class ArrowDataset(DatasetBase):
         fields: Union[Dict[str, Field], List[Field]]
             Dict or List of Fields used to create the examples in 'table'.
 
-        cache_path: str
+        cache_path: Optional[str]
             Path to the directory where the cache file is saved.
 
         mmapped_file: pyarrow.MemoryMappedFile
@@ -91,7 +91,7 @@ class ArrowDataset(DatasetBase):
     @staticmethod
     def from_dataset(
         dataset: Dataset,
-        cache_path: str = None,
+        cache_path: Optional[str] = None,
         data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
     ) -> "ArrowDataset":
         """
@@ -102,8 +102,13 @@ class ArrowDataset(DatasetBase):
         dataset: Dataset
             Dataset to be used to create an ArrowDataset.
 
-        cache_path: str
+        cache_path: Optional[str]
             Path to the directory where the cache file will saved.
+            The whole directory will be used as the cache and will be deleted
+            when `delete_cache` is called. It is recommended to create a new
+            directory to use exclusively as the cache, or to leave this as None.
+
+            If None, a temporary directory will be created.
 
         data_types: Dict[str, Tuple[pyarrow.DataType, pyarrow.DataType]]
             Dictionary mapping field names to pyarrow data types. This is required when a
@@ -125,7 +130,7 @@ class ArrowDataset(DatasetBase):
     def from_examples(
         fields: Union[Dict[str, Field], List[Field]],
         examples: Iterable[Example],
-        cache_path: str = None,
+        cache_path: Optional[str] = None,
         data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
         chunk_size=1024,
     ) -> "ArrowDataset":
@@ -140,8 +145,13 @@ class ArrowDataset(DatasetBase):
         examples: Iterable[Example]
             Iterable of examples.
 
-        cache_path: str
+        cache_path: Optional[str]
             Path to the directory where the cache file will saved.
+            The whole directory will be used as the cache and will be deleted
+            when `delete_cache` is called. It is recommended to create a new
+            directory to use exclusively as the cache, or to leave this as None.
+
+            If None, a temporary directory will be created.
 
         data_types: Dict[str, Tuple[pyarrow.DataType, pyarrow.DataType]]
             Dictionary mapping field names to pyarrow data types. This is required when a
@@ -202,7 +212,7 @@ class ArrowDataset(DatasetBase):
         path: str,
         format: str,
         fields: Union[Dict[str, Field], List[Field]],
-        cache_path: str = None,
+        cache_path: Optional[str] = None,
         data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
         chunk_size=10_000,
         skip_header: bool = False,
@@ -242,8 +252,13 @@ class ArrowDataset(DatasetBase):
             then the data file must have a header
             (column names need to be known).
 
-        cache_path: str
+        cache_path: Optional[str]
             Path to the directory where the cache file will saved.
+            The whole directory will be used as the cache and will be deleted
+            when `delete_cache` is called. It is recommended to create a new
+            directory to use exclusively as the cache, or to leave this as None.
+
+            If None, a temporary directory will be created.
 
         data_types: Dict[str, Tuple[pyarrow.DataType, pyarrow.DataType]]
             Dictionary mapping field names to pyarrow data types. This is required when a
@@ -507,8 +522,13 @@ class ArrowDataset(DatasetBase):
 
         Parameters
         ----------
-        cache_path: str
-            Path to the directory where the ArrowDataset cache is contained.
+        cache_path: Optional[str]
+            Path to the directory where the cache file will be saved.
+            The whole directory will be used as the cache and will be deleted
+            when `delete_cache` is called. It is recommended to create a new
+            directory to use exclusively as the cache, or to leave this as None.
+
+            If None, a temporary directory will be created.
 
         Returns
         -------
@@ -526,7 +546,7 @@ class ArrowDataset(DatasetBase):
         table = pa.RecordBatchFileReader(mmapped_file).read_all()
         return ArrowDataset(table, fields, cache_path, mmapped_file)
 
-    def dump_cache(self, cache_path: str = None) -> str:
+    def dump_cache(self, cache_path: Optional[str] = None) -> str:
         """
         Saves this dataset at cache_path. Dumped datasets can be loaded with the
         ArrowDataset.load_cache static method. All fields contained in this
@@ -534,10 +554,13 @@ class ArrowDataset(DatasetBase):
 
         Parameters
         ----------
-        cache_path: str
-            Path to the directory where the dataset is to be dumped.
-            Can be None, in which case a temporary directory will be created and used to
-            dump the cache. The chosen cache dir is always returned.
+        cache_path: Optional[str]
+            Path to the directory where the cache file will saved.
+            The whole directory will be used as the cache and will be deleted
+            when `delete_cache` is called. It is recommended to create a new
+            directory to use exclusively as the cache, or to leave this as None.
+
+            If None, a temporary directory will be created.
 
         Returns
         -------
@@ -702,6 +725,9 @@ class ArrowDataset(DatasetBase):
     def close(self):
         """
         Closes resources held by the ArrowDataset.
+
+        Only closes the cache file handle. The cache will not be deleted from
+        disk. For cache deletion, use `delete_cache`.
         """
         if self.mmapped_file is not None:
             self.mmapped_file.close()
@@ -713,7 +739,13 @@ class ArrowDataset(DatasetBase):
 
     def delete_cache(self):
         """
-        Deletes the cache directory.
+        Deletes the cache directory and all cache files belonging to this
+        dataset.
+
+        After this call is executed, any ArrowDataset created by
+        slicing/indexing this dataset and any view over this dataset will not be
+        usable any more. Any dataset created from this dataset should be dumped
+        to a new directory before calling this method.
         """
         if self.mmapped_file is not None:
             self.close()
