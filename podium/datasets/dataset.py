@@ -323,7 +323,7 @@ class Dataset(DatasetBase):
             together examples with similar lengths to minimize padding.
         """
 
-        self._examples = examples
+        self._examples = list(examples)
         self.sort_key = sort_key
         super().__init__(fields)
 

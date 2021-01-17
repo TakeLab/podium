@@ -198,16 +198,16 @@ class HFDatasetConverter(DatasetBase):
         yield from self
 
     def __getitem__(self, i):
+        raw_examples = self.dataset[i]
+
         # Index or slice
         if isinstance(i, int):
-            raw_example = self.dataset[i]
-            print("Raw", type(raw_example), raw_example)
             return self._example_factory.from_dict(raw_example)
         else:
             # Slice of hf.datasets.Dataset is a dictionary that maps
             # to a list of values. To map this to a list of our examples,
-            # we first map the single dictionary to a list of dictionaries.
-            raw_examples = self.dataset[i]
+            # we map the single dictionary to a list of dictionaries and
+            # then convert this to a list of podium Examples
 
             # Unpack the dict, creating a dict for each value tuple
             raw_examples = [
@@ -282,16 +282,10 @@ class HFDatasetConverter(DatasetBase):
                 f"but got {type(dataset_dict).__name__}"
             )
 
-        dataset_dict = {
-            dataset_name: HFDatasetConverter(dataset)
-            for dataset_name, dataset in dataset_dict.items()
+        def cast(dataset):
+            return dataset.as_dataset() if cast_to_podium else dataset
+
+        return {
+            name: cast(dataset) for name, dataset in dataset_dict.items()
         }
 
-        if cast_to_podium:
-            dataset_dict = {
-                name: dataset.as_dataset() for name, dataset in dataset_dict.items()
-            }
-            a_dataset = next(dataset_dict.values())
-            a_dataset.finalize_fields()
-
-        return dataset_dict
