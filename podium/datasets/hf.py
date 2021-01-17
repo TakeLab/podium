@@ -204,15 +204,23 @@ class HFDatasetConverter(DatasetBase):
             print("Raw", type(raw_example), raw_example)
             return self._example_factory.from_dict(raw_example)
         else:
-            # Slice of a datasets.Dataset is a dictionary that maps
+            # Slice of hf.datasets.Dataset is a dictionary that maps
             # to a list of values. To map this to a list of our examples,
-            # we need to find out the length of the slice.
+            # we first map the single dictionary to a list of dictionaries.
             raw_examples = self.dataset[i]
 
-            # Determing the length of the subset
-            size = len(next(iter(raw_examples.values())))
+            # Unpack the dict, creating a dict for each value tuple
+            raw_examples = [{k:v for k, v in zip(raw_examples, values)}
+                                for values in zip(*raw_examples.values())
+            ]
 
-            examples = self._example_factory.from_dict_list(raw_examples, size=size)
+            # Map each raw example to a Podium example
+            examples = [
+                self._example_factory.from_dict(raw_example)
+                for raw_example in raw_examples
+            ]
+
+            # Cast to a dataset
             return Dataset(examples, self.fields, sort_key=None)
 
     def __iter__(self) -> Iterator[Example]:
