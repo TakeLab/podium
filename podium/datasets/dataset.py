@@ -757,7 +757,7 @@ class DatasetConcatView(DatasetBase):
 
     def __getattr__(self, field: Union[str, Field]) -> Iterator[Tuple[Any, Any]]:
         view_field_name = field if isinstance(field, str) else field.name
-        if view_field_name not in self._reverse_field_name_mapping:
+        if view_field_name not in self._reverse_field_name_mapping():
             # TODO better error message?
             err_msg = (
                 f'Field "{view_field_name}" not present in this '
@@ -766,7 +766,7 @@ class DatasetConcatView(DatasetBase):
             )
             raise ValueError(err_msg)
 
-        original_field_name = self._reverse_field_name_mapping[view_field_name]
+        original_field_name = self._reverse_field_name_mapping()[view_field_name]
         for ds in self._datasets:
             yield from getattr(ds, original_field_name)
 
@@ -842,22 +842,17 @@ class DatasetConcatView(DatasetBase):
 
         field_mapping = {}
         default_field_dict = datasets[0].field_dict
+
         for f_name in intersection_field_names:
-            if f_name in field_overrides:
-                # ignore field and take the override
-                override_field = field_overrides[f_name]
-                field_mapping[f_name] = override_field
-            else:
-                # take the field from the first dataset
-                original_field = default_field_dict[f_name]
-                field_mapping[f_name] = original_field
+            field_mapping[f_name] = field_overrides.get(
+                f_name, default_field_dict[f_name]
+            )
 
         return field_mapping
 
     def _get_examples(self) -> List[Example]:
         return list(self)
 
-    @property
     def _reverse_field_name_mapping(self):
         if self._reverse_field_name_mapping_dict is None:
             self._reverse_field_name_mapping_dict = {
@@ -988,7 +983,8 @@ class DatasetIndexedView(DatasetBase):
             return DatasetIndexedView(self._dataset, new_indices)
 
     def __iter__(self):
-        yield from (self._dataset[i] for i in self._indices)
+        for i in self._indices:
+            yield self._dataset[i]
 
     def _get_examples(self) -> List[Example]:
         return list(self)
