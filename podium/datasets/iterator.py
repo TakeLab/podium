@@ -252,7 +252,7 @@ class Iterator(IteratorBase):
         data = self._dataset[indices]
 
         if self._sort_key is not None:
-            data = data.sorted(key=self._sort_key)
+            data = data.sort(key=self._sort_key)
 
         for i in range(0, len(data), self._batch_size):
             batch_dataset = data[i : i + self._batch_size]
@@ -426,7 +426,7 @@ class SingleBatchIterator(Iterator):
             If sort_key is not None, this flag being True may not have any
             effect since the dataset will always be sorted after being
             shuffled (the only difference shuffling can make is in the
-            order of elements with the same value of sort_key)..
+            order of elements with the same value of sort_key).
             Default is False.
         """
         super().__init__(dataset=dataset, batch_size=len(dataset), shuffle=shuffle)
@@ -504,12 +504,12 @@ class BucketIterator(Iterator):
         step = self._batch_size * self.look_ahead_multiplier
         dataset = self._dataset
         if self._sort_key is not None:
-            dataset = dataset.sorted(key=self._sort_key)
+            dataset = dataset.sort(key=self._sort_key)
         for i in range(0, len(dataset), step):
             bucket = dataset[i : i + step]
 
             if self.bucket_sort_key is not None:
-                bucket = bucket.sorted(key=self.bucket_sort_key)
+                bucket = bucket.sort(key=self.bucket_sort_key)
 
             for j in range(0, len(bucket), self._batch_size):
                 batch_dataset = bucket[j : j + self._batch_size]

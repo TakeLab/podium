@@ -418,14 +418,14 @@ def test_tabular_dataset_preserve_sort_key(
     dataset = create_tabular_dataset(
         tabular_dataset_fields, file_format, file_path, use_dict
     )
-    dataset.sort_key = sort_key_str
+    dataset._sort_key = sort_key_str
 
     dataset.finalize_fields()
     d_train, d_test = dataset.split(split_ratio=0.5, shuffle=False)
 
     # the sort key should be passed from the original dataset
-    assert d_train.sort_key == sort_key_str
-    assert d_test.sort_key == sort_key_str
+    assert d_train._sort_key == sort_key_str
+    assert d_test._sort_key == sort_key_str
 
 
 @pytest.mark.parametrize("file_format, use_dict", FORMAT_USE_DICT_COMBINATIONS)
@@ -445,7 +445,7 @@ def test_tabular_dataset_pickle_sort_key(
 
     with open(dataset_file, "rb") as fdata:
         loaded_dataset = dill.load(fdata)
-        assert loaded_dataset.sort_key == sort_key_str
+        assert loaded_dataset._sort_key == sort_key_str
 
 
 @pytest.mark.parametrize("file_format, use_dict", FORMAT_USE_DICT_COMBINATIONS)
@@ -615,37 +615,20 @@ def test_dataset_multiindexing(data, field_list):
     test_indexing(list(range(1, 10, 3)))
 
 
-def test_dataset_deep_copy(data, field_list):
-    original_dataset = create_dataset(data, field_list)
-    original_examples = original_dataset.examples
+def test_dataset_copy(data, field_list):
+    dataset = create_dataset(data, field_list)
+    dataset_copy = dataset.copy()
 
-    dataset_no_deep_copy = original_dataset.get(slice(0, 5), deep_copy=False)
-    for original, copy in zip(original_dataset.fields, dataset_no_deep_copy.fields):
-        assert copy is original
-    for original, copy in zip(original_examples, dataset_no_deep_copy.examples):
-        assert copy is original
+    for ex, ex_copy in zip(dataset.examples, dataset_copy.examples):
+        assert ex is not ex_copy
 
-    dataset_deep_copy = original_dataset.get(slice(0, 5), deep_copy=True)
+    for field, field_copy in zip(dataset.fields, dataset_copy.fields):
+        assert field is field_copy
 
-    assert original_dataset.fields is not dataset_deep_copy.fields
-    for original, copy in zip(original_dataset.fields, dataset_deep_copy.fields):
-        assert copy is not original
+    dataset_copy_with_fields = dataset.copy(copy_fields=True)
 
-    for original, copy in zip(original_examples, dataset_deep_copy.examples):
-        assert copy is not original
-        assert copy["text"] == original["text"]
-        assert copy["label"] == original["label"]
-
-    original_example = original_examples[2]
-    no_copy_example = original_dataset.get(2, deep_copy=False)
-    indexed_example = original_dataset[2]
-    deep_copied_example = original_dataset.get(2, deep_copy=True)
-
-    assert no_copy_example is original_example
-    assert indexed_example is original_example
-    assert deep_copied_example is not original_example
-    assert deep_copied_example["text"] == original_example["text"]
-    assert deep_copied_example["label"] == original_example["label"]
+    for field, field_copy in zip(dataset.fields, dataset_copy_with_fields.fields):
+        assert field is not field_copy
 
 
 def test_dataset_multiindexing_pickling(data, field_list):

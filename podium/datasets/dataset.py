@@ -19,9 +19,16 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
+    TypeVar,
     Union,
     overload,
 )
+
+
+try:
+    from typing import Protocol
+except ImportError:
+    from typing_extensions import Protocol
 
 import numpy as np
 
@@ -31,6 +38,39 @@ from .example_factory import Example
 
 
 FieldType = Optional[Union[Field, List[Field]]]
+
+
+class Comparable(Protocol):
+    """
+    Protocol for annotating comparable types.
+    """
+
+    @abstractmethod
+    def __lt__(self: "CT", other: "CT") -> bool:
+        pass
+
+
+CT = TypeVar("CT", bound=Comparable)
+
+
+def _get_permutation(size, seed, generator):
+    if seed is not None and generator is not None:
+        raise ValueError(
+            "Both `seed` and `generator` were provided. Please specify just one of them."
+        )
+
+    if generator is None or isinstance(generator, np.random.Generator):
+        raise ValueError(
+            "The provided generator must be an instance of numpy.random.Generator"
+        )
+
+    if generator is None:
+        if seed is None:
+            seed = np.random.get_state()[1][0]
+            np.random.random()
+        generator = np.random.default_rng(seed)
+
+    return np.random.permutation(size)
 
 
 class DatasetBase(ABC):
@@ -44,7 +84,7 @@ class DatasetBase(ABC):
     @property
     def fields(self) -> Tuple[Field]:
         """
-        List containing all fields of this dataset.
+        Tuple containing all fields of this dataset.
         """
         return self._fields
 
@@ -82,7 +122,7 @@ class DatasetBase(ABC):
 
         Parameters
         ----------
-        field_name : str
+        field : str or podium.Field
             The name of the field whose values are to be returned.
 
         Returns
@@ -104,7 +144,6 @@ class DatasetBase(ABC):
                     yield x[field_name]
 
             return attr_generator(self, field_name)
-
         else:
             raise AttributeError(f"Dataset has no field {field_name}.")
 
@@ -132,7 +171,7 @@ class DatasetBase(ABC):
                 data_sources.append(self)
 
             # for each example in each dataset,
-            # update _all_ non-eager fields
+            # update all non-eager fields
             for dataset in data_sources:
                 for example in dataset:
                     for field in fields_to_build:
@@ -158,7 +197,7 @@ class DatasetBase(ABC):
 
         return next(iter(SingleBatchIterator(self, shuffle=False)))
 
-    def sorted(self, key: Callable[[Example], Any], reverse=False) -> "DatasetBase":
+    def sort(self, key: Callable[[Example], CT], reverse=False) -> "DatasetBase":
         """
         Creates a new DatasetBase instance in which all Examples are sorted
         according to the value returned by `key`.
@@ -186,7 +225,7 @@ class DatasetBase(ABC):
         indices.sort(key=index_key, reverse=reverse)
         return self[indices]
 
-    def filtered(self, predicate: Callable[[Example], bool]) -> "DatasetBase":
+    def filter(self, predicate: Callable[[Example], bool]) -> "DatasetBase":
         """
         Filters examples with given predicate and returns a new DatasetBase
         instance containing those examples.
@@ -206,7 +245,9 @@ class DatasetBase(ABC):
         indices = [i for i, example in enumerate(self) if predicate(example)]
         return self[indices]
 
-    def shuffled(self) -> "DatasetBase":
+    def shuffle(
+        self, seed: Optional[int] = None, generator: Optional[np.random.Generator] = None
+    ) -> "DatasetBase":
         """
         Creates a new DatasetBase instance containing all Examples, but in
         shuffled order.
@@ -217,8 +258,7 @@ class DatasetBase(ABC):
             A new DatasetBase instance containing all Examples, but in shuffled
             order.
         """
-        shuffled_indices = np.random.permutation(len(self))
-        return self[shuffled_indices]
+        return self[_get_permutation(len(self), seed, generator)]
 
     def __repr__(self):
         # Distribute field prints across lines for readability
@@ -249,11 +289,13 @@ class DatasetBase(ABC):
         ...
 
     @overload
-    def __getitem__(self, i: Iterable[int]) -> "DatasetBase":
+    def __getitem__(self, i: Union[slice, Iterable[int]]) -> "DatasetBase":
         ...
 
     @abstractmethod
-    def __getitem__(self, i: slice) -> "DatasetBase":
+    def __getitem__(
+        self, i: Union[int, slice, Iterable[int]]
+    ) -> Union[Example, "DatasetBase"]:
         """
         Returns an example or a new dataset containing the indexed examples.
 
@@ -327,7 +369,7 @@ class Dataset(DatasetBase):
             together examples with similar lengths to minimize padding.
         """
         self._examples = examples
-        self.sort_key = sort_key
+        self._sort_key = sort_key
         super().__init__(fields)
 
     def __getitem__(
@@ -366,64 +408,15 @@ class Dataset(DatasetBase):
             If i is a slice or iterable, a copy of this dataset containing
             only the indexed examples will be returned.
         """
+        if isinstance(i, int):
+            return self._examples[i]
 
-        return self.get(i)
-
-    def get(self, i, deep_copy=False):
-        """
-        Returns an example or a new dataset containing the indexed examples.
-
-        If indexed with an int, only the example at that position
-        will be returned.
-        If Indexed with a slice or iterable, all examples indexed by the object
-        will be collected and a new dataset containing only those examples will be
-        returned. The new dataset will contain copies of the old dataset's fields
-        and will be identical to the original dataset, with the exception of the
-        example number and ordering. See wiki for detailed examples.
-
-        Example::
-
-            # Indexing by a single integers returns a single example
-            example = dataset.get(1)
-
-            # Same as the first example, but returns a deep_copy of the example
-            example_copy = dataset.get(1, deep_copy=True)
-
-            # Multi-indexing returns a new dataset containing the indexed examples
-            s = slice(1, 10)
-            new_dataset = dataset.get(s)
-
-            new_dataset_copy = dataset.get(s, deep_copy=True)
-
-        Parameters
-        ----------
-        i : int or slice or iterable
-            Index used to index examples.
-
-        deep_copy: bool
-            If true, the returned dataset will contain deep-copies of this
-            dataset's examples and fields.
-            If false, existing examples and fields will be reused.
-
-        Returns
-        -------
-        single example or Dataset
-            If i is an int, a single example will be returned.
-            If i is a slice or iterable, a dataset containing
-            only the indexed examples will be returned.
-        """
-
-        if isinstance(i, slice):
-            return self._dataset_copy_with_examples(self.examples[i], deep_copy=deep_copy)
-
-        elif isinstance(i, int):
-            example = self.examples[i]
-            return copy.deepcopy(example) if deep_copy else example
-
-        else:
-            # Numpy style multi-indexing
-            indexed_examples = [self.examples[index] for index in i]
-            return self._dataset_copy_with_examples(indexed_examples, deep_copy=deep_copy)
+        examples = (
+            self.examples[i]
+            if isinstance(i, slice)
+            else [self._examples[idx] for idx in i]
+        )
+        return Dataset(examples, self._fields)
 
     def __len__(self) -> int:
         """
@@ -439,41 +432,97 @@ class Dataset(DatasetBase):
     def _get_examples(self) -> List[Example]:
         return self._examples
 
-    def __iter__(self):
+    def sort(
+        self, key: Callable[[Example], CT], reverse=False, inplace: bool = False
+    ) -> "DatasetBase":
         """
-        Iterates over all examples in the dataset in order.
+        Creates a new DatasetBase instance in which all Examples are sorted
+        according to the value returned by `key`.
 
-        Yields
-        ------
-        example
-            Yields examples in the dataset.
-        """
-        yield from self._examples
+        Parameters
+        ----------
+        key: callable
+            specifies a function of one argument that is used to extract a comparison key
+            from each Example.
 
-    def filter(self, predicate, inplace=False):
+        reverse: bool
+            If set to True, then the list elements are sorted as if each comparison were
+            reversed.
+
+        Returns
+        -------
+        DatasetBase
+            A new DatasetBase instance with sorted Examples.
         """
-        Method filters examples with given predicate.
+
+        def index_key(i):
+            return key(self[i])
+
+        indices = list(range(len(self)))
+        indices.sort(key=index_key, reverse=reverse)
+
+        if inplace:
+            self._examples = [self._examples[idx] for idx in indices]
+            return self
+
+        return super().sort(key, reverse)
+
+    def filter(
+        self, predicate: Callable[[Example], bool], inplace: bool = False
+    ) -> "DatasetBase":
+        """
+        Filters examples with given predicate and returns a new DatasetBase
+        instance containing those examples.
 
         Parameters
         ----------
         predicate : callable
             predicate should be a callable that accepts example as input and returns
             true if the example shouldn't be filtered, otherwise returns false
-        inplace : bool, default False
-            if True, do operation inplace and return None
+
+        Returns
+        -------
+        DatasetBase
+            A new DatasetBase instance containing only the Examples for which `predicate`
+            returned True.
         """
-        filtered_examples = [ex for ex in self.examples if predicate(ex)]
-
         if inplace:
-            self._examples = filtered_examples
-            return
-        else:
-            return Dataset(
-                examples=filtered_examples, fields=self.fields, sort_key=self.sort_key
-            )
+            self._examples = [example for example in self if predicate(example)]
+            return self
 
-    def filtered(self, predicate: Callable[[Example], bool]) -> "DatasetBase":
-        return self.filter(predicate, inplace=False)
+        return super().filter(predicate)
+
+    def shuffle(
+        self,
+        seed: Optional[int] = None,
+        generator: Optional[np.random.Generator] = None,
+        inplace: bool = False,
+    ) -> "DatasetBase":
+        """
+        Creates a new DatasetBase instance containing all Examples, but in
+        shuffled order.
+
+        Returns
+        -------
+        DatasetBase
+            A new DatasetBase instance containing all Examples, but in shuffled
+            order.
+        """
+        if inplace:
+            self._examples = [
+                self._examples[idx]
+                for idx in _get_permutation(len(self), seed, generator)
+            ]
+            return self
+
+        return super().shuffle(seed, generator)
+
+    def copy(self, copy_fields=False):
+        return Dataset(
+            copy.deepcopy(self._examples),
+            copy.deepcopy(self._fields) if copy_fields else self._fields,
+            sort_key=self._sort_key,
+        )
 
     def split(
         self,
@@ -570,7 +619,7 @@ class Dataset(DatasetBase):
             )
 
         splits = tuple(
-            Dataset(example_list, self.fields, sort_key=self.sort_key)
+            Dataset(example_list, self.fields, sort_key=self._sort_key)
             for example_list in (train_data, val_data, test_data)
             if example_list
         )
@@ -624,49 +673,6 @@ class Dataset(DatasetBase):
             dataset state dictionary
         """
         self.__dict__ = state
-
-    def _dataset_copy_with_examples(
-        self, examples: list, deep_copy: bool = False
-    ) -> "Dataset":
-        """
-        Creates a new dataset with the same fields and sort_key. The new dataset
-        contains only the fields passed to this function.Fields are deep-copied
-        into the new dataset, but examples are used as-is.
-
-        Parameters
-        ----------
-        examples
-            examples to be kept in the copy of the dataset.
-
-        deep_copy
-            Whether to deep-copy the examples nad fields of this dataset.
-            if False, existing fields and examples will be reused.
-
-        Returns
-        -------
-        Dataset
-            a copy of this dataset containing only the passed examples.
-        """
-        # Deep-copy if needed
-        examples = copy.deepcopy(examples) if deep_copy else examples
-        fields = copy.deepcopy(self.fields) if deep_copy else self.fields
-
-        return Dataset(examples, fields, self.sort_key)
-
-    def shuffle_examples(self, random_state=None):
-        """
-        Shuffles the examples in this dataset.
-
-        Parameters
-        ----------
-        random_state : int
-            The random seed used for shuffling.
-        """
-
-        if random_state is not None:
-            random.seed(random_state)
-
-        random.shuffle(self.examples)
 
     @staticmethod
     def from_dataset(dataset: DatasetBase) -> "Dataset":
