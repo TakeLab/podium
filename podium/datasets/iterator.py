@@ -16,10 +16,6 @@ from podium.datasets.hierarhical_dataset import HierarchicalDataset
 
 
 class Batch(dict):
-    @property
-    def name(self):
-        return self._name
-
     def __iter__(self):
         yield from self.values()
 
