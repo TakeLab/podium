@@ -231,7 +231,7 @@ class Iterator(IteratorBase):
         self._dataset = dataset
 
     def __setstate__(self, state):
-        super().__setstate__(state)
+        self.__dict__ = state
         if self._shuffle:
             # Restore the random state to the one prior to start
             # of last epoch so we can rewind to the correct batch
@@ -269,11 +269,9 @@ class Iterator(IteratorBase):
         """
         indices = list(range(len(self._dataset)))
 
-        # Cache state prior to shuffle so we can use it when unpickling
         if self._shuffle:
+            # Cache state prior to shuffle so we can use it when unpickling
             self._shuffler_state = self.get_internal_random_state()
-
-        if self._shuffle:
             self._shuffler.shuffle(indices)
 
         data = self._dataset[indices]
@@ -287,7 +285,6 @@ class Iterator(IteratorBase):
         for i in range(start, len(data), self.batch_size):
             batch_dataset = data[i : i + self.batch_size]
             yield self._create_batch(batch_dataset)
-            self._iterations += 1
 
         # prepare for new epoch
         self._iterations = 0
@@ -340,7 +337,7 @@ class Iterator(IteratorBase):
                 target_batch[field.name] = batch
             else:
                 input_batch[field.name] = batch
-
+        self._iterations += 1
         return input_batch, target_batch
 
     def get_internal_random_state(self):

@@ -357,6 +357,100 @@ And re-running the code, we obtain the following, still significant improvement:
 
 Generally, using bucketing when iterating over your NLP dataset is preferred and will save you quite a bit of processing time.
 
+
+Saving and loading Podium components
+=====================================
+
+.. testsetup:: saveload
+
+  import os
+  os.mkdir('cache')
+
+Preprocessing your dataset is often time-consuming and once you've done it, you wouldn't want to repeat the process. In Podium, we cache your processed and numericalized dataset so neither of these computations has to be done more than once. To ensure you don't have to repeat the potentially expensive preprocessing, all of our base components are picklable.
+
+As an example, we will again turn to the SST dataset and some of our previously used hooks:
+
+.. doctest:: saveload
+  :options: +NORMALIZE_WHITESPACE
+
+  >>> from podium import Vocab, Field, LabelField
+  >>> from podium.datasets import SST
+  >>>
+  >>> vocab = Vocab(max_size=5000, min_freq=2)
+  >>> text = Field(name='text', numericalizer=vocab)
+  >>> label = LabelField(name='label')
+  >>> 
+  >>> fields = {'text': text, 'label': label}
+  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>>
+  >>> print(sst_train)
+  SST[Size: 6920, Fields:
+  (Field[name: text, is_target: False, vocab: Vocab[finalized: True, size: 5000]]
+   LabelField[name: label, is_target: True, vocab: Vocab[finalized: True, size: 3]])
+  ]
+  >>> print(sst_train[222])
+  Example[text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']); label: (None, 'positive')]
+
+Each ``Dataset`` instance in the SST dataset splits contains ``Field``s and a ``Vocab``. When we pickle a dataset, we also store those objects. We will now demonstrate how to store (and load) a pickled dataset in a folder which we opened previously, named ``cache``.
+
+.. doctest:: saveload
+  :options: +NORMALIZE_WHITESPACE
+
+  >>> import os, pickle
+  >>> dataset_store_path = os.path.join('cache', 'sst_preprocessed.pkl')
+  >>>
+  >>> # Save the dataset
+  >>> with open(dataset_store_path, 'wb') as outfile:
+  ...    pickle.dump((sst_train, sst_test, sst_dev), outfile)
+  >>>
+  >>> # Restore the dataset
+  >>> with open(dataset_store_path, 'rb') as infile:
+  ...   sst_train, sst_test, sst_dev = pickle.load(infile)
+  >>> print(sst_train[222])
+  Example[text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']); label: (None, 'positive')]
+
+Each of the components -- ``Field``, ``Vocab`` and ``Example`` can also be pickled separately. Apart from being able to save and load a ``Dataset`` and its components, you can also store an ``Iterator`` mid-iteration and it will continue on the batch on which you left off.
+In case you don't want this behavior and would rather your unpickled iterator starts from the beginning, you can call ``Iterator.reset()`` which will reset iterator to the start of the dataset.
+
+.. doctest:: saveload
+  :options: +NORMALIZE_WHITESPACE
+
+  >>> from podium import Iterator
+  >>> # Disable shuffling for consistency
+  >>> train_iter = Iterator(sst_train, batch_size=1, shuffle=False)
+  >>>
+  >>> batch_input, batch_target = next(iter(train_iter))
+  >>> print(batch_input.text)
+  [[  14 1057   10 2580    8   28    4 3334 3335    9  154   68    0   67
+         5   11   81    9  274    8   83    6 4683   74 2901   38 1410 2581
+         3    0 2102    0   49  870    0    2]]
+  >>> iterator_store_path = os.path.join('cache', 'sst_train_iter.pkl')
+  >>> with open(iterator_store_path, 'wb') as outfile:
+  ...   pickle.dump((train_iter), outfile)
+  >>>
+  >>> with open(iterator_store_path, 'rb') as infile:
+  ...   train_iter_restore = pickle.load(infile)
+
+Now that we have loaded our Iterator, we can validate whether the loaded version will continue where the initial one left off:
+
+.. doctest:: saveload
+
+  >>> restored_batch_input, restored_batch_target = next(iter(train_iter_restore))
+  >>> batch_input, batch_target = next(iter(train_iter))
+  >>>
+  >>> import numpy as np
+  >>> print(np.array_equal(batch_input.text, restored_batch_input.text))
+  True
+  >>> print(np.array_equal(batch_target.label, restored_batch_target.label))
+  True
+
+Of course, in case you want to start over, just call ``iter.reset()`` and the iteration will start from the beginning.
+
+.. testcleanup:: saveload
+
+  import shutil
+  shutil.rmtree('cache')
+
 .. testcleanup::
 
   import shutil
