@@ -274,6 +274,12 @@ def test_shuffle_random_state(tabular_dataset):
     iterator_3 = Iterator(dataset=tabular_dataset, batch_size=2, shuffle=True)
     iterator_3.set_internal_random_state(iterator_2.get_internal_random_state())
 
+    assert (
+        iterator_2.get_internal_random_state() == iterator_3.get_internal_random_state()
+    )
+    assert iterator_2.epoch == iterator_3.epoch
+    assert iterator_2.iterations == iterator_3.iterations
+
     # the iterators should behave identically
     assert iterators_behave_identically(iterator_2, iterator_3)
 
@@ -456,7 +462,7 @@ def test_iterator_batch_as_list():
             assert np.all(batch[0] == [3, 4])
 
 
-def iterators_behave_identically(iterator_1, iterator_2):
+def iterators_behave_identically(iterator_1, iterator_2, reset_on_break=True):
     all_equal = True
 
     for (x_batch_1, y_batch_1), (x_batch_2, y_batch_2) in zip(iterator_1, iterator_2):
@@ -472,6 +478,10 @@ def iterators_behave_identically(iterator_1, iterator_2):
             all_equal = False
             break
 
+    if reset and not all_equal:
+        # Reset iterators if we broke the loop
+        iterator_1.reset()
+        iterator_2.reset()
     return all_equal
 
 

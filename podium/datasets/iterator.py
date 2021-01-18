@@ -209,6 +209,13 @@ class Iterator(IteratorBase):
         """
         return self._batch_size
 
+    def reset(self):
+        """
+        Reset the epoch and iteration counter of the Iterator.
+        """
+        self._epoch = 0
+        self._iterations = 0
+
     def set_dataset(self, dataset: DatasetBase) -> None:
         """
         Sets the dataset for this Iterator to iterate over. Resets the epoch
@@ -219,10 +226,16 @@ class Iterator(IteratorBase):
         dataset: DatasetBase
             Dataset to iterate over.
         """
-        self._epoch = 0
-        self._iterations = 0
+        self.reset()
 
         self._dataset = dataset
+
+    def __setstate__(self, state):
+        super().__setstate__(state)
+        if self._shuffle:
+            # Restore the random state to the one prior to start
+            # of last epoch so we can rewind to the correct batch
+            self.set_internal_random_state(self._shuffler_state)
 
     def __len__(self) -> int:
         """
@@ -255,6 +268,11 @@ class Iterator(IteratorBase):
             Iterator that iterates over batches of examples in the dataset.
         """
         indices = list(range(len(self._dataset)))
+
+        # Cache state prior to shuffle so we can use it when unpickling
+        if self._shuffle:
+            self._shuffler_state = self.get_internal_random_state()
+
         if self._shuffle:
             self._shuffler.shuffle(indices)
 
@@ -462,7 +480,7 @@ class BucketIterator(Iterator):
         batch_size=32,
         sort_key=None,
         shuffle=True,
-        seed=42,
+        seed=1,
         look_ahead_multiplier=100,
         bucket_sort_key=None,
     ):
@@ -513,12 +531,14 @@ class BucketIterator(Iterator):
         dataset = self._dataset
 
         # Determine the step where iteration was stopped for lookahead & within bucket
-        lookahead_start = self.iterations // look_ahead_multiplier * look_ahead_multiplier
-        batch_start = self.iterations % look_ahead_multiplier
+        lookahead_start = (
+            self.iterations // self.look_ahead_multiplier * self.look_ahead_multiplier
+        )
+        batch_start = self.iterations % self.look_ahead_multiplier
 
         if self._sort_key is not None:
             dataset = dataset.sorted(key=self._sort_key)
-        for i in range(start, len(dataset), step):
+        for i in range(lookahead_start, len(dataset), step):
             bucket = dataset[i : i + step]
 
             if self.bucket_sort_key is not None:
