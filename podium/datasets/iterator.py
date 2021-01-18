@@ -202,6 +202,13 @@ class Iterator(IteratorBase):
         """
         return self._iterations
 
+    @property
+    def batch_size(self):
+        """
+        The batch size of the iterator.
+        """
+        return self._batch_size
+
     def set_dataset(self, dataset: DatasetBase) -> None:
         """
         Sets the dataset for this Iterator to iterate over. Resets the epoch
@@ -256,7 +263,10 @@ class Iterator(IteratorBase):
         if self._sort_key is not None:
             data = data.sorted(key=self._sort_key)
 
-        for i in range(0, len(data), self._batch_size):
+        # If iteration was stopped, continue where we left off
+        start = self.iterations * self.batch_size
+
+        for i in range(start, len(data), self._batch_size):
             batch_dataset = data[i : i + self._batch_size]
             yield self._create_batch(batch_dataset)
             self._iterations += 1
