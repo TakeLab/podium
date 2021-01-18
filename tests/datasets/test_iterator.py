@@ -478,7 +478,7 @@ def iterators_behave_identically(iterator_1, iterator_2, reset_on_break=True):
             all_equal = False
             break
 
-    if reset and not all_equal:
+    if reset_on_break and not all_equal:
         # Reset iterators if we broke the loop
         iterator_1.reset()
         iterator_2.reset()
