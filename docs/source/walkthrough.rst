@@ -32,12 +32,25 @@ One built-in dataset available in Podium is the `Stanford Sentiment Treebank <ht
   >>> from podium.datasets import SST
   >>> sst_train, sst_test, sst_valid = SST.get_dataset_splits() # doctest:+ELLIPSIS
   >>> print(sst_train)
-  SST[Size: 6920, Fields:
-     (Field[name: text, is_target: False, vocab: Vocab[finalized: True, size: 16284]]
-      LabelField[name: label, is_target: True, vocab: Vocab[finalized: True, size: 2]])
-  ]
+  SST({
+      size: 6920,
+      fields: [
+          Field({
+              name: text,
+              keep_raw: False,
+              is_target: False,
+              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 16284})
+          }),
+          LabelField({
+              name: label,
+              keep_raw: False,
+              is_target: True,
+              vocab: Vocab({specials: (), eager: False, finalized: True, size: 2})
+          })
+      ]
+  })
   >>> print(sst_train[222]) # A short example
-  Example[text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']); label: (None, 'positive')]
+  Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
 
 
 Each built-in Podium dataset has a :meth:`get_dataset_splits` method, which returns the `train`, `test` and `validation` split of that dataset, if available.
@@ -78,8 +91,18 @@ We saw earlier that our dataset has two Fields: text and label. We will touch on
 
   >>> text_field, label_field = sst_train.fields
   >>> print(text_field, label_field, sep='\n')
-  Field[name: text, is_target: False, vocab: Vocab[finalized: True, size: 16284]]
-  LabelField[name: label, is_target: True, vocab: Vocab[finalized: True, size: 2]]
+  Field({
+      name: text,
+      keep_raw: False,
+      is_target: False,
+      vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 16284})
+  })
+  LabelField({
+      name: label,
+      keep_raw: False,
+      is_target: True,
+      vocab: Vocab({specials: (), eager: False, finalized: True, size: 2})
+  })
 
 Inside each of these two fields we can see a :class:`podium.storage.Vocab` class, which is used for numericalization (converting tokens to indices). A Vocab is mainly defined by two maps: the string-to-index mapping :attr:`podium.storage.Vocab.stoi` and the index-to-string mapping :attr:`podium.storage.Vocab.itos`.
 
@@ -127,8 +150,18 @@ The SST dataset has two textual data columns (fields): (1) the input text of the
   >>> text = Field(name='text', numericalizer=small_vocabulary)
   >>> label = LabelField(name='label')
   >>> print(text, label, sep='\n')
-  Field[name: text, is_target: False, vocab: Vocab[finalized: False, size: 0]]
-  LabelField[name: label, is_target: True, vocab: Vocab[finalized: False, size: 0]]
+  Field({
+      name: text,
+      keep_raw: False,
+      is_target: False,
+      vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, finalized: False, size: 0})
+  })
+  LabelField({
+      name: label,
+      keep_raw: False,
+      is_target: True,
+      vocab: Vocab({specials: (), eager: True, finalized: False, size: 0})
+  })
 
 That's it! We have defined our Fields. In order for them to be initialized, we need to `show` them a dataset. For built-in datasets, this is done behind the scenes in the ``get_dataset_splits`` method. We will elaborate how to do this yourself in :ref:`custom-loading`.
 
@@ -137,7 +170,7 @@ That's it! We have defined our Fields. In order for them to be initialized, we n
   >>> fields = {'text': text, 'label': label}
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
   >>> print(small_vocabulary)
-  Vocab[finalized: True, size: 5000]
+  Vocab({specials: ('<UNK>', '<PAD>'), eager: True, finalized: True, size: 5000})
 
 Our new Vocab has been limited to the 5000 most frequent words. If your `Vocab` contains the unknown special token :class:`podium.vocab.UNK`, the words not present in the vocabulary will be set to the value of the unknown token. The unknown token is one of the default `special` tokens in the Vocab, alongside the padding token :class:`podium.vocab.PAD`. You can read more about these in :ref:`specials`.
 
@@ -257,10 +290,26 @@ For this dataset, we need to define three Fields. We also might want the fields 
   >>>
   >>> dataset = TabularDataset('my_dataset.csv', format='csv', fields=fields)
   >>> print(dataset)
-  TabularDataset[Size: 1, Fields:
-   (Field[name: premise, is_target: False, vocab: Vocab[finalized: True, size: 19]]
-    Field[name: hypothesis, is_target: False, vocab: Vocab[finalized: True, size: 19]]
-    LabelField[name: label, is_target: True, vocab: Vocab[finalized: True, size: 1]])]
+  TabularDataset({
+      size: 1,
+      fields: [
+          Field({
+              name: premise,
+              is_target: False, 
+              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 19})
+          }),
+          Field({
+              name: hypothesis,
+              is_target: False, 
+              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 19})
+          }),
+          LabelField({
+              name: label,
+              is_target: True, 
+              vocab: Vocab({specials: (), eager: False, finalized: True, size: 1})
+          }),
+      ]
+  })
   >>> print(shared_vocab.itos)
   ['<UNK>', '<PAD>', 'man', 'A', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.', 'The', 'is', 'sleeping']
 
@@ -282,7 +331,7 @@ The ``line2example`` function should accept a single line of the dataset file as
   >>> 
   >>> dataset = TabularDataset('my_dataset.csv', fields=fields, line2example=custom_split)
   >>> print(dataset[0])
-  Example[premise: (None, ['A', 'man', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.']); hypothesis: (None, ['The', 'man', 'is', 'sleeping']); label: (None, 'contradiction')]
+  Example({'premise': (None, ['A', 'man', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.']), 'hypothesis': (None, ['The', 'man', 'is', 'sleeping']); label: (None, 'contradiction')})
 
 
 Here, for simplicity, we (naively) assume that the content of the Field data will not contain commas. 
@@ -302,7 +351,8 @@ You can load a dataset in 🤗/datasets and then convert it to a Podium dataset 
 
 .. code-block:: python
 
-  >>> from podium.dataload.hf import HFDatasetConverter
+  >>> import pprint
+  >>> from podium.datasets.hf import HFDatasetConverter
   >>> import datasets
   >>> # Loading a huggingface dataset returns an instance of DatasetDict
   >>> # which contains the dataset splits (usually: train, valid, test, 
@@ -316,8 +366,17 @@ You can load a dataset in 🤗/datasets and then convert it to a Podium dataset 
   >>> # over them as if they were).
   >>> imdb_train, imdb_test, imdb_unsupervised = HFDatasetConverter.from_dataset_dict(imdb).values()
   >>>
-  >>> print(imdb_train.fields)
-  {'text': Field[name: text, is_target: False, vocab: Vocab[finalized: False, size: 0]], 'label': LabelField[name: label, is_target: True]}
+  >>> pprint.pprint(imdb_train.as_dataset().fields)
+  (Field({
+      name: text,
+      keep_raw: False,
+      is_target: False,
+      vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, finalized: False, size: 280617})
+  }),
+   LabelField({
+      name: label,
+      keep_raw: False,
+      is_target: True}))
 
 
 .. testcleanup::

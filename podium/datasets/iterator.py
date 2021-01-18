@@ -396,11 +396,11 @@ class Iterator(IteratorBase):
         return max(map(numericalization_length, numericalizations))
 
     def __repr__(self) -> str:
-        return "{}[batch_size: {}, sort_key: {}, shuffle: {}]".format(
-            self.__class__.__name__,
-            self._batch_size,
-            self._sort_key,
-            self._shuffle,
+        return (
+            f"{type(self).__name__}({{"
+            f"batch_size: {self._batch_size}, "
+            f"sort_key: {self._sort_key}, "
+            f"shuffle: {self._shuffle}}})"
         )
 
 
@@ -524,15 +524,12 @@ class BucketIterator(Iterator):
 
     def __repr__(self) -> str:
         return (
-            "{}[batch_size: {}, sort_key: {}, "
-            "shuffle: {}, look_ahead_multiplier: {}, bucket_sort_key: {}]".format(
-                self.__class__.__name__,
-                self._batch_size,
-                self._sort_key,
-                self._shuffle,
-                self.look_ahead_multiplier,
-                self.bucket_sort_key,
-            )
+            f"{type(self).__name__}({{"
+            f"batch_size: {self._batch_size}, "
+            f"sort_key: {self._sort_key}, "
+            f"shuffle: {self._shuffle}, "
+            f"look_ahead_multiplier: {self.look_ahead_multiplier},"
+            f"bucket_sort_key: {self.bucket_sort_key}}})"
         )
 
 
@@ -635,7 +632,7 @@ class HierarchicalDatasetIterator(Iterator):
             )
 
         self._context_max_depth = context_max_depth
-        self._context_max_size = context_max_length
+        self._context_max_length = context_max_length
 
         super().__init__(
             dataset,
@@ -679,9 +676,9 @@ class HierarchicalDatasetIterator(Iterator):
         )
         context = list(context_iterator)
 
-        if self._context_max_size is not None:
+        if self._context_max_length is not None:
             # if context max size is defined, truncate it
-            context = context[-self._context_max_size :]
+            context = context[-self._context_max_length :]
 
         # add the example to the end of its own context
         context.append(node.example)
@@ -763,13 +760,10 @@ class HierarchicalDatasetIterator(Iterator):
 
     def __repr__(self) -> str:
         return (
-            "{}[batch_size: {}, sort_key: {}, "
-            "shuffle: {}, context_max_length: {}, context_max_depth: {}]".format(
-                self.__class__.__name__,
-                self._batch_size,
-                self._sort_key,
-                self._shuffle,
-                self._context_max_size,
-                self._context_max_depth,
-            )
+            f"{type(self).__name__}({{"
+            f"batch_size: {self._batch_size}, "
+            f"sort_key: {self._sort_key}, "
+            f"shuffle: {self._shuffle}, "
+            f"context_max_length: {self._context_max_length}, "
+            f"context_max_depth: {self._context_max_depth}}})"
         )
