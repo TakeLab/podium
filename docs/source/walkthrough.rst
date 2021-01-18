@@ -54,16 +54,16 @@ Podium contains methods to iterate over data. Let's take a look at :class:`podiu
   >>> train_iter = Iterator(sst_train, batch_size=2)
   >>> batch_x, batch_y = next(iter(train_iter))
   >>> print(batch_x, batch_y, sep='\n')
-  InputBatch(text=array([[ 1390,   193,  3035,    12,     4,   652, 13874,   310,    11,
-          101, 13875,    12,    31,    14,   729,  1733,     5,     9,
-          144,  7287,     8,  3656,   193,  7357,   700,     2,     1,
-            1,     1,     1],
-       [   29,  1659,   827,     8,    27,     7,  6115,     3,  4635,
-           63,     3,    19,     4,    55, 15634,   231,   170,     9,
-          128,    48,   123,   656,   130,   190,  2047,     8,   803,
-           74,    79,     2]])) 
-  TargetBatch(label=array([[1],
-       [1]]))
+  {'text': array([[ 1390,   193,  3035,    12,     4,   652, 13874,   310,    11,
+              101, 13875,    12,    31,    14,   729,  1733,     5,     9,
+              144,  7287,     8,  3656,   193,  7357,   700,     2,     1,
+                1,     1,     1],
+           [   29,  1659,   827,     8,    27,     7,  6115,     3,  4635,
+               63,     3,    19,     4,    55, 15634,   231,   170,     9,
+              128,    48,   123,   656,   130,   190,  2047,     8,   803,
+               74,    79,     2]])}
+  {'label': array([[1],
+           [1]])}
 
 
 There are a couple of things we need to unpack here. Firstly, our textual input data and class labels were converted to indices. This happened without our intervention -- built-in datasets have a default preprocessing pipeline, which handles text tokenization and numericalization.
