@@ -252,6 +252,15 @@ class DatasetBase(ABC):
         Creates a new DatasetBase instance containing all Examples, but in
         shuffled order.
 
+        Parameters
+        ----------
+        seed : int, optional
+            A seed used to initialized the default NumPy random Generator.
+            Default: None.
+        generator: np.random.Generator, optional
+            NumPy random Generator to use to compute the permutation.
+            Default: None.
+
         Returns
         -------
         DatasetBase
@@ -374,40 +383,7 @@ class Dataset(DatasetBase):
 
     def __getitem__(
         self, i: Union[int, Iterable[int], slice]
-    ) -> Union["DatasetBase", Example]:
-        """
-        Returns an example or a new dataset containing the indexed examples.
-
-        If indexed with an int, only the example at that position will be returned.
-        If Indexed with a slice or iterable, all examples indexed by the object
-        will be collected and a new dataset containing only those examples will be
-        returned. The new dataset will contain copies of the old dataset's fields and
-        will be identical to the original dataset, with the exception of the example
-        number and ordering. See wiki for detailed examples.
-
-        Examples in the returned Dataset are the same ones present in the
-        original dataset. If a complete deep-copy of the dataset, or its slice,
-        is needed please refer to the `get` method.
-
-        Usage example:
-
-            example = dataset[1] # Indexing by single integer returns a single example
-
-            new_dataset = dataset[1:10] # Multi-indexing returns a new dataset containing
-                                        # the indexed examples.
-
-        Parameters
-        ----------
-        i : int or slice or iterable
-            Index used to index examples.
-
-        Returns
-        -------
-        single example or Dataset
-            If i is an int, a single example will be returned.
-            If i is a slice or iterable, a copy of this dataset containing
-            only the indexed examples will be returned.
-        """
+    ) -> Union["Dataset", Example]:
         if isinstance(i, int):
             return self._examples[i]
 
@@ -419,14 +395,6 @@ class Dataset(DatasetBase):
         return Dataset(examples, self._fields)
 
     def __len__(self) -> int:
-        """
-        Returns the number of examples in the dataset.
-
-        Returns
-        -------
-        int
-            The number of examples in the dataset.
-        """
         return len(self._examples)
 
     def _get_examples(self) -> List[Example]:
@@ -434,7 +402,7 @@ class Dataset(DatasetBase):
 
     def sort(
         self, key: Callable[[Example], CT], reverse=False, inplace: bool = False
-    ) -> "DatasetBase":
+    ) -> "Dataset":
         """
         Creates a new DatasetBase instance in which all Examples are sorted
         according to the value returned by `key`.
@@ -444,15 +412,16 @@ class Dataset(DatasetBase):
         key: callable
             specifies a function of one argument that is used to extract a comparison key
             from each Example.
-
         reverse: bool
             If set to True, then the list elements are sorted as if each comparison were
             reversed.
+        inplace : bool
+            If True, the dataset is sorted in-place and returned.
 
         Returns
         -------
-        DatasetBase
-            A new DatasetBase instance with sorted Examples.
+        Dataset
+            A new Dataset instance with sorted Examples.
         """
 
         def index_key(i):
@@ -469,22 +438,25 @@ class Dataset(DatasetBase):
 
     def filter(
         self, predicate: Callable[[Example], bool], inplace: bool = False
-    ) -> "DatasetBase":
+    ) -> "Dataset":
         """
-        Filters examples with given predicate and returns a new DatasetBase
-        instance containing those examples.
+        Filters examples with given predicate and returns a new Dataset
+        instance containing those examples. If inplace is True, the dataset is
+        modified in-place and returned.
 
         Parameters
         ----------
         predicate : callable
-            predicate should be a callable that accepts example as input and returns
+            Predicate should be a callable that accepts example as input and returns
             true if the example shouldn't be filtered, otherwise returns false
+        inplace : bool
+            If True, the dataset is filtered in-place and returned.
 
         Returns
         -------
-        DatasetBase
-            A new DatasetBase instance containing only the Examples for which `predicate`
-            returned True.
+        Dataset
+            A new or the original Dataset instance
+            containing only the Examples for which `predicate` returned True.
         """
         if inplace:
             self._examples = [example for example in self if predicate(example)]
@@ -497,15 +469,27 @@ class Dataset(DatasetBase):
         seed: Optional[int] = None,
         generator: Optional[np.random.Generator] = None,
         inplace: bool = False,
-    ) -> "DatasetBase":
+    ) -> "Dataset":
         """
-        Creates a new DatasetBase instance containing all Examples, but in
-        shuffled order.
+        Creates a new Dataset instance containing all Examples, but in
+        shuffled order. If inplace is True, the dataset is
+        modified in-place and returned.
+
+        Parameters
+        ----------
+        seed : int, optional
+            A seed used to initialized the default NumPy random Generator.
+            Default: None.
+        generator: np.random.Generator, optional
+            NumPy random Generator to use to compute the permutation.
+            Default: None.
+        inplace : bool
+            If True, the dataset is shuffled in-place and returned.
 
         Returns
         -------
-        DatasetBase
-            A new DatasetBase instance containing all Examples, but in shuffled
+        Dataset
+            A new or the original Dataset instance containing all Examples, but in shuffled
             order.
         """
         if inplace:
@@ -517,7 +501,21 @@ class Dataset(DatasetBase):
 
         return super().shuffle(seed, generator)
 
-    def copy(self, copy_fields=False):
+    def copy(self, copy_fields: bool = False):
+        """
+        Returns a Dataset instance with the copied examples. If `copy_fields` is true,
+        the dataset fields are copied as well.
+
+        Parameters
+        ----------
+        copy_fields : bool
+            If True, the dataset fields are copied as well.
+
+        Returns
+        -------
+        Dataset
+            A copied Dataset.
+        """
         return Dataset(
             copy.deepcopy(self._examples),
             copy.deepcopy(self._fields) if copy_fields else self._fields,
