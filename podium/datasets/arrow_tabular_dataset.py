@@ -10,7 +10,7 @@ from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tupl
 from podium.field import Field, unpack_fields
 
 from .dataset import DatasetBase
-from .example_factory import Example, ExampleFactory
+from .example_factory import Example
 from .tabular_dataset import _load_tabular_file
 
 
