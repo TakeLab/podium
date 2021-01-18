@@ -444,7 +444,7 @@ Now that we have loaded our Iterator, we can validate whether the loaded version
   >>> print(np.array_equal(batch_target.label, restored_batch_target.label))
   True
 
-Of course, in case you want to start over, just call ``iter.reset()`` and the iteration will start from the beginning.
+Of course, in case you want to start over, just call ``Iterator.reset()`` and the iteration will start from the beginning.
 
 .. testcleanup:: saveload
 
