@@ -24,6 +24,11 @@ FORMAT_USE_DICT_COMBINATIONS = (
     ("json", True),
 )
 
+CSV_USE_DICT_COMBINATIONS = (
+    ("csv", True),
+    ("csv", False),
+)
+
 TEXT = (
     "ovaj text",
     "ovaj isto",
@@ -458,6 +463,28 @@ def test_tabular_dataset_iterate_over_dataset(
         assert example[field_name] == expected_data
 
 
+@pytest.mark.parametrize("file_format, use_dict", CSV_USE_DICT_COMBINATIONS)
+def test_tabular_dataset_custom_line2example(
+    file_format, use_dict, tabular_dataset_fields, tabular_data, file_path
+):
+    def line2example(line):
+        line_parts = line.strip().split(",")
+        return line_parts
+
+    raw_tabular_dataset = create_tabular_dataset(
+        tabular_dataset_fields, file_format, file_path, use_dict
+    )
+
+    custom_l2e_dataset = create_tabular_dataset(
+        tabular_dataset_fields, file_format, file_path, use_dict, line2example
+    )
+
+    field_names = ["text", "rating"]
+    for field_name in field_names:
+        for ex_raw, ex_custom in zip(raw_tabular_dataset, custom_l2e_dataset):
+            assert ex_raw[field_name] == ex_custom[field_name]
+
+
 @pytest.mark.parametrize("file_format, use_dict", FORMAT_USE_DICT_COMBINATIONS)
 def test_tabular_dataset_iterate_over_examples(
     file_format, use_dict, tabular_dataset_fields, tabular_data, file_path
@@ -519,14 +546,18 @@ def test_tabular_dataset_exception(
     if use_dict:
         with pytest.raises(ValueError):
             TabularDataset(
-                file_path, file_format, tabular_dataset_fields, skip_header=True
+                file_path, tabular_dataset_fields, format=file_format, skip_header=True
             )
 
     # wrong file_format given
     with pytest.raises(ValueError):
-        TabularDataset(file_path, "wrong_format", tabular_dataset_fields)
+        TabularDataset(file_path, fields=tabular_dataset_fields, format="wrong_format")
 
-    td = TabularDataset(file_path, file_format, tabular_dataset_fields)
+    # Test that custom file_format doesn't pass
+    with pytest.raises(ValueError):
+        TabularDataset(file_path, fields=tabular_dataset_fields, format="custom")
+
+    td = TabularDataset(file_path, fields=tabular_dataset_fields, format=file_format)
 
     # accessing a non-existing field
     with pytest.raises(AttributeError):
@@ -682,11 +713,18 @@ def create_dataset(data, field_list):
     return Dataset(examples, field_list)
 
 
-def create_tabular_dataset(fields, file_format, file_path, use_dict, sort_key=None):
+def create_tabular_dataset(
+    fields, file_format, file_path, use_dict, sort_key=None, line2example=None
+):
     skip_header = file_format in {"csv", "tsv"} and not use_dict
 
     return TabularDataset(
-        file_path, file_format, fields, skip_header=skip_header, sort_key=sort_key
+        file_path,
+        fields,
+        format=file_format,
+        skip_header=skip_header,
+        sort_key=sort_key,
+        line2example=line2example,
     )
 
 

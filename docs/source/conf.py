@@ -106,3 +106,20 @@ def setup(app):
     #sphinx.add_domain(PatchedPythonDomain, override=True)
     app.add_css_file('css/podium.css')
     app.add_js_file('js/custom.js')
+
+# only run doctests marked with a ".. doctest::" directive
+doctest_test_doctest_blocks = ''
+
+doctest_global_setup = '''
+try:
+    import transformers
+except ImportError:
+    transformers = None
+
+try:
+    import spacy
+    spacy.load('en', disable=['parser', 'ner'])
+except (ImportError, IOError):
+    spacy = None
+
+'''
