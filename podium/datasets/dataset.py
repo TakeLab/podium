@@ -440,9 +440,9 @@ class Dataset(DatasetBase):
         self, predicate: Callable[[Example], bool], inplace: bool = False
     ) -> "Dataset":
         """
-        Filters examples with given predicate and returns a new Dataset
-        instance containing those examples. If inplace is True, the dataset is
-        modified in-place and returned.
+        Filters examples with given predicate and returns a new Dataset instance
+        containing those examples. If inplace is True, the dataset is modified
+        in-place and returned.
 
         Parameters
         ----------
@@ -471,9 +471,9 @@ class Dataset(DatasetBase):
         inplace: bool = False,
     ) -> "Dataset":
         """
-        Creates a new Dataset instance containing all Examples, but in
-        shuffled order. If inplace is True, the dataset is
-        modified in-place and returned.
+        Creates a new Dataset instance containing all Examples, but in shuffled
+        order. If inplace is True, the dataset is modified in-place and
+        returned.
 
         Parameters
         ----------
@@ -503,8 +503,8 @@ class Dataset(DatasetBase):
 
     def copy(self, copy_fields: bool = False):
         """
-        Returns a Dataset instance with the copied examples. If `copy_fields` is true,
-        the dataset fields are copied as well.
+        Returns a Dataset instance with the copied examples. If `copy_fields` is
+        true, the dataset fields are copied as well.
 
         Parameters
         ----------
