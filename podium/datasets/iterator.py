@@ -4,7 +4,7 @@ Module contains classes for iterating over datasets.
 import math
 import warnings
 from abc import ABC, abstractmethod
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 from random import Random
 from typing import Iterator as PythonIterator
 from typing import List, NamedTuple, Tuple
@@ -234,7 +234,7 @@ class Iterator(IteratorBase):
             Number of batches s provided in one epoch.
         """
 
-        return math.ceil(len(self._dataset) / self._batch_size)
+        return math.ceil(len(self._dataset) / self.batch_size)
 
     def __iter__(self) -> PythonIterator[Tuple[NamedTuple, NamedTuple]]:
         """
@@ -266,8 +266,8 @@ class Iterator(IteratorBase):
         # If iteration was stopped, continue where we left off
         start = self.iterations * self.batch_size
 
-        for i in range(start, len(data), self._batch_size):
-            batch_dataset = data[i : i + self._batch_size]
+        for i in range(start, len(data), self.batch_size):
+            batch_dataset = data[i : i + self.batch_size]
             yield self._create_batch(batch_dataset)
             self._iterations += 1
 
@@ -406,7 +406,7 @@ class Iterator(IteratorBase):
     def __repr__(self) -> str:
         return "{}[batch_size: {}, sort_key: {}, shuffle: {}]".format(
             self.__class__.__name__,
-            self._batch_size,
+            self.batch_size,
             self._sort_key,
             self._shuffle,
         )
@@ -509,18 +509,23 @@ class BucketIterator(Iterator):
         self.look_ahead_multiplier = look_ahead_multiplier
 
     def __iter__(self) -> PythonIterator[Tuple[NamedTuple, NamedTuple]]:
-        step = self._batch_size * self.look_ahead_multiplier
+        step = self.batch_size * self.look_ahead_multiplier
         dataset = self._dataset
+
+        # Determine the step where iteration was stopped for lookahead & within bucket
+        lookahead_start = self.iterations // look_ahead_multiplier * look_ahead_multiplier
+        batch_start = self.iterations % look_ahead_multiplier
+
         if self._sort_key is not None:
             dataset = dataset.sorted(key=self._sort_key)
-        for i in range(0, len(dataset), step):
+        for i in range(start, len(dataset), step):
             bucket = dataset[i : i + step]
 
             if self.bucket_sort_key is not None:
                 bucket = bucket.sorted(key=self.bucket_sort_key)
 
-            for j in range(0, len(bucket), self._batch_size):
-                batch_dataset = bucket[j : j + self._batch_size]
+            for j in range(batch_start, len(bucket), self.batch_size):
+                batch_dataset = bucket[j : j + self.batch_size]
                 input_batch, target_batch = self._create_batch(batch_dataset)
 
                 yield input_batch, target_batch
@@ -535,7 +540,7 @@ class BucketIterator(Iterator):
             "{}[batch_size: {}, sort_key: {}, "
             "shuffle: {}, look_ahead_multiplier: {}, bucket_sort_key: {}]".format(
                 self.__class__.__name__,
-                self._batch_size,
+                self.batch_size,
                 self._sort_key,
                 self._shuffle,
                 self.look_ahead_multiplier,
@@ -760,8 +765,11 @@ class HierarchicalDatasetIterator(Iterator):
     def __iter__(self) -> PythonIterator[Tuple[NamedTuple, NamedTuple]]:
         dataset_nodes = self._data()
 
-        for i in range(0, len(dataset_nodes), self._batch_size):
-            batch_nodes = dataset_nodes[i : i + self._batch_size]
+        # If iteration was stopped, continue where we left off
+        start = self.iterations * self.batch_size
+
+        for i in range(start, len(dataset_nodes), self.batch_size):
+            batch_nodes = dataset_nodes[i : i + self.batch_size]
             yield self._nodes_to_batch(batch_nodes)
             self._iterations += 1
 
@@ -774,7 +782,7 @@ class HierarchicalDatasetIterator(Iterator):
             "{}[batch_size: {}, sort_key: {}, "
             "shuffle: {}, context_max_length: {}, context_max_depth: {}]".format(
                 self.__class__.__name__,
-                self._batch_size,
+                self.batch_size,
                 self._sort_key,
                 self._shuffle,
                 self._context_max_size,
