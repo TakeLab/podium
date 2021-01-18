@@ -70,7 +70,7 @@ def _get_permutation(size, seed, generator):
             np.random.random()
         generator = np.random.default_rng(seed)
 
-    return np.random.permutation(size)
+    return generator.permutation(size)
 
 
 class DatasetBase(ABC):
