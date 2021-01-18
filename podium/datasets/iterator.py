@@ -15,6 +15,20 @@ from podium.datasets.dataset import Dataset, DatasetBase
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
 
 
+class Batch(dict):
+    @property
+    def name(self):
+        return self._name
+
+    def __iter__(self):
+        yield from self.values()
+
+    def __getattr__(self, name):
+        if name in self:
+            return self[name]
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+
+
 class IteratorBase(ABC):
     """
     Abstract base class for all Iterators in Podium.
@@ -205,14 +219,6 @@ class Iterator(IteratorBase):
         self._epoch = 0
         self._iterations = 0
 
-        self.input_batch_class = namedtuple(
-            "InputBatch", [field.name for field in dataset.fields if not field.is_target]
-        )
-
-        self.target_batch_class = namedtuple(
-            "TargetBatch", [field.name for field in dataset.fields if field.is_target]
-        )
-
         self._dataset = dataset
 
     def __len__(self) -> int:
@@ -267,10 +273,9 @@ class Iterator(IteratorBase):
 
         examples = dataset.examples
 
-        # dicts that will be used to create the InputBatch and TargetBatch
-        # objects
-        input_batch_dict = {}
-        target_batch_dict = {}
+        # dicts that will be used to store the input and target batch
+        input_batch = Batch()
+        target_batch = Batch()
 
         for field in dataset.fields:
             numericalizations = []
@@ -308,12 +313,9 @@ class Iterator(IteratorBase):
                 batch = numericalizations
 
             if field.is_target:
-                target_batch_dict[field.name] = batch
+                target_batch[field.name] = batch
             else:
-                input_batch_dict[field.name] = batch
-
-        input_batch = self.input_batch_class(**input_batch_dict)
-        target_batch = self.target_batch_class(**target_batch_dict)
+                input_batch[field.name] = batch
 
         return input_batch, target_batch
 
@@ -699,9 +701,9 @@ class HierarchicalDatasetIterator(Iterator):
 
         Returns
         -------
-        (namedtuple, namedtuple)
-            a tuple of two namedtuples, input batch and target batch, containing the
-            input and target fields of the batch respectively.
+        (Batch, Batch)
+            a tuple of two Batch instances, the input batch and target batch, containing
+            the input and target fields of the batch respectively.
         """
 
         input_batch_dict, target_batch_dict = defaultdict(list), defaultdict(list)
@@ -714,16 +716,16 @@ class HierarchicalDatasetIterator(Iterator):
                 node_context_dataset
             )
 
-            for key in input_sub_batch._fields:
+            for key in input_sub_batch.keys():
                 value = getattr(input_sub_batch, key)
                 input_batch_dict[key].append(value)
 
-            for key in target_sub_batch._fields:
+            for key in target_sub_batch.keys():
                 value = getattr(target_sub_batch, key)
                 target_batch_dict[key].append(value)
 
-        input_batch = self.input_batch_class(**input_batch_dict)
-        target_batch = self.target_batch_class(**target_batch_dict)
+        input_batch = Batch(input_batch_dict)
+        target_batch = Batch(target_batch_dict)
 
         return input_batch, target_batch
 
