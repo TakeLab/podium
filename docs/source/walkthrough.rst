@@ -342,7 +342,6 @@ Once the ``Field`` s are constructed, we can use the dataset as if it was part o
   [[0]
    [0]]
 
-
 .. testcleanup::
 
   import shutil
