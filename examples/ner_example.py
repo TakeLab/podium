@@ -10,13 +10,13 @@ from functools import partial
 import numpy as np
 
 from podium import BucketIterator, Vocab
-from podium.vocab import PAD
-from podium.datasets import CroatianNERDataset
+from podium.datasets.impl.croatian_ner_dataset import CroatianNERDataset
 from podium.experimental.models import FeatureTransformer
 from podium.experimental.models.impl.blcc_model import BLCCModel
 from podium.experimental.models.impl.simple_trainers import SimpleTrainer
 from podium.storage.resources.large_resource import LargeResource
 from podium.vectorizers.vectorizer import BasicVectorStorage
+from podium.vocab import PAD
 
 
 Inputs = namedtuple("Inputs", ["tokens", "casing"])
@@ -181,9 +181,7 @@ def ner_dataset_classification_fields():
     Function creates fields to use with the Croatian NER dataset on NER task.
     """
     tokens = Field(name="tokens", vocab=Vocab(), tokenizer=None)
-    casing = Field(
-        name="casing", vocab=Vocab(specials=(PAD(),), tokenizer=None)
-    )
+    casing = Field(name="casing", vocab=Vocab(specials=(PAD(),), tokenizer=None))
     labels = Field(
         name="labels", is_target=True, vocab=Vocab(specials=(PAD(),), tokenizer=None)
     )
