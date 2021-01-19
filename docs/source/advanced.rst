@@ -17,7 +17,7 @@ The data is processed immediately when the instance is loaded from disk and then
   >>> from podium.datasets import SST
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits()
   >>> print(sst_train[222]) 
-  Example[text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']); label: (None, 'positive')]
+  Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
 
 We can unpack the Example class with the bracket notation, as you would a dictionary.
 

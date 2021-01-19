@@ -46,10 +46,8 @@ class Example(dict):
         raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
     def __repr__(self):
-        attr_repr = "; ".join(
-            f"{key}: {value}" for key, value in self.items() if not key.endswith("_")
-        )
-        return f"{type(self).__name__}[{attr_repr}]"
+        attr_dict = {k: v for k, v in self.items() if not k.endswith("_")}
+        return f"{type(self).__name__}({attr_dict})"
 
     @staticmethod
     def with_fields(fields):

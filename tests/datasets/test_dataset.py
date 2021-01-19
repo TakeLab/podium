@@ -93,9 +93,6 @@ class MockField:
     def get_output_fields(self):
         return (self,)
 
-    def __repr__(self):
-        return self.name
-
 
 class MockExample(dict):
     def __init__(self, fields, data):
