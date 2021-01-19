@@ -8,11 +8,11 @@ import torch.optim as optim
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from transformers import DistilBertForSequenceClassification, DistilBertTokenizer
 
-from podium.datasets import IMDB, Iterator
-from podium.models import Experiment
-from podium.models.impl.pytorch import TorchModel, TorchTrainer
-from podium.pipeline import Pipeline
-from podium.storage import Field, LabelField, Vocab
+from podium import Field, Iterator, LabelField, Vocab
+from podium.datasets import IMDB
+from podium.experimental.models import Experiment
+from podium.experimental.models.impl.pytorch import TorchModel, TorchTrainer
+from podium.experimental.pipeline import Pipeline
 
 
 def create_fields():

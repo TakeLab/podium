@@ -58,8 +58,9 @@ class DiskBackedDataset(DatasetBase):
         data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
     ):
         """
-        Creates a new DiskBackedDataset instance. Users should use static constructor
-        functions like 'from_dataset' to construct new DiskBackedDataset instances.
+        Creates a new DiskBackedDataset instance. Users should use static
+        constructor functions like 'from_dataset' to construct new
+        DiskBackedDataset instances.
 
         Parameters
         ----------
@@ -174,10 +175,14 @@ class DiskBackedDataset(DatasetBase):
         fields = unpack_fields(fields)
 
         if cache_path is None:
-            cache_path = tempfile.mkdtemp(prefix=DiskBackedDataset.TEMP_CACHE_FILENAME_PREFIX)
+            cache_path = tempfile.mkdtemp(
+                prefix=DiskBackedDataset.TEMP_CACHE_FILENAME_PREFIX
+            )
 
         # dump dataset table
-        cache_table_path = os.path.join(cache_path, DiskBackedDataset.CACHE_TABLE_FILENAME)
+        cache_table_path = os.path.join(
+            cache_path, DiskBackedDataset.CACHE_TABLE_FILENAME
+        )
 
         # TODO hande cache case when cache is present
 
@@ -206,7 +211,9 @@ class DiskBackedDataset(DatasetBase):
         mmapped_file = pa.memory_map(cache_table_path)
         table = pa.RecordBatchFileReader(mmapped_file).read_all()
 
-        return DiskBackedDataset(table, fields, cache_path, mmapped_file, inferred_data_types)
+        return DiskBackedDataset(
+            table, fields, cache_path, mmapped_file, inferred_data_types
+        )
 
     @staticmethod
     def from_tabular_file(
@@ -537,7 +544,9 @@ class DiskBackedDataset(DatasetBase):
             the DiskBackedDataset loaded from the passed cache directory.
         """
         # load fields
-        fields_file_path = os.path.join(cache_path, DiskBackedDataset.CACHE_FIELDS_FILENAME)
+        fields_file_path = os.path.join(
+            cache_path, DiskBackedDataset.CACHE_FIELDS_FILENAME
+        )
         with open(fields_file_path, "rb") as fields_cache_file:
             fields = pickle.load(fields_cache_file)
 
@@ -576,18 +585,24 @@ class DiskBackedDataset(DatasetBase):
             )
 
         if cache_path is None:
-            cache_path = tempfile.mkdtemp(prefix=DiskBackedDataset.TEMP_CACHE_FILENAME_PREFIX)
+            cache_path = tempfile.mkdtemp(
+                prefix=DiskBackedDataset.TEMP_CACHE_FILENAME_PREFIX
+            )
 
         if not os.path.isdir(cache_path):
             os.mkdir(cache_path)
 
         # pickle fields
-        cache_fields_path = os.path.join(cache_path, DiskBackedDataset.CACHE_FIELDS_FILENAME)
+        cache_fields_path = os.path.join(
+            cache_path, DiskBackedDataset.CACHE_FIELDS_FILENAME
+        )
         with open(cache_fields_path, "wb") as fields_cache_file:
             pickle.dump(self.fields, fields_cache_file)
 
         # dump table
-        cache_table_path = os.path.join(cache_path, DiskBackedDataset.CACHE_TABLE_FILENAME)
+        cache_table_path = os.path.join(
+            cache_path, DiskBackedDataset.CACHE_TABLE_FILENAME
+        )
         with pa.OSFile(cache_table_path, "wb") as f:
             with pa.RecordBatchFileWriter(f, self.table.schema) as writer:
                 writer.write(self.table)
@@ -596,8 +611,8 @@ class DiskBackedDataset(DatasetBase):
 
     def _get_examples(self) -> List[Example]:
         """
-        Loads this DiskBackedDataset into memory and returns a list containing the
-        loaded Examples.
+        Loads this DiskBackedDataset into memory and returns a list containing
+        the loaded Examples.
         """
         return list(DiskBackedDataset._recordbatch_to_examples(self.table, self.fields))
 
