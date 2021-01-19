@@ -9,7 +9,7 @@ from functools import partial
 
 import numpy as np
 
-from podium import BucketIterator, Vocab, Field
+from podium import BucketIterator, Field, Vocab
 from podium.datasets.impl.croatian_ner_dataset import CroatianNERDataset
 from podium.experimental.models import FeatureTransformer
 from podium.experimental.models.impl.blcc_model import BLCCModel
@@ -183,7 +183,10 @@ def ner_dataset_classification_fields():
     tokens = Field(name="tokens", numericalizer=Vocab(), tokenizer=None)
     casing = Field(name="casing", numericalizer=Vocab(specials=(PAD(),)), tokenizer=None)
     labels = Field(
-        name="labels", is_target=True, numericalizer=Vocab(specials=(PAD(),)), tokenizer=None
+        name="labels",
+        is_target=True,
+        numericalizer=Vocab(specials=(PAD(),)),
+        tokenizer=None,
     )
 
     casing.add_posttokenize_hook(casing_mapper_hook)
