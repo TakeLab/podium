@@ -104,7 +104,7 @@ This way, we can define a static dictionary which we might have obtained on anot
 
 .. doctest:: custom_vocab
 
-  >>> from podium.Vocab import UNK
+  >>> from podium.vocab import UNK
   >>> custom_itos = [UNK(), 'this', 'is', 'a', 'sample']
   >>> vocab = Vocab.from_itos(custom_itos)
   >>> print(vocab)
