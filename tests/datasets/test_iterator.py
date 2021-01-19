@@ -77,7 +77,7 @@ def test_iterate_new_epoch(tabular_dataset):
     it = iter(iterator)
     assert iterator._iterations == 0
 
-    for i in range(4):
+    for i in range(1, 5):
         next(it)
         assert iterator._epoch == 0
         assert iterator._iterations == i
@@ -473,7 +473,7 @@ def iterators_behave_identically(iterator_1, iterator_2, reset=True):
             break
 
     if reset:
-        # Reset iterators if we broke the loop
+        # Reset internal iterator counters
         iterator_1.reset()
         iterator_2.reset()
     return all_equal

@@ -384,12 +384,25 @@ As an example, we will again turn to the SST dataset and some of our previously 
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
   >>>
   >>> print(sst_train)
-  SST[Size: 6920, Fields:
-  (Field[name: text, is_target: False, vocab: Vocab[finalized: True, size: 5000]]
-   LabelField[name: label, is_target: True, vocab: Vocab[finalized: True, size: 3]])
-  ]
+  SST({
+        size: 6920,
+        fields: [
+            Field({
+                name: text,
+                keep_raw: False,
+                is_target: False,
+                vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, finalized: True, size: 5000})
+            }),
+            LabelField({
+                name: label,
+                keep_raw: False,
+                is_target: True,
+                vocab: Vocab({specials: (), eager: True, finalized: True, size: 3})
+            })
+        ]
+    })
   >>> print(sst_train[222])
-  Example[text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']); label: (None, 'positive')]
+  Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
 
 Each ``Dataset`` instance in the SST dataset splits contains ``Field``s and a ``Vocab``. When we pickle a dataset, we also store those objects. We will now demonstrate how to store (and load) a pickled dataset in a folder which we opened previously, named ``cache``.
 
@@ -407,7 +420,7 @@ Each ``Dataset`` instance in the SST dataset splits contains ``Field``s and a ``
   >>> with open(dataset_store_path, 'rb') as infile:
   ...   sst_train, sst_test, sst_dev = pickle.load(infile)
   >>> print(sst_train[222])
-  Example[text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']); label: (None, 'positive')]
+  Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
 
 Each of the components -- ``Field``, ``Vocab`` and ``Example`` can also be pickled separately. Apart from being able to save and load a ``Dataset`` and its components, you can also store an ``Iterator`` mid-iteration and it will continue on the batch on which you left off.
 In case you don't want this behavior and would rather your unpickled iterator starts from the beginning, you can call ``Iterator.reset()`` which will reset iterator to the start of the dataset.

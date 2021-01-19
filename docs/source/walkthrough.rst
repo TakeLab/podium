@@ -121,7 +121,7 @@ For the latter approach, the :class:`podium.Vocab` class has two static construc
   >>> custom_stoi = {'This':0, 'is':1, 'a':2, 'sample':3}
   >>> vocab = Vocab.from_stoi(custom_stoi)
   >>> print(vocab)
-  Vocab[finalized: True, size: 4]
+  Vocab({specials: [], eager: True, finalized: True, size: 4})
 
 This way, we can define a static dictionary which we might have obtained on another dataset to use for our current task. Similarly, it is possible to define a ``Vocab`` by a sequence of strings -- an ``itos``:
 
@@ -131,9 +131,7 @@ This way, we can define a static dictionary which we might have obtained on anot
   >>> custom_itos = [UNK(), 'this', 'is', 'a', 'sample']
   >>> vocab = Vocab.from_itos(custom_itos)
   >>> print(vocab)
-  Vocab[finalized: True, size: 5]
-  >>> print(vocab.specials)
-  ['<UNK>']
+  Vocab({specials: ['<UNK>'], eager: True, finalized: True, size: 5})
 
 In this example we have also defined a Special token (:ref:`specials`) to use in our vocabulary. Both of these static constructors are equivalent and can produce the same ``Vocab`` mapping.
 
