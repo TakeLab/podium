@@ -2,7 +2,6 @@
 Package contains datasets.
 """
 
-from .arrow_tabular_dataset import ArrowDataset
 from .dataset import (
     Dataset,
     DatasetBase,

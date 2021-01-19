@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 
 from podium.datasets import (
-    ArrowDataset,
     Dataset,
     DatasetBase,
     DatasetConcatView,
@@ -10,6 +9,7 @@ from podium.datasets import (
     DatasetSlicedView,
     ExampleFactory,
 )
+from podium.datasets.arrow_dataset import DiskBackedDataset
 from podium.field import Field
 from podium.vocab import Vocab
 
@@ -261,9 +261,9 @@ def test_slice_view_to_dataset(dataset, tmp_path):
         for f in dataset.fields:
             assert ex_view[f.name] == ex_dataset[f.name]
 
-    # cast to ArrowDataset
-    ds = ArrowDataset.from_dataset(dataset_view, cache_path=tmp_path)
-    assert isinstance(ds, ArrowDataset)
+    # cast to DiskBackedDataset
+    ds = DiskBackedDataset.from_dataset(dataset_view, cache_path=tmp_path)
+    assert isinstance(ds, DiskBackedDataset)
     assert len(ds) == len(dataset_view)
     for ex_view, ex_dataset in zip(dataset_view, ds):
         for f in dataset.fields:
