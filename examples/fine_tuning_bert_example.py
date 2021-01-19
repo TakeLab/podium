@@ -32,11 +32,11 @@ def create_fields():
     text = Field(
         name="text",
         tokenizer=text_to_tokens,
-        custom_numericalize=tokenizer.convert_tokens_to_ids,
+        numericalizer=tokenizer.convert_tokens_to_ids,
         padding_token=0,
     )
 
-    label = LabelField(name="label", vocab=Vocab(specials=()))
+    label = LabelField(name="label")
 
     return {"text": text, "label": label}
 
