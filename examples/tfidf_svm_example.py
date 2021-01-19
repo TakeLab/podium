@@ -3,7 +3,7 @@ Example how to use tfidf with svm on simple SST dataset.
 """
 from sklearn.metrics import accuracy_score
 
-from podium import Iterator, SingleBatchIterator
+from podium import Iterator
 from podium.datasets import SST
 from podium.experimental.models import AbstractSupervisedModel, FeatureTransformer
 from podium.experimental.models.impl import ScikitLinearSVCModel
