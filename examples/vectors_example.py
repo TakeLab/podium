@@ -2,16 +2,15 @@
 Module contains example on how to use vectorizer class by using GloVe concrete
 vectors class.
 """
-from podium.storage import LargeResource, Vocab
-from podium.storage.vectorizers.impl import GloVe
+from podium import Vocab
+from podium.storage import LargeResource
+from podium.vectorizers import GloVe
 
 
 if __name__ == "__main__":
     LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
     # we use vocab so that we don't need to load all vectors
-    vocab = Vocab()
-    vocab += {"frog", "load", "lizard", "company", "city"}
-    vocab.finalize()
+    vocab = Vocab.from_itos(["frog", "load", "lizard", "company", "city"])
 
     vectorizer = GloVe()
     vectorizer.load_vocab(vocab=vocab)

@@ -4,12 +4,12 @@ import pickle
 import torch
 import torch.nn as nn
 
-from podium.datasets import IMDB, Iterator
-from podium.models import Experiment
-from podium.models.impl.pytorch import AttentionRNN, TorchModel, TorchTrainer
-from podium.pipeline import Pipeline
-from podium.storage import Field, LabelField, Vocab
-from podium.storage.vectorizers.impl import GloVe
+from podium import Field, LabelField, Vocab, Iterator
+from podium.datasets import IMDB
+from podium.vectorizers import GloVe
+from podium.experimental.models import Experiment
+from podium.experimental.models.impl.pytorch import AttentionRNN, TorchModel, TorchTrainer
+from podium.experimental.pipeline import Pipeline
 
 
 def lowercase(raw, tokenized):
@@ -60,14 +60,14 @@ def create_fields():
     min_frequency = 5
     vocab = Vocab(max_size=max_vocab_size, min_freq=min_frequency)
 
-    text = Field(name="text", vocab=vocab, tokenizer="spacy", keep_raw=False)
+    text = Field(name="text", numericalizer=vocab, tokenizer="spacy-en", keep_raw=False)
     # Add preprpocessing hooks to model
     # 1. Lowercase
     text.add_posttokenize_hook(lowercase)
     # 2. Truncate to length
     text.add_posttokenize_hook(max_length)
 
-    label = LabelField(name="label", vocab=Vocab(specials=()))
+    label = LabelField(name="label", numericalizer=Vocab(specials=()))
     return {text.name: text, label.name: label}
 
 

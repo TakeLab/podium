@@ -7,7 +7,7 @@ import numpy as np
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import StandardScaler
 
-from podium import Field, Vocab
+from podium import Field, LabelField, Vocab
 from podium.datasets import ExampleFormat, Iterator, PauzaHRDataset
 from podium.storage import LargeResource
 from podium.vectorizers.impl import NlplVectorizer
@@ -31,21 +31,15 @@ def basic_pauza_hr_fields():
     """
     Function returns pauza-hr fields used for classification.
     """
-    rating = Field(
+    rating = LabelField(
         name="Rating",
-        vocab=Vocab(specials=()),
-        is_target=True,
-        tokenizer=None,
-        keep_raw=True,
-        custom_numericalize=numericalize_pauza_rating,
+        pretokenize_hooks=[numericalize_pauza_rating]
     )
 
     text = Field(
         name="Text",
-        vocab=Vocab(),
+        numericalizer=Vocab(),
         tokenizer="split",
-        language="hr",
-        tokenize=True,
         keep_raw=False,
         fixed_length=100,
     )
