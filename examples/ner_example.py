@@ -8,6 +8,7 @@ from collections import namedtuple
 from functools import partial
 
 import numpy as np
+from sklearn.metrics import f1_score
 
 from podium import BucketIterator, Field, Vocab
 from podium.datasets.impl.croatian_ner_dataset import CroatianNERDataset
