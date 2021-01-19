@@ -183,7 +183,7 @@ def ner_dataset_classification_fields():
     tokens = Field(name="tokens", numericalizer=Vocab(), tokenizer=None)
     casing = Field(name="casing", numericalizer=Vocab(specials=(PAD(),)), tokenizer=None)
     labels = Field(
-        name="labels", is_target=True, numericalizer=Vocab(specials=(PAD(),), tokenizer=None)
+        name="labels", is_target=True, numericalizer=Vocab(specials=(PAD(),)), tokenizer=None
     )
 
     casing.add_posttokenize_hook(casing_mapper_hook)
