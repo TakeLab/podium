@@ -2,8 +2,7 @@
 Example shows how to add keyword extraction features to a dataset.
 """
 from podium import Field
-from podium.datasets import ExampleFactory
-from podium.datasets import Dataset
+from podium.datasets import Dataset, ExampleFactory
 from podium.preproc.yake import YAKE
 
 

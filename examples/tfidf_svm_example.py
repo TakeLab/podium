@@ -5,11 +5,11 @@ from sklearn.metrics import accuracy_score
 
 from podium import Iterator, SingleBatchIterator
 from podium.datasets import SST
-from podium.storage import LargeResource
-from podium.vectorizers import TfIdfVectorizer
 from podium.experimental.models import AbstractSupervisedModel, FeatureTransformer
 from podium.experimental.models.impl import ScikitLinearSVCModel
 from podium.experimental.models.impl.simple_trainers import SimpleTrainer
+from podium.storage import LargeResource
+from podium.vectorizers import TfIdfVectorizer
 
 
 def tfidf_svm_example_main():

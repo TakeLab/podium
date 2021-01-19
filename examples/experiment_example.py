@@ -9,14 +9,18 @@ from sklearn.preprocessing import StandardScaler
 
 from podium import Field, LabelField, Vocab
 from podium.datasets import ExampleFormat, Iterator, PauzaHRDataset
-from podium.storage import LargeResource
-from podium.vectorizers.impl import NlplVectorizer
-from podium.experimental.models import Experiment, FeatureTransformer, SklearnTensorTransformerWrapper
+from podium.experimental.model_selection import grid_search
+from podium.experimental.models import (
+    Experiment,
+    FeatureTransformer,
+    SklearnTensorTransformerWrapper,
+)
 from podium.experimental.models.impl.fc_model import ScikitMLPClassifier
 from podium.experimental.models.impl.simple_trainers import SimpleTrainer
-from podium.experimental.model_selection import grid_search
 from podium.experimental.pipeline import Pipeline
 from podium.experimental.validation import k_fold_classification_metrics
+from podium.storage import LargeResource
+from podium.vectorizers.impl import NlplVectorizer
 
 
 def numericalize_pauza_rating(rating):
@@ -31,10 +35,7 @@ def basic_pauza_hr_fields():
     """
     Function returns pauza-hr fields used for classification.
     """
-    rating = LabelField(
-        name="Rating",
-        pretokenize_hooks=[numericalize_pauza_rating]
-    )
+    rating = LabelField(name="Rating", pretokenize_hooks=[numericalize_pauza_rating])
 
     text = Field(
         name="Text",

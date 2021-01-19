@@ -2,7 +2,7 @@
 Example how to use model on simple PauzaHR dataset.
 """
 
-from podium import Field, LabelField, Vocab, Iterator
+from podium import Field, Iterator, LabelField, Vocab
 from podium.datasets import PauzaHRDataset
 from podium.experimental.models import FeatureTransformer
 from podium.experimental.models.impl.fc_model import ScikitMLPClassifier
