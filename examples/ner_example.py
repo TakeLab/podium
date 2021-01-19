@@ -9,7 +9,7 @@ from functools import partial
 
 import numpy as np
 
-from podium import BucketIterator, Vocab
+from podium import BucketIterator, Vocab, Field
 from podium.datasets.impl.croatian_ner_dataset import CroatianNERDataset
 from podium.experimental.models import FeatureTransformer
 from podium.experimental.models.impl.blcc_model import BLCCModel
