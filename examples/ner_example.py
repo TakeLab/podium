@@ -181,7 +181,7 @@ def ner_dataset_classification_fields():
     Function creates fields to use with the Croatian NER dataset on NER task.
     """
     tokens = Field(name="tokens", numericalizer=Vocab(), tokenizer=None)
-    casing = Field(name="casing", numericalizer=Vocab(specials=(PAD(),), tokenizer=None))
+    casing = Field(name="casing", numericalizer=Vocab(specials=(PAD(),)), tokenizer=None)
     labels = Field(
         name="labels", is_target=True, numericalizer=Vocab(specials=(PAD(),), tokenizer=None)
     )
