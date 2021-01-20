@@ -8,12 +8,7 @@ Our goal is to accelerate users' development of NLP models whichever aspect of t
 ### Contents
 
 - [Installation](#installation)
-  - [Installing from source](#installing-from-source)
-  - [Installing from pip](#installing-from-pip)
 - [Usage examples](#usage-examples)
-  - [Loading datasets](#loading-datasets)
-  - [Define your preprocessing](#define-your-preprocessing)
-  - [Use preprocessing from other libraries](#use-preprocessing-from-other-libraries)
 - [Contributing](#contributing)
 - [Versioning](#versioning)
 - [Authors](#authors)
