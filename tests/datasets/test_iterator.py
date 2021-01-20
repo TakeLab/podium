@@ -77,7 +77,7 @@ def test_iterate_new_epoch(tabular_dataset):
     it = iter(iterator)
     assert iterator._iterations == 0
 
-    for i in range(4):
+    for i in range(1, 5):
         next(it)
         assert iterator._epoch == 0
         assert iterator._iterations == i
@@ -456,7 +456,7 @@ def test_iterator_batch_as_list():
             assert np.all(batch[0] == [3, 4])
 
 
-def iterators_behave_identically(iterator_1, iterator_2):
+def iterators_behave_identically(iterator_1, iterator_2, reset=True):
     all_equal = True
 
     for (x_batch_1, y_batch_1), (x_batch_2, y_batch_2) in zip(iterator_1, iterator_2):
@@ -472,6 +472,10 @@ def iterators_behave_identically(iterator_1, iterator_2):
             all_equal = False
             break
 
+    if reset:
+        # Reset internal iterator counters
+        iterator_1.reset()
+        iterator_2.reset()
     return all_equal
 
 

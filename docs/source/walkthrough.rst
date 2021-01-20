@@ -67,16 +67,16 @@ Podium contains methods to iterate over data. Let's take a look at :class:`podiu
   >>> train_iter = Iterator(sst_train, batch_size=2)
   >>> batch_x, batch_y = next(iter(train_iter))
   >>> print(batch_x, batch_y, sep='\n')
-  InputBatch(text=array([[ 1390,   193,  3035,    12,     4,   652, 13874,   310,    11,
-          101, 13875,    12,    31,    14,   729,  1733,     5,     9,
-          144,  7287,     8,  3656,   193,  7357,   700,     2,     1,
-            1,     1,     1],
-       [   29,  1659,   827,     8,    27,     7,  6115,     3,  4635,
-           63,     3,    19,     4,    55, 15634,   231,   170,     9,
-          128,    48,   123,   656,   130,   190,  2047,     8,   803,
-           74,    79,     2]])) 
-  TargetBatch(label=array([[1],
-       [1]]))
+  {'text': array([[ 1390,   193,  3035,    12,     4,   652, 13874,   310,    11,
+              101, 13875,    12,    31,    14,   729,  1733,     5,     9,
+              144,  7287,     8,  3656,   193,  7357,   700,     2,     1,
+                1,     1,     1],
+           [   29,  1659,   827,     8,    27,     7,  6115,     3,  4635,
+               63,     3,    19,     4,    55, 15634,   231,   170,     9,
+              128,    48,   123,   656,   130,   190,  2047,     8,   803,
+               74,    79,     2]])}
+  {'label': array([[1],
+           [1]])}
 
 
 There are a couple of things we need to unpack here. Firstly, our textual input data and class labels were converted to indices. This happened without our intervention -- built-in datasets have a default preprocessing pipeline, which handles text tokenization and numericalization.
@@ -104,9 +104,38 @@ We saw earlier that our dataset has two Fields: text and label. We will touch on
       vocab: Vocab({specials: (), eager: False, finalized: True, size: 2})
   })
 
-Inside each of these two fields we can see a :class:`podium.storage.Vocab` class, which is used for numericalization (converting tokens to indices). A Vocab is mainly defined by two maps: the string-to-index mapping :attr:`podium.storage.Vocab.stoi` and the index-to-string mapping :attr:`podium.storage.Vocab.itos`.
+Inside each of these two fields we can see a :class:`podium.storage.Vocab` class, used for numericalization (converting token strings to indices). A Vocab is defined by two maps: the string-to-index mapping :attr:`podium.storage.Vocab.stoi` and the index-to-string mapping :attr:`podium.storage.Vocab.itos`.
 
-In highligted code block we can see that the Vocab for the ``text`` field has a size of 16282. The Vocab by default includes all the tokens present in the dataset, whichever their frequency might be. There are two ways to control the size of your vocabulary:
+Vocabularies are built automatically for built-in datasets by counting the frequencies of tokens in the **train** set and then converting these frequences to the ``itos`` and ``stoi`` dictionaries. We can see that a ``Vocab`` is built by the ``finalized=True`` keyword in the printout.
+If you are constructing your own dataset or loading a dataset from HuggingFace (:ref:`hf-loading`), you will need to call the :meth:`podium.Dataset.finalize_fields()` method to signal that the vocabularies should be constructed.
+
+Customizing Vocabs
+^^^^^^^^^^^^^^^^^^
+We can customize Podium Vocabularies in one of two ways -- by controlling their constructor parameters and by defining a Vocabulary manually. 
+
+For the latter approach, the :class:`podium.Vocab` class has two static constructors: :meth:`podium.Vocab.from_itos` and :meth:`podium.Vocab.from_stoi`.
+
+.. doctest:: custom_vocab
+
+  >>> from podium import Vocab
+  >>> custom_stoi = {'This':0, 'is':1, 'a':2, 'sample':3}
+  >>> vocab = Vocab.from_stoi(custom_stoi)
+  >>> print(vocab)
+  Vocab({specials: [], eager: True, finalized: True, size: 4})
+
+This way, we can define a static dictionary which we might have obtained on another dataset to use for our current task. Similarly, it is possible to define a ``Vocab`` by a sequence of strings -- an ``itos``:
+
+.. doctest:: custom_vocab
+
+  >>> from podium.vocab import UNK
+  >>> custom_itos = [UNK(), 'this', 'is', 'a', 'sample']
+  >>> vocab = Vocab.from_itos(custom_itos)
+  >>> print(vocab)
+  Vocab({specials: ['<UNK>'], eager: True, finalized: True, size: 5})
+
+In this example we have also defined a Special token (:ref:`specials`) to use in our vocabulary. Both of these static constructors are equivalent and can produce the same ``Vocab`` mapping.
+
+We will now take a look at controlling Vocabs through their constructor parameters. In the previous code block we can see that the Vocab for the ``text`` field has a size of 16282. The Vocab by default includes all the tokens present in the dataset, whichever their frequency might be. There are two ways to control the size of your vocabulary:
 
 1. Setting the minimum frequency (inclusive) for a token to be used in a Vocab: the :attr:`podium.storage.Vocab.min_freq` argument
 2. Setting the maximum size of the Vocab: the :attr:`podium.storage.Vocab.max_size` argument
@@ -114,7 +143,7 @@ In highligted code block we can see that the Vocab for the ``text`` field has a 
 You might want to limit the size of your Vocab for larger datasets. To do so, define your own vocabulary as follows:
 
 .. doctest:: small_vocab
-  
+
   >>> from podium import Vocab
   >>> small_vocabulary = Vocab(max_size=5000, min_freq=2)
 
