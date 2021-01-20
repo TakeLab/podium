@@ -33,11 +33,13 @@ _LANGUAGES.update({lang: lang for lang in _LANGUAGES.values()})
 
 class _DualHook:
     """
+    
     """
+
     def __init__(self, as_pretokenization=True):
         """
-        Allows subclasses to be cast as pretokenization or
-        posttokenization hooks.
+        Allows subclasses to be cast as pretokenization or posttokenization
+        hooks.
 
         Parameters
         ----------
@@ -50,26 +52,26 @@ class _DualHook:
     def apply(self, string):
         """
         Applies the hook to a string input.
+
         Should be overrided by implementing methods.
         """
         return string
 
     def run_as_pretokenization(self, raw):
         """
-        Apply the hook to a raw string input
+        Apply the hook to a raw string input.
         """
         return self.apply(raw)
 
     def run_as_posttokenization(self, raw, tokenized):
         """
-        Apply the hook to a tokenized sequence
+        Apply the hook to a tokenized sequence.
         """
         return raw, [self.apply(token) for token in tokenized]
 
     def __call__(self, *args):
         """
-        Apply the hook to either a tokenized sequence
-        or a raw string input.
+        Apply the hook to either a tokenized sequence or a raw string input.
         """
         if self.as_pretokenization:
             return self.run_as_pretokenization(*args)
@@ -84,8 +86,7 @@ class MosesNormalizer(_DualHook):
     Uses sacremoses.MosesPunctNormalizer to perform normalization.
     """
 
-    def __init__(self, language: str = "en",
-                 as_pretokenization: bool = True) -> None:
+    def __init__(self, language: str = "en", as_pretokenization: bool = True) -> None:
         """
         MosesNormalizer constructor.
 
@@ -144,7 +145,7 @@ class RegexReplace(_DualHook):
     def __init__(
         self,
         replace_patterns: Sequence[Tuple[Union[Pattern, str], str]],
-        as_pretokenization: bool = True
+        as_pretokenization: bool = True,
     ) -> None:
         """
         RegexReplace constructor.
@@ -244,7 +245,7 @@ class TextCleanUp:
             If the given language is not supported.
         """
         try:
-            from cleantext import clean
+            from cleantext.clean import clean
         except ImportError:
             print(
                 "Problem occured while trying to import clean-text. "

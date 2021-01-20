@@ -95,9 +95,7 @@ def remove_stopwords(
     stop_words = nlp.Defaults.stop_words
 
     def _remove_hook(raw, tokenized):
-        tokenized = [
-            token for token in nlp.Defaults.stop_words if token not in stop_words
-        ]
+        tokenized = [token for token in tokenized if token not in stop_words]
 
         return raw, tokenized
 
