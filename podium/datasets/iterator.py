@@ -284,6 +284,7 @@ class Iterator(IteratorBase):
 
         for i in range(start, len(data), self.batch_size):
             batch_dataset = data[i : i + self.batch_size]
+            self._iterations += 1
             yield self._create_batch(batch_dataset)
 
         # prepare for new epoch
@@ -337,7 +338,6 @@ class Iterator(IteratorBase):
                 target_batch[field.name] = batch
             else:
                 input_batch[field.name] = batch
-        self._iterations += 1
         return input_batch, target_batch
 
     def get_internal_random_state(self):

@@ -422,7 +422,7 @@ Each ``Dataset`` instance in the SST dataset splits contains ``Field``s and a ``
   >>> print(sst_train[222])
   Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
 
-Each of the components -- ``Field``, ``Vocab`` and ``Example`` can also be pickled separately. Apart from being able to save and load a ``Dataset`` and its components, you can also store an ``Iterator`` mid-iteration and it will continue on the batch on which you left off.
+Each of the components -- ``Field``, ``Vocab`` and ``Example`` can also be pickled separately. Apart from being able to save and load a ``Dataset`` and its components, you can also store an ``Iterator`` mid-iteration and it **will continue on the batch on which you left off**.
 In case you don't want this behavior and would rather your unpickled iterator starts from the beginning, you can call ``Iterator.reset()`` which will reset iterator to the start of the dataset.
 
 .. doctest:: saveload
