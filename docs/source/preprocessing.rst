@@ -144,11 +144,6 @@ Stopword removal
    >>> print(remove_stopwords_hook(raw_text, tokenized_text))
    (None, [opinion', 'exciting', 'funny', 'movie'])
 
-.. testcleanup::
-
-  import shutil
-  shutil.rmtree('sst')
-
 Utilities
 =========
 
