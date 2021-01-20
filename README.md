@@ -196,7 +196,7 @@ A common use-case is to incorporate existing components of pretrained language m
 >>> fields = {'text': subword_field, 'label': label}
 >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
 >>> print(sst_train[222])
-Example({'subword': (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.']), 'label': (None, 'positive')}]
+Example({'subword': (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.']), 'label': (None, 'positive')})
 
 ```
 
