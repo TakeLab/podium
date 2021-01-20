@@ -64,8 +64,24 @@ Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'l
 
 ```
 
+Load datasets from [🤗/datasets](https://github.com/huggingface/datasets):
 
-Load your own dataset from a standardized format (`csv`, `tsv` or `jsonl`):
+```python
+
+  >>> from podium.datasets.hf import HFDatasetConverter
+  >>> import datasets
+  >>> # Load the huggingface dataset
+  >>> imdb = datasets.load_dataset('imdb')
+  >>> print(imdb.keys())
+  dict_keys(['train', 'test', 'unsupervised'])
+  >>> # Wrap it so it can be used in Podium (without being loaded in memory!)
+  >>> imdb_train, imdb_test, imdb_unsupervised = HFDatasetConverter.from_dataset_dict(imdb).values()
+  >>> # We need to trigger Vocab construction
+  >>> imdb_train.finalize_fields()
+  >>> 
+```
+
+Load your own dataset from a standardized tabular format (e.g. `csv`, `tsv`, `jsonl`):
 
 ```python
 >>> from podium.datasets import TabularDataset
@@ -120,8 +136,7 @@ Each `Field` allows the user full flexibility modify the data in multiple stages
 - During tokenization (by using your own `tokenizer`)
 - Post tokenization (by using post-tokenization `hooks`)
 
-You can also completely disregard our preprocessing and define your own:
-- Set your `custom_numericalize`
+You can also completely disregard our preprocessing and define your own by setting your own `numericalizer`.
 
 You could decide to lowercase all the characters and filter out all non-alphanumeric tokens:
 
