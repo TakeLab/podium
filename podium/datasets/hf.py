@@ -156,14 +156,14 @@ class HFDatasetConverter(DatasetBase):
     """
 
     def __init__(
-        self, dataset: datasets.Dataset, fields: Optional[Dict[str, Field]] = None
+        self, hf_dataset: datasets.Dataset, fields: Optional[Dict[str, Field]] = None
     ) -> None:
         """
         HFDatasetConverter constructor.
 
         Parameters
         ----------
-        dataset : datasets.Dataset
+        hf_dataset : datasets.Dataset
             HuggingFace Dataset.
 
         fields : dict(str, podium.storage.Field)
@@ -176,14 +176,14 @@ class HFDatasetConverter(DatasetBase):
         TypeError
             If dataset is not an instance of datasets.Dataset.
         """
-        if not isinstance(dataset, datasets.Dataset):
+        if not isinstance(hf_dataset, datasets.Dataset):
             raise TypeError(
                 "Incorrect dataset type. Expected datasets.Dataset, "
                 f"but got {type(dataset).__name__}"
             )
 
-        super().__init__(fields or convert_features_to_fields(dataset.features))
-        self._dataset = dataset
+        super().__init__(fields or convert_features_to_fields(hf_dataset.features))
+        self._dataset = hf_dataset
         self._example_factory = ExampleFactory(self.field_dict)
 
     @property

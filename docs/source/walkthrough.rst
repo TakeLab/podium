@@ -360,7 +360,7 @@ You can load a dataset in 🤗/datasets and then convert it to a Podium dataset 
   >>> print(imdb.keys())
   dict_keys(['train', 'test', 'unsupervised'])
 
-Datasets from 🤗 can be used with other Podium components by wrapping them in the :class:`podium.datasets.HFDatasetConverter`, in which case they remain as disk-backed datasets backed by `pyarrow <https://arrow.apache.org/docs/python/>`__ or by casting them into a Podium Dataset, making them concrete and loading them in memory. This operation can be memory intensive for some datasets. We will first take a look at using disk-backed 🤗 hadasets.
+Datasets from 🤗 can be used with other Podium components by wrapping them in the :class:`podium.datasets.HFDatasetConverter`, in which case they remain as disk-backed datasets backed by `pyarrow <https://arrow.apache.org/docs/python/>`__ or by casting them into a Podium :class:`podium.datasets.Dataset`, making them concrete and loading them in memory. This operation can be memory intensive for some datasets. We will first take a look at using disk-backed 🤗 datasets.
 
 .. code-block:: python
 
@@ -382,7 +382,7 @@ Datasets from 🤗 can be used with other Podium components by wrapping them in 
       keep_raw: False,
       is_target: True}))
 
-When we load a 🤗 dataset, we internally perform automatic Field type inference and create Fields. While we expect these Fields to work in most cases, we also recommend you try constructing your own.
+When we load a 🤗 dataset, we internally perform automatic Field type inference and create Fields. While we expect these Fields to work in most cases, we also recommend you try constructing your own (check :ref:`fields`).
 An important aspect to note when using ``Vocab`` with HuggingFace datasets is that you **need to set** ``eager=False`` upon construction. Vocabularies in Podium are eager by default, which means that they construct frequency counts upon dataset loading. Since HuggingFace datasets are not loaded as part of Podium, vocabulary construction needs to be triggered manually by using non-eager ``Vocab`` s and calling ``Dataset.finalize_fields()`` to indicate that the vocabularies should be built.
 
 Once the ``Field`` s are constructed, we can use the dataset as if it was part of Podium:
