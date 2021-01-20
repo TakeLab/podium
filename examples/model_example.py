@@ -2,12 +2,12 @@
 Example how to use model on simple PauzaHR dataset.
 """
 
-from podium.datasets.impl.pauza_dataset import PauzaHRDataset
-from podium.datasets.iterator import Iterator
-from podium.models import FeatureTransformer
-from podium.models.impl.fc_model import ScikitMLPClassifier
-from podium.models.impl.simple_trainers import SimpleTrainer
-from podium.storage import Field, LargeResource, Vocab
+from podium import Field, Iterator, LabelField, Vocab
+from podium.datasets import PauzaHRDataset
+from podium.experimental.models import FeatureTransformer
+from podium.experimental.models.impl.fc_model import ScikitMLPClassifier
+from podium.experimental.models.impl.simple_trainers import SimpleTrainer
+from podium.storage import LargeResource
 
 
 def numericalize_pauza_rating(rating):
@@ -39,20 +39,15 @@ def basic_pauza_hr_fields():
     """
     Function returns pauza-hr fields used for classification.
     """
-    rating = Field(
+    rating = LabelField(
         name="Rating",
-        vocab=Vocab(specials=()),
-        keep_raw=True,
-        is_target=True,
-        tokenizer=None,
-        custom_numericalize=numericalize_pauza_rating,
+        numericalizer=Vocab(specials=()),
+        pretokenize_hooks=[numericalize_pauza_rating],
     )
     text = Field(
         name="Text",
-        vocab=Vocab(),
+        numericalizer=Vocab(),
         tokenizer="split",
-        language="hr",
-        tokenize=True,
         keep_raw=False,
         fixed_length=100,
     )

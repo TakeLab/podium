@@ -106,8 +106,8 @@ class Field:
             - 'spacy-lang' - the spacy tokenizer. The language model can be defined
               by replacing `lang` with the language model name (e.g. `spacy-en`).
 
-            If None, the data will not be tokenized and post-tokenization hooks wont be
-            called. The provided data will be stored in the `tokenized` data field as-is.
+            If None, the data will not be tokenized. The provided data will be
+            stored in the `tokenized` data field as-is.
 
         keep_raw : bool
             Whether to store untokenized preprocessed data.
