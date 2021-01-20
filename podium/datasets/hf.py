@@ -179,7 +179,7 @@ class HFDatasetConverter(DatasetBase):
         if not isinstance(hf_dataset, datasets.Dataset):
             raise TypeError(
                 "Incorrect dataset type. Expected datasets.Dataset, "
-                f"but got {type(dataset).__name__}"
+                f"but got {type(hf_dataset).__name__}"
             )
 
         super().__init__(fields or convert_features_to_fields(hf_dataset.features))
