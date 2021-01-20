@@ -31,14 +31,61 @@ _LANGUAGES = {
 _LANGUAGES.update({lang: lang for lang in _LANGUAGES.values()})
 
 
-class MosesNormalizer:
+class _DualHook:
+    """
+    """
+    def __init__(self, as_pretokenization=True):
+        """
+        Allows subclasses to be cast as pretokenization or
+        posttokenization hooks.
+
+        Parameters
+        ----------
+        as_pretokenization : bool
+            A boolean flag which indicates whether this hook should be used during
+            as_pretokenization (if True) or posttokenization (if False),
+        """
+        self.as_pretokenization = as_pretokenization
+
+    def apply(self, string):
+        """
+        Applies the hook to a string input.
+        Should be overrided by implementing methods.
+        """
+        return string
+
+    def run_as_pretokenization(self, raw):
+        """
+        Apply the hook to a raw string input
+        """
+        return self.apply(raw)
+
+    def run_as_posttokenization(self, raw, tokenized):
+        """
+        Apply the hook to a tokenized sequence
+        """
+        return raw, [self.apply(token) for token in tokenized]
+
+    def __call__(self, *args):
+        """
+        Apply the hook to either a tokenized sequence
+        or a raw string input.
+        """
+        if self.as_pretokenization:
+            return self.run_as_pretokenization(*args)
+        else:
+            return self.run_as_posttokenization(*args)
+
+
+class MosesNormalizer(_DualHook):
     """
     Pretokenization took that normalizes the raw textual data.
 
     Uses sacremoses.MosesPunctNormalizer to perform normalization.
     """
 
-    def __init__(self, language: str = "en") -> None:
+    def __init__(self, language: str = "en",
+                 as_pretokenization: bool = True) -> None:
         """
         MosesNormalizer constructor.
 
@@ -46,6 +93,9 @@ class MosesNormalizer:
         ----------
         language : str
             Language argument for the normalizer. Default: "en".
+        as_pretokenization : bool
+            A boolean flag which indicates whether this hook should be used during
+            as_pretokenization (if True) or posttokenization (if False),
 
         Raises
         ------
@@ -62,9 +112,10 @@ class MosesNormalizer:
             )
             raise
 
+        super().__init__(as_pretokenization)
         self._normalizer = MosesPunctNormalizer(language)
 
-    def __call__(self, raw: str) -> str:
+    def apply(self, string: str) -> str:
         """
         Applies normalization to the raw textual data.
 
@@ -78,10 +129,10 @@ class MosesNormalizer:
         str
             Normalized textual data.
         """
-        return self._normalizer.normalize(raw)
+        return self._normalizer.normalize(string)
 
 
-class RegexReplace:
+class RegexReplace(_DualHook):
     """
     Pretokenization hook that applies a sequence of regex substitutions to the
     raw textual data.
@@ -93,6 +144,7 @@ class RegexReplace:
     def __init__(
         self,
         replace_patterns: Sequence[Tuple[Union[Pattern, str], str]],
+        as_pretokenization: bool = True
     ) -> None:
         """
         RegexReplace constructor.
@@ -104,12 +156,16 @@ class RegexReplace:
             a regex pattern or a string and the second element
             is a string that will replace each occurance of the pattern specified as
             the first element.
+        as_pretokenization : bool
+            A boolean flag which indicates whether this hook should be used during
+            as_pretokenization (if True) or posttokenization (if False),
         """
+        super().__init__(as_pretokenization)
         self._patterns = [
             (re.compile(pattern), repl) for pattern, repl in replace_patterns
         ]
 
-    def __call__(self, raw: str) -> str:
+    def apply(self, raw: str) -> str:
         """
         Applies a sequence of regex substitutions to the raw textual data.
 
