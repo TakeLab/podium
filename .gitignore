@@ -107,6 +107,7 @@ venv.bak/
 downloaded_datasets/
 .data/
 .vscode/
+sst/
 
 .idea/
 *.pkl
