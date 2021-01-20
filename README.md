@@ -36,9 +36,16 @@ git clone git@github.com:mttk/podium.git && cd podium
 pip install .
 ```
 
+### Installing from wheel
+
+The following release wheels are available for Podium:
+
+- Version **1.0.0**:
+  - pip install http://takelab.fer.hr/podium/releases/podium-1.0.0-py3-none-any.whl
+
 ### Installing from pip
 
-The easiest way to install `podium` is using pip
+**[Coming soon]** You can also install `podium` using pip
 
 ```bash
 pip install podium-nlp
@@ -48,7 +55,7 @@ For more detailed installation instructions, check the [installation page](http:
 
 ## Usage examples
 
-For detailed usage examples see [examples](https://github.com/mttk/podium/tree/master/examples)
+For usage examples see the documentation pages [walkthrough](http://takelab.fer.hr/podium/walkthrough.html) and [examples](https://github.com/mttk/podium/tree/master/examples)
 
 ### Loading datasets
 
@@ -78,7 +85,22 @@ Load datasets from [🤗/datasets](https://github.com/huggingface/datasets):
   >>> imdb_train, imdb_test, imdb_unsupervised = HFDatasetConverter.from_dataset_dict(imdb).values()
   >>> # We need to trigger Vocab construction
   >>> imdb_train.finalize_fields()
-  >>> 
+  >>> print(imdb_train)
+  HFDatasetConverter({
+    size: 25000,
+    fields: [
+        Field({
+            name: text,
+            keep_raw: False,
+            is_target: False,
+            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 280619})
+        }),
+        LabelField({
+            name: label,
+            keep_raw: False,
+            is_target: True})
+    ]
+  })
 ```
 
 Load your own dataset from a standardized tabular format (e.g. `csv`, `tsv`, `jsonl`):
