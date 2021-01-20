@@ -33,7 +33,8 @@ _LANGUAGES.update({lang: lang for lang in _LANGUAGES.values()})
 
 class _DualHook:
     """
-    
+    A mixin class which allows a hook class to be cast as both a pretokenization
+    and posttokenization hook via the `as_pretokenization` constructor argument.
     """
 
     def __init__(self, as_pretokenization=True):
