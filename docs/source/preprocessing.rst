@@ -75,7 +75,7 @@ As we can see, the non-alphanumeric characters have been removed from the sequen
 Text Cleanup
 -------------
 
-:class:`podium.preproc.TextCleanUp` is a hook wrapper of a versatile library that can perform a number of text cleaning operations. For full options, we refer the reader to the
+:class:`podium.preproc.TextCleanUp` is a **pretokenization** hook, a wrapper of a versatile library that can perform a number of text cleaning operations. For full options, we refer the reader to the
 `cleantext <https://github.com/jfilter/clean-text>`__ repository . In Podium, :class:`podium.preproc.TextCleanUp` can be used as follows:
 
 .. code-block:: python
