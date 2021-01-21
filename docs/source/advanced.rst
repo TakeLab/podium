@@ -45,6 +45,7 @@ What are the ``None`` s? This is the `raw` data, which by default isn't stored i
 
 We can see that now we also have the pre-tokenized text available to us. In the case of SST this is not very useful because the tokenizer is simply ``str.split``, an easyily reversible function. In the case of non-reversible tokenizers (e.g. the ones in ``spacy``), you might want to keep the raw instance for future reference.
 
+.. _fields:
 
 How to interact with Fields
 ===========================

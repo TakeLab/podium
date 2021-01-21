@@ -322,9 +322,10 @@ class Dataset(DatasetBase):
             A key to use for sorting dataset examples, used for batching
             together examples with similar lengths to minimize padding.
         """
-        self._examples = examples
-        self.sort_key = sort_key
+
         super().__init__(fields)
+        self._examples = list(examples)
+        self.sort_key = sort_key
 
     def __getitem__(
         self, i: Union[int, Iterable[int], slice]

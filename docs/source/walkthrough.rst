@@ -380,7 +380,6 @@ You can load a dataset in 🤗/datasets and then convert it to a Podium dataset 
 
 .. code-block:: python
 
-  >>> import pprint
   >>> from podium.datasets.hf import HFDatasetConverter
   >>> import datasets
   >>> # Loading a huggingface dataset returns an instance of DatasetDict
@@ -389,11 +388,16 @@ You can load a dataset in 🤗/datasets and then convert it to a Podium dataset 
   >>> imdb = datasets.load_dataset('imdb')
   >>> print(imdb.keys())
   dict_keys(['train', 'test', 'unsupervised'])
-  >>>
+
+Datasets from 🤗 can be used with other Podium components by wrapping them in the :class:`podium.datasets.HFDatasetConverter`, in which case they remain as disk-backed datasets backed by `pyarrow <https://arrow.apache.org/docs/python/>`__ or by casting them into a Podium :class:`podium.datasets.Dataset`, making them concrete and loading them in memory. This operation can be memory intensive for some datasets. We will first take a look at using disk-backed 🤗 datasets.
+
+.. code-block:: python
+
   >>> # We create an adapter for huggingface dataset schema to podium Fields.
   >>> # These are not yet Podium datasets, but behave as such (you can iterate
   >>> # over them as if they were).
   >>> imdb_train, imdb_test, imdb_unsupervised = HFDatasetConverter.from_dataset_dict(imdb).values()
+  >>> imdb_train.finalize_fields()
   >>>
   >>> pprint.pprint(imdb_train.as_dataset().fields)
   (Field({
@@ -407,6 +411,24 @@ You can load a dataset in 🤗/datasets and then convert it to a Podium dataset 
       keep_raw: False,
       is_target: True}))
 
+When we load a 🤗 dataset, we internally perform automatic Field type inference and create Fields. While we expect these Fields to work in most cases, we also recommend you try constructing your own (check :ref:`fields`).
+An important aspect to note when using ``Vocab`` with HuggingFace datasets is that you **need to set** ``eager=False`` upon construction. Vocabularies in Podium are eager by default, which means that they construct frequency counts upon dataset loading. Since HuggingFace datasets are not loaded as part of Podium, vocabulary construction needs to be triggered manually by using non-eager ``Vocab`` s and calling ``Dataset.finalize_fields()`` to indicate that the vocabularies should be built.
+
+Once the ``Field`` s are constructed, we can use the dataset as if it was part of Podium:
+
+.. code-block:: python
+
+  >>> from podium import Iterator
+  >>> it = Iterator(imdb_train, batch_size=2)
+  >>>
+  >>> text_batch, label_batch = next(iter(it))
+  >>> print(text_batch.text, label_batch.label, sep="\n")
+  [[    49     24      7    172   1671    156     22  11976      5   1757
+    3409   7124    202      ...     1]
+  [   523     64     28    353     10      3    227     21      7  73941
+      52     28    186    ...  8668]]
+  [[0]
+   [0]]
 
 .. testcleanup::
 
