@@ -8,12 +8,7 @@ Our goal is to accelerate users' development of NLP models whichever aspect of t
 ### Contents
 
 - [Installation](#installation)
-  - [Installing from source](#installing-from-source)
-  - [Installing from pip](#installing-from-pip)
 - [Usage examples](#usage-examples)
-  - [Loading datasets](#loading-datasets)
-  - [Define your preprocessing](#define-your-preprocessing)
-  - [Use preprocessing from other libraries](#use-preprocessing-from-other-libraries)
 - [Contributing](#contributing)
 - [Versioning](#versioning)
 - [Authors](#authors)
@@ -36,9 +31,18 @@ git clone git@github.com:mttk/podium.git && cd podium
 pip install .
 ```
 
+### Installing from wheel
+
+The following release wheels are available for Podium:
+
+- Version **1.0.0**:
+```bash
+pip install http://takelab.fer.hr/podium/releases/podium-1.0.0-py3-none-any.whl`
+```
+
 ### Installing from pip
 
-The easiest way to install `podium` is using pip
+**[Coming soon]** You can also install `podium` using pip
 
 ```bash
 pip install podium-nlp
@@ -48,7 +52,7 @@ For more detailed installation instructions, check the [installation page](http:
 
 ## Usage examples
 
-For detailed usage examples see [examples](https://github.com/mttk/podium/tree/master/examples)
+For usage examples see the documentation pages [walkthrough](http://takelab.fer.hr/podium/walkthrough.html) and [examples](https://github.com/mttk/podium/tree/master/examples)
 
 ### Loading datasets
 
@@ -64,8 +68,39 @@ Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'l
 
 ```
 
+Load datasets from [🤗/datasets](https://github.com/huggingface/datasets):
 
-Load your own dataset from a standardized format (`csv`, `tsv` or `jsonl`):
+```python
+
+  >>> from podium.datasets.hf import HFDatasetConverter
+  >>> import datasets
+  >>> # Load the huggingface dataset
+  >>> imdb = datasets.load_dataset('imdb')
+  >>> print(imdb.keys())
+  dict_keys(['train', 'test', 'unsupervised'])
+  >>> # Wrap it so it can be used in Podium (without being loaded in memory!)
+  >>> imdb_train, imdb_test, imdb_unsupervised = HFDatasetConverter.from_dataset_dict(imdb).values()
+  >>> # We need to trigger Vocab construction
+  >>> imdb_train.finalize_fields()
+  >>> print(imdb_train)
+  HFDatasetConverter({
+    size: 25000,
+    fields: [
+        Field({
+            name: text,
+            keep_raw: False,
+            is_target: False,
+            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 280619})
+        }),
+        LabelField({
+            name: label,
+            keep_raw: False,
+            is_target: True})
+    ]
+  })
+```
+
+Load your own dataset from a standardized tabular format (e.g. `csv`, `tsv`, `jsonl`):
 
 ```python
 >>> from podium.datasets import TabularDataset
@@ -120,8 +155,7 @@ Each `Field` allows the user full flexibility modify the data in multiple stages
 - During tokenization (by using your own `tokenizer`)
 - Post tokenization (by using post-tokenization `hooks`)
 
-You can also completely disregard our preprocessing and define your own:
-- Set your `custom_numericalize`
+You can also completely disregard our preprocessing and define your own by setting your own `numericalizer`.
 
 You could decide to lowercase all the characters and filter out all non-alphanumeric tokens:
 
@@ -162,7 +196,7 @@ A common use-case is to incorporate existing components of pretrained language m
 >>> fields = {'text': subword_field, 'label': label}
 >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
 >>> print(sst_train[222])
-Example({'subword': (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.']), 'label': (None, 'positive')}]
+Example({'subword': (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.']), 'label': (None, 'positive')})
 
 ```
 

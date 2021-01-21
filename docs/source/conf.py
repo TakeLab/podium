@@ -59,7 +59,7 @@ html_static_path = ['_static']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
-copybutton_prompt_text = ">>> "
+copybutton_prompt_text = r'>>> |\.\.\. '
 
 # -- Options for HTML output -------------------------------------------------
 
