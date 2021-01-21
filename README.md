@@ -37,12 +37,12 @@ The following release wheels are available for Podium:
 
 - Version **1.0.1**:
 ```bash
-pip install http://takelab.fer.hr/podium/releases/podium-1.0.1-py3-none-any.whl`
+pip install http://takelab.fer.hr/podium/releases/podium-1.0.1-py3-none-any.whl
 ```
 
 - Version **1.0.0**:
 ```bash
-pip install http://takelab.fer.hr/podium/releases/podium-1.0.0-py3-none-any.whl`
+pip install http://takelab.fer.hr/podium/releases/podium-1.0.0-py3-none-any.whl
 ```
 
 ### Installing from pip
@@ -67,7 +67,23 @@ Use some of our pre-defined datasets:
 >>> from podium.datasets import SST
 >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits()
 >>> print(sst_train)
-SST[Size: 6920, Fields: (Field[name: text, is_target: False, vocab: Vocab[finalized: True, size: 16284]], LabelField[name: label, is_target: True, vocab: Vocab[finalized: True, size: 2]])]
+SST({
+    size: 6920,
+    fields: [
+        Field({
+            name: text,
+            keep_raw: False,
+            is_target: False,
+            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 16284})
+        }),
+        LabelField({
+            name: label,
+            keep_raw: False,
+            is_target: True,
+            vocab: Vocab({specials: (), eager: False, finalized: True, size: 2})
+        })
+    ]
+})
 >>> print(sst_train[222]) # A short example
 Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
 
@@ -195,9 +211,9 @@ A common use-case is to incorporate existing components of pretrained language m
 >>> pad_index = tokenizer.convert_tokens_to_ids(tokenizer.pad_token)
 >>> # Define a BERT subword Field
 >>> subword_field = Field(name="subword",
-...                    padding_token=pad_index,
-...                    tokenizer=tokenizer.tokenize,
-...                    numericalizer=tokenizer.convert_tokens_to_ids)
+...                       padding_token=pad_index,
+...                       tokenizer=tokenizer.tokenize,
+...                       numericalizer=tokenizer.convert_tokens_to_ids)
 >>> fields = {'text': subword_field, 'label': label}
 >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
 >>> print(sst_train[222])
