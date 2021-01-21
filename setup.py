@@ -43,6 +43,9 @@ INSTALL_REQUIRES = [
     "tqdm",
     # for keyword extraction
     "yake @ https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz",
+    # for some datasets
+    'xlrd',
+
 ]
 
 
