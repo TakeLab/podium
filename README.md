@@ -35,6 +35,11 @@ pip install .
 
 The following release wheels are available for Podium:
 
+- Version **1.0.1**:
+```bash
+pip install http://takelab.fer.hr/podium/releases/podium-1.0.1-py3-none-any.whl`
+```
+
 - Version **1.0.0**:
 ```bash
 pip install http://takelab.fer.hr/podium/releases/podium-1.0.0-py3-none-any.whl`
