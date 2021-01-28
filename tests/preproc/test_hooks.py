@@ -4,13 +4,14 @@ import pytest
 
 from podium.datasets import ExampleFactory
 from podium.field import Field
-from podium.preproc.functional import remove_stopwords, truecase
 from podium.preproc.hooks import (
     MosesNormalizer,
     NLTKStemmer,
     RegexReplace,
     SpacyLemmatizer,
     TextCleanUp,
+    remove_stopwords,
+    truecase,
 )
 
 

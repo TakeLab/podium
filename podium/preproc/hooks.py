@@ -3,12 +3,23 @@ Module contains various pretokenization and posttokenization hooks.
 """
 import functools
 import re
-from typing import List, Optional, Pattern, Sequence, Tuple, Union
+from enum import Enum, auto
+from typing import Callable, List, Optional, Pattern, Sequence, Tuple, Union
 
 from nltk.stem import SnowballStemmer
 
 from podium.utils.general_utils import load_spacy_model_or_raise
 
+
+__all__ = [
+    "remove_stopwords",
+    "truecase",
+    "MosesNormalizer",
+    "NLTKStemmer",
+    "RegexReplace",
+    "SpacyLemmatizer",
+    "TextCleanUp",
+]
 
 _LANGUAGES = {
     "ar": "arabic",
@@ -30,63 +41,133 @@ _LANGUAGES = {
 _LANGUAGES.update({lang: lang for lang in _LANGUAGES.values()})
 
 
-class _DualHook:
-    """
-    A mixin class which allows a hook class to be cast as both a pretokenization
-    and posttokenization hook via the `as_pretokenization` constructor argument.
-    """
+class HookType(Enum):
+    PRETOKENIZE = auto()
+    POSTTOKENIZE = auto()
 
-    def __init__(self, as_pretokenization=True):
-        """
-        Allows subclasses to be cast as pretokenization or posttokenization
-        hooks.
 
-        Parameters
-        ----------
-        as_pretokenization : bool
-            A boolean flag which indicates whether this hook should be used during
-            as_pretokenization (if True) or posttokenization (if False),
-        """
-        self.as_pretokenization = as_pretokenization
+def pretokenize_hook(hook):
+    hook.__hook_type__ = HookType.PRETOKENIZE
+    return hook
 
-    def apply(self, string):
-        """
-        Applies the hook to a string input.
 
-        Should be overrided by implementing methods.
-        """
-        return string
+def posttokenize_hook(hook):
+    hook.__hook_type__ = HookType.POSTTOKENIZE
+    return hook
 
-    def run_as_pretokenization(self, raw):
-        """
-        Apply the hook to a raw string input.
-        """
-        return self.apply(raw)
 
-    def run_as_posttokenization(self, raw, tokenized):
-        """
-        Apply the hook to a tokenized sequence.
-        """
-        return raw, [self.apply(token) for token in tokenized]
+def as_posttokenize_hook(hook):
+    try:
+        hook_type = hook.__hook_type__
+    except AttributeError:
+        return hook
+    else:
+        if hook_type == HookType.PRETOKENIZE:
 
-    def __call__(self, *args):
-        """
-        Apply the hook to either a tokenized sequence or a raw string input.
-        """
-        if self.as_pretokenization:
-            return self.run_as_pretokenization(*args)
+            @posttokenize_hook
+            def posttokenize_hook_(raw, tokenized):
+                return raw, [hook(token) for token in tokenized]
+
+            return posttokenize_hook
         else:
-            return self.run_as_posttokenization(*args)
+            return hook
 
 
-class MosesNormalizer(_DualHook):
+@pretokenize_hook
+def truecase(oov: str = "title") -> Callable[[str], str]:
+    """
+    Returns a pretokenization hook that applies truecasing to the raw textual
+    data.
+
+    To use this hook, the truecase library has to be installed.
+
+    Parameters
+    ----------
+    oov : str
+        Defines how to handle out of vocabulary tokens not seen while training
+        the truecasing model. 3 options are supported:
+        title - returns OOV tokens in 'title' format
+        lower - returns OOV tokens in lower case
+        as-is - returns OOV tokens as is
+
+        Default is 'title'.
+
+    Returns
+    -------
+    callable
+        Function that truecases the raw data.
+
+    Raises
+    ------
+    ImportError
+        If the truecase library is not installed.
+    """
+
+    try:
+        import truecase as truecase_
+    except ImportError:
+        print(
+            "Problem occured while trying to import truecase. "
+            "If the library is not installed visit "
+            "https://pypi.org/project/truecase/ for more details."
+        )
+        raise
+
+    if oov not in {"title", "lower", "as-is"}:
+        raise ValueError("Specified out of vocabulary option is not supported")
+
+    def _truecase_hook(raw):
+        return truecase_.get_true_case(raw, out_of_vocabulary_token_option=oov)
+
+    return _truecase_hook
+
+
+@posttokenize_hook
+def remove_stopwords(
+    language: str = "en",
+) -> Callable[[str, List[str]], Tuple[str, List[str]]]:
+    """
+    Returns a posttokenization hook that removes stop words from the tokenized
+    textual data. The raw part is left unchanged.
+
+    Stop words are obtained from the corresponding SpaCy language model.
+
+    Parameters
+    ----------
+    language : str
+        Language whose stop words will be removed. Default is 'en'.
+
+    Returns
+    -------
+    callable
+        Function that removes stop words from the tokenized part of the input data.
+
+    Notes
+    -----
+    This function does not lowercase the tokenized data prior to stopword removal.
+    """
+
+    language = "en_core_web_sm" if language == "en" else language
+    nlp = load_spacy_model_or_raise(language, disable=["tagger", "parser", "ner"])
+    stop_words = nlp.Defaults.stop_words
+
+    def _remove_hook(raw, tokenized):
+        tokenized = [token for token in tokenized if token not in stop_words]
+
+        return raw, tokenized
+
+    return _remove_hook
+
+
+@pretokenize_hook
+class MosesNormalizer:
     """
     Pretokenization took that normalizes the raw textual data.
 
     Uses sacremoses.MosesPunctNormalizer to perform normalization.
     """
 
-    def __init__(self, language: str = "en", as_pretokenization: bool = True) -> None:
+    def __init__(self, language: str = "en") -> None:
         """
         MosesNormalizer constructor.
 
@@ -94,9 +175,6 @@ class MosesNormalizer(_DualHook):
         ----------
         language : str
             Language argument for the normalizer. Default: "en".
-        as_pretokenization : bool
-            A boolean flag which indicates whether this hook should be used during
-            as_pretokenization (if True) or posttokenization (if False),
 
         Raises
         ------
@@ -113,10 +191,9 @@ class MosesNormalizer(_DualHook):
             )
             raise
 
-        super().__init__(as_pretokenization)
         self._normalizer = MosesPunctNormalizer(language)
 
-    def apply(self, string: str) -> str:
+    def __call__(self, raw: str) -> str:
         """
         Applies normalization to the raw textual data.
 
@@ -130,10 +207,11 @@ class MosesNormalizer(_DualHook):
         str
             Normalized textual data.
         """
-        return self._normalizer.normalize(string)
+        return self._normalizer.normalize(raw)
 
 
-class RegexReplace(_DualHook):
+@pretokenize_hook
+class RegexReplace:
     """
     Pretokenization hook that applies a sequence of regex substitutions to the
     raw textual data.
@@ -145,7 +223,6 @@ class RegexReplace(_DualHook):
     def __init__(
         self,
         replace_patterns: Sequence[Tuple[Union[Pattern, str], str]],
-        as_pretokenization: bool = True,
     ) -> None:
         """
         RegexReplace constructor.
@@ -157,16 +234,12 @@ class RegexReplace(_DualHook):
             a regex pattern or a string and the second element
             is a string that will replace each occurance of the pattern specified as
             the first element.
-        as_pretokenization : bool
-            A boolean flag which indicates whether this hook should be used during
-            as_pretokenization (if True) or posttokenization (if False),
         """
-        super().__init__(as_pretokenization)
         self._patterns = [
             (re.compile(pattern), repl) for pattern, repl in replace_patterns
         ]
 
-    def apply(self, raw: str) -> str:
+    def __call__(self, raw: str) -> str:
         """
         Applies a sequence of regex substitutions to the raw textual data.
 
@@ -186,6 +259,7 @@ class RegexReplace(_DualHook):
         return raw
 
 
+@pretokenize_hook
 class TextCleanUp:
     """
     Pretokenization hook that cleans up the raw textual data.
@@ -301,6 +375,7 @@ class TextCleanUp:
         return self._cleanup(raw)
 
 
+@posttokenize_hook
 class NLTKStemmer:
     """
     Posttokenization hook that applies stemming to the tokenized textual data.
@@ -346,6 +421,7 @@ class NLTKStemmer:
         return raw, [self._stemmer.stem(token) for token in tokenized]
 
 
+@posttokenize_hook
 class SpacyLemmatizer:
     """
     Posttokenization hook that applies SpaCy Lemmatizer to the tokenized textual
