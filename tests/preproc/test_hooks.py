@@ -5,6 +5,7 @@ import pytest
 from podium.datasets import ExampleFactory
 from podium.field import Field
 from podium.preproc.hooks import (
+    HookType,
     MosesNormalizer,
     NLTKStemmer,
     RegexReplace,
@@ -21,7 +22,7 @@ def test_remove_stopwords():
     data = "I'll tell you a joke"
     field = Field(name="data")
     field.add_posttokenize_hook(remove_stopwords("en"))
-    example = ExampleFactory([field]).from_list(data)
+    example = ExampleFactory([field]).from_list([data])
 
     assert "you" not in example["data"][1]
     assert "a" not in example["data"][1]
@@ -115,3 +116,16 @@ def test_text_clean_up(kwargs, data, expected_output):
     example = ExampleFactory([field]).from_list([data])
 
     assert expected_output == example["data"][1]
+
+
+def test_hook_conversion():
+    hook = TextCleanUp(replace_url="<URL>")
+
+    assert hook.__hook_type__ == HookType.PRETOKENIZE
+
+    field = Field(name="data", tokenizer="split", keep_raw=True)
+    field.add_pretokenize_hook(hook)
+    data = "url to github is https://github.com"
+    example = ExampleFactory([field]).from_list([data])
+
+    assert example["data"][1] == ["url", "to", "github", "is", "<URL>"]

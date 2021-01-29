@@ -8,7 +8,7 @@ from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 
-from podium.preproc.hooks import as_posttokenize_hook
+from podium.preproc.hooks import HookType, as_posttokenize_hook
 from podium.preproc.tokenizers import get_tokenizer
 from podium.vocab import Vocab
 
@@ -24,6 +24,9 @@ class PretokenizationPipeline:
         self.hooks = deque(hooks)
 
     def add_hook(self, hook: PretokenizationHookType):
+        hook_type = getattr(hook, "__hook_type__", HookType.PRETOKENIZE)
+        if hook_type != HookType.PRETOKENIZE:
+            raise ValueError("Hook is not a pretokenization hook")
         self.hooks.append(hook)
 
     def process(self, raw):
@@ -238,7 +241,7 @@ class Field:
         if not isinstance(missing_data_token, (int, float)):
             raise ValueError(
                 f"Missing data token of Field '{name}' is of type"
-                f" '{type(missing_data_token).__name__}'. Must be int or float"
+                f" '{type(missing_data_token).__name__}'. Must be int or float."
             )
         self._missing_data_token = missing_data_token
 
@@ -443,7 +446,6 @@ class Field:
         ------
             If data is None and missing data is not allowed.
         """
-
         if data is None:
             if not self._allow_missing_data:
                 raise ValueError(f"Missing data not allowed in field {self.name}")

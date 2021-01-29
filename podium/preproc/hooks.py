@@ -68,7 +68,7 @@ def as_posttokenize_hook(hook):
             def posttokenize_hook_(raw, tokenized):
                 return raw, [hook(token) for token in tokenized]
 
-            return posttokenize_hook
+            return posttokenize_hook_
         else:
             return hook
 
