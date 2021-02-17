@@ -119,8 +119,8 @@ class Iterator(IteratorBase):
             batch_size the last returned batch will be smaller
             (dataset_len MOD batch_size).
         sort_key : callable
-            A callable object used to sort the dataset prior to batching. If
-            None, the dataset won't be sorted.
+            A callable object used to sort the instances in a batch.
+            If None, the batch instances won't be sorted.
             Default is None.
         shuffle : bool
             A flag denoting whether the examples should be shuffled before
@@ -209,6 +209,10 @@ class Iterator(IteratorBase):
         """
         return self._batch_size
 
+    @property
+    def sort_key(self):
+        return self._sort_key
+
     def reset(self):
         """
         Reset the epoch and iteration counter of the Iterator.
@@ -276,16 +280,17 @@ class Iterator(IteratorBase):
 
         data = self._dataset[indices]
 
-        if self._sort_key is not None:
-            data = data.sorted(key=self._sort_key)
-
         # If iteration was stopped, continue where we left off
         start = self.iterations * self.batch_size
 
         for i in range(start, len(data), self.batch_size):
-            batch_dataset = data[i : i + self.batch_size]
+            batch_instances = data[i : i + self.batch_size]
+
+            if self._sort_key is not None:
+                batch_instances = batch_instances.sorted(key=self._sort_key)
+
             self._iterations += 1
-            yield self._create_batch(batch_dataset)
+            yield self._create_batch(batch_instances)
 
         # prepare for new epoch
         self._iterations = 0
