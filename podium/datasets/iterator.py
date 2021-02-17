@@ -345,7 +345,8 @@ class Iterator(IteratorBase):
             if field.include_lengths:
                 # Include the length of each instance in the Field
                 # along with the numericalization
-                batch_lengths = [len(instance) for instance in numericalizations]
+                print("Being set")
+                batch_lengths = np.array([len(instance) for instance in numericalizations])
                 batch = (batch, batch_lengths)
 
             if field.is_target:
@@ -785,9 +786,6 @@ class HierarchicalDatasetIterator(Iterator):
             # creates a new list of nodes
             dataset_nodes = [dataset_nodes[i] for i in indices]
 
-        if self._sort_key is not None:
-            dataset_nodes.sort(key=lambda node: self._sort_key(node.example))
-
         return dataset_nodes
 
     def __iter__(self) -> PythonIterator[Tuple[NamedTuple, NamedTuple]]:
@@ -798,6 +796,10 @@ class HierarchicalDatasetIterator(Iterator):
 
         for i in range(start, len(dataset_nodes), self.batch_size):
             batch_nodes = dataset_nodes[i : i + self.batch_size]
+
+            if self._sort_key is not None:
+                batch_nodes = batch_nodes.sorted(key=lambda node: self._sort_key(node.example))
+
             yield self._nodes_to_batch(batch_nodes)
             self._iterations += 1
 

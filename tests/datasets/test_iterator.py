@@ -168,16 +168,17 @@ def test_lazy_numericalization_caching(tabular_dataset):
 
 
 @pytest.mark.usefixtures("cache_disabled_tabular_dataset")
-def test_caching_disabled(tabular_dataset):
+def test_caching_disabled(cache_disabled_tabular_dataset):
     # Run one epoch to cause lazy numericalization
-    for _ in Iterator(dataset=tabular_dataset, batch_size=10):
+    for _ in Iterator(dataset=cache_disabled_tabular_dataset, batch_size=10):
         pass
 
     cache_disabled_fields = [
-        f for f in tabular_dataset.fields if f.disable_numericalize_caching
+        f for f in cache_disabled_tabular_dataset.fields
+        if f.disable_numericalize_caching
     ]
     # Test if cached data is equal to numericalized data
-    for example in tabular_dataset:
+    for example in cache_disabled_tabular_dataset:
         for field in cache_disabled_fields:
 
             cache_field_name = f"{field.name}_"
@@ -185,23 +186,31 @@ def test_caching_disabled(tabular_dataset):
             assert numericalization is None
 
 
-@pytest.mark.usefixtures("tabular_dataset")
-def test_sort_key(tabular_dataset):
+@pytest.mark.usefixtures("length_included_tabular_dataset")
+def test_sort_key(length_included_tabular_dataset):
     def text_len_sort_key(example):
         tokens = example["text"][1]
         if tokens is None:
             return 0
         else:
-            return len(tokens)
+            return -len(tokens)
 
     iterator = Iterator(
-        dataset=tabular_dataset, batch_size=2, sort_key=text_len_sort_key, shuffle=False
+        dataset=length_included_tabular_dataset, batch_size=2,
+        sort_key=text_len_sort_key, shuffle=False
     )
 
-    expected_row_lengths = [1, 3, 4, 6]
+    # Since we're not shuffling, this shouldn't change
+    expected_batch_lengths = [
+        [3, 1],
+        [4, 1],
+        [3, 2],
+        [6]
+    ]
 
-    for (x_batch, _), expected_row_length in zip(iterator, expected_row_lengths):
-        assert x_batch.text.shape[1] == expected_row_length
+    for (x_batch, _), expected_batch_length in zip(iterator, expected_batch_lengths):
+        text, lengths = x_batch.text
+        assert np.array_equal(lengths, expected_batch_length)
 
 
 @pytest.mark.parametrize(
