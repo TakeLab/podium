@@ -324,6 +324,9 @@ class Iterator(IteratorBase):
                 )
                 self._numericalization_format_warned_fieldnames.add(field.name)
 
+
+
+
             if (
                 len(numericalizations) > 0
                 and not field._disable_batch_matrix
@@ -333,6 +336,12 @@ class Iterator(IteratorBase):
 
             else:
                 batch = numericalizations
+
+            if field.include_lengths:
+                # Include the length of each instance in the Field
+                # along with the numericalization
+                batch_lengths = [len(instance) for instance in numericalizations]
+                batch = (batch, batch_lengths)
 
             if field.is_target:
                 target_batch[field.name] = batch

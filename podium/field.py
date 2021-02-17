@@ -78,6 +78,7 @@ class Field:
         keep_raw: bool = False,
         numericalizer: Optional[Union[Vocab, NumericalizerType]] = None,
         is_target: bool = False,
+        include_lengths: bool = False,
         fixed_length: Optional[int] = None,
         allow_missing_data: bool = False,
         disable_batch_matrix: bool = False,
@@ -127,6 +128,11 @@ class Field:
          is_target : bool
             Whether this field is a target variable. Affects iteration over
             batches.
+
+         include_lengths : bool
+            Whether the batch representation of this field should include the length
+            of every instance in the batch. If true, the batch element under the name
+            of this Field will be a tuple of (numericalized values, lengths).
 
         fixed_length : int, optional
             To which length should the field be fixed. If it is not None every
@@ -1004,6 +1010,7 @@ class LabelField(Field):
             keep_raw=False,
             numericalizer=numericalizer,
             is_target=is_target,
+            include_lengths=False,
             fixed_length=1,
             allow_missing_data=allow_missing_data,
             disable_batch_matrix=disable_batch_matrix,
@@ -1027,6 +1034,7 @@ class MultilabelField(Field):
         numericalizer: Optional[Union[Vocab, NumericalizerType]] = None,
         num_of_classes: Optional[int] = None,
         is_target: bool = True,
+        include_lengths: bool = False,
         allow_missing_data: bool = False,
         disable_batch_matrix: bool = False,
         disable_numericalize_caching: bool = False,
@@ -1074,6 +1082,11 @@ class MultilabelField(Field):
          is_target : bool
             Whether this field is a target variable. Affects iteration over
             batches.
+
+         include_lengths : bool
+            Whether the batch representation of this field should include the length
+            of every instance in the batch. If true, the batch element under the name
+            of this Field will be a tuple of (numericalized values, lengths).
 
          allow_missing_data : bool
             Whether the field allows missing data. In the case 'allow_missing_data'
@@ -1135,6 +1148,7 @@ class MultilabelField(Field):
             keep_raw=False,
             numericalizer=numericalizer,
             is_target=is_target,
+            include_lengths=include_lengths,
             fixed_length=num_of_classes,
             allow_missing_data=allow_missing_data,
             disable_batch_matrix=disable_batch_matrix,
