@@ -174,8 +174,7 @@ def test_caching_disabled(cache_disabled_tabular_dataset):
         pass
 
     cache_disabled_fields = [
-        f for f in cache_disabled_tabular_dataset.fields
-        if f.disable_numericalize_caching
+        f for f in cache_disabled_tabular_dataset.fields if f.disable_numericalize_caching
     ]
     # Test if cached data is equal to numericalized data
     for example in cache_disabled_tabular_dataset:
@@ -184,6 +183,26 @@ def test_caching_disabled(cache_disabled_tabular_dataset):
             cache_field_name = f"{field.name}_"
             numericalization = example.get(cache_field_name)
             assert numericalization is None
+
+
+@pytest.mark.usefixtures("length_included_tabular_dataset")
+def test_include_lengths(length_included_tabular_dataset):
+
+    iterator = Iterator(
+        dataset=length_included_tabular_dataset, batch_size=2, shuffle=False
+    )
+
+    # Since we're not shuffling, this shouldn't change
+    expected_batch_lengths = [[3, 1], [4, 1], [2, 3], [6]]
+
+    for (x_batch, _), expected_batch_length in zip(iterator, expected_batch_lengths):
+        text, lengths = x_batch.text
+        # Should contain same number of instances
+        assert lengths.shape[0] == text.shape[0]
+        # Number of columns should be equal to max length
+        assert max(lengths) == text.shape[-1]
+        # Check that expected lengths match
+        assert np.array_equal(lengths, expected_batch_length)
 
 
 @pytest.mark.usefixtures("length_included_tabular_dataset")
@@ -196,17 +215,14 @@ def test_sort_key(length_included_tabular_dataset):
             return -len(tokens)
 
     iterator = Iterator(
-        dataset=length_included_tabular_dataset, batch_size=2,
-        sort_key=text_len_sort_key, shuffle=False
+        dataset=length_included_tabular_dataset,
+        batch_size=2,
+        sort_key=text_len_sort_key,
+        shuffle=False,
     )
 
     # Since we're not shuffling, this shouldn't change
-    expected_batch_lengths = [
-        [3, 1],
-        [4, 1],
-        [3, 2],
-        [6]
-    ]
+    expected_batch_lengths = [[3, 1], [4, 1], [3, 2], [6]]
 
     for (x_batch, _), expected_batch_length in zip(iterator, expected_batch_lengths):
         text, lengths = x_batch.text

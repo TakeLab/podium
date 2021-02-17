@@ -329,9 +329,6 @@ class Iterator(IteratorBase):
                 )
                 self._numericalization_format_warned_fieldnames.add(field.name)
 
-
-
-
             if (
                 len(numericalizations) > 0
                 and not field._disable_batch_matrix
@@ -346,7 +343,9 @@ class Iterator(IteratorBase):
                 # Include the length of each instance in the Field
                 # along with the numericalization
                 print("Being set")
-                batch_lengths = np.array([len(instance) for instance in numericalizations])
+                batch_lengths = np.array(
+                    [len(instance) for instance in numericalizations]
+                )
                 batch = (batch, batch_lengths)
 
             if field.is_target:
@@ -798,7 +797,9 @@ class HierarchicalDatasetIterator(Iterator):
             batch_nodes = dataset_nodes[i : i + self.batch_size]
 
             if self._sort_key is not None:
-                batch_nodes = batch_nodes.sorted(key=lambda node: self._sort_key(node.example))
+                batch_nodes = batch_nodes.sorted(
+                    key=lambda node: self._sort_key(node.example)
+                )
 
             yield self._nodes_to_batch(batch_nodes)
             self._iterations += 1

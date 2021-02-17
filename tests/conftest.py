@@ -74,8 +74,9 @@ def tabular_dataset(json_file_path):
     return create_tabular_dataset_from_json(tabular_dataset_fields(), json_file_path)
 
 
-def tabular_dataset_fields(fixed_length=None, disable_numericalize_caching=False,
-                           include_lengths=False):
+def tabular_dataset_fields(
+    fixed_length=None, disable_numericalize_caching=False, include_lengths=False
+):
     text = Field(
         "text",
         numericalizer=Vocab(eager=True),
