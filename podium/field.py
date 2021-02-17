@@ -220,6 +220,9 @@ class Field:
 
         self._is_target = is_target
 
+        # TODO: @mttk perform a sanity check here (if fixed length is set etc etc)
+        self._include_lengths = include_lengths
+
         if fixed_length is not None and not isinstance(fixed_length, int):
             raise ValueError(
                 f"`fixed_length` of Field `{name}` is of type"
@@ -303,6 +306,10 @@ class Field:
     @property
     def is_target(self):
         return self._is_target
+
+    @property
+    def include_lengths(self):
+        return self._include_lengths
 
     def add_pretokenize_hook(self, hook: PretokenizationHookType):
         """
