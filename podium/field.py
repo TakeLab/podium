@@ -480,7 +480,7 @@ class Field:
         self._vocab += data
 
     @property
-    def finalized(self) -> bool:
+    def is_finalized(self) -> bool:
         """
         Returns whether the field's Vocab vas finalized. If the field has no
         vocab, returns True.
@@ -491,7 +491,7 @@ class Field:
             Whether the field's Vocab vas finalized. If the field has no
             vocab, returns True.
         """
-        return True if self.vocab is None else self.vocab.finalized
+        return True if self.vocab is None else self.vocab.is_finalized
 
     def finalize(self):
         """
@@ -535,7 +535,7 @@ class Field:
         raw = raw if self._keep_raw else None
 
         # Self.eager checks if a vocab is used so this won't error
-        if self.eager and not self.vocab.finalized:
+        if self.eager and not self.vocab.is_finalized:
             self.update_vocab(tokenized)
         return self.name, (raw, tokenized)
 
@@ -667,7 +667,7 @@ class Field:
                 pad_symbol = custom_pad_symbol
 
             elif self.use_vocab:
-                pad_symbol = self.vocab.padding_index()
+                pad_symbol = self.vocab.get_padding_index()
 
             else:
                 pad_symbol = self._padding_token
@@ -1004,7 +1004,7 @@ class LabelField(Field):
             # Default to a vocabulary if custom numericalize is not set
             numericalizer = Vocab(specials=())
 
-        if isinstance(numericalizer, Vocab) and numericalizer.has_specials:
+        if isinstance(numericalizer, Vocab) and numericalizer.specials:
             raise ValueError(
                 "Vocab contains special symbols."
                 " Vocabs with special symbols cannot be used"
@@ -1141,7 +1141,7 @@ class MultilabelField(Field):
         if numericalizer is None:
             numericalizer = Vocab(specials=())
 
-        if isinstance(numericalizer, Vocab) and numericalizer.has_specials:
+        if isinstance(numericalizer, Vocab) and numericalizer.specials:
             raise ValueError(
                 "Vocab contains special symbols."
                 " Vocabs with special symbols cannot be used"

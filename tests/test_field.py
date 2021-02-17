@@ -34,12 +34,12 @@ class MockVocab(Mock):
     def __init__(self, eager=True):
         super(MockVocab, self).__init__(spec=Vocab)
         self.values = []
-        self.finalized = False
+        self.is_finalized = False
         self.numericalized = False
         self.eager = eager
         self.specials = ()
 
-    def padding_index(self):
+    def get_padding_index(self):
         return PAD_NUM
 
     def __add__(self, values):
@@ -54,10 +54,10 @@ class MockVocab(Mock):
         return self.__add__(other)
 
     def finalize(self):
-        if self.finalized:
+        if self.is_finalized:
             raise Exception
         else:
-            self.finalized = True
+            self.is_finalized = True
 
     def numericalize(self, data):
         self.numericalized = True
@@ -147,9 +147,9 @@ def test_field_finalize():
     vocab = MockVocab()
     f = Field(name="F", numericalizer=vocab)
 
-    assert not vocab.finalized
+    assert not vocab.is_finalized
     f.finalize()
-    assert vocab.finalized
+    assert vocab.is_finalized
     with pytest.raises(Exception):
         f.finalize()
 
