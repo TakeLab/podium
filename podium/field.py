@@ -8,7 +8,7 @@ from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 
-from podium.preproc.hooks import HookType, as_posttokenize_hook
+from podium.preproc.hooks import HookType
 from podium.preproc.tokenizers import get_tokenizer
 from podium.vocab import Vocab
 
@@ -49,7 +49,12 @@ class PosttokenizationPipeline:
         self.hooks = deque(hooks)
 
     def add_hook(self, hook: PosttokenizationHookType):
-        self.hooks.append(as_posttokenize_hook(hook))
+        hook_type = getattr(hook, "__hook_type__", HookType.POSTTOKENIZE)
+        if hook_type != HookType.POSTTOKENIZE:
+            raise ValueError(
+                "Hook is not a posttokenization hook. Please wrap your hook with the `podium.preproc.as_posttokenize_hook` function to turn it into a posttokenization hook."
+            )
+        self.hooks.append(hook)
 
     def process(self, raw, tokenized):
         processed_raw, processed_tokenized = raw, tokenized

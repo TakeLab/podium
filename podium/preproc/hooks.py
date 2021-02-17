@@ -4,7 +4,7 @@ Module contains various pretokenization and posttokenization hooks.
 import functools
 import re
 from enum import Enum, auto
-from typing import Callable, List, Optional, Pattern, Sequence, Tuple, Union
+from typing import Callable, Iterable, List, Optional, Pattern, Tuple, Union
 
 from nltk.stem import SnowballStemmer
 
@@ -73,7 +73,6 @@ def as_posttokenize_hook(hook):
             return hook
 
 
-@pretokenize_hook
 def truecase(oov: str = "title") -> Callable[[str], str]:
     """
     Returns a pretokenization hook that applies truecasing to the raw textual
@@ -116,13 +115,13 @@ def truecase(oov: str = "title") -> Callable[[str], str]:
     if oov not in {"title", "lower", "as-is"}:
         raise ValueError("Specified out of vocabulary option is not supported")
 
+    @pretokenize_hook
     def _truecase_hook(raw):
         return truecase_.get_true_case(raw, out_of_vocabulary_token_option=oov)
 
     return _truecase_hook
 
 
-@posttokenize_hook
 def remove_stopwords(
     language: str = "en",
 ) -> Callable[[str, List[str]], Tuple[str, List[str]]]:
@@ -151,6 +150,7 @@ def remove_stopwords(
     nlp = load_spacy_model_or_raise(language, disable=["tagger", "parser", "ner"])
     stop_words = nlp.Defaults.stop_words
 
+    @posttokenize_hook
     def _remove_hook(raw, tokenized):
         tokenized = [token for token in tokenized if token not in stop_words]
 
@@ -222,14 +222,14 @@ class RegexReplace:
 
     def __init__(
         self,
-        replace_patterns: Sequence[Tuple[Union[Pattern, str], str]],
+        replace_patterns: Iterable[Tuple[Union[Pattern, str], str]],
     ) -> None:
         """
         RegexReplace constructor.
 
         Parameters
         ----------
-        replace_patterns : sequence of tuple(Union[re.Pattern, str], str)
+        replace_patterns : iterable of tuple(Union[re.Pattern, str], str)
             Iterable of 2-tuples where the first element is either
             a regex pattern or a string and the second element
             is a string that will replace each occurance of the pattern specified as

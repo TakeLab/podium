@@ -8,6 +8,7 @@ from .hooks import (
     RegexReplace,
     SpacyLemmatizer,
     TextCleanUp,
+    as_posttokenize_hook,
     remove_stopwords,
     truecase,
 )

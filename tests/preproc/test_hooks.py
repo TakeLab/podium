@@ -11,6 +11,7 @@ from podium.preproc.hooks import (
     RegexReplace,
     SpacyLemmatizer,
     TextCleanUp,
+    as_posttokenize_hook,
     remove_stopwords,
     truecase,
 )
@@ -118,13 +119,35 @@ def test_text_clean_up(kwargs, data, expected_output):
     assert expected_output == example["data"][1]
 
 
+@run_spacy
+def test_hook_type():
+    pretokenize_hooks = [
+        MosesNormalizer(),
+        RegexReplace([("", "")]),
+        TextCleanUp(),
+        truecase(),
+    ]
+    posttokenize_hooks = [remove_stopwords("en"), SpacyLemmatizer(), NLTKStemmer()]
+
+    assert all([hook.__hook_type__ == HookType.PRETOKENIZE for hook in pretokenize_hooks])
+    assert all(
+        [hook.__hook_type__ == HookType.POSTTOKENIZE for hook in posttokenize_hooks]
+    )
+
+
 def test_hook_conversion():
-    hook = TextCleanUp(replace_url="<URL>")
-
-    assert hook.__hook_type__ == HookType.PRETOKENIZE
-
     field = Field(name="data", tokenizer="split", keep_raw=True)
-    field.add_pretokenize_hook(hook)
+    text_clean_up_hook = TextCleanUp(replace_url="<URL>")
+
+    assert text_clean_up_hook.__hook_type__ == HookType.PRETOKENIZE
+    with pytest.raises(ValueError):
+        field.add_posttokenize_hook(text_clean_up_hook)
+
+    text_clean_up_hook = as_posttokenize_hook(text_clean_up_hook)
+    assert text_clean_up_hook.__hook_type__ == HookType.POSTTOKENIZE
+
+    field.add_posttokenize_hook(text_clean_up_hook)
+
     data = "url to github is https://github.com"
     example = ExampleFactory([field]).from_list([data])
 
