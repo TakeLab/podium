@@ -38,7 +38,7 @@ INSTALL_REQUIRES = [
     # for sparse storage
     "scipy<1.6.0",
     # for preprocessing (tokenization, hooks, etc.)
-    "spacy",
+    "spacy<3.0",
     # progress bar in download and model selection
     "tqdm",
     # for keyword extraction
@@ -94,9 +94,6 @@ DOCS_REQUIRE = [
     'sphinx-copybutton',
     'recommonmark',
     'datasets',
-#    'keras==2.2.4',
-#    'tensorflow==1.15',
-    'torch',
     'xlrd',
 ]
 
