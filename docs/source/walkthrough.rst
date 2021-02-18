@@ -14,7 +14,7 @@ The core component of Podium is the :class:`podium.Dataset` class, a shallow wra
 Podium datasets come in three flavors:
 
 - **Built-in datasets**: Podium contains data load and download functionality for some commonly used datasets in separate classes. See how to load built-in datasets here: :ref:`builtin-loading`.
-- **Tabular datasets**: Podium allows you to load datasets in standardized format through :class:`podium.TabularDataset` and :class:`podium.arrow.ArrowTabularDataset` classes. See how to load tabular datasets here: :ref:`custom-loading`.
+- **Tabular datasets**: Podium allows you to load datasets in standardized format through :class:`podium.TabularDataset` and :class:`podium.datasets.arrow.DiskBackedDataset` classes. See how to load tabular datasets here: :ref:`custom-loading`.
 
   - Regular tabular datasets are memory-backed, while the arrow version is disk-backed.
 - **HuggingFace datasets**: Podium wraps the popular `huggingface/datasets <https://github.com/huggingface/datasets>`__ library and allows you to convert every 🤗 dataset to a Podium dataset. See how to load 🤗 datasets here: :ref:`hf-loading`.
@@ -80,7 +80,7 @@ Podium contains methods to iterate over data. Let's take a look at :class:`podiu
 
 
 There are a couple of things we need to unpack here. Firstly, our textual input data and class labels were converted to indices. This happened without our intervention -- built-in datasets have a default preprocessing pipeline, which handles text tokenization and numericalization.
-Secondly, while iterating we obtained two `namedtuple` instances: an :class:`InputBatch` and a :class:`TargetBatch`. By default, Podium Iterators group input and target data Fields during iteration. If your dataset contains multiple input or target fields, they will also be present as attributes of the namedtuples.
+Secondly, while iterating we obtained two `Batch` instances. `Batch` is a special dictionary that also acts as a `namedtuple` by supporting tuple unpacking and attribute lookup. By default, Podium Iterators group input and target data Fields during iteration. If your dataset contains multiple input or target fields, they will also be present as attributes of the namedtuples.
 
 The Vocabulary
 ---------------
@@ -104,7 +104,7 @@ We saw earlier that our dataset has two Fields: text and label. We will touch on
       vocab: Vocab({specials: (), eager: False, finalized: True, size: 2})
   })
 
-Inside each of these two fields we can see a :class:`podium.storage.Vocab` class, used for numericalization (converting token strings to indices). A Vocab is defined by two maps: the string-to-index mapping :attr:`podium.storage.Vocab.stoi` and the index-to-string mapping :attr:`podium.storage.Vocab.itos`.
+Inside each of these two fields we can see a :class:`podium.Vocab` class, used for numericalization (converting token strings to indices). A Vocab is defined by two maps: the string-to-index mapping :attr:`podium.Vocab.stoi` and the index-to-string mapping :attr:`podium.Vocab.itos`.
 
 Vocabularies are built automatically for built-in datasets by counting the frequencies of tokens in the **train** set and then converting these frequences to the ``itos`` and ``stoi`` dictionaries. We can see that a ``Vocab`` is built by the ``finalized=True`` keyword in the printout.
 If you are constructing your own dataset or loading a dataset from HuggingFace (:ref:`hf-loading`), you will need to call the :meth:`podium.Dataset.finalize_fields()` method to signal that the vocabularies should be constructed.
@@ -137,8 +137,8 @@ In this example we have also defined a Special token (:ref:`specials`) to use in
 
 We will now take a look at controlling Vocabs through their constructor parameters. In the previous code block we can see that the Vocab for the ``text`` field has a size of 16282. The Vocab by default includes all the tokens present in the dataset, whichever their frequency might be. There are two ways to control the size of your vocabulary:
 
-1. Setting the minimum frequency (inclusive) for a token to be used in a Vocab: the :attr:`podium.storage.Vocab.min_freq` argument
-2. Setting the maximum size of the Vocab: the :attr:`podium.storage.Vocab.max_size` argument
+1. Setting the minimum frequency (inclusive) for a token to be used in a Vocab: the :attr:`podium.Vocab.min_freq` argument
+2. Setting the maximum size of the Vocab: the :attr:`podium.Vocab.max_size` argument
 
 You might want to limit the size of your Vocab for larger datasets. To do so, define your own vocabulary as follows:
 
@@ -153,7 +153,7 @@ In order to use this new Vocab with a dataset, we first need to get familiar wit
 Customizing the preprocessing pipeline with Fields
 --------------------------------------------------
 
-Data processing in Podium is wholly encapsulated in the flexible :class:`podium.storage.Field` class. Default Fields for the SST dataset are defined in the :meth:`podium.datasets.impl.SST.get_dataset_splits` method, but you can easily redefine and customize them. We will only scratch the surface of customizing Fields in this section.
+Data processing in Podium is wholly encapsulated in the flexible :class:`podium.Field` class. Default Fields for the SST dataset are defined in the :meth:`podium.datasets.SST.get_dataset_splits` method, but you can easily redefine and customize them. We will only scratch the surface of customizing Fields in this section.
 
 You can think of Fields as the path your data takes from the input to your model. In order for Fields to be able to process data, you need to which input data columns will pass through which Fields.
 
@@ -203,7 +203,7 @@ That's it! We have defined our Fields. In order for them to be initialized, we n
 
 Our new Vocab has been limited to the 5000 most frequent words. If your `Vocab` contains the unknown special token :class:`podium.vocab.UNK`, the words not present in the vocabulary will be set to the value of the unknown token. The unknown token is one of the default `special` tokens in the Vocab, alongside the padding token :class:`podium.vocab.PAD`. You can read more about these in :ref:`specials`.
 
-You might have noticed that we used a different type of Field: :class:`podium.storage.LabelField` for the label. LabelField is one of the predefined custom Field classes with sensible default constructor arguments for its concrete use-case. We'll take a closer look at LabelFields in the following subsection.
+You might have noticed that we used a different type of Field: :class:`podium.LabelField` for the label. LabelField is one of the predefined custom Field classes with sensible default constructor arguments for its concrete use-case. We'll take a closer look at LabelFields in the following subsection.
 
 
 LabelField
@@ -219,7 +219,7 @@ Loading pretrained word vectors
 
 With most deep learning models, we want to use pre-trained word embeddings. In Podium, this process is very simple. If your field uses a vocabulary, it has already built an inventory of tokens for your dataset.
 
-A number of predefined vectorizers are available (:class:`podium.storage.vectorizers.GloVe`, :class:`podium.storage.vectorizers.NlplVectorizer`, :class:`podium.storage.vectorizers.TfIdfVectorizer`), as well as a standardized loader :class:`podium.storage.vectorizers.BasicVectorStorage` for loading word2vec-style format of word embeddings from disk.
+A number of predefined vectorizers are available (:class:`podium.vectorizers.GloVe`, :class:`podium.vectorizers.NlplVectorizer`, :class:`podium.vectorizers.TfIdfVectorizer`), as well as a standardized loader :class:`podium.vectorizers.BasicVectorStorage` for loading word2vec-style format of word embeddings from disk.
 
 For example, we will use the `GloVe <https://nlp.stanford.edu/projects/glove/>`__ vectors. The procedure to load these vectors has two steps:
 
@@ -343,7 +343,7 @@ For this dataset, we need to define three Fields. We also might want the fields 
   ['<UNK>', '<PAD>', 'man', 'A', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.', 'The', 'is', 'sleeping']
 
 
-Our ``TabularDataset`` has supports three keyword formats out-of-the-box:
+Our ``TabularDataset`` supports three keyword formats out-of-the-box:
 
 1. **csv**: the comma-separated values format, which uses python's ``csv.reader`` to read comma delimited files. Additional arguments to the reader can be passed via the ``csv_reader_params`` argument.
 2. **tsv**: the tab-separated values format, handled similarly to csv except that the delimiter is ``"\t"``.
@@ -389,7 +389,7 @@ You can load a dataset in 🤗/datasets and then convert it to a Podium dataset 
   >>> print(imdb.keys())
   dict_keys(['train', 'test', 'unsupervised'])
 
-Datasets from 🤗 can be used with other Podium components by wrapping them in the :class:`podium.datasets.HFDatasetConverter`, in which case they remain as disk-backed datasets backed by `pyarrow <https://arrow.apache.org/docs/python/>`__ or by casting them into a Podium :class:`podium.datasets.Dataset`, making them concrete and loading them in memory. This operation can be memory intensive for some datasets. We will first take a look at using disk-backed 🤗 datasets.
+Datasets from 🤗 can be used with other Podium components by wrapping them in the :class:`podium.datasets.hf.HFDatasetConverter`, in which case they remain as disk-backed datasets backed by `pyarrow <https://arrow.apache.org/docs/python/>`__ or by casting them into a Podium :class:`podium.datasets.Dataset`, making them concrete and loading them in memory. This operation can be memory intensive for some datasets. We will first take a look at using disk-backed 🤗 datasets.
 
 .. code-block:: python
 
