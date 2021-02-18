@@ -342,7 +342,6 @@ class Iterator(IteratorBase):
             if field.include_lengths:
                 # Include the length of each instance in the Field
                 # along with the numericalization
-                print("Being set")
                 batch_lengths = np.array(
                     [len(instance) for instance in numericalizations]
                 )
