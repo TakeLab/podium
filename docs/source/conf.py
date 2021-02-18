@@ -50,6 +50,9 @@ source_suffix = ['.rst', '.md']
 autodoc_typehints = 'none'
 autoclass_content = 'both'
 
+# Mock since the install is large, and it clogs the available space on GH Actions
+autodoc_mock_imports = ['torch']
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 html_static_path = ['_static']
