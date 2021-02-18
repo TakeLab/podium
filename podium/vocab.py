@@ -78,7 +78,7 @@ class Special(UserString):
         if token is None:
             raise ValueError(
                 "When initializing a special token without argument"
-                f" the {type(self).__name__}.value attribute must be set."
+                f" the {type(self).__name__}.token attribute must be set."
             )
 
         super(Special, self).__init__(token)
