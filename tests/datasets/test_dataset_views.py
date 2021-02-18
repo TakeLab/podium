@@ -9,7 +9,7 @@ from podium.datasets import (
     DatasetSlicedView,
     ExampleFactory,
 )
-from podium.datasets.arrow_dataset import DiskBackedDataset
+from podium.datasets.arrow import DiskBackedDataset
 from podium.field import Field
 from podium.vocab import Vocab
 
