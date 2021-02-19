@@ -10,7 +10,7 @@ import pytest
 pa = pytest.importorskip("pyarrow")
 
 from podium.datasets import Dataset, ExampleFactory
-from podium.datasets.arrow_dataset import DiskBackedDataset
+from podium.datasets.arrow import DiskBackedDataset
 from podium.field import Field
 from podium.vocab import Vocab
 
