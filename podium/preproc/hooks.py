@@ -411,9 +411,6 @@ class SpacyLemmatizer:
                 return [token.lemma_ for token in lemmatizer(nlp(tokenized))]
 
         self._lemmatize = lemmatize
-        # nlp.tokenizer = tokenizer
-        # self._str2token = nlp
-        # self._lemmatizer = Lemmatizer(nlp.vocab, None, mode=mode)
 
     def __call__(self, raw: str, tokenized: List[str]) -> Tuple[str, List[str]]:
         """

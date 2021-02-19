@@ -1,6 +1,8 @@
+import importlib
 import inspect
 
 import pytest
+from spacy import util
 
 from podium.datasets import ExampleFactory
 from podium.field import Field
@@ -54,7 +56,13 @@ def test_moses_normalizer():
         NLTKStemmer("en"),
         pytest.param(
             lambda: SpacyLemmatizer("en"),
-            marks=pytest.mark.require_spacy_model("en_core_web_sm"),
+            marks=[
+                pytest.mark.require_spacy_model("en_core_web_sm"),
+                pytest.mark.skipif(
+                    importlib.util.find_spec("spacy_lookups_data") is None,
+                    reason="requires spacy-lookups-data",
+                ),
+            ],
         ),
     ],
 )
