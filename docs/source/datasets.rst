@@ -16,7 +16,7 @@ TabularDataset
 
 DiskBackedDataset
 --------------------
-.. autoclass:: podium.datasets.arrow_dataset.DiskBackedDataset
+.. autoclass:: podium.datasets.arrow.DiskBackedDataset
    :members:
    :no-undoc-members:
 

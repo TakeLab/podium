@@ -22,30 +22,29 @@ DOCLINES = __doc__.split('\n')
 
 
 INSTALL_REQUIRES = [
+    # for numericalization in batching
+    "numpy<=1.19",
     # for improved dataset pickling
     "dill",
     # for tokenization and data encoded in tree structure
     "nltk>=3.0",
-    # for numericalization in batching
-    "numpy",
     # for improved csv parsing
-    "pandas",
+    "pandas<1.2.0",
     # for downloading datasets over HTTP
     "paramiko",
     "requests",
     # for models and model selection
     "scikit-learn",
     # for sparse storage
-    "scipy",
+    "scipy<1.6.0",
     # for preprocessing (tokenization, hooks, etc.)
-    "spacy",
+    "spacy<3.0",
     # progress bar in download and model selection
     "tqdm",
     # for keyword extraction
     "yake @ https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz",
     # for some datasets
     'xlrd',
-
 ]
 
 
@@ -95,9 +94,6 @@ DOCS_REQUIRE = [
     'sphinx-copybutton',
     'recommonmark',
     'datasets',
-    'keras==2.2.4',
-    'tensorflow==1.15',
-    'torch',
     'xlrd',
 ]
 
