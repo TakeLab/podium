@@ -3,12 +3,11 @@ Module contains various pretokenization and posttokenization hooks.
 """
 import functools
 import re
-import warnings
 from typing import List, Optional, Pattern, Sequence, Tuple, Union
 
-import spacy
 from nltk.stem import SnowballStemmer
-from spacy.lemmatizer import Lemmatizer
+
+from podium.utils.general_utils import load_spacy_model_or_raise
 
 
 _LANGUAGES = {
@@ -355,7 +354,7 @@ class SpacyLemmatizer:
     If the language model is not installed, an attempt is made to install it.
     """
 
-    def __init__(self, language: str = "en") -> None:
+    def __init__(self, language: str = "en", mode: str = "lookup") -> None:
         """
         SpacyLemmatizer constructor.
 
@@ -366,21 +365,55 @@ class SpacyLemmatizer:
             For the list of supported languages,
             see https://spacy.io/usage/models#languages.
             Default: "en".
+        mode : str
+            The lemmatizer mode. By default, the following modes are available:
+            "lookup" and "rule". Default: "lookup".
         """
+
+        language = "en_core_web_sm" if language == "en" else language
+        nlp = load_spacy_model_or_raise(language, disable=["parser", "ner"])
+
         try:
-            disable = ["tagger", "parser", "ner"]
-            nlp = spacy.load(language, disable=disable)
-        except OSError:
-            warnings.warn(
-                f"SpaCy model {language} not found. Trying to download and install."
-            )
+            # SpaCy<3.0
+            from spacy.lemmatizer import Lemmatizer
 
-            from spacy.cli.download import download
+            is_spacy_old = True
+        except ImportError:
+            # SpaCy>=3.0
+            from spacy.pipeline import Lemmatizer
+            from spacy.tokens import Doc
 
-            download(language)
-            nlp = spacy.load(language, disable=disable)
+            is_spacy_old = False
 
-        self._lemmatizer = Lemmatizer(nlp.vocab.lookups)
+        if is_spacy_old:
+            lemmatizer = Lemmatizer(nlp.vocab.lookups)
+
+            def lemmatize(tokenized):
+                return [lemmatizer.lookup(token) for token in tokenized]
+
+        else:
+            lemmatizer = Lemmatizer(nlp.vocab, None, mode=mode)
+            try:
+                lemmatizer.initialize()
+            except ValueError as err:
+                raise ValueError(
+                    "SpaCy lookups data is missing. "
+                    "Visit https://spacy.io/usage/models"
+                    "for more information on how to install."
+                ) from err
+
+            def tokenizer(text: List[str]) -> Doc:
+                return Doc(nlp.vocab, text)
+
+            nlp.tokenizer = tokenizer
+
+            def lemmatize(tokenized):
+                return [token.lemma_ for token in lemmatizer(nlp(tokenized))]
+
+        self._lemmatize = lemmatize
+        # nlp.tokenizer = tokenizer
+        # self._str2token = nlp
+        # self._lemmatizer = Lemmatizer(nlp.vocab, None, mode=mode)
 
     def __call__(self, raw: str, tokenized: List[str]) -> Tuple[str, List[str]]:
         """
@@ -393,4 +426,4 @@ class SpacyLemmatizer:
             2-tuple where the first element is left unchanged and the second
             elements contains lemmatized tokens.
         """
-        return raw, [self._lemmatizer.lookup(token) for token in tokenized]
+        return raw, self._lemmatize(tokenized)

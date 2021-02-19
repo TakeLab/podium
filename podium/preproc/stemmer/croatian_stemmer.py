@@ -23,7 +23,7 @@ import functools
 import os
 import re
 
-from podium.preproc.util import (
+from podium.preproc.utils import (
     capitalize_target_like_source,
     find_word_by_prefix,
     make_trie,

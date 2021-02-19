@@ -1,8 +1,9 @@
 """
 Module contains functional preprocessing hooks.
 """
-import warnings
 from typing import Callable, List, Tuple
+
+from podium.utils.general_utils import load_spacy_model_or_raise
 
 
 def truecase(oov: str = "title") -> Callable[[str], str]:
@@ -77,21 +78,8 @@ def remove_stopwords(
     This function does not lowercase the tokenized data prior to stopword removal.
     """
 
-    try:
-        import spacy
-
-        disable = ["tagger", "parser", "ner"]
-        nlp = spacy.load(language, disable=disable)
-    except OSError:
-        warnings.warn(
-            f"SpaCy model {language} not found. Trying to download and install."
-        )
-
-        from spacy.cli.download import download
-
-        download(language)
-        nlp = spacy.load(language, disable=disable)
-
+    language = "en_core_web_sm" if language == "en" else language
+    nlp = load_spacy_model_or_raise(language, disable=["tagger", "parser", "ner"])
     stop_words = nlp.Defaults.stop_words
 
     def _remove_hook(raw, tokenized):

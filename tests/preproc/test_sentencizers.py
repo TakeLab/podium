@@ -2,10 +2,8 @@ import pytest
 
 from podium.preproc.sentencizers import SpacySentencizer
 
-from ..util import run_spacy
 
-
-@run_spacy
+@pytest.mark.require_spacy_model("en_core_web_sm")
 @pytest.mark.parametrize(
     "test_sentences,split_on",
     [
@@ -18,4 +16,5 @@ def test_spacy_sentencizer(test_sentences, split_on):
     sentences = test_sentences.split(split_on, maxsplit=1)
     sentences[0] += split_on
     sentences[1] = sentences[1].lstrip()
-    assert SpacySentencizer("en")(test_sentences) == sentences
+    sentencizer = SpacySentencizer("en")
+    assert sentencizer(test_sentences) == sentences

@@ -1,6 +1,6 @@
 import pytest
 
-from podium.preproc.util import find_word_by_prefix, make_trie
+from podium.preproc.utils import find_word_by_prefix, make_trie
 
 
 def test_make_trie():

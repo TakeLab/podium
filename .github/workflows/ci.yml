@@ -79,6 +79,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install .[tests]
+        python -m spacy download en_core_web_sm
     - name: Run tests
       run: |
         pytest -sv tests
