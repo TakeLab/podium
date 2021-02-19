@@ -388,6 +388,13 @@ class SpacyLemmatizer:
         if is_spacy_old:
             lemmatizer = Lemmatizer(nlp.vocab.lookups)
 
+            if mode == "lookup":
+                lemmatizer.lookups.remove_table("lemma_rules")
+                lemmatizer.lookups.remove_table("lemma_index")
+                lemmatizer.lookups.remove_table("lemma_exc")
+            else:
+                lemmatizer.lookups.remove_table("lemma_lookup")
+
             def lemmatize(tokenized):
                 return [lemmatizer.lookup(token) for token in tokenized]
 
