@@ -2,7 +2,6 @@ import importlib
 import inspect
 
 import pytest
-from spacy import util
 
 from podium.datasets import ExampleFactory
 from podium.field import Field
