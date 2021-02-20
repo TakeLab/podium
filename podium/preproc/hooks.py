@@ -406,7 +406,7 @@ class SpacyLemmatizer:
                 raise ValueError(
                     "SpaCy lookups data is missing. "
                     "Visit https://spacy.io/usage/models"
-                    "for more information on how to install."
+                    "for more information on how to install it."
                 ) from err
 
             def tokenizer(text: List[str]) -> Doc:
