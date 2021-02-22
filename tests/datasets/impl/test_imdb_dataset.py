@@ -95,6 +95,7 @@ def create_examples(base_dir, examples):
             fpr.write(examples[i])
 
 
+@pytest.mark.require_package("spacy")
 @pytest.mark.require_spacy_model("en_core_web_sm")
 def test_return_params(mock_dataset_path):
     data = IMDB.get_dataset_splits()
@@ -103,6 +104,7 @@ def test_return_params(mock_dataset_path):
     assert isinstance(data[1], Dataset)
 
 
+@pytest.mark.require_package("spacy")
 @pytest.mark.require_spacy_model("en_core_web_sm")
 def test_default_fields():
     fields = IMDB.get_default_fields()
@@ -111,6 +113,7 @@ def test_default_fields():
     assert all([name in fields for name in field_names])
 
 
+@pytest.mark.require_package("spacy")
 @pytest.mark.require_spacy_model("en_core_web_sm")
 def test_loaded_data(mock_dataset_path):
     spacy_tokenizer = load_spacy_model_or_raise(

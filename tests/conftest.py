@@ -1,3 +1,4 @@
+import importlib
 import os
 
 import pandas as pd
@@ -22,11 +23,20 @@ def pytest_configure(config):
     # define additional markers
     config.addinivalue_line(
         "markers",
+        "require_package(package): mark test to run only if the required package is installed",
+    )
+    config.addinivalue_line(
+        "markers",
         "require_spacy_model(model): mark test to run only if the required SpaCy model is installed",
     )
 
 
 def pytest_runtest_setup(item):
+    required_packages = [mark.args[0] for mark in item.iter_markers(name="require_package")]
+    for package in required_packages:
+        if importlib.util.find_spec(package) is None:
+            pytest.skip(f"test requires the {package} package")
+
     models = [mark.args[0] for mark in item.iter_markers(name="require_spacy_model")]
     try:
         for model in models:

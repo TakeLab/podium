@@ -115,7 +115,7 @@ jobs:
       run: |
         cd docs
         make doctest
-        make html SPHINXOPTS="-W"    
+        make html SPHINXOPTS="-W"
     - name: Upload docs artifact
       uses: actions/upload-artifact@v2
       with:

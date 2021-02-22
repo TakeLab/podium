@@ -37,8 +37,6 @@ INSTALL_REQUIRES = [
     "scikit-learn",
     # for sparse storage
     "scipy<1.6.0",
-    # for preprocessing (tokenization, hooks, etc.)
-    "spacy",
     # progress bar in download and model selection
     "tqdm",
     # for keyword extraction
@@ -53,6 +51,8 @@ TESTS_REQUIRE = [
     "pytest-cov",
     "pytest-mock",
     "urllib3",
+    # for preprocessing (tokenization, hooks, etc.)
+    "spacy",
     "spacy-lookups-data"
 ]
 

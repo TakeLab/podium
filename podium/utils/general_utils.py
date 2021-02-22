@@ -21,9 +21,15 @@ def load_spacy_model_or_raise(model, *, disable=None):
                 f"Spacy model '{model}' not found, trying '{OLD_MODEL_SHORTCUTS[model]}'",
             )
             nlp = spacy.load(OLD_MODEL_SHORTCUTS[model])
+    except ImportError:
+        print(
+            "Please install SpaCy and the SpaCy. "
+            "See the docs at https://spacy.io for "
+            "more information."
+        )
     except AttributeError:
         print(
-            f"Spacy model '{model}' not found. Please install the model."
+            f"Spacy model '{model}' not found. Please install the model. "
             "See the docs at https://spacy.io for more information."
         )
     return nlp

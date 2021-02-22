@@ -3,6 +3,7 @@ import pytest
 from podium.preproc.sentencizers import SpacySentencizer
 
 
+@pytest.mark.require_package("spacy")
 @pytest.mark.require_spacy_model("en_core_web_sm")
 @pytest.mark.parametrize(
     "test_sentences,split_on",

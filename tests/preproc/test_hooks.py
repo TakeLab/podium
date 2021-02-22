@@ -1,4 +1,3 @@
-import importlib
 import inspect
 
 import pytest
@@ -15,6 +14,7 @@ from podium.preproc.hooks import (
 )
 
 
+@pytest.mark.require_package("spacy")
 @pytest.mark.require_spacy_model("en_core_web_sm")
 def test_remove_stopwords():
     data = "I'll tell you a joke"
@@ -56,11 +56,8 @@ def test_moses_normalizer():
         pytest.param(
             lambda: SpacyLemmatizer("en"),
             marks=[
+                pytest.mark.require_package("spacy"),
                 pytest.mark.require_spacy_model("en_core_web_sm"),
-                pytest.mark.skipif(
-                    importlib.util.find_spec("spacy_lookups_data") is None,
-                    reason="requires spacy-lookups-data",
-                ),
             ],
         ),
     ],
