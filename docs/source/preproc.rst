@@ -73,7 +73,7 @@ Tokenizers
 Utilities
 ----------
 
-.. automodule:: podium.preproc.util
+.. automodule:: podium.preproc.utils
    :members:
    :no-undoc-members:
    :show-inheritance:

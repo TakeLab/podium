@@ -1,3 +1,4 @@
+import importlib
 import os
 
 import pandas as pd
@@ -5,7 +6,45 @@ import pytest
 
 from podium.datasets.tabular_dataset import TabularDataset
 from podium.field import Field, LabelField
+from podium.utils.general_utils import load_spacy_model_or_raise
 from podium.vocab import Vocab
+
+
+def pytest_configure(config):
+    # turn warnings into errors
+    config.addinivalue_line("filterwarnings", "error")
+
+    # ignore some warnings
+    config.addinivalue_line("filterwarnings", "ignore::DeprecationWarning")
+    config.addinivalue_line("filterwarnings", "ignore::PendingDeprecationWarning")
+    config.addinivalue_line("filterwarnings", "ignore::ImportWarning")
+    config.addinivalue_line("filterwarnings", "ignore::ResourceWarning")
+
+    # define additional markers
+    config.addinivalue_line(
+        "markers",
+        "require_package(package): mark test to run only if the required package is installed",
+    )
+    config.addinivalue_line(
+        "markers",
+        "require_spacy_model(model): mark test to run only if the required SpaCy model is installed",
+    )
+
+
+def pytest_runtest_setup(item):
+    required_packages = [
+        mark.args[0] for mark in item.iter_markers(name="require_package")
+    ]
+    for package in required_packages:
+        if importlib.util.find_spec(package) is None:
+            pytest.skip(f"test requires the {package} package")
+
+    models = [mark.args[0] for mark in item.iter_markers(name="require_spacy_model")]
+    try:
+        for model in models:
+            load_spacy_model_or_raise(model)
+    except OSError:
+        pytest.skip(f"test requires the {model} SpaCy model installed")
 
 
 @pytest.fixture

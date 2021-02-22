@@ -79,6 +79,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install .[tests]
+        python -m spacy download en_core_web_sm
     - name: Run tests
       run: |
         pytest -sv tests
@@ -114,7 +115,7 @@ jobs:
       run: |
         cd docs
         make doctest
-        make html SPHINXOPTS="-W"    
+        make html SPHINXOPTS="-W"
     - name: Upload docs artifact
       uses: actions/upload-artifact@v2
       with:

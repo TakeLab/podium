@@ -1,7 +1,7 @@
 """
 Module contains text sentencizer.
 """
-import warnings
+from podium.utils.general_utils import load_spacy_model_or_raise
 
 
 class SpacySentencizer:
@@ -23,22 +23,8 @@ class SpacySentencizer:
             see https://spacy.io/usage/models#languages.
             Default: "en".
         """
-        try:
-            import spacy
-
-            disable = ["tagger", "ner"]
-            nlp = spacy.load(language, disable=disable)
-        except OSError:
-            warnings.warn(
-                f"SpaCy model {language} not found. Trying to download and install."
-            )
-
-            from spacy.cli.download import download
-
-            download(language)
-            nlp = spacy.load(language, disable=disable)
-
-        self._nlp = nlp
+        language = "en_core_web_sm" if language == "en" else language
+        self._nlp = load_spacy_model_or_raise(language, disable=["ner"])
 
     def __call__(self, data):
         """

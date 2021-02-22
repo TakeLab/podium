@@ -1,7 +1,8 @@
 """
 Module contains text tokenizers.
 """
-import warnings
+
+from podium.utils.general_utils import load_spacy_model_or_raise
 
 
 def get_tokenizer(tokenizer):
@@ -59,26 +60,13 @@ def get_tokenizer(tokenizer):
     language_or_sep = language_or_sep[0] if language_or_sep else None
 
     if tokenizer == "spacy":
-        try:
-            import spacy
-
-            language = language_or_sep or "en"
-            disable = ["parser", "ner"]
-            spacy_tokenizer = spacy.load(language, disable=disable)
-        except OSError:
-            warnings.warn(
-                f"SpaCy model {language} not found. Trying to download and install."
-            )
-
-            from spacy.cli.download import download
-
-            download(language)
-            spacy_tokenizer = spacy.load(language, disable=disable)
+        language = language_or_sep if language_or_sep is not None else "en_core_web_sm"
+        spacy = load_spacy_model_or_raise(language, disable=["parser", "ner"])
 
         # closures instead of lambdas because they are serializable
         def spacy_tokenize(string):
             # need to wrap in a function to access .text
-            return [token.text for token in spacy_tokenizer.tokenizer(string)]
+            return [token.text for token in spacy.tokenizer(string)]
 
         return spacy_tokenize
 

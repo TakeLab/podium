@@ -13,10 +13,9 @@ from podium.preproc.hooks import (
     TextCleanUp,
 )
 
-from ..util import run_spacy
 
-
-@run_spacy
+@pytest.mark.require_package("spacy")
+@pytest.mark.require_spacy_model("en_core_web_sm")
 def test_remove_stopwords():
     data = "I'll tell you a joke"
     field = Field(name="data")
@@ -56,7 +55,10 @@ def test_moses_normalizer():
         NLTKStemmer("en"),
         pytest.param(
             lambda: SpacyLemmatizer("en"),
-            marks=run_spacy,
+            marks=[
+                pytest.mark.require_package("spacy"),
+                pytest.mark.require_spacy_model("en_core_web_sm"),
+            ],
         ),
     ],
 )

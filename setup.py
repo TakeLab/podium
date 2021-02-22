@@ -37,8 +37,6 @@ INSTALL_REQUIRES = [
     "scikit-learn",
     # for sparse storage
     "scipy<1.6.0",
-    # for preprocessing (tokenization, hooks, etc.)
-    "spacy<3.0",
     # progress bar in download and model selection
     "tqdm",
     # for keyword extraction
@@ -53,6 +51,9 @@ TESTS_REQUIRE = [
     "pytest-cov",
     "pytest-mock",
     "urllib3",
+    # for preprocessing (tokenization, hooks, etc.)
+    "spacy",
+    "spacy-lookups-data"
 ]
 
 
@@ -75,6 +76,8 @@ DATASETS_REQUIRE = [
     "pyarrow>=1.0.0",
     # to read a .xlsx file when processing EuroVoc
     "xlrd",
+    # to tokenize the input in the IMDB dataset
+    "spacy",
 ]
 
 
