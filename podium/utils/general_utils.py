@@ -7,6 +7,7 @@ def load_spacy_model_or_raise(model, *, disable=None):
     disable = disable if disable is not None else []
     try:
         import spacy
+
         try:
             nlp = spacy.load(model, disable=disable)
         except OSError:

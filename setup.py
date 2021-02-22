@@ -76,6 +76,8 @@ DATASETS_REQUIRE = [
     "pyarrow>=1.0.0",
     # to read a .xlsx file when processing EuroVoc
     "xlrd",
+    # to tokenize the input in the IMDB dataset
+    "spacy",
 ]
 
 

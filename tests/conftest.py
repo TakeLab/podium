@@ -32,7 +32,9 @@ def pytest_configure(config):
 
 
 def pytest_runtest_setup(item):
-    required_packages = [mark.args[0] for mark in item.iter_markers(name="require_package")]
+    required_packages = [
+        mark.args[0] for mark in item.iter_markers(name="require_package")
+    ]
     for package in required_packages:
         if importlib.util.find_spec(package) is None:
             pytest.skip(f"test requires the {package} package")
