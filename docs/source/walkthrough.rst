@@ -55,33 +55,6 @@ One built-in dataset available in Podium is the `Stanford Sentiment Treebank <ht
 
 Each built-in Podium dataset has a :meth:`get_dataset_splits` method, which returns the `train`, `test` and `validation` split of that dataset, if available.
 
-Iterating over datasets
-------------------------
-
-Podium contains methods to iterate over data. Let's take a look at :class:`podium.Iterator`, the simplest data iterator. The default batch size of the iterator is `32` but we will reduce it for the sake of space.
-
-.. doctest:: sst
-  :options: +NORMALIZE_WHITESPACE
-
-  >>> from podium import Iterator
-  >>> train_iter = Iterator(sst_train, batch_size=2)
-  >>> batch_x, batch_y = next(iter(train_iter))
-  >>> print(batch_x, batch_y, sep='\n')
-  {'text': array([[ 1390,   193,  3035,    12,     4,   652, 13874,   310,    11,
-              101, 13875,    12,    31,    14,   729,  1733,     5,     9,
-              144,  7287,     8,  3656,   193,  7357,   700,     2,     1,
-                1,     1,     1],
-           [   29,  1659,   827,     8,    27,     7,  6115,     3,  4635,
-               63,     3,    19,     4,    55, 15634,   231,   170,     9,
-              128,    48,   123,   656,   130,   190,  2047,     8,   803,
-               74,    79,     2]])}
-  {'label': array([[1],
-           [1]])}
-
-
-There are a couple of things we need to unpack here. Firstly, our textual input data and class labels were converted to indices. This happened without our intervention -- built-in datasets have a default preprocessing pipeline, which handles text tokenization and numericalization.
-Secondly, while iterating we obtained two `Batch` instances. `Batch` is a special dictionary that also acts as a `namedtuple` by supporting tuple unpacking and attribute lookup. By default, Podium Iterators group input and target data Fields during iteration. If your dataset contains multiple input or target fields, they will also be present as attributes of the namedtuples.
-
 The Vocabulary
 ---------------
 
@@ -213,6 +186,86 @@ A common case in datasets is a data Field which contains a label, represented as
 
 For convenience, ``LabelField`` sets the required defaults for you, and all you need to define is its name. LabelFields always have a ``fixed_length`` of 1, are not tokenized and are by default set as the target for batching.
 
+Iterating over datasets
+------------------------
+
+Podium contains methods to iterate over data. Let's take a look at :class:`podium.Iterator`, the simplest data iterator. The default batch size of the iterator is `32` but we will reduce it for the sake of space.
+
+.. doctest:: sst
+  :options: +NORMALIZE_WHITESPACE
+
+  >>> from podium import Iterator
+  >>> train_iter = Iterator(sst_train, batch_size=2)
+  >>> batch_x, batch_y = next(iter(train_iter))
+  >>> print(batch_x, batch_y, sep='\n')
+  {'text': array([[ 1390,   193,  3035,    12,     4,   652, 13874,   310,    11,
+              101, 13875,    12,    31,    14,   729,  1733,     5,     9,
+              144,  7287,     8,  3656,   193,  7357,   700,     2,     1,
+                1,     1,     1],
+           [   29,  1659,   827,     8,    27,     7,  6115,     3,  4635,
+               63,     3,    19,     4,    55, 15634,   231,   170,     9,
+              128,    48,   123,   656,   130,   190,  2047,     8,   803,
+               74,    79,     2]])}
+  {'label': array([[1],
+           [1]])}
+
+
+There are a couple of things we need to unpack here. Firstly, our textual input data and class labels were converted to indices. This happened without our intervention -- built-in datasets have a default preprocessing pipeline, which handles text tokenization and numericalization.
+Secondly, while iterating we obtained two `Batch` instances. `Batch` is a special dictionary that also acts as a `namedtuple` by supporting tuple unpacking and attribute lookup. By default, Podium Iterators group input and target data Fields during iteration. If your dataset contains multiple input or target fields, they will also be present as attributes of the namedtuples.
+
+Traditionally, when using a neural model, whether it is a RNN or a transformer variant, you require lengths of each instance in the dataset to create packed sequences or compute the attention mask, respectively. 
+
+.. doctest:: sst_lengths
+  :options: +NORMALIZE_WHITESPACE
+
+  >>> text = Field(name='text', numericalizer=Vocab(), include_lengths=True)
+  >>> label = LabelField(name='label')
+  >>> fields = {'text': text, 'label': label}
+  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>>
+  >>> train_iter = Iterator(sst_train, batch_size=2, shuffle=False)
+  >>> batch_x, batch_y = next(iter(train_iter))
+  >>> text, lengths = batch_x.text
+  >>> print(text, lengths, sep='\n')
+  [[   14  1057    10  2580     8    28     4  3334  3335     9   154    68
+     7451    67     5    11    81     9   274     8    83     6  4683    74
+     2901    38  1410  2581     3 10747  2102  7452    49   870 10748     2
+        1]
+   [   14  3336  2314  7453     7    68    14  4684     7     4  7454    67
+     4685    10    48  1058    11     6  7455     7   772    65    32  4686
+     2582 10749  1112   830     9  5715   649     7 10750  5716     9 10751
+        2]]
+  [36 37]
+
+When setting the ``include_lengths= True`` for a Field, its batch component will be a tuple containing the numericalized batch and the lengths of each instance in the batch. When using recurrent cells, it is often the case we want to sort the instances within the batch according to length, e.g. in order for them to be used with :class:`torch.nn.utils.rnn.PackedSequence` objects.
+Since datasets can contain multiple input Fields, it is not trivial to determine which Field should be the key for the batch to be sorted. Thus, we delegate the key definition to the user, which can then be passed to the Iterator constructor via the ``sort_key`` parameter, as in the following example:
+
+
+.. doctest:: sst_lengths
+  :options: +NORMALIZE_WHITESPACE
+
+  >>> def text_len_sort_key(example):
+  ...  # The argument is an instance of the Example class,
+  ...  # containing a tuple of raw and tokenized data under
+  ...  # the key for each Field.
+  ...  tokens = example["text"][1]
+  ...  return -len(tokens)
+
+  >>> train_iter = Iterator(sst_train, batch_size=2, shuffle=False, sort_key=text_len_sort_key)
+  >>> batch_x, batch_y = next(iter(train_iter))
+  >>> text, lengths = batch_x.text
+  >>> print(text, lengths, sep="\n")
+  [[   14  3336  2314  7453     7    68    14  4684     7     4  7454    67
+     4685    10    48  1058    11     6  7455     7   772    65    32  4686
+     2582 10749  1112   830     9  5715   649     7 10750  5716     9 10751
+        2]
+   [   14  1057    10  2580     8    28     4  3334  3335     9   154    68
+     7451    67     5    11    81     9   274     8    83     6  4683    74
+     2901    38  1410  2581     3 10747  2102  7452    49   870 10748     2
+        1]]
+  [37 36]
+
+And here we can see, that even for our small, two-instance batch, the elements in the batch are now properly sorted according to length.
 
 Loading pretrained word vectors
 -------------------------------

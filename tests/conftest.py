@@ -100,16 +100,28 @@ def cache_disabled_tabular_dataset(json_file_path):
 
 @pytest.fixture
 @pytest.mark.usefixtures("json_file_path")
+def length_included_tabular_dataset(json_file_path):
+    td = create_tabular_dataset_from_json(
+        tabular_dataset_fields(include_lengths=True), json_file_path
+    )
+    return td
+
+
+@pytest.fixture
+@pytest.mark.usefixtures("json_file_path")
 def tabular_dataset(json_file_path):
     return create_tabular_dataset_from_json(tabular_dataset_fields(), json_file_path)
 
 
-def tabular_dataset_fields(fixed_length=None, disable_numericalize_caching=False):
+def tabular_dataset_fields(
+    fixed_length=None, disable_numericalize_caching=False, include_lengths=False
+):
     text = Field(
         "text",
         numericalizer=Vocab(eager=True),
         fixed_length=fixed_length,
         allow_missing_data=False,
+        include_lengths=include_lengths,
         disable_numericalize_caching=disable_numericalize_caching,
     )
     text_missing = Field(
