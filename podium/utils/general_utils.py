@@ -24,7 +24,7 @@ def load_spacy_model_or_raise(model, *, disable=None):
             nlp = spacy.load(OLD_MODEL_SHORTCUTS[model])
     except ImportError:
         print(
-            "Please install SpaCy and the SpaCy. "
+            "Please install SpaCy. "
             "See the docs at https://spacy.io for "
             "more information."
         )
