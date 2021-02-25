@@ -119,7 +119,8 @@ def test_text_clean_up(kwargs, data, expected_output):
     assert expected_output == example["data"][1]
 
 
-@run_spacy
+@pytest.mark.require_package("spacy")
+@pytest.mark.require_spacy_model("en_core_web_sm")
 def test_hook_type():
     pretokenize_hooks = [
         MosesNormalizer(),
