@@ -65,7 +65,7 @@ Use some of our pre-defined datasets:
 
 ```python
 >>> from podium.datasets import SST
->>> sst_train, sst_test, sst_dev = SST.get_dataset_splits()
+>>> sst_train, sst_dev, sst_test = SST.get_dataset_splits()
 >>> print(sst_train)
 SST({
     size: 6920,
@@ -165,7 +165,7 @@ We wrap dataset pre-processing in customizable `Field` classes. Each `Field` has
 >>> text = Field(name='text', numericalizer=vocab)
 >>> label = LabelField(name='label')
 >>> fields = {'text': text, 'label': label}
->>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+>>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
 >>> print(vocab)
 Vocab({specials: ('<UNK>', '<PAD>'), eager: True, finalized: True, size: 5000})
 
@@ -190,7 +190,7 @@ You could decide to lowercase all the characters and filter out all non-alphanum
 >>> text.add_pretokenize_hook(lowercase)
 >>> text.add_posttokenize_hook(filter_alnum)
 >>> fields = {'text': text, 'label': label}
->>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+>>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
 >>> print(sst_train[222])
 Example({'text': (None, ['a', 'slick', 'engrossing', 'melodrama']), 'label': (None, 'positive')})
 
@@ -215,7 +215,7 @@ A common use-case is to incorporate existing components of pretrained language m
 ...                       tokenizer=tokenizer.tokenize,
 ...                       numericalizer=tokenizer.convert_tokens_to_ids)
 >>> fields = {'text': subword_field, 'label': label}
->>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+>>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
 >>> print(sst_train[222])
 Example({'subword': (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.']), 'label': (None, 'positive')})
 

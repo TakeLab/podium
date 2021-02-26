@@ -1261,8 +1261,13 @@ def stratified_split(
         examples.
     """
 
+    # groupby requires the examples to be sorted
+    # TODO @mttk: this slows down the execution significantly for larger
+    #       datasets (O(nlogn) for no reason). Replace groupby with a fn
+    #       that does the same thing in O(n).
+    examples.sort(key=lambda ex: ex[strata_field_name][1])
     # group the examples by the strata_field
-    strata = itertools.groupby(examples, key=lambda ex: ex[strata_field_name])
+    strata = itertools.groupby(examples, key=lambda ex: ex[strata_field_name][1])
     strata = (list(group) for _, group in strata)
 
     train_split, val_split, test_split = [], [], []

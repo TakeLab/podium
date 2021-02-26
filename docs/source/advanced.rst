@@ -15,7 +15,7 @@ The data is processed immediately when the instance is loaded from disk and then
 .. doctest:: sst_field
 
   >>> from podium.datasets import SST
-  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits()
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits()
   >>> print(sst_train[222]) 
   Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
 
@@ -39,7 +39,7 @@ What are the ``None`` s? This is the `raw` data, which by default isn't stored i
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
   >>>
-  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222]['text'])
   ('A slick , engrossing melodrama .', ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])
 
@@ -132,7 +132,7 @@ Putting it all together
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
   >>>
-  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222]['text'])
   ('a slick , engrossing melodrama .', ['a', 'slick', 'engrossing', 'melodrama'])
 
@@ -194,7 +194,7 @@ To see the effect of the ``apply`` method, we will once again take a look at the
   >>> text = Field(name='text', numericalizer=vocab)
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
-  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222]['text'])
   (None, ['<BOS>', 'A', 'slick', ',', 'engrossing', 'melodrama', '.'])
 
@@ -224,7 +224,7 @@ To do that, you should pass your own callable function as the ``numericalizer`` 
   >>> label = LabelField('label')
   >>> fields = {'text': subword_field, 'label': label}
   >>>
-  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222]['text'])
   (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.'])
 
@@ -243,7 +243,7 @@ We have so far covered the case where you have a single input column, tokenize a
   >>> label = LabelField(name='label')
   >>> fields = {'text': (char, text), 'label': label}
   >>>
-  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222]['word'], sst_train[222]['char'], sep='\n')
   (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])
   (None, ['A', ' ', 's', 'l', 'i', 'c', 'k', ' ', ',', ' ', 'e', 'n', 'g', 'r', 'o', 's', 's', 'i', 'n', 'g', ' ', 'm', 'e', 'l', 'o', 'd', 'r', 'a', 'm', 'a', ' ', '.'])
@@ -280,7 +280,7 @@ One example of such a use-case would be extracting both word tokens as well as t
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
   >>>
-  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222]['word'], sst_train[222]['pos'], sep='\n')
   (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])
   (None, ['DET', 'ADJ', 'PUNCT', 'VERB', 'NOUN', 'PUNCT'])
@@ -293,6 +293,101 @@ MultioutputFields accept three parameters upon construction, which encapsulate t
   - :obj:`pretokenization_hooks` ``(Tuple(Callable))``: a sequence of pretokenization hooks to apply to the raw data.
 
 After tokenization, the processed data will be sent to all of the output Fields. Note that only the post-tokenization part of the output fields will be used.
+
+Dataset manipulation
+====================================
+
+Dataset splitting
+---------------------
+
+It is often the case we want to somehow manipulate the size of our dataset. One common use-case is that our dataset comes in a single split -- and we wish to segment it into a train, test and perhaps validation split. For this, we have defined a :meth:`Dataset.split` function which allows you to split your dataset into arbitrary ratios:
+
+.. doctest:: dataset_splitting
+
+  >>> sst, _, _ = SST.get_dataset_splits()
+  >>> total_size = len(sst)
+  >>> # Pretend we don't have a test and dev split :)
+  >>> sst_train, sst_dev, sst_test = sst.split([5,3,2])
+  >>> print(len(sst_train)/total_size, len(sst_dev)/total_size, len(sst_test)/total_size)
+  0.5 0.3 0.2
+
+As you can notice from the example -- you can define the split sizes as integer ratios and they will be normalized automatically. This type of splitting is done randomly, and there is always the possibility that your splits will have unevenly distributed target labels. We can easily check how evenly are the splits distributed:
+
+.. doctest:: dataset_splitting
+  :options: +ELLIPSIS
+
+  >>> from collections import Counter
+  >>> def value_distribution(dataset, field='label'):
+  ...    c = Counter([ex[field][1] for ex in dataset])
+  ...    Z = sum(c.values())
+  ...    for k, v in c.items():
+  ...        c[k] = v/Z
+  ...    return c
+  >>> 
+  >>> print(value_distribution(sst_train),
+  ...       value_distribution(sst_dev),
+  ...       value_distribution(sst_test),
+  ...       sep="\n")
+  Counter({'positive': 0.5222543352601156, 'negative': 0.4777456647398844})
+  Counter({'positive': 0.5211946050096339, 'negative': 0.47880539499036606})
+  Counter({'positive': 0.5209537572254336, 'negative': 0.4790462427745665})
+
+If an even label distribution between your splits is something you desire, you can use the _stratified_ split option by providing the name of the field you wish to stratify over:
+
+.. doctest:: dataset_splitting
+
+  >>> sst_train, sst_dev, sst_test = sst.split([5,3,2], stratified=True, strata_field_name='label')
+  >>> print(len(sst_train)/total_size, len(sst_dev)/total_size, len(sst_test)/total_size)
+  0.5 0.3 0.2
+
+As we can see, the sizes of our splits are the same, but in this case the label distribution is more balanced, which we can validate in a similar fashion:
+
+.. doctest:: dataset_splitting
+  :options: +ELLIPSIS
+
+  >>> print(value_distribution(sst_train),
+  ...       value_distribution(sst_dev),
+  ...       value_distribution(sst_test),
+  ...       sep="\n")
+  Counter({'positive': 0.5216763005780347, 'negative': 0.47832369942196534})
+  Counter({'positive': 0.5216763005780347, 'negative': 0.47832369942196534})
+  Counter({'positive': 0.5216763005780347, 'negative': 0.47832369942196534})
+
+Dataset concatenation
+---------------------
+
+Another instance where you would want to manipulate datasets is where you have multiple datasets of the same task type and want to train a single model on the concatenation of those datasets.
+For this case, we have implemented a helper function which concatenates a given list of datasets creates a new dataset containing all the instances in the concatenated datasets.
+
+There is a certain degree of intervention you need to do here -- the concatenated datasets can have different vocabularies, so you either need to be certain that the vocabularies are equal or provide a new Field which will be constructed on the (processed) values of all datasets.
+
+For a simple example, we will take a look at the built-in SST and IMDB datasets:
+
+.. code-block:: python
+
+  >>> from podium.datasets import IMDB, SST, concat
+  >>> from podium import Field, LabelField, Vocab
+  >>> # Load the datasets
+  >>> imdb_train, imdb_test = IMDB.get_dataset_splits()
+  >>> sst_train, sst_valid, sst_test = SST.get_dataset_splits()
+  >>>
+  >>> # Luckily, both label vocabularies are already equal
+  >>> print(imdb_train.field('label').vocab.itos)
+  ['positive', 'negative']
+  >>> print(sst_train.fields('label').vocab.itos)
+  ['positive', 'negative']
+  >>> # Define a text Field for the concatenated dataset 
+  >>> concat_text_field = Field("text", numericalizer=Vocab())
+  >>> sentiment_dataset = concat([imdb_train, sst_train], 
+  ...                            field_overrides={"text":concat_text_field}
+  ...                          )
+  >>> print(f"{len(sentiment_dataset)} = {len(imdb_train)} + {len(sst_train)}")
+  31920 = 25000 + 6920
+
+
+There are a few important takeaways here: (1) the concatenated dataset will **only** contain the intersection of Fields from the sub-datasets. The intersection is determined by the **name** of each Field. If one dataset has Fields named ``text`` and ``label``, while the other has Fields named ``text``, ``label`` and ``meta``, the concatenated dataset will only contain the ``text`` and ``label`` Fields. (2) the Vocabularies for the Fields with the same name **have to be equal**. This is, of course, to avoid the issue where the same word maps to different indices between vocabularies. This is achieveable either by using a shared vocabulary in same Fields of the datasets from the beginning or by defining a ``field_override`` map, which directs data from the sub-datasets through the new Field.
+In the latter case, you can use each sub-dataset on their own with independent vocabularies, while the concatenation will have its own, merged vocabulary.
+
 
 Bucketing instances when iterating
 ==================================
@@ -310,7 +405,7 @@ For this reason, usage of :class:`podium.datasets.BucketIterator` is recommended
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
   >>>
-  >>> train, test, valid = SST.get_dataset_splits(fields=fields)
+  >>> train, valid, test = SST.get_dataset_splits(fields=fields)
   >>>
   >>> # Define the iterators and our sort key
   >>> from podium import Iterator, BucketIterator
@@ -382,7 +477,7 @@ As an example, we will again turn to the SST dataset and some of our previously 
   >>> label = LabelField(name='label')
   >>> 
   >>> fields = {'text': text, 'label': label}
-  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
   >>>
   >>> print(sst_train)
   SST({
@@ -415,11 +510,11 @@ Each ``Dataset`` instance in the SST dataset splits contains ``Field``s and a ``
   >>>
   >>> # Save the dataset
   >>> with open(dataset_store_path, 'wb') as outfile:
-  ...    pickle.dump((sst_train, sst_test, sst_dev), outfile)
+  ...    pickle.dump((sst_train, sst_dev, sst_test), outfile)
   >>>
   >>> # Restore the dataset
   >>> with open(dataset_store_path, 'rb') as infile:
-  ...   sst_train, sst_test, sst_dev = pickle.load(infile)
+  ...   sst_train, sst_dev, sst_test = pickle.load(infile)
   >>> print(sst_train[222])
   Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
 
