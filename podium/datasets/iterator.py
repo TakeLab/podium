@@ -6,8 +6,9 @@ import warnings
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from random import Random
+from typing import Callable
 from typing import Iterator as PythonIterator
-from typing import List, NamedTuple, Tuple, Callable
+from typing import List, NamedTuple, Tuple
 
 import numpy as np
 
@@ -105,7 +106,7 @@ class Iterator(IteratorBase):
         shuffle=True,
         seed=1,
         matrix_class=np.array,
-        internal_random_state=None
+        internal_random_state=None,
     ):
         """
         Creates an iterator for the given dataset and batch size.
@@ -210,7 +211,6 @@ class Iterator(IteratorBase):
         The class constructor of the batch matrix.
         """
         return self._matrix_class
-    
 
     @property
     def batch_size(self):
@@ -344,8 +344,9 @@ class Iterator(IteratorBase):
                 and not field._disable_batch_matrix
                 and possible_cast_to_matrix
             ):
-                batch = Iterator._arrays_to_matrix(field, numericalizations,
-                                                   self.matrix_class)
+                batch = Iterator._arrays_to_matrix(
+                    field, numericalizations, self.matrix_class
+                )
 
             else:
                 batch = numericalizations
@@ -420,8 +421,9 @@ class Iterator(IteratorBase):
         self._shuffler.setstate(state)
 
     @staticmethod
-    def _arrays_to_matrix(field, arrays: List[np.ndarray],
-        matrix_class: Callable) -> np.ndarray:
+    def _arrays_to_matrix(
+        field, arrays: List[np.ndarray], matrix_class: Callable
+    ) -> np.ndarray:
         pad_length = Iterator._get_pad_length(field, arrays)
         padded_arrays = [field._pad_to_length(a, pad_length) for a in arrays]
         return matrix_class(padded_arrays)
@@ -544,8 +546,13 @@ class BucketIterator(Iterator):
             )
 
         super().__init__(
-            dataset, batch_size, sort_key=sort_key, shuffle=shuffle, seed=seed,
-            matrix_class=matrix_class, internal_random_state=internal_random_state
+            dataset,
+            batch_size,
+            sort_key=sort_key,
+            shuffle=shuffle,
+            seed=seed,
+            matrix_class=matrix_class,
+            internal_random_state=internal_random_state,
         )
 
         self.bucket_sort_key = bucket_sort_key
