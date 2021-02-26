@@ -41,6 +41,9 @@ class DatasetBase(ABC):
 
     def __init__(self, fields: Union[Dict[str, FieldType], List[FieldType]]):
         self._fields = tuple(unpack_fields(fields))
+        self._field_name_to_field = {
+            f.name: f for f in self.fields
+        }
 
     @property
     def fields(self) -> Tuple[Field]:
@@ -108,6 +111,12 @@ class DatasetBase(ABC):
 
         else:
             raise AttributeError(f"Dataset has no field {field_name}.")
+
+    def field(self, name) -> Field:
+        """
+        Returns the Field with a given name.
+        """
+        return self._field_name_to_field.get(name, None)
 
     def finalize_fields(self, *datasets: "DatasetBase") -> None:
         """
