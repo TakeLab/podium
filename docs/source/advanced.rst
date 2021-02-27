@@ -357,7 +357,7 @@ Dataset concatenation
 ---------------------
 
 Another instance where you would want to manipulate datasets is where you have multiple datasets of the same task type and want to train a single model on the concatenation of those datasets.
-For this case, we have implemented a helper function which concatenates a given list of datasets creates a new dataset containing all the instances in the concatenated datasets.
+For this case, we have implemented a helper function which concatenates a given list of datasets and creates a new dataset containing all the instances in the concatenated datasets.
 
 There is a certain degree of intervention you need to do here -- the concatenated datasets can have different vocabularies, so you either need to be certain that the vocabularies are equal or provide a new Field which will be constructed on the (processed) values of all datasets.
 
@@ -379,8 +379,7 @@ For a simple example, we will take a look at the built-in SST and IMDB datasets:
   >>> # Define a text Field for the concatenated dataset 
   >>> concat_text_field = Field("text", numericalizer=Vocab())
   >>> sentiment_dataset = concat([imdb_train, sst_train], 
-  ...                            field_overrides={"text":concat_text_field}
-  ...                          )
+  ...                            field_overrides={"text":concat_text_field})
   >>> print(f"{len(sentiment_dataset)} = {len(imdb_train)} + {len(sst_train)}")
   31920 = 25000 + 6920
 
