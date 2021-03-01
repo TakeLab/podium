@@ -11,6 +11,11 @@ Coming soon!
 
 You can install Podium from the publicly available wheels:
 
+- Version 1.1.0:
+```bash
+pip install http://takelab.fer.hr/podium/releases/podium-1.1.0-py3-none-any.whl
+```
+
 - Version 1.0.1:
 ```bash
 pip install http://takelab.fer.hr/podium/releases/podium-1.0.1-py3-none-any.whl
