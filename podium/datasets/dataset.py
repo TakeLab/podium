@@ -41,6 +41,7 @@ class DatasetBase(ABC):
 
     def __init__(self, fields: Union[Dict[str, FieldType], List[FieldType]]):
         self._fields = tuple(unpack_fields(fields))
+        self._field_name_to_field = {f.name: f for f in self.fields}
 
     @property
     def fields(self) -> Tuple[Field]:
@@ -108,6 +109,12 @@ class DatasetBase(ABC):
 
         else:
             raise AttributeError(f"Dataset has no field {field_name}.")
+
+    def field(self, name) -> Field:
+        """
+        Returns the Field with a given name.
+        """
+        return self._field_name_to_field.get(name, None)
 
     def finalize_fields(self, *datasets: "DatasetBase") -> None:
         """
@@ -1254,8 +1261,13 @@ def stratified_split(
         examples.
     """
 
+    # groupby requires the examples to be sorted
+    # TODO @mttk: this slows down the execution significantly for larger
+    #       datasets (O(nlogn) for no reason). Replace groupby with a fn
+    #       that does the same thing in O(n).
+    examples.sort(key=lambda ex: ex[strata_field_name][1])
     # group the examples by the strata_field
-    strata = itertools.groupby(examples, key=lambda ex: ex[strata_field_name])
+    strata = itertools.groupby(examples, key=lambda ex: ex[strata_field_name][1])
     strata = (list(group) for _, group in strata)
 
     train_split, val_split, test_split = [], [], []

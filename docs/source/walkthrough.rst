@@ -30,7 +30,7 @@ One built-in dataset available in Podium is the `Stanford Sentiment Treebank <ht
   :options: +NORMALIZE_WHITESPACE
 
   >>> from podium.datasets import SST
-  >>> sst_train, sst_test, sst_valid = SST.get_dataset_splits() # doctest:+ELLIPSIS
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits() # doctest:+ELLIPSIS
   >>> print(sst_train)
   SST({
       size: 6920,
@@ -170,7 +170,7 @@ That's it! We have defined our Fields. In order for them to be initialized, we n
 .. doctest:: small_vocab
 
   >>> fields = {'text': text, 'label': label}
-  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
   >>> print(small_vocabulary)
   Vocab({specials: ('<UNK>', '<PAD>'), eager: True, finalized: True, size: 5000})
 
@@ -221,7 +221,7 @@ Traditionally, when using a neural model, whether it is a RNN or a transformer v
   >>> text = Field(name='text', numericalizer=Vocab(), include_lengths=True)
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
-  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
   >>>
   >>> train_iter = Iterator(sst_train, batch_size=2, shuffle=False)
   >>> batch_x, batch_y = next(iter(train_iter))
@@ -314,7 +314,7 @@ As we intend to use the whole dataset at once, we will also set ``disable_batch_
   >>> text = Field(name='text', numericalizer=vocab, disable_batch_matrix=True)
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
-  >>> sst_train, sst_test, sst_valid = SST.get_dataset_splits(fields=fields)
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
 
 Since the Tf-Idf vectorizer needs information from the dataset to compute the inverse document frequency, we first need to fit it on the dataset.
 

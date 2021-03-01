@@ -6,6 +6,7 @@ import warnings
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from random import Random
+from typing import Callable
 from typing import Iterator as PythonIterator
 from typing import List, NamedTuple, Tuple
 
@@ -104,6 +105,7 @@ class Iterator(IteratorBase):
         sort_key=None,
         shuffle=True,
         seed=1,
+        matrix_class=np.array,
         internal_random_state=None,
     ):
         """
@@ -128,7 +130,7 @@ class Iterator(IteratorBase):
             If sort_key is not None, this flag being True may not have any
             effect since the dataset will always be sorted after being
             shuffled (the only difference shuffling can make is in the
-            order of elements with the same value of sort_key)..
+            order of elements with the same value of sort_key).
             Default is False.
         seed : int
             The seed that the iterator's internal random state will be
@@ -137,9 +139,20 @@ class Iterator(IteratorBase):
             internal_random_state is None, then this must not be None,
             otherwise a ValueError is raised.
             Default is 1.
+        matrix_class: callable
+            The constructor for the return batch datatype. Defaults to
+            `np.array`. When working with deep learning frameworks such
+            as tensorflow and torch, setting the argument accordingly will
+            immediately provide batches in the appropriate framework. Not
+            delegated to keyword arguments so users can pass a function
+            which also immediately casts the batch data to the GPU.
         internal_random_state : tuple
             The random state that the iterator will be initialized with.
-            Useful when we want to stop iteration and later continue where
+            This argument can be obtained by calling `.getstate` on the
+            instance of the Random object, and is exposed through the
+            `Iterator.get_internal_random_state` method. For most cases,
+            setting the random seed will suffice, while this argument is
+            useful when we want to stop iteration and later continue where
             we left off.
             If None, the iterator will create its own random state from the
             given seed, that can later be obtained if we want to store it.
@@ -163,6 +176,7 @@ class Iterator(IteratorBase):
 
         self._epoch = 0
         self._iterations = 0
+        self._matrix_class = matrix_class
 
         # set of fieldnames for which numericalization format warnings were issued
         # used to avoid spamming warnings between iterations
@@ -201,6 +215,13 @@ class Iterator(IteratorBase):
         Number of batches returned for the current epoch.
         """
         return self._iterations
+
+    @property
+    def matrix_class(self):
+        """
+        The class constructor of the batch matrix.
+        """
+        return self._matrix_class
 
     @property
     def batch_size(self):
@@ -334,7 +355,9 @@ class Iterator(IteratorBase):
                 and not field._disable_batch_matrix
                 and possible_cast_to_matrix
             ):
-                batch = Iterator._arrays_to_matrix(field, numericalizations)
+                batch = Iterator._arrays_to_matrix(
+                    field, numericalizations, self.matrix_class
+                )
 
             else:
                 batch = numericalizations
@@ -342,7 +365,7 @@ class Iterator(IteratorBase):
             if field.include_lengths:
                 # Include the length of each instance in the Field
                 # along with the numericalization
-                batch_lengths = np.array(
+                batch_lengths = self.matrix_class(
                     [len(instance) for instance in numericalizations]
                 )
                 batch = (batch, batch_lengths)
@@ -409,10 +432,12 @@ class Iterator(IteratorBase):
         self._shuffler.setstate(state)
 
     @staticmethod
-    def _arrays_to_matrix(field, arrays: List[np.ndarray]) -> np.ndarray:
+    def _arrays_to_matrix(
+        field, arrays: List[np.ndarray], matrix_class: Callable
+    ) -> np.ndarray:
         pad_length = Iterator._get_pad_length(field, arrays)
         padded_arrays = [field._pad_to_length(a, pad_length) for a in arrays]
-        return np.array(padded_arrays)
+        return matrix_class(padded_arrays)
 
     @staticmethod
     def _get_pad_length(field, numericalizations) -> int:
@@ -491,6 +516,8 @@ class BucketIterator(Iterator):
         sort_key=None,
         shuffle=True,
         seed=1,
+        matrix_class=np.array,
+        internal_random_state=None,
         look_ahead_multiplier=100,
         bucket_sort_key=None,
     ):
@@ -530,7 +557,13 @@ class BucketIterator(Iterator):
             )
 
         super().__init__(
-            dataset, batch_size, sort_key=sort_key, shuffle=shuffle, seed=seed
+            dataset,
+            batch_size,
+            sort_key=sort_key,
+            shuffle=shuffle,
+            seed=seed,
+            matrix_class=matrix_class,
+            internal_random_state=internal_random_state,
         )
 
         self.bucket_sort_key = bucket_sort_key
@@ -596,6 +629,7 @@ class HierarchicalDatasetIterator(Iterator):
         sort_key=None,
         shuffle=False,
         seed=1,
+        matrix_class=np.array,
         internal_random_state=None,
         context_max_length=None,
         context_max_depth=None,
@@ -631,9 +665,20 @@ class HierarchicalDatasetIterator(Iterator):
             internal_random_state is None, then this must not be None,
             otherwise a ValueError is raised.
             Default is 1.
+        matrix_class: callable
+            The constructor for the return batch datatype. Defaults to
+            `np.array`. When working with deep learning frameworks such
+            as tensorflow and torch, setting the argument accordingly will
+            immediately provide batches in the appropriate framework. Not
+            delegated to keyword arguments so users can pass a function
+            which also immediately casts the batch data to the GPU.
         internal_random_state : tuple
             The random state that the iterator will be initialized with.
-            Useful when we want to stop iteration and later continue where
+            This argument can be obtained by calling `.getstate` on the
+            instance of the Random object, and is exposed through the
+            `Iterator.get_internal_random_state` method. For most cases,
+            setting the random seed will suffice, while this argument is
+            useful when we want to stop iteration and later continue where
             we left off.
             If None, the iterator will create its own random state from the
             given seed, that can later be obtained if we want to store it.
