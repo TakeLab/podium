@@ -307,51 +307,48 @@ It is often the case we want to somehow manipulate the size of our dataset. One 
   >>> sst, _, _ = SST.get_dataset_splits()
   >>> total_size = len(sst)
   >>> # Pretend we don't have a test and dev split :)
-  >>> sst_train, sst_dev, sst_test = sst.split([5,3,2])
+  >>> sst_train, sst_dev, sst_test = sst.split([5,3,2], random_state=1)
   >>> print(len(sst_train)/total_size, len(sst_dev)/total_size, len(sst_test)/total_size)
   0.5 0.3 0.2
 
 As you can notice from the example -- you can define the split sizes as integer ratios and they will be normalized automatically. This type of splitting is done randomly, and there is always the possibility that your splits will have unevenly distributed target labels. We can easily check how evenly are the splits distributed:
 
 .. doctest:: dataset_splitting
-  :options: +ELLIPSIS
 
   >>> from collections import Counter
   >>> def value_distribution(dataset, field='label'):
   ...    c = Counter([ex[field][1] for ex in dataset])
   ...    Z = sum(c.values())
-  ...    for k, v in c.items():
-  ...        c[k] = v/Z
-  ...    return c
+  ...    return {k: v/Z for k, v in c.items()}
   >>> 
   >>> print(value_distribution(sst_train),
   ...       value_distribution(sst_dev),
   ...       value_distribution(sst_test),
   ...       sep="\n")
-  Counter({'positive': 0.5222543352601156, 'negative': 0.4777456647398844})
-  Counter({'positive': 0.5211946050096339, 'negative': 0.47880539499036606})
-  Counter({'positive': 0.5209537572254336, 'negative': 0.4790462427745665})
+  {'negative': 0.47803468208092487, 'positive': 0.5219653179190752}
+  {'negative': 0.48458574181117536, 'positive': 0.5154142581888247}
+  {'negative': 0.46965317919075145, 'positive': 0.5303468208092486}
 
 If an even label distribution between your splits is something you desire, you can use the _stratified_ split option by providing the name of the field you wish to stratify over:
 
 .. doctest:: dataset_splitting
 
-  >>> sst_train, sst_dev, sst_test = sst.split([5,3,2], stratified=True, strata_field_name='label')
+  >>> sst_train, sst_dev, sst_test = sst.split([5,3,2], stratified=True,
+  ...                                          strata_field_name='label', random_state=1)
   >>> print(len(sst_train)/total_size, len(sst_dev)/total_size, len(sst_test)/total_size)
   0.5 0.3 0.2
 
 As we can see, the sizes of our splits are the same, but in this case the label distribution is more balanced, which we can validate in a similar fashion:
 
 .. doctest:: dataset_splitting
-  :options: +ELLIPSIS
 
   >>> print(value_distribution(sst_train),
   ...       value_distribution(sst_dev),
   ...       value_distribution(sst_test),
   ...       sep="\n")
-  Counter({'positive': 0.5216763005780347, 'negative': 0.47832369942196534})
-  Counter({'positive': 0.5216763005780347, 'negative': 0.47832369942196534})
-  Counter({'positive': 0.5216763005780347, 'negative': 0.47832369942196534})
+  {'negative': 0.47832369942196534, 'positive': 0.5216763005780347}
+  {'negative': 0.47832369942196534, 'positive': 0.5216763005780347}
+  {'negative': 0.47832369942196534, 'positive': 0.5216763005780347}
 
 Dataset concatenation
 ---------------------
@@ -369,7 +366,7 @@ For a simple example, we will take a look at the built-in SST and IMDB datasets:
   >>> from podium import Field, LabelField, Vocab
   >>> # Load the datasets
   >>> imdb_train, imdb_test = IMDB.get_dataset_splits()
-  >>> sst_train, sst_valid, sst_test = SST.get_dataset_splits()
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits()
   >>>
   >>> # Luckily, both label vocabularies are already equal
   >>> print(imdb_train.field('label').vocab.itos)

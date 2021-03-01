@@ -130,7 +130,7 @@ class Iterator(IteratorBase):
             If sort_key is not None, this flag being True may not have any
             effect since the dataset will always be sorted after being
             shuffled (the only difference shuffling can make is in the
-            order of elements with the same value of sort_key)..
+            order of elements with the same value of sort_key).
             Default is False.
         seed : int
             The seed that the iterator's internal random state will be
@@ -139,9 +139,20 @@ class Iterator(IteratorBase):
             internal_random_state is None, then this must not be None,
             otherwise a ValueError is raised.
             Default is 1.
+        matrix_class: callable
+            The constructor for the return batch datatype. Defaults to
+            `np.array`. When working with deep learning frameworks such
+            as tensorflow and torch, setting the argument accordingly will
+            immediately provide batches in the appropriate framework. Not
+            delegated to keyword arguments so users can pass a function
+            which also immediately casts the batch data to the GPU.
         internal_random_state : tuple
             The random state that the iterator will be initialized with.
-            Useful when we want to stop iteration and later continue where
+            This argument can be obtained by calling `.getstate` on the
+            instance of the Random object, and is exposed through the
+            `Iterator.get_internal_random_state` method. For most cases,
+            setting the random seed will suffice, while this argument is
+            useful when we want to stop iteration and later continue where
             we left off.
             If None, the iterator will create its own random state from the
             given seed, that can later be obtained if we want to store it.
@@ -654,9 +665,20 @@ class HierarchicalDatasetIterator(Iterator):
             internal_random_state is None, then this must not be None,
             otherwise a ValueError is raised.
             Default is 1.
+        matrix_class: callable
+            The constructor for the return batch datatype. Defaults to
+            `np.array`. When working with deep learning frameworks such
+            as tensorflow and torch, setting the argument accordingly will
+            immediately provide batches in the appropriate framework. Not
+            delegated to keyword arguments so users can pass a function
+            which also immediately casts the batch data to the GPU.
         internal_random_state : tuple
             The random state that the iterator will be initialized with.
-            Useful when we want to stop iteration and later continue where
+            This argument can be obtained by calling `.getstate` on the
+            instance of the Random object, and is exposed through the
+            `Iterator.get_internal_random_state` method. For most cases,
+            setting the random seed will suffice, while this argument is
+            useful when we want to stop iteration and later continue where
             we left off.
             If None, the iterator will create its own random state from the
             given seed, that can later be obtained if we want to store it.
