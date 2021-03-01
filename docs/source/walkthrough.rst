@@ -1,9 +1,7 @@
 
 .. testsetup:: *
 
-  from podium import Field, LabelField, Vocab, Iterator, TabularDataset
-  from podium.datasets import SST
-  from podium.vectorizers import GloVe, TfIdfVectorizer
+  from podium import Field, LabelField, Vocab, Iterator, TabularDataset, SST, GloVe, TfIdfVectorizer
 
 
 Walkthrough
@@ -29,7 +27,7 @@ One built-in dataset available in Podium is the `Stanford Sentiment Treebank <ht
 .. doctest:: sst
   :options: +NORMALIZE_WHITESPACE
 
-  >>> from podium.datasets import SST
+  >>> from podium import SST
   >>> sst_train, sst_test, sst_valid = SST.get_dataset_splits() # doctest:+ELLIPSIS
   >>> print(sst_train)
   SST({
@@ -100,7 +98,7 @@ This way, we can define a static dictionary which we might have obtained on anot
 
 .. doctest:: custom_vocab
 
-  >>> from podium.vocab import UNK
+  >>> from podium import UNK
   >>> custom_itos = [UNK(), 'this', 'is', 'a', 'sample']
   >>> vocab = Vocab.from_itos(custom_itos)
   >>> print(vocab)
@@ -285,7 +283,7 @@ The output of the function call is a numpy matrix of word embeddings which you c
 
 .. code-block:: python
 
-  >>> from podium.vectorizers import GloVe
+  >>> from podium import GloVe
   >>> vocab = fields['text'].vocab
   >>> glove = GloVe()
   >>> embeddings = glove.load_vocab(vocab)
@@ -308,8 +306,7 @@ As we intend to use the whole dataset at once, we will also set ``disable_batch_
 
 .. doctest:: vectorizer
 
-  >>> from podium.datasets import SST
-  >>> from podium import Vocab, Field, LabelField
+  >>> from podium import Vocab, Field, LabelField, SST
   >>> vocab = Vocab(max_size=5000)
   >>> text = Field(name='text', numericalizer=vocab, disable_batch_matrix=True)
   >>> label = LabelField(name='label')
@@ -320,7 +317,7 @@ Since the Tf-Idf vectorizer needs information from the dataset to compute the in
 
 .. doctest:: vectorizer
 
-  >>> from podium.vectorizers.tfidf import TfIdfVectorizer
+  >>> from podium import TfIdfVectorizer
   >>> tfidf_vectorizer = TfIdfVectorizer()
   >>> tfidf_vectorizer.fit(dataset=sst_train, field=text)
 
@@ -433,7 +430,7 @@ You can load a dataset in 🤗/datasets and then convert it to a Podium dataset 
 
 .. code-block:: python
 
-  >>> from podium.datasets.hf import HFDatasetConverter
+  >>> from podium import HFDatasetConverter
   >>> import datasets
   >>> # Loading a huggingface dataset returns an instance of DatasetDict
   >>> # which contains the dataset splits (usually: train, valid, test, 

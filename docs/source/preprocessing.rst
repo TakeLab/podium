@@ -43,8 +43,7 @@ Regex Replace
 
 .. code-block:: python
 
-   >>> from podium import Field, LabelField, Vocab
-   >>> from podium.datasets import SST
+   >>> from podium import Field, LabelField, Vocab, SST
    >>> 
    >>> text = Field('text', numericalizer=Vocab())
    >>> label = LabelField('label')
@@ -123,7 +122,7 @@ Truecase
 
 .. code-block:: python
 
-   >>> from podium.preproc import truecase
+   >>> from podium import truecase
    >>> apply_truecase = truecase(oov='as-is')
    >>> print(apply_truecase('hey, what is the weather in new york?'))
    Hey, what is the weather in New York?

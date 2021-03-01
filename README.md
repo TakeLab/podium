@@ -64,7 +64,7 @@ For usage examples see the documentation pages [walkthrough](http://takelab.fer.
 Use some of our pre-defined datasets:
 
 ```python
->>> from podium.datasets import SST
+>>> from podium import SST
 >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits()
 >>> print(sst_train)
 SST({
@@ -93,7 +93,7 @@ Load datasets from [🤗/datasets](https://github.com/huggingface/datasets):
 
 ```python
 
-  >>> from podium.datasets.hf import HFDatasetConverter
+  >>> from podium import HFDatasetConverter
   >>> import datasets
   >>> # Load the huggingface dataset
   >>> imdb = datasets.load_dataset('imdb')
@@ -124,8 +124,7 @@ Load datasets from [🤗/datasets](https://github.com/huggingface/datasets):
 Load your own dataset from a standardized tabular format (e.g. `csv`, `tsv`, `jsonl`):
 
 ```python
->>> from podium.datasets import TabularDataset
->>> from podium import Vocab, Field, LabelField
+>>> from podium import Vocab, Field, LabelField, TabularDataset
 >>> fields = {'premise':   Field('premise', numericalizer=Vocab()),
 ...           'hypothesis':Field('hypothesis', numericalizer=Vocab()),
 ...           'label':     LabelField('label')}
