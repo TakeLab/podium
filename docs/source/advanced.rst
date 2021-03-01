@@ -1,8 +1,6 @@
 .. testsetup:: *
 
-  from podium import Field, LabelField, Vocab, Iterator, TabularDataset
-  from podium.datasets import SST
-  from podium.vectorizers import GloVe, TfIdfVectorizer
+  from podium import Field, LabelField, Vocab, Iterator, TabularDataset, SST, GloVe, TfIdfVectorizer
 
 The Podium data flow
 ====================
@@ -14,7 +12,7 @@ The data is processed immediately when the instance is loaded from disk and then
 
 .. doctest:: sst_field
 
-  >>> from podium.datasets import SST
+  >>> from podium import SST
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits()
   >>> print(sst_train[222]) 
   Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
@@ -159,7 +157,7 @@ To better understand how specials work, we will walk through the implementation 
 
 .. doctest:: specials
 
-  >>> from podium.vocab import Special
+  >>> from podium import Special
   >>> class BOS(Special):
   ...   default_value = "<BOS>"
   ...
@@ -187,8 +185,7 @@ To see the effect of the ``apply`` method, we will once again take a look at the
 
 .. doctest:: specials
 
-  >>> from podium import Vocab, Field, LabelField
-  >>> from podium.datasets import SST
+  >>> from podium import Vocab, Field, LabelField, SST
   >>> 
   >>> vocab = Vocab(specials=(bos))
   >>> text = Field(name='text', numericalizer=vocab)
@@ -236,8 +233,7 @@ We have so far covered the case where you have a single input column, tokenize a
 
 .. doctest:: multioutput
 
-  >>> from podium import Vocab, Field, LabelField
-  >>> from podium.datasets import SST
+  >>> from podium import Vocab, Field, LabelField, SST
   >>> char = Field(name='char', numericalizer=Vocab(), tokenizer=list)
   >>> text = Field(name='word', numericalizer=Vocab())
   >>> label = LabelField(name='label')
@@ -303,8 +299,7 @@ For this reason, usage of :class:`podium.datasets.BucketIterator` is recommended
 
 .. code-block:: python
 
-  >>> from podium import Vocab, Field, LabelField
-  >>> from podium.datasets import SST, IMDB
+  >>> from podium import Vocab, Field, LabelField, SST, IMDB
   >>> vocab = Vocab()
   >>> text = Field(name='text', numericalizer=vocab)
   >>> label = LabelField(name='label')
@@ -343,7 +338,7 @@ The ``bucket_sort_key`` function defines how the instances in the dataset should
   For Iterator, padding = 148141 out of 281696 = 52.588961149608096%
   For BucketIterator, padding = 2125 out of 135680 = 1.5661851415094339%
 
-As we can see, the difference between using a regular Iterator and a BucketIterator is massive. Not only do we reduce the amount of padding, we have reduced the total amount of tokens processed by about 50%. The SST dataset, however, is a relatively small dataset so this experiment might be a bit biased. Let's take a look at the same statistics for the :class:`podium.datasets.IMDB` dataset. After changing the highligted data loading line in the first snippet to:
+As we can see, the difference between using a regular ``Iterator`` and a ``BucketIterator`` is massive. Not only do we reduce the amount of padding, we have reduced the total amount of tokens processed by about 50%. The SST dataset, however, is a relatively small dataset so this experiment might be a bit biased. Let's take a look at the same statistics for the :class:`podium.datasets.IMDB` dataset. After changing the highligted data loading line in the first snippet to:
 
 .. code-block:: python
 
@@ -374,8 +369,7 @@ As an example, we will again turn to the SST dataset and some of our previously 
 .. doctest:: saveload
   :options: +NORMALIZE_WHITESPACE
 
-  >>> from podium import Vocab, Field, LabelField
-  >>> from podium.datasets import SST
+  >>> from podium import Vocab, Field, LabelField, SST
   >>>
   >>> vocab = Vocab(max_size=5000, min_freq=2)
   >>> text = Field(name='text', numericalizer=vocab)

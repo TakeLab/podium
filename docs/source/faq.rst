@@ -9,7 +9,7 @@ FAQ
 
 .. code-block:: python
 
-  >>> from podium.datasets import SST
+  >>> from podium import SST
   >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits()
   >>> x, y = sst_train.batch()
   >>> print(x.text.shape, y.label.shape, sep='\n')
@@ -20,8 +20,7 @@ Be aware that you will get a dataset as a matrix by default -- meaning that all 
 
 .. code-block:: python
 
-  >>> from podium.datasets import SST
-  >>> from podium import Vocab, Field, LabelField
+  >>> from podium import Vocab, Field, LabelField, SST
   >>> text = Field(name='text', numericalizer=Vocab(), disable_batch_matrix=True)
   >>> label = LabelField(name='label')
   >>> fields = {'text':text, 'label':label}

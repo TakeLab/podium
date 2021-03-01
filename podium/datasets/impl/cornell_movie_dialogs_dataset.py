@@ -6,21 +6,13 @@ import os
 import re
 from collections import namedtuple
 
+import pandas as pd
+
 from podium.datasets.dataset import Dataset
 from podium.datasets.example_factory import ExampleFactory
 from podium.field import Field
 from podium.storage import LargeResource
 from podium.vocab import Vocab
-
-
-try:
-    import pandas as pd
-except ImportError:
-    print(
-        "Problem occured while trying to import pandas. If the library is not "
-        "installed visit https://pandas.pydata.org/ for more details."
-    )
-    raise
 
 
 CornellMovieDialogsNamedTuple = namedtuple(

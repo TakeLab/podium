@@ -5,6 +5,8 @@ or check the README.txt file in the dataset directory.
 """
 import os
 
+from nltk import Tree
+
 from podium.datasets import Dataset
 from podium.datasets.example_factory import ExampleFactory
 from podium.field import Field, LabelField
@@ -189,17 +191,6 @@ class _TreeFactory:
     """
 
     def __call__(self, text):
-
-        try:
-            from nltk import Tree
-        except ImportError:
-            print(
-                "Problem occurred while trying to import nltk. "
-                "If the library is not installed visit "
-                "https://www.nltk.org/ for more details."
-            )
-            raise
-
         if text[0] != "(":
             text = "(" + text + ")"
         return Tree.fromstring(text)
