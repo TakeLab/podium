@@ -130,8 +130,7 @@ def convert_features_to_fields(
 ) -> Dict[str, Field]:
     """
     Convert a dictionary that maps column names of the HuggingFace Dataset to
-    the features into a dictionary that maps column names to the
-    podium.Fields.
+    the features into a dictionary that maps column names to the podium.Fields.
 
     Parameters
     ----------
@@ -151,8 +150,7 @@ def convert_features_to_fields(
 
 class HFDatasetConverter(DatasetBase):
     """
-    Class for converting rows from the HuggingFace Datasets to
-    podium.Example.
+    Class for converting rows from the HuggingFace Datasets to podium.Example.
     """
 
     def __init__(

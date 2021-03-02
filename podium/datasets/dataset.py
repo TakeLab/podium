@@ -55,7 +55,7 @@ class DatasetBase(ABC):
         """
         Dictionary mapping the Dataset's field names to the respective Fields.
         """
-        return _field_dict
+        return self._field_dict
 
     @property
     def examples(self) -> List[Example]:
