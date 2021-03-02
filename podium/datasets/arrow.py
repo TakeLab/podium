@@ -771,12 +771,66 @@ class DiskBackedDataset(DatasetBase):
     @staticmethod
     def from_pandas(
         df,
-        fields: Optional[Union[Field, List[Field]]],
-        index_field=None,
-        cache_path=None,
-        data_types=None,
-        chunk_size=1024,
+        fields: Union[Dict[str, Field], List[Field]],
+        index_field: Optional[Field] = None,
+        cache_path: Optional[str] = None,
+        data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
+        chunk_size: int = 1024,
     ):
+        """
+        Creates a DiskBackedDataset instance from a pandas Dataframe.
+
+        Parameters
+        ----------
+        df: pandas.Dataframe
+            Pandas dataframe from which data will be taken.
+
+        fields: Union[Dict[str, Field], List[Field]]
+            A mapping from dataframe columns to example fields.
+            This allows the user to rename columns from the data file,
+            to create multiple fields from the same column and also to
+            select only a subset of columns to load.
+
+            A value stored in the list/dict can be either a Field
+            (1-to-1 mapping), a tuple of Fields (1-to-n mapping) or
+            None (ignore column).
+
+            If type is list, then it should map from the column index to
+            the corresponding field/s (i.e. the fields in the list should
+            be in the same order as the columns in the dataframe).
+
+            If type is dict, then it should be a map from the column name
+            to the corresponding field/s. Column names not present in
+            the dict's keys are ignored.
+
+        index_field: Optional[Field]
+            Field which will be used to process the index column of the Dataframe.
+            If None, the index column will be ignored.
+
+        cache_path: Optional[str]
+            Path to the directory where the cache file will saved.
+            The whole directory will be used as the cache and will be deleted
+            when `delete_cache` is called. It is recommended to create a new
+            directory to use exclusively as the cache, or to leave this as None.
+
+            If None, a temporary directory will be created.
+
+        data_types: Dict[str, Tuple[pyarrow.DataType, pyarrow.DataType]]
+            Dictionary mapping field names to pyarrow data types. This is required when a
+            field can have missing data and the data type can't be inferred. The data type
+            tuple has two values, corresponding to the raw and tokenized data types in an
+            example. None can be used as a wildcard data type and will be overridden by an
+            inferred data type if possible.
+
+        chunk_size: int
+            Maximum number of examples to be loaded before dumping to the on-disk cache
+            file. Use lower number if memory usage is an issue while loading.
+
+        Returns
+        -------
+        Dataset
+            Dataset containing data from the Dataframe
+        """
         from .pandas_util import pandas_to_examples
 
         example_iterator = pandas_to_examples(df, fields, index_field=index_field)
