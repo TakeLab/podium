@@ -41,7 +41,7 @@ class DatasetBase(ABC):
 
     def __init__(self, fields: Union[Dict[str, FieldType], List[FieldType]]):
         self._fields = tuple(unpack_fields(fields))
-        self._field_name_to_field = {f.name: f for f in self.fields}
+        self._field_dict = {f.name: f for f in self.fields}
 
     @property
     def fields(self) -> Tuple[Field]:
@@ -53,10 +53,9 @@ class DatasetBase(ABC):
     @property
     def field_dict(self) -> Dict[str, Field]:
         """
-        Dictionary containing all field names mapping to their respective
-        Fields.
+        Dictionary mapping the Dataset's field names to the respective Fields.
         """
-        return {f.name: f for f in self.fields}
+        return _field_dict
 
     @property
     def examples(self) -> List[Example]:
@@ -114,7 +113,7 @@ class DatasetBase(ABC):
         """
         Returns the Field with a given name.
         """
-        return self._field_name_to_field.get(name, None)
+        return self._field_dict.get(name, None)
 
     def finalize_fields(self, *datasets: "DatasetBase") -> None:
         """

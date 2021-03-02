@@ -6,6 +6,7 @@ Dataset
 -----------------
 .. autoclass:: podium.datasets.Dataset
    :members:
+   :inherited-members:
    :no-undoc-members:
 
 TabularDataset

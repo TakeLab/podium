@@ -29,7 +29,7 @@ def _identity(x):
 class _FeatureConverter:
     """
     Class for converting features of the HuggingFace Dataset to the
-    podium.storage.Fields.
+    podium.Fields.
 
     Notes
     -----
@@ -40,7 +40,7 @@ class _FeatureConverter:
     @staticmethod
     def convert(name: str, feature: datasets.features.FeatureType) -> Field:
         """
-        Convert a feature to the podium.storage.Field.
+        Convert a feature to the podium.Field.
 
         Parameters:
         name : str
@@ -50,8 +50,8 @@ class _FeatureConverter:
 
         Returns
         -------
-        podium.storage.Field
-            podium.storage.Field after the conversion.
+        podium.Field
+            podium.Field after the conversion.
 
         Raises
         ------
@@ -131,7 +131,7 @@ def convert_features_to_fields(
     """
     Convert a dictionary that maps column names of the HuggingFace Dataset to
     the features into a dictionary that maps column names to the
-    podium.storage.Fields.
+    podium.Fields.
 
     Parameters
     ----------
@@ -140,8 +140,8 @@ def convert_features_to_fields(
 
     Returns
     -------
-    dict(str, podium.storage.Field)
-        Dictionary that maps a column name to the podium.storage.Field.
+    dict(str, podium.Field)
+        Dictionary that maps a column name to the podium.Field.
     """
     return {
         name: _FeatureConverter.convert(name, feature)
@@ -152,7 +152,7 @@ def convert_features_to_fields(
 class HFDatasetConverter(DatasetBase):
     """
     Class for converting rows from the HuggingFace Datasets to
-    podium.storage.Example.
+    podium.Example.
     """
 
     def __init__(
@@ -166,8 +166,8 @@ class HFDatasetConverter(DatasetBase):
         hf_dataset : datasets.Dataset
             HuggingFace Dataset.
 
-        fields : dict(str, podium.storage.Field)
-            Dictionary that maps a column name of the dataset to the podium.storage.Field.
+        fields : dict(str, podium.Field)
+            Dictionary that maps a column name of the dataset to the podium.Field.
             If passed None the default feature conversion rules will be used
             to build a dictonary from the dataset features.
 
@@ -236,12 +236,12 @@ class HFDatasetConverter(DatasetBase):
 
     def as_dataset(self) -> Dataset:
         """
-        Convert the original HuggingFace dataset to a podium.storage.Dataset.
+        Convert the original HuggingFace dataset to a podium.Dataset.
 
         Returns
         -------
-        podium.storage.Dataset
-            podium.storage.Dataset instance.
+        podium.Dataset
+            podium.Dataset instance.
         """
         return Dataset(list(self), self.fields)
 
