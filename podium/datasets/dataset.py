@@ -689,6 +689,18 @@ class Dataset(DatasetBase):
         """
         return Dataset(dataset.examples, dataset.fields)
 
+    @staticmethod
+    def from_pandas(df, fields: Optional[Union[Field, List[Field]]], index_field=None):
+        from .pandas_util import pandas_to_examples
+
+        examples = list(pandas_to_examples(df, fields, index_field=index_field))
+        if isinstance(fields, dict):
+            fields = [index_field] + list(fields.values())
+        else:
+            fields = [index_field] + fields
+
+        return Dataset(examples, fields)
+
 
 class DatasetConcatView(DatasetBase):
     """
