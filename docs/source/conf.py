@@ -64,6 +64,7 @@ html_static_path = ['_static']
 exclude_patterns = []
 
 copybutton_prompt_text = r'>>> |\.\.\. '
+copybutton_prompt_is_regexp = True
 
 # -- Options for HTML output -------------------------------------------------
 
