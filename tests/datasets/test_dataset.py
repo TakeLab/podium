@@ -798,6 +798,35 @@ def test_eager_tokenization():
         assert all(example_eager["source_"] == example_lazy.source_)
 
 
+def test_from_pandas_field_list(data):
+    import pandas as pd
+
+    df = pd.DataFrame(data)
+    fields = [
+        Field("text", keep_raw=True, tokenizer="split"),
+        Field("number", tokenizer=None),
+    ]
+
+    ds = Dataset.from_pandas(df, fields)
+
+    for original, (raw, _) in zip(data, ds.text):
+        assert original[0] == raw
+
+
+def test_from_pandas_index(data):
+    import pandas as pd
+
+    df = pd.DataFrame([[x[0]] for x in data], index=[x[1] for x in data])
+    fields = [Field("text", keep_raw=True, tokenizer="split")]
+
+    ds = Dataset.from_pandas(
+        df, fields, index_field=Field("numbers", tokenizer=None, keep_raw=True)
+    )
+
+    for original, (raw, _) in zip(data, ds.numbers):
+        assert original[1] == raw
+
+
 @pytest.fixture
 def hierarchical_dataset_fields():
     name_field = Field("name", keep_raw=True, tokenizer=None)
