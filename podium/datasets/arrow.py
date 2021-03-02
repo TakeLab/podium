@@ -767,3 +767,24 @@ class DiskBackedDataset(DatasetBase):
             self.close()
 
         shutil.rmtree(self.cache_path)
+
+    @staticmethod
+    def from_pandas(
+        df,
+        fields: Optional[Union[Field, List[Field]]],
+        index_field=None,
+        cache_path=None,
+        data_types=None,
+        chunk_size=1024,
+    ):
+        from .pandas_util import pandas_to_examples
+
+        example_iterator = pandas_to_examples(df, fields, index_field=index_field)
+        if isinstance(fields, dict):
+            fields = [index_field] + list(fields.values())
+        else:
+            fields = [index_field] + fields
+
+        return DiskBackedDataset.from_examples(
+            fields, example_iterator, cache_path, data_types, chunk_size
+        )
