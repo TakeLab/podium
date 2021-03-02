@@ -1,6 +1,14 @@
 from typing import Dict, Iterator, List, Optional, Union
 
-import pandas as pd
+
+try:
+    import pandas as pd
+except ImportError:
+    print(
+        "Error encountered while importing Pandas. If Pandas is not installed, "
+        "please visit https://pandas.pydata.org/ for more information."
+    )
+    raise
 
 from podium.field import Field
 
