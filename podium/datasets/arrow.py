@@ -777,7 +777,7 @@ class DiskBackedDataset(DatasetBase):
         cache_path: Optional[str] = None,
         data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
         chunk_size: int = 1024,
-    ):
+    ) -> 'DiskBackedDataset':
         """
         Creates a DiskBackedDataset instance from a pandas Dataframe.
 
