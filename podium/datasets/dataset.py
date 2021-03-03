@@ -696,7 +696,7 @@ class Dataset(DatasetBase):
         df,
         fields: Union[Dict[str, Field], List[Field]],
         index_field: Optional[Field] = None,
-    ) -> 'Dataset':
+    ) -> "Dataset":
         """
         Creates a Dataset instance from a pandas Dataframe.
 
