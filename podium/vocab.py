@@ -4,12 +4,13 @@ Module contains classes related to the vocabulary.
 import itertools
 import warnings
 from collections import Counter
-from typing import Any, Iterator
+from typing import Any
 from typing import Counter as Counter_
 from typing import (
     Dict,
     Hashable,
     Iterable,
+    Iterator,
     List,
     Optional,
     Sequence,
