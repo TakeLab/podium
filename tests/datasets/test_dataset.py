@@ -813,6 +813,21 @@ def test_from_pandas_field_list(data):
         assert original[0] == raw
 
 
+def test_from_pandas_field_dict(data):
+    import pandas as pd
+
+    df = pd.DataFrame(data, columns=["text", "number"])
+    fields = {
+        "text": Field("text", keep_raw=True, tokenizer="split"),
+        "number": Field("number", tokenizer=None),
+    }
+
+    ds = Dataset.from_pandas(df, fields)
+
+    for original, (raw, _) in zip(data, ds.text):
+        assert original[0] == raw
+
+
 def test_from_pandas_index(data):
     import pandas as pd
 
