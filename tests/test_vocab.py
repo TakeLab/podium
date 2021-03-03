@@ -102,7 +102,7 @@ def test_empty_specials_get_pad_symbol():
     voc = vocab.Vocab(specials=[])
     voc.finalize()
     with pytest.raises(ValueError):
-        voc.padding_index()
+        voc.get_padding_index()
 
 
 def test_no_unk_filters_unknown_tokens():
@@ -140,7 +140,7 @@ def test_specials_get_pad_symbol():
     voc = vocab.Vocab(specials=(vocab.PAD(),))
     data = ["tree", "plant", "grass"]
     voc = voc + set(data)
-    assert voc.padding_index() == 0
+    assert voc.get_padding_index() == 0
     voc.finalize()
     assert voc.itos[0] == vocab.PAD()
 
@@ -215,9 +215,9 @@ def test_add_vocab_to_vocab():
     voc2 += data2
 
     voc = voc1 + voc2
-    assert not voc.finalized
-    for word in voc._freqs:
-        assert voc._freqs[word] == expected_freq[word]
+    assert not voc.is_finalized
+    for word in voc.get_freqs():
+        assert voc.get_freqs()[word] == expected_freq[word]
 
     voc3 = vocab.Vocab(specials=vocab.UNK())
     voc3 += data1
@@ -233,7 +233,7 @@ def test_add_vocab_to_vocab():
         vocab.PAD(),
         vocab.UNK(),
     }
-    assert voc.finalized
+    assert voc.is_finalized
     assert len(voc.itos) == 7
 
 
@@ -275,7 +275,7 @@ def test_add_list_word_to_vocab():
     voc = vocab.Vocab()
     voc += ["word", "word", "light", "heavy"]
     assert len(voc) == 3
-    assert voc._freqs["word"] == 2
+    assert voc.get_freqs()["word"] == 2
 
 
 def test_add_non_iterable_object_to_vocab():
@@ -388,23 +388,6 @@ def test_vocab_fail_no_unk():
     voc.finalize()
 
     assert np.array_equal(voc.numericalize([1, 2, 3, 6]), np.array([0, 1, 2]))
-
-
-def test_vocab_has_no_specials():
-    voc1 = vocab.Vocab(specials=None)
-    assert not voc1.has_specials
-
-    voc2 = vocab.Vocab(specials=())
-    assert not voc2.has_specials
-
-
-def test_vocab_has_specials():
-    voc = vocab.Vocab()
-    assert voc.has_specials
-
-    voc2 = vocab.Vocab(specials=vocab.UNK())
-    assert voc2._has_specials
-    assert voc2.specials == (vocab.UNK(),)
 
 
 def test_reverse_numericalize():

@@ -70,7 +70,7 @@ class MockField:
         self.keep_raw = keep_raw
         self.tokenize = True
 
-        self.finalized = False
+        self.is_finalized = False
         self.updated_count = 0
 
         self.use_vocab = True
@@ -88,7 +88,7 @@ class MockField:
         self.updated_count += 1
 
     def finalize(self):
-        self.finalized = True
+        self.is_finalized = True
 
     def get_output_fields(self):
         return (self,)
@@ -119,7 +119,7 @@ def test_finalize_fields(data, field_list):
     for f in field_list:
         # before finalization, no field's dict was updated
         assert f.updated_count == 0
-        assert not f.finalized
+        assert not f.is_finalized
 
     dataset.finalize_fields()
 
@@ -128,7 +128,7 @@ def test_finalize_fields(data, field_list):
         assert f.updated_count == (len(data) if (not f.eager) else 0)
 
         # all fields should be finalized
-        assert f.finalized
+        assert f.is_finalized
 
 
 def test_finalize_fields_pickle(data, field_list, tmpdir):
@@ -143,7 +143,7 @@ def test_finalize_fields_pickle(data, field_list, tmpdir):
         loaded_dataset = dill.load(fdata)
         for f in loaded_dataset.field_dict.values():
             assert f.updated_count == (len(data) if (not f.eager) else 0)
-            assert f.finalized
+            assert f.is_finalized
 
 
 def test_not_finalize_fields_pickle(data, field_list, tmpdir):
@@ -157,7 +157,7 @@ def test_not_finalize_fields_pickle(data, field_list, tmpdir):
         loaded_dataset = dill.load(fdata)
         for f in loaded_dataset.field_dict.values():
             assert f.updated_count == 0
-            assert not f.finalized
+            assert not f.is_finalized
 
 
 def test_finalize_fields_after_split(data, field_list):
@@ -883,8 +883,8 @@ def test_hierarchical_dataset_finalize_fields(hierarchical_dataset_parser):
         parser=hierarchical_dataset_parser,
     )
     dataset.finalize_fields()
-    assert name_vocab.finalized
-    assert number_vocab.finalized
+    assert name_vocab.is_finalized
+    assert number_vocab.is_finalized
 
 
 def test_hierarchical_dataset_invalid_json_fail(hierarchical_dataset_fields):

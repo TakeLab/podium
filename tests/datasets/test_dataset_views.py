@@ -118,7 +118,7 @@ def test_concat_view_override_fields_eager(dataset, fields):
         [dataset, other_dataset], field_overrides={"name": new_field}
     )
 
-    assert dataset_concat.field_dict["override_name_field"].finalized
+    assert dataset_concat.field_dict["override_name_field"].is_finalized
 
     concat_vocab = dataset_concat.field_dict["override_name_field"].vocab
     dataset_vocab = dataset.field_dict["name"].vocab
@@ -141,7 +141,7 @@ def test_concat_view_override_fields_non_eager(dataset, fields):
         [dataset, other_dataset], field_overrides={"name": new_field}
     )
 
-    assert not dataset_concat.field_dict["override_name_field"].finalized
+    assert not dataset_concat.field_dict["override_name_field"].is_finalized
 
     dataset_concat.finalize_fields()
     concat_vocab = dataset_concat.field_dict["override_name_field"].vocab

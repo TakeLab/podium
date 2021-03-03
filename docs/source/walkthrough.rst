@@ -39,13 +39,13 @@ One built-in dataset available in Podium is the `Stanford Sentiment Treebank <ht
               name: text,
               keep_raw: False,
               is_target: False,
-              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 16284})
+              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 16284})
           }),
           LabelField({
               name: label,
               keep_raw: False,
               is_target: True,
-              vocab: Vocab({specials: (), eager: False, finalized: True, size: 2})
+              vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 2})
           })
       ]
   })
@@ -68,18 +68,18 @@ We saw earlier that our dataset has two Fields: text and label. We will touch on
       name: text,
       keep_raw: False,
       is_target: False,
-      vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 16284})
+      vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 16284})
   })
   LabelField({
       name: label,
       keep_raw: False,
       is_target: True,
-      vocab: Vocab({specials: (), eager: False, finalized: True, size: 2})
+      vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 2})
   })
 
 Inside each of these two fields we can see a :class:`podium.Vocab` class, used for numericalization (converting token strings to indices). A Vocab is defined by two maps: the string-to-index mapping :attr:`podium.Vocab.stoi` and the index-to-string mapping :attr:`podium.Vocab.itos`.
 
-Vocabularies are built automatically for built-in datasets by counting the frequencies of tokens in the **train** set and then converting these frequences to the ``itos`` and ``stoi`` dictionaries. We can see that a ``Vocab`` is built by the ``finalized=True`` keyword in the printout.
+Vocabularies are built automatically for built-in datasets by counting the frequencies of tokens in the **train** set and then converting these frequences to the ``itos`` and ``stoi`` dictionaries. We can see that a ``Vocab`` is built by the ``is_finalized=True`` keyword in the printout.
 If you are constructing your own dataset or loading a dataset from HuggingFace (:ref:`hf-loading`), you will need to call the :meth:`podium.Dataset.finalize_fields()` method to signal that the vocabularies should be constructed.
 
 Customizing Vocabs
@@ -94,7 +94,7 @@ For the latter approach, the :class:`podium.Vocab` class has two static construc
   >>> custom_stoi = {'This':0, 'is':1, 'a':2, 'sample':3}
   >>> vocab = Vocab.from_stoi(custom_stoi)
   >>> print(vocab)
-  Vocab({specials: [], eager: True, finalized: True, size: 4})
+  Vocab({specials: (), eager: True, is_finalized: True, size: 4})
 
 This way, we can define a static dictionary which we might have obtained on another dataset to use for our current task. Similarly, it is possible to define a ``Vocab`` by a sequence of strings -- an ``itos``:
 
@@ -104,7 +104,7 @@ This way, we can define a static dictionary which we might have obtained on anot
   >>> custom_itos = [UNK(), 'this', 'is', 'a', 'sample']
   >>> vocab = Vocab.from_itos(custom_itos)
   >>> print(vocab)
-  Vocab({specials: ['<UNK>'], eager: True, finalized: True, size: 5})
+  Vocab({specials: ('<UNK>',), eager: True, is_finalized: True, size: 5})
 
 In this example we have also defined a Special token (:ref:`specials`) to use in our vocabulary. Both of these static constructors are equivalent and can produce the same ``Vocab`` mapping.
 
@@ -156,13 +156,13 @@ The SST dataset has two textual data columns (fields): (1) the input text of the
       name: text,
       keep_raw: False,
       is_target: False,
-      vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, finalized: False, size: 0})
+      vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, is_finalized: False, size: 0})
   })
   LabelField({
       name: label,
       keep_raw: False,
       is_target: True,
-      vocab: Vocab({specials: (), eager: True, finalized: False, size: 0})
+      vocab: Vocab({specials: (), eager: True, is_finalized: False, size: 0})
   })
 
 That's it! We have defined our Fields. In order for them to be initialized, we need to `show` them a dataset. For built-in datasets, this is done behind the scenes in the ``get_dataset_splits`` method. We will elaborate how to do this yourself in :ref:`custom-loading`.
@@ -172,7 +172,7 @@ That's it! We have defined our Fields. In order for them to be initialized, we n
   >>> fields = {'text': text, 'label': label}
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
   >>> print(small_vocabulary)
-  Vocab({specials: ('<UNK>', '<PAD>'), eager: True, finalized: True, size: 5000})
+  Vocab({specials: ('<UNK>', '<PAD>'), eager: True, is_finalized: True, size: 5000})
 
 Our new Vocab has been limited to the 5000 most frequent words. If your `Vocab` contains the unknown special token :class:`podium.vocab.UNK`, the words not present in the vocabulary will be set to the value of the unknown token. The unknown token is one of the default `special` tokens in the Vocab, alongside the padding token :class:`podium.vocab.PAD`. You can read more about these in :ref:`specials`.
 
@@ -378,17 +378,17 @@ For this dataset, we need to define three Fields. We also might want the fields 
           Field({
               name: premise,
               is_target: False, 
-              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 19})
+              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 19})
           }),
           Field({
               name: hypothesis,
               is_target: False, 
-              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 19})
+              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 19})
           }),
           LabelField({
               name: label,
               is_target: True, 
-              vocab: Vocab({specials: (), eager: False, finalized: True, size: 1})
+              vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 1})
           }),
       ]
   })
@@ -457,7 +457,7 @@ Datasets from 🤗 can be used with other Podium components by wrapping them in 
       name: text,
       keep_raw: False,
       is_target: False,
-      vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, finalized: False, size: 280617})
+      vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, is_finalized: False, size: 280617})
   }),
    LabelField({
       name: label,

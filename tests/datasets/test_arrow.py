@@ -155,7 +155,7 @@ def test_finalize_fields(data, fields, mocker):
     for f in fields:
         # before finalization, no field's dict was updated
         if f.vocab is not None:
-            assert not f.finalized
+            assert not f.is_finalized
 
     dataset.finalize_fields()
 
@@ -165,7 +165,7 @@ def test_finalize_fields(data, fields, mocker):
         assert f.update_vocab.call_count == (len(data) if (not f.eager) else 0)
         f.finalize.assert_called_once()
         # all fields should be finalized
-        assert f.finalized
+        assert f.is_finalized
 
     dataset.delete_cache()
 

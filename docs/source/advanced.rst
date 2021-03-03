@@ -161,7 +161,7 @@ To better understand how specials work, we will walk through the implementation 
 
   >>> from podium.vocab import Special
   >>> class BOS(Special):
-  ...   default_value = "<BOS>"
+  ...   token = "<BOS>"
   ...
   ...   def apply(self, sequence):
   ...      # Prepend to the sequence
@@ -477,21 +477,21 @@ As an example, we will again turn to the SST dataset and some of our previously 
   >>>
   >>> print(sst_train)
   SST({
-        size: 6920,
-        fields: [
-            Field({
-                name: text,
-                keep_raw: False,
-                is_target: False,
-                vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, finalized: True, size: 5000})
-            }),
-            LabelField({
-                name: label,
-                keep_raw: False,
-                is_target: True,
-                vocab: Vocab({specials: (), eager: True, finalized: True, size: 3})
-            })
-        ]
+      size: 6920,
+      fields: [
+          Field({
+              name: text,
+              keep_raw: False,
+              is_target: False,
+              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, is_finalized: True, size: 5000})
+          }),
+          LabelField({
+              name: label,
+              keep_raw: False,
+              is_target: True,
+              vocab: Vocab({specials: (), eager: True, is_finalized: True, size: 3})
+          })
+      ]
     })
   >>> print(sst_train[222])
   Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
