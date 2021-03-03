@@ -3,19 +3,17 @@ Module contains classes related to the vocabulary.
 """
 import itertools
 import warnings
-from collections import Counter, UserString
-from typing import Any
+from collections import Counter
+from typing import Any, Iterator
 from typing import Counter as Counter_
 from typing import (
     Dict,
-    Generator,
     Hashable,
     Iterable,
     List,
     Optional,
     Sequence,
     Tuple,
-    Type,
     TypeVar,
     Union,
     overload,
@@ -24,12 +22,10 @@ from typing import (
 import numpy as np
 
 
-Token = Union["Special", str]
 T = TypeVar("T", bound=Hashable)
-S = TypeVar("S", bound="Vocab")
 
 
-def _unique(values: Iterable[T]) -> Generator[T, None, None]:
+def _unique(values: Iterable[T]) -> Iterator[T]:
     """
     Generator that iterates over the first occurrence of every value in
     `values`, preserving original order.
@@ -51,7 +47,7 @@ def _unique(values: Iterable[T]) -> Generator[T, None, None]:
         yield element
 
 
-class Special(UserString):
+class Special(str):
     """
     Base class for a special token.
 
@@ -64,7 +60,7 @@ class Special(UserString):
 
     token: Optional[str] = None
 
-    def __init__(self, token: Optional[str] = None) -> None:
+    def __new__(cls, token: Optional[str] = None):
         """
         Provides default value initialization for subclasses.
 
@@ -73,15 +69,15 @@ class Special(UserString):
         """
 
         if token is None:
-            token = type(self).token
+            token = cls.token
 
         if token is None:
             raise ValueError(
                 "When initializing a special token without argument"
-                f" the {type(self).__name__}.token attribute must be set."
+                f" the {cls.__name__}.token attribute must be set."
             )
 
-        super(Special, self).__init__(token)
+        return super(Special, cls).__new__(cls, token)
 
     def __hash__(self) -> int:
         """
@@ -103,7 +99,7 @@ class Special(UserString):
         """
         return self.__class__ == other.__class__
 
-    def apply(self, sequence: Sequence[Token]) -> Sequence[Token]:
+    def apply(self, sequence: Sequence[str]) -> Sequence[str]:
         """
         Apply (insert) the special token in the adequate place in the sequence.
 
@@ -237,7 +233,7 @@ class Vocab:
         self._eager = eager
         self._is_finalized = False  # flag to know if we're ready to numericalize
 
-        self._freqs: Optional[Counter_[Token]] = Counter()
+        self._freqs: Optional[Counter_[str]] = Counter()
 
     @property
     def eager(self) -> bool:
@@ -252,15 +248,15 @@ class Vocab:
         return self._specials
 
     @property
-    def itos(self) -> List[Token]:
+    def itos(self) -> List[str]:
         return self._itos
 
     @property
-    def stoi(self) -> Dict[Token, int]:
+    def stoi(self) -> Dict[str, int]:
         return self._stoi
 
     @classmethod
-    def from_itos(cls: Type[S], itos: Iterable[Token]) -> S:
+    def from_itos(cls, itos: Iterable[str]):
         """
         Method constructs a vocab from a predefined index-to-string mapping.
 
@@ -279,7 +275,7 @@ class Vocab:
         return vocab
 
     @classmethod
-    def from_stoi(cls: Type[S], stoi: Dict[Token, int]) -> S:
+    def from_stoi(cls, stoi: Dict[str, int]):
         """
         Method constructs a vocab from a predefined index-to-string mapping.
 
@@ -293,7 +289,7 @@ class Vocab:
         vocab = cls(specials=specials)
         vocab._stoi = stoi
         vocab_max_index = max(stoi.values())
-        itos: List[Token] = [None] * (vocab_max_index + 1)
+        itos: List[str] = [None] * (vocab_max_index + 1)
         for token, index in stoi.items():
             itos[index] = token
         vocab._itos = itos
@@ -301,7 +297,7 @@ class Vocab:
 
         return vocab
 
-    def get_freqs(self) -> Counter_[Token]:
+    def get_freqs(self) -> Counter_[str]:
         """
         Method obtains vocabulary frequencies.
         Returns
@@ -339,7 +335,7 @@ class Vocab:
             raise ValueError("Padding symbol is not in the vocabulary.")
         return self.stoi[Vocab._pad]
 
-    def __iadd__(self, values: Union["Vocab", Iterable[Token]]) -> "Vocab":
+    def __iadd__(self, values: Union["Vocab", Iterable[str]]) -> "Vocab":
         """
         Adds additional values or another Vocab to this Vocab.
 
@@ -408,7 +404,7 @@ class Vocab:
                 raise TypeError("Vocab supports only adding another Vocab or iterable.")
         return self
 
-    def __add__(self, values: Union["Vocab", Iterable[Token]]) -> "Vocab":
+    def __add__(self, values: Union["Vocab", Iterable[str]]) -> "Vocab":
         """
         Method allows a vocabulary to be added to current vocabulary or that a
         set of values is added to the vocabulary.
@@ -531,7 +527,7 @@ class Vocab:
             del self._freqs  # release memory
         self._is_finalized = True
 
-    def numericalize(self, data: Union[Token, Iterable[Token]]) -> np.ndarray:
+    def numericalize(self, data: Union[str, Iterable[str]]) -> np.ndarray:
         """
         Method numericalizes given tokens.
 
@@ -572,7 +568,7 @@ class Vocab:
 
     def reverse_numericalize(
         self, numericalized_data: Iterable[int], include_unk=False
-    ) -> List[Token]:
+    ) -> List[str]:
         """
         Transforms an iterable containing numericalized data into a list of
         tokens. The tokens are read from this Vocab's itos and no additional
@@ -665,7 +661,7 @@ class Vocab:
     def __hash__(self) -> int:
         return hash((self.is_finalized, self._freqs, self.stoi, self.itos, self.specials))
 
-    def __iter__(self) -> Iterable[Token]:
+    def __iter__(self) -> Iterable[str]:
         """
         Method returns iterator over vocabulary, if the vocabulary is not
         finalized iteration is done over frequency counter and special symbols
@@ -695,10 +691,10 @@ class Vocab:
         ...
 
     @overload
-    def __getitem__(self, idx_or_token: Token) -> Token:
+    def __getitem__(self, idx_or_token: str) -> str:
         ...
 
-    def __getitem__(self, idx_or_token: Union[int, Token]) -> Union[int, Token]:
+    def __getitem__(self, idx_or_token: Union[int, str]) -> Union[int, str]:
         """
         Returns the token index of the passed token. If the passed token has no
         index, UNK token index is returned. Otherwise, an exception is raised.
