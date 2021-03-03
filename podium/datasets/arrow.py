@@ -10,7 +10,7 @@ from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 from podium.field import Field, unpack_fields
 
-from .dataset import DatasetBase
+from .dataset import DatasetBase, _pandas_to_examples
 from .example_factory import Example, ExampleFactory
 
 
@@ -768,8 +768,9 @@ class DiskBackedDataset(DatasetBase):
 
         shutil.rmtree(self.cache_path)
 
-    @staticmethod
+    @classmethod
     def from_pandas(
+        cls,
         df,
         fields: Union[Dict[str, Field], List[Field]],
         index_field: Optional[Field] = None,
@@ -831,9 +832,8 @@ class DiskBackedDataset(DatasetBase):
         Dataset
             Dataset containing data from the Dataframe
         """
-        from .pandas_util import pandas_to_examples
 
-        example_iterator = pandas_to_examples(df, fields, index_field=index_field)
+        example_iterator = _pandas_to_examples(df, fields, index_field=index_field)
         if isinstance(fields, dict):
             fields = [index_field] + list(fields.values())
         else:
