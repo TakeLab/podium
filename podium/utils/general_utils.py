@@ -17,6 +17,10 @@ def load_spacy_model_or_raise(model, *, disable=None):
                 else {}
             )
             if model not in OLD_MODEL_SHORTCUTS:
+                print(
+                    f"Spacy model '{model}' not found. Please install the model. "
+                    "See the docs at https://spacy.io for more information."
+                )
                 raise
             print(
                 f"Spacy model '{model}' not found, trying '{OLD_MODEL_SHORTCUTS[model]}'",
@@ -28,9 +32,11 @@ def load_spacy_model_or_raise(model, *, disable=None):
             "See the docs at https://spacy.io for "
             "more information."
         )
+        raise
     except AttributeError:
         print(
             f"Spacy model '{model}' not found. Please install the model. "
             "See the docs at https://spacy.io for more information."
         )
+        raise
     return nlp
