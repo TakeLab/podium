@@ -36,7 +36,7 @@ def _chunkify(iterable, n):
         yield chunk
 
 
-class ArrowDataset(DatasetBase):
+class DiskBackedDataset(DatasetBase):
     """
     Podium dataset implementation which uses PyArrow as its data storage
     backend.
@@ -58,8 +58,9 @@ class ArrowDataset(DatasetBase):
         data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
     ):
         """
-        Creates a new ArrowDataset instance. Users should use static constructor
-        functions like 'from_dataset' to construct new ArrowDataset instances.
+        Creates a new DiskBackedDataset instance. Users should use static
+        constructor functions like 'from_dataset' to construct new
+        DiskBackedDataset instances.
 
         Parameters
         ----------
@@ -93,15 +94,15 @@ class ArrowDataset(DatasetBase):
         dataset: DatasetBase,
         cache_path: Optional[str] = None,
         data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
-    ) -> "ArrowDataset":
+    ) -> "DiskBackedDataset":
         """
-        Creates an ArrowDataset instance from a podium.datasets.DatasetBase
+        Creates a DiskBackedDataset instance from a podium.datasets.DatasetBase
         instance.
 
         Parameters
         ----------
         dataset: DatasetBase
-            DatasetBase instance to be used to create the ArrowDataset.
+            DatasetBase instance to be used to create the DiskBackedDataset.
 
         cache_path: Optional[str]
             Path to the directory where the cache file will saved.
@@ -120,10 +121,10 @@ class ArrowDataset(DatasetBase):
 
         Returns
         -------
-        ArrowDataset
-            ArrowDataset instance created from the passed DatasetBase instance.
+        DiskBackedDataset
+            DiskBackedDataset instance created from the passed DatasetBase instance.
         """
-        return ArrowDataset.from_examples(
+        return DiskBackedDataset.from_examples(
             dataset.fields, iter(dataset), cache_path, data_types
         )
 
@@ -134,9 +135,9 @@ class ArrowDataset(DatasetBase):
         cache_path: Optional[str] = None,
         data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
         chunk_size=1024,
-    ) -> "ArrowDataset":
+    ) -> "DiskBackedDataset":
         """
-        Creates an ArrowDataset from the provided Examples.
+        Creates a DiskBackedDataset from the provided Examples.
 
         Parameters
         ----------
@@ -167,17 +168,21 @@ class ArrowDataset(DatasetBase):
 
         Returns
         -------
-        ArrowDataset
-            ArrowDataset instance created from the passed Examples.
+        DiskBackedDataset
+            DiskBackedDataset instance created from the passed Examples.
         """
 
         fields = unpack_fields(fields)
 
         if cache_path is None:
-            cache_path = tempfile.mkdtemp(prefix=ArrowDataset.TEMP_CACHE_FILENAME_PREFIX)
+            cache_path = tempfile.mkdtemp(
+                prefix=DiskBackedDataset.TEMP_CACHE_FILENAME_PREFIX
+            )
 
         # dump dataset table
-        cache_table_path = os.path.join(cache_path, ArrowDataset.CACHE_TABLE_FILENAME)
+        cache_table_path = os.path.join(
+            cache_path, DiskBackedDataset.CACHE_TABLE_FILENAME
+        )
 
         # TODO hande cache case when cache is present
 
@@ -185,20 +190,20 @@ class ArrowDataset(DatasetBase):
 
         # get first chunk to infer schema
         first_chunk = next(chunks_iter)
-        record_batch = ArrowDataset._examples_to_recordbatch(
+        record_batch = DiskBackedDataset._examples_to_recordbatch(
             first_chunk, fields, data_types
         )
-        inferred_data_types = ArrowDataset._schema_to_data_types(record_batch.schema)
+        inferred_data_types = DiskBackedDataset._schema_to_data_types(record_batch.schema)
 
         # check for missing data types in inferred schema
-        ArrowDataset._check_for_missing_data_types(fields, inferred_data_types)
+        DiskBackedDataset._check_for_missing_data_types(fields, inferred_data_types)
 
         # write cache file to disk
         with pa.OSFile(cache_table_path, "wb") as f:
             with pa.RecordBatchFileWriter(f, schema=record_batch.schema) as writer:
                 writer.write(record_batch)  # write first chunk
                 for examples_chunk in chunks_iter:  # write rest of chunks
-                    record_batch = ArrowDataset._examples_to_recordbatch(
+                    record_batch = DiskBackedDataset._examples_to_recordbatch(
                         examples_chunk, fields, inferred_data_types
                     )
                     writer.write(record_batch)
@@ -206,7 +211,9 @@ class ArrowDataset(DatasetBase):
         mmapped_file = pa.memory_map(cache_table_path)
         table = pa.RecordBatchFileReader(mmapped_file).read_all()
 
-        return ArrowDataset(table, fields, cache_path, mmapped_file, inferred_data_types)
+        return DiskBackedDataset(
+            table, fields, cache_path, mmapped_file, inferred_data_types
+        )
 
     @staticmethod
     def from_tabular_file(
@@ -218,10 +225,11 @@ class ArrowDataset(DatasetBase):
         chunk_size: int = 1024,
         line2example: Optional[Callable] = None,
         skip_header: bool = False,
+        delimiter=None,
         csv_reader_params: Optional[Dict] = None,
-    ) -> "ArrowDataset":
+    ) -> "DiskBackedDataset":
         """
-        Loads a tabular file format (csv, tsv, json) as an ArrowDataset.
+        Loads a tabular file format (csv, tsv, json) as a DiskBackedDataset.
 
         Parameters
         ----------
@@ -292,15 +300,15 @@ class ArrowDataset(DatasetBase):
 
         Returns
         -------
-        ArrowDataset
-            ArrowDataset instance containing the examples from the tabular file.
+        DiskBackedDataset
+            DiskBackedDataset instance containing the examples from the tabular file.
         """
 
         example_generator = _load_tabular_file(
             path, fields, format, line2example, skip_header, csv_reader_params
         )
 
-        return ArrowDataset.from_examples(
+        return DiskBackedDataset.from_examples(
             fields,
             example_generator,
             cache_path=cache_path,
@@ -313,18 +321,18 @@ class ArrowDataset(DatasetBase):
         inferred_schema: pa.Schema,
     ) -> Dict[str, Tuple[pa.DataType, pa.DataType]]:
         """
-        Converts a pyarrow Schema instance into the ArrowDataset data_types
+        Converts a pyarrow Schema instance into the DiskBackedDataset data_types
         format.
 
         Parameters
         ----------
         inferred_schema: pyarrow.Schema
-            Schema to be converted into the ArrowDataset data_type format.
+            Schema to be converted into the DiskBackedDataset data_type format.
 
         Returns
         -------
         Dict[str, Tuple[pyarrow.DataType, pyarrow.DataType]]
-            ArrowDataset data_types extracted from the passed Schema instance.
+            DiskBackedDataset data_types extracted from the passed Schema instance.
         """
         dtypes = defaultdict(dict)
 
@@ -425,7 +433,7 @@ class ArrowDataset(DatasetBase):
         fields = unpack_fields(fields)
         fieldnames = tuple(field.name for field in fields)
         field_value_iterators = tuple(
-            ArrowDataset._field_values(record_batch, fieldname)
+            DiskBackedDataset._field_values(record_batch, fieldname)
             for fieldname in fieldnames
         )
 
@@ -474,9 +482,9 @@ class ArrowDataset(DatasetBase):
                 )
 
     @staticmethod
-    def load_cache(cache_path) -> "ArrowDataset":
+    def load_cache(cache_path) -> "DiskBackedDataset":
         """
-        Loads a cached ArrowDataset contained in the cache_path directory.
+        Loads a cached DiskBackedDataset contained in the cache_path directory.
         Fields will be loaded into memory but the Example data will be memory
         mapped avoiding unnecessary memory usage.
 
@@ -492,24 +500,26 @@ class ArrowDataset(DatasetBase):
 
         Returns
         -------
-        ArrowDataset
-            the ArrowDataset loaded from the passed cache directory.
+        DiskBackedDataset
+            the DiskBackedDataset loaded from the passed cache directory.
         """
         # load fields
-        fields_file_path = os.path.join(cache_path, ArrowDataset.CACHE_FIELDS_FILENAME)
+        fields_file_path = os.path.join(
+            cache_path, DiskBackedDataset.CACHE_FIELDS_FILENAME
+        )
         with open(fields_file_path, "rb") as fields_cache_file:
             fields = pickle.load(fields_cache_file)
 
         # load dataset as memory mapped arrow table
-        table_file_path = os.path.join(cache_path, ArrowDataset.CACHE_TABLE_FILENAME)
+        table_file_path = os.path.join(cache_path, DiskBackedDataset.CACHE_TABLE_FILENAME)
         mmapped_file = pa.memory_map(table_file_path)
         table = pa.RecordBatchFileReader(mmapped_file).read_all()
-        return ArrowDataset(table, fields, cache_path, mmapped_file)
+        return DiskBackedDataset(table, fields, cache_path, mmapped_file)
 
     def dump_cache(self, cache_path: Optional[str] = None) -> str:
         """
         Saves this dataset at cache_path. Dumped datasets can be loaded with the
-        ArrowDataset.load_cache static method. All fields contained in this
+        DiskBackedDataset.load_cache static method. All fields contained in this
         dataset must be serializable using pickle.
 
         Parameters
@@ -535,18 +545,24 @@ class ArrowDataset(DatasetBase):
             )
 
         if cache_path is None:
-            cache_path = tempfile.mkdtemp(prefix=ArrowDataset.TEMP_CACHE_FILENAME_PREFIX)
+            cache_path = tempfile.mkdtemp(
+                prefix=DiskBackedDataset.TEMP_CACHE_FILENAME_PREFIX
+            )
 
         if not os.path.isdir(cache_path):
             os.mkdir(cache_path)
 
         # pickle fields
-        cache_fields_path = os.path.join(cache_path, ArrowDataset.CACHE_FIELDS_FILENAME)
+        cache_fields_path = os.path.join(
+            cache_path, DiskBackedDataset.CACHE_FIELDS_FILENAME
+        )
         with open(cache_fields_path, "wb") as fields_cache_file:
             pickle.dump(self.fields, fields_cache_file)
 
         # dump table
-        cache_table_path = os.path.join(cache_path, ArrowDataset.CACHE_TABLE_FILENAME)
+        cache_table_path = os.path.join(
+            cache_path, DiskBackedDataset.CACHE_TABLE_FILENAME
+        )
         with pa.OSFile(cache_table_path, "wb") as f:
             with pa.RecordBatchFileWriter(f, self.table.schema) as writer:
                 writer.write(self.table)
@@ -555,10 +571,10 @@ class ArrowDataset(DatasetBase):
 
     def _get_examples(self) -> List[Example]:
         """
-        Loads this ArrowDataset into memory and returns a list containing the
-        loaded Examples.
+        Loads this DiskBackedDataset into memory and returns a list containing
+        the loaded Examples.
         """
-        return list(ArrowDataset._recordbatch_to_examples(self.table, self.fields))
+        return list(DiskBackedDataset._recordbatch_to_examples(self.table, self.fields))
 
     @staticmethod
     def _field_values(
@@ -602,9 +618,9 @@ class ArrowDataset(DatasetBase):
 
     def __getitem__(
         self, item: Union[int, Iterable[int], slice]
-    ) -> Union[Example, "ArrowDataset"]:
+    ) -> Union[Example, "DiskBackedDataset"]:
         """
-        Returns an example or a new ArrowDataset containing the indexed
+        Returns an example or a new DiskBackedDataset containing the indexed
         examples. If indexed with an int, only the example at that position will
         be returned. If Indexed with a slice or iterable, all examples indexed
         by the object will be collected and a new dataset containing only those
@@ -640,7 +656,7 @@ class ArrowDataset(DatasetBase):
         if isinstance(item, int):
             # slices extract row, indexing with int extracts column
             record_batch = self.table[item : item + 1]
-            example_iter = ArrowDataset._recordbatch_to_examples(
+            example_iter = DiskBackedDataset._recordbatch_to_examples(
                 record_batch, self.fields
             )
             return next(example_iter)  # returns the one example
@@ -653,7 +669,7 @@ class ArrowDataset(DatasetBase):
                 item = list(item)
             table_slice = self.table.take(item)
 
-        return ArrowDataset(
+        return DiskBackedDataset(
             table=table_slice,
             fields=self.fields,
             cache_path=self.cache_path,
@@ -684,7 +700,7 @@ class ArrowDataset(DatasetBase):
 
     def close(self):
         """
-        Closes resources held by the ArrowDataset.
+        Closes resources held by the DiskBackedDataset.
 
         Only closes the cache file handle. The cache will not be deleted from
         disk. For cache deletion, use `delete_cache`.
@@ -695,14 +711,14 @@ class ArrowDataset(DatasetBase):
             self.table = None
 
         else:
-            warnings.warn("Attempted closing an already closed ArrowDataset.")
+            warnings.warn("Attempted closing an already closed DiskBackedDataset.")
 
     def delete_cache(self):
         """
         Deletes the cache directory and all cache files belonging to this
         dataset.
 
-        After this call is executed, any ArrowDataset created by
+        After this call is executed, any DiskBackedDataset created by
         slicing/indexing this dataset and any view over this dataset will not be
         usable any more. Any dataset created from this dataset should be dumped
         to a new directory before calling this method.

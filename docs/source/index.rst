@@ -37,6 +37,12 @@ The documentation is organized in four parts:
     coming_soon
 
 .. toctree::
+    :maxdepth: 2
+    :caption: Preprocessing tools
+
+    preprocessing
+
+.. toctree::
    :maxdepth: 2
    :caption: Core package Reference:
 

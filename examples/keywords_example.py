@@ -1,9 +1,9 @@
 """
 Example shows how to add keyword extraction features to a dataset.
 """
-from podium.datasets import Dataset
+from podium import Field
+from podium.datasets import Dataset, ExampleFactory
 from podium.preproc.yake import YAKE
-from podium.storage import ExampleFactory, Field
 
 
 class DummyDataset(Dataset):
@@ -60,20 +60,14 @@ def keyword_extraction_main():
     ]
 
     tokens = Field(
-        "tokens",
+        name="tokens",
         tokenizer="split",
-        vocab=None,
-        tokenize=True,
         keep_raw=True,
-        store_as_tokenized=False,
     )
     kws = Field(
-        "keywords",
+        name="keywords",
         tokenizer=YAKE("hr"),
-        vocab=None,
-        tokenize=True,
         keep_raw=True,
-        store_as_tokenized=False,
     )
     fields = {DummyDataset.TEXT_FIELD_NAME: (tokens, kws)}
     dummy_dataset = DummyDataset(texts=sample_texts, fields=fields)

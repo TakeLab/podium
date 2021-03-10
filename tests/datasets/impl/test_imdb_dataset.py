@@ -2,13 +2,11 @@ import os
 import tempfile
 
 import pytest
-import spacy
 
 from podium.datasets.dataset import Dataset
 from podium.datasets.impl.imdb_sentiment_dataset import IMDB
 from podium.storage.resources.large_resource import LargeResource
-
-from ...util import run_spacy
+from podium.utils.general_utils import load_spacy_model_or_raise
 
 
 TRAIN_EXAMPLES = {
@@ -97,7 +95,8 @@ def create_examples(base_dir, examples):
             fpr.write(examples[i])
 
 
-@run_spacy
+@pytest.mark.require_package("spacy")
+@pytest.mark.require_spacy_model("en_core_web_sm")
 def test_return_params(mock_dataset_path):
     data = IMDB.get_dataset_splits()
     assert len(data) == 2
@@ -105,7 +104,8 @@ def test_return_params(mock_dataset_path):
     assert isinstance(data[1], Dataset)
 
 
-@run_spacy
+@pytest.mark.require_package("spacy")
+@pytest.mark.require_spacy_model("en_core_web_sm")
 def test_default_fields():
     fields = IMDB.get_default_fields()
     assert len(fields) == 2
@@ -113,9 +113,12 @@ def test_default_fields():
     assert all([name in fields for name in field_names])
 
 
-@run_spacy
+@pytest.mark.require_package("spacy")
+@pytest.mark.require_spacy_model("en_core_web_sm")
 def test_loaded_data(mock_dataset_path):
-    spacy_tokenizer = spacy.load("en", disable=["parser", "ner"])
+    spacy_tokenizer = load_spacy_model_or_raise(
+        "en_core_web_sm", disable=["parser", "ner"]
+    )
 
     def spacy_tokenize(string):
         return [token.text for token in spacy_tokenizer.tokenizer(string)]

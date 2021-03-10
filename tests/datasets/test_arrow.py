@@ -9,7 +9,8 @@ import pytest
 
 pa = pytest.importorskip("pyarrow")
 
-from podium.datasets import ArrowDataset, Dataset, ExampleFactory
+from podium.datasets import Dataset, ExampleFactory
+from podium.datasets.arrow import DiskBackedDataset
 from podium.field import Field
 from podium.vocab import Vocab
 
@@ -45,7 +46,7 @@ def fields():
 def pyarrow_dataset(data, fields):
     example_factory = ExampleFactory(fields)
     examples = map(example_factory.from_list, data)
-    return ArrowDataset.from_examples(fields, examples)
+    return DiskBackedDataset.from_examples(fields, examples)
 
 
 @pytest.fixture(name="pyarrow_dataset")
@@ -58,7 +59,7 @@ def pyarrow_dataset_fixture(data, fields):
 def test_from_examples(data, fields):
     example_factory = ExampleFactory(fields)
     examples = [example_factory.from_list(ex) for ex in data]
-    ad = ArrowDataset.from_examples(fields, examples)
+    ad = DiskBackedDataset.from_examples(fields, examples)
 
     for (raw, tokenized), (num, _) in zip(ad.number, data):
         assert raw == num
@@ -101,7 +102,7 @@ def test_slicing(index, data, fields, pyarrow_dataset):
 
 def test_dump_and_load(pyarrow_dataset, tmpdir):
     cache_dir = pyarrow_dataset.dump_cache(cache_path=None)
-    loaded_dataset = ArrowDataset.load_cache(cache_dir)
+    loaded_dataset = DiskBackedDataset.load_cache(cache_dir)
 
     assert len(loaded_dataset) == len(pyarrow_dataset)
     for ex_original, ex_loaded in zip(pyarrow_dataset, loaded_dataset):
@@ -116,7 +117,7 @@ def test_dump_and_load(pyarrow_dataset, tmpdir):
 
     dataset_sliced = pyarrow_dataset[8:2:-2]
     cache_dir_sliced = dataset_sliced.dump_cache(cache_path=None)
-    loaded_dataset_sliced = ArrowDataset.load_cache(cache_dir_sliced)
+    loaded_dataset_sliced = DiskBackedDataset.load_cache(cache_dir_sliced)
 
     assert len(loaded_dataset_sliced) == len(dataset_sliced)
     for ex_original, ex_loaded in zip(dataset_sliced, loaded_dataset_sliced):
@@ -130,7 +131,7 @@ def test_dump_and_load(pyarrow_dataset, tmpdir):
     loaded_dataset_sliced.delete_cache()
 
     pyarrow_dataset.dump_cache(cache_path=tmpdir)
-    loaded_dataset = ArrowDataset.load_cache(tmpdir)
+    loaded_dataset = DiskBackedDataset.load_cache(tmpdir)
 
     assert len(loaded_dataset) == len(pyarrow_dataset)
     for ex_original, ex_loaded in zip(pyarrow_dataset, loaded_dataset):
@@ -154,7 +155,7 @@ def test_finalize_fields(data, fields, mocker):
     for f in fields:
         # before finalization, no field's dict was updated
         if f.vocab is not None:
-            assert not f.finalized
+            assert not f.is_finalized
 
     dataset.finalize_fields()
 
@@ -164,7 +165,7 @@ def test_finalize_fields(data, fields, mocker):
         assert f.update_vocab.call_count == (len(data) if (not f.eager) else 0)
         f.finalize.assert_called_once()
         # all fields should be finalized
-        assert f.finalized
+        assert f.is_finalized
 
     dataset.delete_cache()
 
@@ -207,7 +208,7 @@ def test_from_dataset(data, fields):
     example_factory = ExampleFactory(fields)
     examples = [example_factory.from_list(raw_example) for raw_example in data]
     dataset = Dataset(examples, fields)
-    pyarrow_dataset = ArrowDataset.from_dataset(dataset)
+    pyarrow_dataset = DiskBackedDataset.from_dataset(dataset)
 
     for ds_ex, arrow_ex in zip(dataset, pyarrow_dataset):
         assert ds_ex.number == arrow_ex.number
@@ -222,7 +223,7 @@ def test_from_tabular(data, fields, tmpdir):
         writer = csv.writer(f)
         writer.writerows(data)
 
-    csv_dataset = ArrowDataset.from_tabular_file(test_file, fields, format="csv")
+    csv_dataset = DiskBackedDataset.from_tabular_file(test_file, fields, format="csv")
     for ex, d in zip(csv_dataset, data):
         assert int(ex.number[0]) == d[0]
         assert ex.tokens[0] == d[1]
@@ -241,7 +242,7 @@ def test_missing_datatype_exception(data, fields, tmpdir):
     examples = map(exf.from_list, data_null)
 
     with pytest.raises(RuntimeError):
-        ArrowDataset.from_examples(fields_null, examples, cache_path=tmpdir)
+        DiskBackedDataset.from_examples(fields_null, examples, cache_path=tmpdir)
 
 
 def test_datatype_definition(data, fields):
@@ -255,7 +256,7 @@ def test_datatype_definition(data, fields):
     examples = map(exf.from_list, data_null)
 
     datatypes = {"null_field": (pa.string(), pa.list_(pa.string()))}
-    dataset = ArrowDataset.from_examples(fields_null, examples, data_types=datatypes)
+    dataset = DiskBackedDataset.from_examples(fields_null, examples, data_types=datatypes)
 
     for ex, d in zip(dataset, data_null):
         assert int(ex["number"][0]) == d[0]
@@ -269,7 +270,7 @@ def test_delete_cache(data, fields):
 
     example_factory = ExampleFactory(fields)
     examples = map(example_factory.from_list, data)
-    ad = ArrowDataset.from_examples(fields, examples, cache_path=cache_dir)
+    ad = DiskBackedDataset.from_examples(fields, examples, cache_path=cache_dir)
 
     assert os.path.exists(cache_dir)
     ad.delete_cache()

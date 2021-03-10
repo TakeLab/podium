@@ -4,6 +4,7 @@ Module contains base classes for datasets.
 import copy
 import itertools
 import random
+import textwrap
 from abc import ABC, abstractmethod
 from bisect import bisect_right
 from itertools import chain, islice
@@ -40,6 +41,7 @@ class DatasetBase(ABC):
 
     def __init__(self, fields: Union[Dict[str, FieldType], List[FieldType]]):
         self._fields = tuple(unpack_fields(fields))
+        self._field_name_to_field = {f.name: f for f in self.fields}
 
     @property
     def fields(self) -> Tuple[Field]:
@@ -107,6 +109,12 @@ class DatasetBase(ABC):
 
         else:
             raise AttributeError(f"Dataset has no field {field_name}.")
+
+    def field(self, name) -> Field:
+        """
+        Returns the Field with a given name.
+        """
+        return self._field_name_to_field.get(name, None)
 
     def finalize_fields(self, *datasets: "DatasetBase") -> None:
         """
@@ -221,16 +229,11 @@ class DatasetBase(ABC):
         return self[shuffled_indices]
 
     def __repr__(self):
-        # Distribute field prints across lines for readability
-        fields_as_str = "\n   ".join([repr(f) for f in self.fields])
-
-        if len(self.fields) > 1:
-            # Prepend newline only in case there's multiple fields
-            fields_as_str = f"\n  ({fields_as_str})"
-
-        fields_as_str = f"Fields:{fields_as_str}\n"
-
-        return f"{type(self).__name__}[Size: {len(self)}, {fields_as_str}]"
+        fields_str = ",\n".join([textwrap.indent(repr(f), " " * 8) for f in self.fields])
+        return (
+            f"{type(self).__name__}"
+            f"({{\n    size: {len(self)},\n    fields: [\n{fields_str}\n    ]\n}})"
+        )
 
     @abstractmethod
     def __len__(self) -> int:
@@ -326,9 +329,10 @@ class Dataset(DatasetBase):
             A key to use for sorting dataset examples, used for batching
             together examples with similar lengths to minimize padding.
         """
-        self._examples = examples
-        self.sort_key = sort_key
+
         super().__init__(fields)
+        self._examples = list(examples)
+        self.sort_key = sort_key
 
     def __getitem__(
         self, i: Union[int, Iterable[int], slice]
@@ -875,7 +879,9 @@ class DatasetConcatView(DatasetBase):
         Updates and finalizes all eager override fields.
         """
         eager_fields = {
-            n: f for n, f in self._field_overrides.items() if not f.finalized and f.eager
+            n: f
+            for n, f in self._field_overrides.items()
+            if not f.is_finalized and f.eager
         }
 
         if eager_fields:
@@ -1257,8 +1263,13 @@ def stratified_split(
         examples.
     """
 
+    # groupby requires the examples to be sorted
+    # TODO @mttk: this slows down the execution significantly for larger
+    #       datasets (O(nlogn) for no reason). Replace groupby with a fn
+    #       that does the same thing in O(n).
+    examples.sort(key=lambda ex: ex[strata_field_name][1])
     # group the examples by the strata_field
-    strata = itertools.groupby(examples, key=lambda ex: ex[strata_field_name])
+    strata = itertools.groupby(examples, key=lambda ex: ex[strata_field_name][1])
     strata = (list(group) for _, group in strata)
 
     train_split, val_split, test_split = [], [], []

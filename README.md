@@ -8,12 +8,7 @@ Our goal is to accelerate users' development of NLP models whichever aspect of t
 ### Contents
 
 - [Installation](#installation)
-  - [Installing from source](#installing-from-source)
-  - [Installing from pip](#installing-from-pip)
 - [Usage examples](#usage-examples)
-  - [Loading datasets](#loading-datasets)
-  - [Define your preprocessing](#define-your-preprocessing)
-  - [Use preprocessing from other libraries](#use-preprocessing-from-other-libraries)
 - [Contributing](#contributing)
 - [Versioning](#versioning)
 - [Authors](#authors)
@@ -36,9 +31,29 @@ git clone git@github.com:mttk/podium.git && cd podium
 pip install .
 ```
 
+### Installing from wheel
+
+The following release wheels are available for Podium:
+
+
+- Version **1.1.0**:
+```bash
+pip install http://takelab.fer.hr/podium/releases/podium-1.1.0-py3-none-any.whl
+```
+
+- Version **1.0.1**:
+```bash
+pip install http://takelab.fer.hr/podium/releases/podium-1.0.1-py3-none-any.whl
+```
+
+- Version **1.0.0**:
+```bash
+pip install http://takelab.fer.hr/podium/releases/podium-1.0.0-py3-none-any.whl
+```
+
 ### Installing from pip
 
-The easiest way to install `podium` is using pip
+**[Coming soon]** You can also install `podium` using pip
 
 ```bash
 pip install podium-nlp
@@ -48,7 +63,7 @@ For more detailed installation instructions, check the [installation page](http:
 
 ## Usage examples
 
-For detailed usage examples see [examples](https://github.com/mttk/podium/tree/master/examples)
+For usage examples see the documentation pages [walkthrough](http://takelab.fer.hr/podium/walkthrough.html) and [examples](https://github.com/mttk/podium/tree/master/examples)
 
 ### Loading datasets
 
@@ -56,16 +71,63 @@ Use some of our pre-defined datasets:
 
 ```python
 >>> from podium.datasets import SST
->>> sst_train, sst_test, sst_dev = SST.get_dataset_splits()
+>>> sst_train, sst_dev, sst_test = SST.get_dataset_splits()
 >>> print(sst_train)
-SST[Size: 6920, Fields: (Field[name: text, is_target: False, vocab: Vocab[finalized: True, size: 16284]], LabelField[name: label, is_target: True, vocab: Vocab[finalized: True, size: 2]])]
+SST({
+    size: 6920,
+    fields: [
+        Field({
+            name: text,
+            keep_raw: False,
+            is_target: False,
+            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 16284})
+        }),
+        LabelField({
+            name: label,
+            keep_raw: False,
+            is_target: True,
+            vocab: Vocab({specials: (), eager: False, finalized: True, size: 2})
+        })
+    ]
+})
 >>> print(sst_train[222]) # A short example
-Example[text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']); label: (None, 'positive')]
+Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
 
 ```
 
+Load datasets from [🤗/datasets](https://github.com/huggingface/datasets):
 
-Load your own dataset from a standardized format (`csv`, `tsv` or `jsonl`):
+```python
+
+  >>> from podium.datasets.hf import HFDatasetConverter
+  >>> import datasets
+  >>> # Load the huggingface dataset
+  >>> imdb = datasets.load_dataset('imdb')
+  >>> print(imdb.keys())
+  dict_keys(['train', 'test', 'unsupervised'])
+  >>> # Wrap it so it can be used in Podium (without being loaded in memory!)
+  >>> imdb_train, imdb_test, imdb_unsupervised = HFDatasetConverter.from_dataset_dict(imdb).values()
+  >>> # We need to trigger Vocab construction
+  >>> imdb_train.finalize_fields()
+  >>> print(imdb_train)
+  HFDatasetConverter({
+    size: 25000,
+    fields: [
+        Field({
+            name: text,
+            keep_raw: False,
+            is_target: False,
+            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 280619})
+        }),
+        LabelField({
+            name: label,
+            keep_raw: False,
+            is_target: True})
+    ]
+  })
+```
+
+Load your own dataset from a standardized tabular format (e.g. `csv`, `tsv`, `jsonl`):
 
 ```python
 >>> from podium.datasets import TabularDataset
@@ -75,8 +137,26 @@ Load your own dataset from a standardized format (`csv`, `tsv` or `jsonl`):
 ...           'label':     LabelField('label')}
 >>> dataset = TabularDataset('my_dataset.csv', format='csv', fields=fields)
 >>> print(dataset)
-TabularDataset[Size: 1, Fields: (Field[name: premise, is_target: False, vocab: Vocab[finalized: True, size: 19]], Field[name: hypothesis, is_target: False, vocab: Vocab[finalized: True, size: 19]], LabelField[name: label, is_target: True, vocab: Vocab[finalized: True, size: 1]])]
-
+TabularDataset({
+    size: 1,
+    fields: [
+        Field({
+            name: premise,
+            is_target: False, 
+            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 19})
+        }),
+        Field({
+            name: hypothesis,
+            is_target: False, 
+            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 19})
+        }),
+        LabelField({
+            name: label,
+            is_target: True, 
+            vocab: Vocab({specials: (), eager: False, finalized: True, size: 1})
+        }),
+    ]
+})
 ```
 
 Or define your own `Dataset` subclass (tutorial coming soon)
@@ -91,9 +171,9 @@ We wrap dataset pre-processing in customizable `Field` classes. Each `Field` has
 >>> text = Field(name='text', numericalizer=vocab)
 >>> label = LabelField(name='label')
 >>> fields = {'text': text, 'label': label}
->>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+>>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
 >>> print(vocab)
-Vocab[finalized: True, size: 5000]
+Vocab({specials: ('<UNK>', '<PAD>'), eager: True, finalized: True, size: 5000})
 
 ```
 
@@ -102,8 +182,7 @@ Each `Field` allows the user full flexibility modify the data in multiple stages
 - During tokenization (by using your own `tokenizer`)
 - Post tokenization (by using post-tokenization `hooks`)
 
-You can also completely disregard our preprocessing and define your own:
-- Set your `custom_numericalize`
+You can also completely disregard our preprocessing and define your own by setting your own `numericalizer`.
 
 You could decide to lowercase all the characters and filter out all non-alphanumeric tokens:
 
@@ -117,9 +196,9 @@ You could decide to lowercase all the characters and filter out all non-alphanum
 >>> text.add_pretokenize_hook(lowercase)
 >>> text.add_posttokenize_hook(filter_alnum)
 >>> fields = {'text': text, 'label': label}
->>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+>>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
 >>> print(sst_train[222])
-Example[text: (None, ['a', 'slick', 'engrossing', 'melodrama']); label: (None, 'positive')]
+Example({'text': (None, ['a', 'slick', 'engrossing', 'melodrama']), 'label': (None, 'positive')})
 
 ```
 
@@ -138,13 +217,13 @@ A common use-case is to incorporate existing components of pretrained language m
 >>> pad_index = tokenizer.convert_tokens_to_ids(tokenizer.pad_token)
 >>> # Define a BERT subword Field
 >>> subword_field = Field(name="subword",
-...                    padding_token=pad_index,
-...                    tokenizer=tokenizer.tokenize,
-...                    numericalizer=tokenizer.convert_tokens_to_ids)
+...                       padding_token=pad_index,
+...                       tokenizer=tokenizer.tokenize,
+...                       numericalizer=tokenizer.convert_tokens_to_ids)
 >>> fields = {'text': subword_field, 'label': label}
->>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+>>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
 >>> print(sst_train[222])
-Example[subword: (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.']); label: (None, 'positive')]
+Example({'subword': (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.']), 'label': (None, 'positive')})
 
 ```
 

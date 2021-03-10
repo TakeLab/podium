@@ -1,12 +1,45 @@
-Preprocessing tools
-=======================
-
-.. _predefined-hooks:
+Built-in preprocessing tools
+============================
 
 Hooks
 ------
 
-.. automodule:: podium.preproc.hooks
+Moses Normalizer
+^^^^^^^^^^^^^^^^^
+.. autoclass:: podium.preproc.MosesNormalizer
+   :members:
+   :no-undoc-members:
+
+
+Regex Replace
+^^^^^^^^^^^^^^
+.. autoclass:: podium.preproc.RegexReplace
+   :members:
+   :no-undoc-members:
+
+
+Text Cleanup
+^^^^^^^^^^^^
+.. autoclass:: podium.preproc.TextCleanUp
+   :members:
+   :no-undoc-members:
+
+NLTK Stemmer
+^^^^^^^^^^^^
+.. autoclass:: podium.preproc.NLTKStemmer
+   :members:
+   :no-undoc-members:
+
+Spacy Lemmatizer
+^^^^^^^^^^^^^^^^^
+.. autoclass:: podium.preproc.SpacyLemmatizer
+   :members:
+   :no-undoc-members:
+
+Functional
+----------
+
+.. automodule:: podium.preproc.functional
    :members:
    :no-undoc-members:
    :show-inheritance:
@@ -20,14 +53,6 @@ Stop words
    :no-undoc-members:
    :show-inheritance:
 
-
-Functional
-----------
-
-.. automodule:: podium.preproc.functional
-   :members:
-   :no-undoc-members:
-   :show-inheritance:
 
 Sentencizers
 ------------
@@ -48,7 +73,7 @@ Tokenizers
 Utilities
 ----------
 
-.. automodule:: podium.preproc.util
+.. automodule:: podium.preproc.utils
    :members:
    :no-undoc-members:
    :show-inheritance:

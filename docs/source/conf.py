@@ -40,6 +40,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'sphinx.ext.doctest',
+    "sphinx.ext.intersphinx",
     'sphinx.ext.viewcode',
     'sphinx.ext.autosummary',
     'recommonmark',
@@ -50,6 +51,9 @@ source_suffix = ['.rst', '.md']
 autodoc_typehints = 'none'
 autoclass_content = 'both'
 
+# Mock since the install is large, and it clogs the available space on GH Actions
+autodoc_mock_imports = ['torch']
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 html_static_path = ['_static']
@@ -59,7 +63,8 @@ html_static_path = ['_static']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
-copybutton_prompt_text = ">>> "
+copybutton_prompt_text = r'>>> |\.\.\. '
+copybutton_prompt_is_regexp = True
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -74,6 +79,9 @@ html_theme_options = {
     'display_version': True,
 }
 
+intersphinx_mapping = {
+    'torch': ('https://pytorch.org/docs/stable/', None),
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

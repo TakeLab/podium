@@ -223,7 +223,7 @@ class VectorStorage(ABC):
         return np.vstack([self.token_to_vector(token) for token in vocab])
 
     def __repr__(self):
-        return f"{type(self).__name__}[size: {len(self)}]"
+        return f"{type(self).__name__}({{size: {len(self)}}})"
 
 
 class BasicVectorStorage(VectorStorage):

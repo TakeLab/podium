@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 
 from podium.datasets import (
-    ArrowDataset,
     Dataset,
     DatasetBase,
     DatasetConcatView,
@@ -10,6 +9,7 @@ from podium.datasets import (
     DatasetSlicedView,
     ExampleFactory,
 )
+from podium.datasets.arrow import DiskBackedDataset
 from podium.field import Field
 from podium.vocab import Vocab
 
@@ -118,7 +118,7 @@ def test_concat_view_override_fields_eager(dataset, fields):
         [dataset, other_dataset], field_overrides={"name": new_field}
     )
 
-    assert dataset_concat.field_dict["override_name_field"].finalized
+    assert dataset_concat.field_dict["override_name_field"].is_finalized
 
     concat_vocab = dataset_concat.field_dict["override_name_field"].vocab
     dataset_vocab = dataset.field_dict["name"].vocab
@@ -141,7 +141,7 @@ def test_concat_view_override_fields_non_eager(dataset, fields):
         [dataset, other_dataset], field_overrides={"name": new_field}
     )
 
-    assert not dataset_concat.field_dict["override_name_field"].finalized
+    assert not dataset_concat.field_dict["override_name_field"].is_finalized
 
     dataset_concat.finalize_fields()
     concat_vocab = dataset_concat.field_dict["override_name_field"].vocab
@@ -261,9 +261,9 @@ def test_slice_view_to_dataset(dataset, tmp_path):
         for f in dataset.fields:
             assert ex_view[f.name] == ex_dataset[f.name]
 
-    # cast to ArrowDataset
-    ds = ArrowDataset.from_dataset(dataset_view, cache_path=tmp_path)
-    assert isinstance(ds, ArrowDataset)
+    # cast to DiskBackedDataset
+    ds = DiskBackedDataset.from_dataset(dataset_view, cache_path=tmp_path)
+    assert isinstance(ds, DiskBackedDataset)
     assert len(ds) == len(dataset_view)
     for ex_view, ex_dataset in zip(dataset_view, ds):
         for f in dataset.fields:

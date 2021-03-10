@@ -78,6 +78,7 @@ class Field:
         keep_raw: bool = False,
         numericalizer: Optional[Union[Vocab, NumericalizerType]] = None,
         is_target: bool = False,
+        include_lengths: bool = False,
         fixed_length: Optional[int] = None,
         allow_missing_data: bool = False,
         disable_batch_matrix: bool = False,
@@ -106,8 +107,8 @@ class Field:
             - 'spacy-lang' - the spacy tokenizer. The language model can be defined
               by replacing `lang` with the language model name (e.g. `spacy-en`).
 
-            If None, the data will not be tokenized and post-tokenization hooks wont be
-            called. The provided data will be stored in the `tokenized` data field as-is.
+            If None, the data will not be tokenized. The provided data will be
+            stored in the `tokenized` data field as-is.
 
         keep_raw : bool
             Whether to store untokenized preprocessed data.
@@ -127,6 +128,11 @@ class Field:
          is_target : bool
             Whether this field is a target variable. Affects iteration over
             batches.
+
+         include_lengths : bool
+            Whether the batch representation of this field should include the length
+            of every instance in the batch. If true, the batch element under the name
+            of this Field will be a tuple of (numericalized values, lengths).
 
         fixed_length : int, optional
             To which length should the field be fixed. If it is not None every
@@ -214,6 +220,9 @@ class Field:
 
         self._is_target = is_target
 
+        # TODO: @mttk perform a sanity check here (if fixed length is set etc etc)
+        self._include_lengths = include_lengths
+
         if fixed_length is not None and not isinstance(fixed_length, int):
             raise ValueError(
                 f"`fixed_length` of Field `{name}` is of type"
@@ -297,6 +306,10 @@ class Field:
     @property
     def is_target(self):
         return self._is_target
+
+    @property
+    def include_lengths(self):
+        return self._include_lengths
 
     def add_pretokenize_hook(self, hook: PretokenizationHookType):
         """
@@ -467,7 +480,7 @@ class Field:
         self._vocab += data
 
     @property
-    def finalized(self) -> bool:
+    def is_finalized(self) -> bool:
         """
         Returns whether the field's Vocab vas finalized. If the field has no
         vocab, returns True.
@@ -478,7 +491,7 @@ class Field:
             Whether the field's Vocab vas finalized. If the field has no
             vocab, returns True.
         """
-        return True if self.vocab is None else self.vocab.finalized
+        return True if self.vocab is None else self.vocab.is_finalized
 
     def finalize(self):
         """
@@ -522,7 +535,7 @@ class Field:
         raw = raw if self._keep_raw else None
 
         # Self.eager checks if a vocab is used so this won't error
-        if self.eager and not self.vocab.finalized:
+        if self.eager and not self.vocab.is_finalized:
             self.update_vocab(tokenized)
         return self.name, (raw, tokenized)
 
@@ -654,7 +667,7 @@ class Field:
                 pad_symbol = custom_pad_symbol
 
             elif self.use_vocab:
-                pad_symbol = self.vocab.padding_index()
+                pad_symbol = self.vocab.get_padding_index()
 
             else:
                 pad_symbol = self._padding_token
@@ -741,14 +754,14 @@ class Field:
             self._tokenizer = get_tokenizer(self._tokenizer_arg_string)
 
     def __repr__(self):
-        if self.use_vocab:
-            return "{}[name: {}, is_target: {}, vocab: {}]".format(
-                self.__class__.__name__, self.name, self.is_target, self.vocab
-            )
-        else:
-            return "{}[name: {}, is_target: {}]".format(
-                self.__class__.__name__, self.name, self.is_target
-            )
+        vocab_str = f",\n    vocab: {self.vocab}\n" if self.use_vocab else ""
+        return (
+            f"{type(self).__name__}({{"
+            f"\n    name: {self.name},"
+            f"\n    keep_raw: {self._keep_raw},"
+            f"\n    is_target: {self.is_target}"
+            f"{vocab_str}}})"
+        )
 
     def get_output_fields(self) -> Iterable["Field"]:
         """
@@ -991,7 +1004,7 @@ class LabelField(Field):
             # Default to a vocabulary if custom numericalize is not set
             numericalizer = Vocab(specials=())
 
-        if isinstance(numericalizer, Vocab) and numericalizer.has_specials:
+        if isinstance(numericalizer, Vocab) and numericalizer.specials:
             raise ValueError(
                 "Vocab contains special symbols."
                 " Vocabs with special symbols cannot be used"
@@ -1004,6 +1017,7 @@ class LabelField(Field):
             keep_raw=False,
             numericalizer=numericalizer,
             is_target=is_target,
+            include_lengths=False,
             fixed_length=1,
             allow_missing_data=allow_missing_data,
             disable_batch_matrix=disable_batch_matrix,
@@ -1027,6 +1041,7 @@ class MultilabelField(Field):
         numericalizer: Optional[Union[Vocab, NumericalizerType]] = None,
         num_of_classes: Optional[int] = None,
         is_target: bool = True,
+        include_lengths: bool = False,
         allow_missing_data: bool = False,
         disable_batch_matrix: bool = False,
         disable_numericalize_caching: bool = False,
@@ -1075,6 +1090,11 @@ class MultilabelField(Field):
             Whether this field is a target variable. Affects iteration over
             batches.
 
+         include_lengths : bool
+            Whether the batch representation of this field should include the length
+            of every instance in the batch. If true, the batch element under the name
+            of this Field will be a tuple of (numericalized values, lengths).
+
          allow_missing_data : bool
             Whether the field allows missing data. In the case 'allow_missing_data'
             is False and None is sent to be preprocessed, an ValueError will be raised.
@@ -1121,7 +1141,7 @@ class MultilabelField(Field):
         if numericalizer is None:
             numericalizer = Vocab(specials=())
 
-        if isinstance(numericalizer, Vocab) and numericalizer.has_specials:
+        if isinstance(numericalizer, Vocab) and numericalizer.specials:
             raise ValueError(
                 "Vocab contains special symbols."
                 " Vocabs with special symbols cannot be used"
@@ -1135,6 +1155,7 @@ class MultilabelField(Field):
             keep_raw=False,
             numericalizer=numericalizer,
             is_target=is_target,
+            include_lengths=include_lengths,
             fixed_length=num_of_classes,
             allow_missing_data=allow_missing_data,
             disable_batch_matrix=disable_batch_matrix,

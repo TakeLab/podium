@@ -57,7 +57,7 @@ def test_padding(fixed_length, expected_shape, json_file_path):
 
     assert input_batch.text.shape == expected_shape
 
-    pad_symbol = fields["text"].vocab.padding_index()
+    pad_symbol = fields["text"].vocab.get_padding_index()
 
     for i, row in enumerate(input_batch.text):
         if TABULAR_TEXT[i] is None:
@@ -77,7 +77,7 @@ def test_iterate_new_epoch(tabular_dataset):
     it = iter(iterator)
     assert iterator._iterations == 0
 
-    for i in range(4):
+    for i in range(1, 5):
         next(it)
         assert iterator._epoch == 0
         assert iterator._iterations == i
@@ -168,16 +168,16 @@ def test_lazy_numericalization_caching(tabular_dataset):
 
 
 @pytest.mark.usefixtures("cache_disabled_tabular_dataset")
-def test_caching_disabled(tabular_dataset):
+def test_caching_disabled(cache_disabled_tabular_dataset):
     # Run one epoch to cause lazy numericalization
-    for _ in Iterator(dataset=tabular_dataset, batch_size=10):
+    for _ in Iterator(dataset=cache_disabled_tabular_dataset, batch_size=10):
         pass
 
     cache_disabled_fields = [
-        f for f in tabular_dataset.fields if f.disable_numericalize_caching
+        f for f in cache_disabled_tabular_dataset.fields if f.disable_numericalize_caching
     ]
     # Test if cached data is equal to numericalized data
-    for example in tabular_dataset:
+    for example in cache_disabled_tabular_dataset:
         for field in cache_disabled_fields:
 
             cache_field_name = f"{field.name}_"
@@ -185,23 +185,48 @@ def test_caching_disabled(tabular_dataset):
             assert numericalization is None
 
 
-@pytest.mark.usefixtures("tabular_dataset")
-def test_sort_key(tabular_dataset):
+@pytest.mark.usefixtures("length_included_tabular_dataset")
+def test_include_lengths(length_included_tabular_dataset):
+
+    iterator = Iterator(
+        dataset=length_included_tabular_dataset, batch_size=2, shuffle=False
+    )
+
+    # Since we're not shuffling, this shouldn't change
+    expected_batch_lengths = [[3, 1], [4, 1], [2, 3], [6]]
+
+    for (x_batch, _), expected_batch_length in zip(iterator, expected_batch_lengths):
+        text, lengths = x_batch.text
+        # Should contain same number of instances
+        assert lengths.shape[0] == text.shape[0]
+        # Number of columns should be equal to max length
+        assert max(lengths) == text.shape[-1]
+        # Check that expected lengths match
+        assert np.array_equal(lengths, expected_batch_length)
+
+
+@pytest.mark.usefixtures("length_included_tabular_dataset")
+def test_sort_key(length_included_tabular_dataset):
     def text_len_sort_key(example):
         tokens = example["text"][1]
         if tokens is None:
             return 0
         else:
-            return len(tokens)
+            return -len(tokens)
 
     iterator = Iterator(
-        dataset=tabular_dataset, batch_size=2, sort_key=text_len_sort_key, shuffle=False
+        dataset=length_included_tabular_dataset,
+        batch_size=2,
+        sort_key=text_len_sort_key,
+        shuffle=False,
     )
 
-    expected_row_lengths = [1, 3, 4, 6]
+    # Since we're not shuffling, this shouldn't change
+    expected_batch_lengths = [[3, 1], [4, 1], [3, 2], [6]]
 
-    for (x_batch, _), expected_row_length in zip(iterator, expected_row_lengths):
-        assert x_batch.text.shape[1] == expected_row_length
+    for (x_batch, _), expected_batch_length in zip(iterator, expected_batch_lengths):
+        text, lengths = x_batch.text
+        assert np.array_equal(lengths, expected_batch_length)
 
 
 @pytest.mark.parametrize(
@@ -456,7 +481,7 @@ def test_iterator_batch_as_list():
             assert np.all(batch[0] == [3, 4])
 
 
-def iterators_behave_identically(iterator_1, iterator_2):
+def iterators_behave_identically(iterator_1, iterator_2, reset=True):
     all_equal = True
 
     for (x_batch_1, y_batch_1), (x_batch_2, y_batch_2) in zip(iterator_1, iterator_2):
@@ -472,6 +497,10 @@ def iterators_behave_identically(iterator_1, iterator_2):
             all_equal = False
             break
 
+    if reset:
+        # Reset internal iterator counters
+        iterator_1.reset()
+        iterator_2.reset()
     return all_equal
 
 

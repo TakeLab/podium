@@ -15,9 +15,9 @@ The data is processed immediately when the instance is loaded from disk and then
 .. doctest:: sst_field
 
   >>> from podium.datasets import SST
-  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits()
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits()
   >>> print(sst_train[222]) 
-  Example[text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']); label: (None, 'positive')]
+  Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
 
 We can unpack the Example class with the bracket notation, as you would a dictionary.
 
@@ -39,12 +39,13 @@ What are the ``None`` s? This is the `raw` data, which by default isn't stored i
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
   >>>
-  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222]['text'])
   ('A slick , engrossing melodrama .', ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])
 
 We can see that now we also have the pre-tokenized text available to us. In the case of SST this is not very useful because the tokenizer is simply ``str.split``, an easyily reversible function. In the case of non-reversible tokenizers (e.g. the ones in ``spacy``), you might want to keep the raw instance for future reference.
 
+.. _fields:
 
 How to interact with Fields
 ===========================
@@ -101,7 +102,7 @@ We will first implement a pretokenization hook which will lowercase our raw data
   ...   """Lowercases the input string"""
   ...   return raw.lower()
 
-And we're done! We can now add our hook to the text field either through the :meth:`podium.storage.Field.add_pretokenize_hook` method of the Field or through the ``pretokenize_hooks`` constructor argument. We will first define a posttokenization hook which removes punctuation and then apply them both to our text Field.
+And we're done! We can now add our hook to the text field either through the :meth:`podium.Field.add_pretokenize_hook` method of the Field or through the ``pretokenize_hooks`` constructor argument. We will first define a posttokenization hook which removes punctuation and then apply them both to our text Field.
 
 Removing punctuation as a posttokenization hook
 -----------------------------------------------
@@ -131,7 +132,7 @@ Putting it all together
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
   >>>
-  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222]['text'])
   ('a slick , engrossing melodrama .', ['a', 'slick', 'engrossing', 'melodrama'])
 
@@ -145,10 +146,10 @@ Special tokens
 ===============
 We have earlier mentioned special tokens, but now is the time to elaborate on what exactly they are. In Podium, each special token is a subclass of the python ``str`` which also encapsulates the functionality for adding that special token in the tokenized sequence. The ``Vocab`` handles special tokens differently -- each special token is guaranteed a place in the ``Vocab``, which is what makes them... *special*.
 
-Since our idea of special tokens was made to be extensible, we will take a brief look at how they are implemented, so we can better understand how to use them. We mentioned that each special token is a subclass of the python string, but there is an intermediary -- the :class:`podium.storage.vocab.Special` base class. The ``Special`` base class implements the following functionality, while still being an instance of a string:
+Since our idea of special tokens was made to be extensible, we will take a brief look at how they are implemented, so we can better understand how to use them. We mentioned that each special token is a subclass of the python string, but there is an intermediary -- the :class:`podium.vocab.Special` base class. The ``Special`` base class implements the following functionality, while still being an instance of a string:
 
   1. Extending the constructor of the special token with a default value functionality. The default value for each special token should be set via the ``default_value`` class attribute, while if another value is passed upon creation, it will be used.
-  2. Adds a stub ``apply`` method which accepts a sequence of tokens and adds the special token to that sequence. In its essence, the apply method is a post-tokenization hook (applied to the tokenized sequence after other post-tokenization hooks) which doesn't see the raw data whose job is to add the special token to the sequence of replace some of the existing tokens with the special token. The special tokens are applied after all post-tokenization hooks in the order they are passed to the :class:`podium.storage.vocab.Vocab` constructor. Each concrete implementation of a Special token has to implement this method.
+  2. Adds a stub ``apply`` method which accepts a sequence of tokens and adds the special token to that sequence. In its essence, the apply method is a post-tokenization hook (applied to the tokenized sequence after other post-tokenization hooks) which doesn't see the raw data whose job is to add the special token to the sequence of replace some of the existing tokens with the special token. The special tokens are applied after all post-tokenization hooks in the order they are passed to the :class:`podium.Vocab` constructor. Each concrete implementation of a Special token has to implement this method.
   3. Implements singleton-like hash and equality checks. The ``Special`` class overrides the default hash and equals and instead of checking for string value equality, it checks for *class name equality*. We use this type of check to ensure that each ``Vocab`` has a single instance of each Special and for simpler referencing and contains checks.
 
 There is a number of special tokens used throughout NLP for a number of purposes. The most frequently used ones are the unknown token (UNK), which is used as a catch-all substitute for tokens which are not present in the vocabulary, and the padding token (PAD), which is used to nicely pack variable length sequences into fixed size batch tensors.
@@ -160,7 +161,7 @@ To better understand how specials work, we will walk through the implementation 
 
   >>> from podium.vocab import Special
   >>> class BOS(Special):
-  ...   default_value = "<BOS>"
+  ...   token = "<BOS>"
   ...
   ...   def apply(self, sequence):
   ...      # Prepend to the sequence
@@ -193,13 +194,13 @@ To see the effect of the ``apply`` method, we will once again take a look at the
   >>> text = Field(name='text', numericalizer=vocab)
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
-  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222]['text'])
   (None, ['<BOS>', 'A', 'slick', ',', 'engrossing', 'melodrama', '.'])
 
 Where we can see that the special token was indeed added to the beginning of the tokenized sequence.
 
-Finally, it is important to note that there is an implicit distinction between special tokens. The unknown (:class:`podium.storage.vocab.UNK`) and padding (:class:`podium.storage.vocab.PAD`) special tokens are something we refer to as **core** special tokens, whose functionality is hardcoded in the implementation of the ``Vocab`` due to them being deeply integrated with the way iterators and numericalization work.
+Finally, it is important to note that there is an implicit distinction between special tokens. The unknown (:class:`podium.vocab.UNK`) and padding (:class:`podium.vocab.PAD`) special tokens are something we refer to as **core** special tokens, whose functionality is hardcoded in the implementation of the ``Vocab`` due to them being deeply integrated with the way iterators and numericalization work.
 The only difference between normal and core specials is that core specials are added to the sequence by other Podium classes (their behavior is hardcoded) instead of by their apply method.
 
 Custom numericalization functions
@@ -223,7 +224,7 @@ To do that, you should pass your own callable function as the ``numericalizer`` 
   >>> label = LabelField('label')
   >>> fields = {'text': subword_field, 'label': label}
   >>>
-  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222]['text'])
   (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.'])
 
@@ -242,12 +243,12 @@ We have so far covered the case where you have a single input column, tokenize a
   >>> label = LabelField(name='label')
   >>> fields = {'text': (char, text), 'label': label}
   >>>
-  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222]['word'], sst_train[222]['char'], sep='\n')
   (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])
   (None, ['A', ' ', 's', 'l', 'i', 'c', 'k', ' ', ',', ' ', 'e', 'n', 'g', 'r', 'o', 's', 's', 'i', 'n', 'g', ' ', 'm', 'e', 'l', 'o', 'd', 'r', 'a', 'm', 'a', ' ', '.'])
 
-You can pass a tuple of Fields under the same input data column key, and all of the Fields will use data from input column with that name. If your output Fields share the (potentially expensive) tokenizer, we have implemented a class that optimized that part of preprocessing for you: the :class:`podium.storage.MultioutputField`.
+You can pass a tuple of Fields under the same input data column key, and all of the Fields will use data from input column with that name. If your output Fields share the (potentially expensive) tokenizer, we have implemented a class that optimized that part of preprocessing for you: the :class:`podium.MultioutputField`.
 
 The Multioutput Field
 ---------------------
@@ -279,7 +280,7 @@ One example of such a use-case would be extracting both word tokens as well as t
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
   >>>
-  >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
   >>> print(sst_train[222]['word'], sst_train[222]['pos'], sep='\n')
   (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])
   (None, ['DET', 'ADJ', 'PUNCT', 'VERB', 'NOUN', 'PUNCT'])
@@ -292,6 +293,97 @@ MultioutputFields accept three parameters upon construction, which encapsulate t
   - :obj:`pretokenization_hooks` ``(Tuple(Callable))``: a sequence of pretokenization hooks to apply to the raw data.
 
 After tokenization, the processed data will be sent to all of the output Fields. Note that only the post-tokenization part of the output fields will be used.
+
+Dataset manipulation
+====================================
+
+Dataset splitting
+---------------------
+
+It is often the case we want to somehow manipulate the size of our dataset. One common use-case is that our dataset comes in a single split -- and we wish to segment it into a train, test and perhaps validation split. For this, we have defined a :meth:`Dataset.split` function which allows you to split your dataset into arbitrary ratios:
+
+.. doctest:: dataset_splitting
+
+  >>> sst, _, _ = SST.get_dataset_splits()
+  >>> total_size = len(sst)
+  >>> # Pretend we don't have a test and dev split :)
+  >>> sst_train, sst_dev, sst_test = sst.split([5,3,2], random_state=1)
+  >>> print(len(sst_train)/total_size, len(sst_dev)/total_size, len(sst_test)/total_size)
+  0.5 0.3 0.2
+
+As you can notice from the example -- you can define the split sizes as integer ratios and they will be normalized automatically. This type of splitting is done randomly, and there is always the possibility that your splits will have unevenly distributed target labels. We can easily check how evenly are the splits distributed:
+
+.. doctest:: dataset_splitting
+
+  >>> from collections import Counter
+  >>> def value_distribution(dataset, field='label'):
+  ...    c = Counter([ex[field][1] for ex in dataset])
+  ...    Z = sum(c.values())
+  ...    return {k: v/Z for k, v in c.items()}
+  >>> 
+  >>> print(value_distribution(sst_train),
+  ...       value_distribution(sst_dev),
+  ...       value_distribution(sst_test),
+  ...       sep="\n")
+  {'negative': 0.47803468208092487, 'positive': 0.5219653179190752}
+  {'negative': 0.48458574181117536, 'positive': 0.5154142581888247}
+  {'negative': 0.46965317919075145, 'positive': 0.5303468208092486}
+
+If an even label distribution between your splits is something you desire, you can use the _stratified_ split option by providing the name of the field you wish to stratify over:
+
+.. doctest:: dataset_splitting
+
+  >>> sst_train, sst_dev, sst_test = sst.split([5,3,2], stratified=True,
+  ...                                          strata_field_name='label', random_state=1)
+  >>> print(len(sst_train)/total_size, len(sst_dev)/total_size, len(sst_test)/total_size)
+  0.5 0.3 0.2
+
+As we can see, the sizes of our splits are the same, but in this case the label distribution is more balanced, which we can validate in a similar fashion:
+
+.. doctest:: dataset_splitting
+
+  >>> print(value_distribution(sst_train),
+  ...       value_distribution(sst_dev),
+  ...       value_distribution(sst_test),
+  ...       sep="\n")
+  {'negative': 0.47832369942196534, 'positive': 0.5216763005780347}
+  {'negative': 0.47832369942196534, 'positive': 0.5216763005780347}
+  {'negative': 0.47832369942196534, 'positive': 0.5216763005780347}
+
+Dataset concatenation
+---------------------
+
+Another instance where you would want to manipulate datasets is where you have multiple datasets of the same task type and want to train a single model on the concatenation of those datasets.
+For this case, we have implemented a helper function which concatenates a given list of datasets and creates a new dataset containing all the instances in the concatenated datasets.
+
+There is a certain degree of intervention you need to do here -- the concatenated datasets can have different vocabularies, so you either need to be certain that the vocabularies are equal or provide a new Field which will be constructed on the (processed) values of all datasets.
+
+For a simple example, we will take a look at the built-in SST and IMDB datasets:
+
+.. code-block:: python
+
+  >>> from podium.datasets import IMDB, SST, concat
+  >>> from podium import Field, LabelField, Vocab
+  >>> # Load the datasets
+  >>> imdb_train, imdb_test = IMDB.get_dataset_splits()
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits()
+  >>>
+  >>> # Luckily, both label vocabularies are already equal
+  >>> print(imdb_train.field('label').vocab.itos)
+  ['positive', 'negative']
+  >>> print(sst_train.fields('label').vocab.itos)
+  ['positive', 'negative']
+  >>> # Define a text Field for the concatenated dataset 
+  >>> concat_text_field = Field("text", numericalizer=Vocab())
+  >>> sentiment_dataset = concat([imdb_train, sst_train], 
+  ...                            field_overrides={"text":concat_text_field})
+  >>> print(f"{len(sentiment_dataset)} = {len(imdb_train)} + {len(sst_train)}")
+  31920 = 25000 + 6920
+
+
+There are a few important takeaways here: (1) the concatenated dataset will **only** contain the intersection of Fields from the sub-datasets. The intersection is determined by the **name** of each Field. If one dataset has Fields named ``text`` and ``label``, while the other has Fields named ``text``, ``label`` and ``meta``, the concatenated dataset will only contain the ``text`` and ``label`` Fields. (2) the Vocabularies for the Fields with the same name **have to be equal**. This is, of course, to avoid the issue where the same word maps to different indices between vocabularies. This is achieveable either by using a shared vocabulary in same Fields of the datasets from the beginning or by defining a ``field_override`` map, which directs data from the sub-datasets through the new Field.
+In the latter case, you can use each sub-dataset on their own with independent vocabularies, while the concatenation will have its own, merged vocabulary.
+
 
 Bucketing instances when iterating
 ==================================
@@ -309,7 +401,7 @@ For this reason, usage of :class:`podium.datasets.BucketIterator` is recommended
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
   >>>
-  >>> train, test, valid = SST.get_dataset_splits(fields=fields)
+  >>> train, valid, test = SST.get_dataset_splits(fields=fields)
   >>>
   >>> # Define the iterators and our sort key
   >>> from podium import Iterator, BucketIterator
@@ -342,7 +434,7 @@ The ``bucket_sort_key`` function defines how the instances in the dataset should
   For Iterator, padding = 148141 out of 281696 = 52.588961149608096%
   For BucketIterator, padding = 2125 out of 135680 = 1.5661851415094339%
 
-As we can see, the difference between using a regular Iterator and a BucketIterator is massive. Not only do we reduce the amount of padding, we have reduced the total amount of tokens processed by about 50%. The SST dataset, however, is a relatively small dataset so this experiment might be a bit biased. Let's take a look at the same statistics for the :class:`podium.datasets.impl.IMDB` dataset. After changing the highligted data loading line in the first snippet to:
+As we can see, the difference between using a regular Iterator and a BucketIterator is massive. Not only do we reduce the amount of padding, we have reduced the total amount of tokens processed by about 50%. The SST dataset, however, is a relatively small dataset so this experiment might be a bit biased. Let's take a look at the same statistics for the :class:`podium.datasets.IMDB` dataset. After changing the highligted data loading line in the first snippet to:
 
 .. code-block:: python
 
@@ -356,6 +448,113 @@ And re-running the code, we obtain the following, still significant improvement:
   For BucketIterator, padding = 259800 out of 6104480 = 4.255890755641758%
 
 Generally, using bucketing when iterating over your NLP dataset is preferred and will save you quite a bit of processing time.
+
+
+Saving and loading Podium components
+=====================================
+
+.. testsetup:: saveload
+
+  import os
+  os.mkdir('cache')
+
+Preprocessing your dataset is often time-consuming and once you've done it, you wouldn't want to repeat the process. In Podium, we cache your processed and numericalized dataset so neither of these computations has to be done more than once. To ensure you don't have to repeat the potentially expensive preprocessing, all of our base components are picklable.
+
+As an example, we will again turn to the SST dataset and some of our previously used hooks:
+
+.. doctest:: saveload
+  :options: +NORMALIZE_WHITESPACE
+
+  >>> from podium import Vocab, Field, LabelField
+  >>> from podium.datasets import SST
+  >>>
+  >>> vocab = Vocab(max_size=5000, min_freq=2)
+  >>> text = Field(name='text', numericalizer=vocab)
+  >>> label = LabelField(name='label')
+  >>> 
+  >>> fields = {'text': text, 'label': label}
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+  >>>
+  >>> print(sst_train)
+  SST({
+      size: 6920,
+      fields: [
+          Field({
+              name: text,
+              keep_raw: False,
+              is_target: False,
+              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, is_finalized: True, size: 5000})
+          }),
+          LabelField({
+              name: label,
+              keep_raw: False,
+              is_target: True,
+              vocab: Vocab({specials: (), eager: True, is_finalized: True, size: 3})
+          })
+      ]
+    })
+  >>> print(sst_train[222])
+  Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
+
+Each ``Dataset`` instance in the SST dataset splits contains ``Field``s and a ``Vocab``. When we pickle a dataset, we also store those objects. We will now demonstrate how to store (and load) a pickled dataset in a folder which we opened previously, named ``cache``.
+
+.. doctest:: saveload
+  :options: +NORMALIZE_WHITESPACE
+
+  >>> import os, pickle
+  >>> dataset_store_path = os.path.join('cache', 'sst_preprocessed.pkl')
+  >>>
+  >>> # Save the dataset
+  >>> with open(dataset_store_path, 'wb') as outfile:
+  ...    pickle.dump((sst_train, sst_dev, sst_test), outfile)
+  >>>
+  >>> # Restore the dataset
+  >>> with open(dataset_store_path, 'rb') as infile:
+  ...   sst_train, sst_dev, sst_test = pickle.load(infile)
+  >>> print(sst_train[222])
+  Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
+
+Each of the components -- ``Field``, ``Vocab`` and ``Example`` can also be pickled separately. Apart from being able to save and load a ``Dataset`` and its components, you can also store an ``Iterator`` mid-iteration and it **will continue on the batch on which you left off**.
+In case you don't want this behavior and would rather your unpickled iterator starts from the beginning, you can call ``Iterator.reset()`` which will reset iterator to the start of the dataset.
+
+.. doctest:: saveload
+  :options: +NORMALIZE_WHITESPACE
+
+  >>> from podium import Iterator
+  >>> # Disable shuffling for consistency
+  >>> train_iter = Iterator(sst_train, batch_size=1, shuffle=False)
+  >>>
+  >>> batch_input, batch_target = next(iter(train_iter))
+  >>> print(batch_input.text)
+  [[  14 1057   10 2580    8   28    4 3334 3335    9  154   68    0   67
+         5   11   81    9  274    8   83    6 4683   74 2901   38 1410 2581
+         3    0 2102    0   49  870    0    2]]
+  >>> iterator_store_path = os.path.join('cache', 'sst_train_iter.pkl')
+  >>> with open(iterator_store_path, 'wb') as outfile:
+  ...   pickle.dump((train_iter), outfile)
+  >>>
+  >>> with open(iterator_store_path, 'rb') as infile:
+  ...   train_iter_restore = pickle.load(infile)
+
+Now that we have loaded our Iterator, we can validate whether the loaded version will continue where the initial one left off:
+
+.. doctest:: saveload
+
+  >>> restored_batch_input, restored_batch_target = next(iter(train_iter_restore))
+  >>> batch_input, batch_target = next(iter(train_iter))
+  >>>
+  >>> import numpy as np
+  >>> print(np.array_equal(batch_input.text, restored_batch_input.text))
+  True
+  >>> print(np.array_equal(batch_target.label, restored_batch_target.label))
+  True
+
+Of course, in case you want to start over, just call ``Iterator.reset()`` and the iteration will start from the beginning.
+
+.. testcleanup:: saveload
+
+  import shutil
+  shutil.rmtree('cache')
 
 .. testcleanup::
 

@@ -4,8 +4,9 @@ Module contains classes for iterating over datasets.
 import math
 import warnings
 from abc import ABC, abstractmethod
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 from random import Random
+from typing import Callable
 from typing import Iterator as PythonIterator
 from typing import List, NamedTuple, Tuple
 
@@ -13,6 +14,16 @@ import numpy as np
 
 from podium.datasets.dataset import Dataset, DatasetBase
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
+
+
+class Batch(dict):
+    def __iter__(self):
+        yield from self.values()
+
+    def __getattr__(self, name):
+        if name in self:
+            return self[name]
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
 
 class IteratorBase(ABC):
@@ -94,6 +105,7 @@ class Iterator(IteratorBase):
         sort_key=None,
         shuffle=True,
         seed=1,
+        matrix_class=np.array,
         internal_random_state=None,
     ):
         """
@@ -109,8 +121,8 @@ class Iterator(IteratorBase):
             batch_size the last returned batch will be smaller
             (dataset_len MOD batch_size).
         sort_key : callable
-            A callable object used to sort the dataset prior to batching. If
-            None, the dataset won't be sorted.
+            A callable object used to sort the instances in a batch.
+            If None, the batch instances won't be sorted.
             Default is None.
         shuffle : bool
             A flag denoting whether the examples should be shuffled before
@@ -118,7 +130,7 @@ class Iterator(IteratorBase):
             If sort_key is not None, this flag being True may not have any
             effect since the dataset will always be sorted after being
             shuffled (the only difference shuffling can make is in the
-            order of elements with the same value of sort_key)..
+            order of elements with the same value of sort_key).
             Default is False.
         seed : int
             The seed that the iterator's internal random state will be
@@ -127,9 +139,20 @@ class Iterator(IteratorBase):
             internal_random_state is None, then this must not be None,
             otherwise a ValueError is raised.
             Default is 1.
+        matrix_class: callable
+            The constructor for the return batch datatype. Defaults to
+            `np.array`. When working with deep learning frameworks such
+            as tensorflow and torch, setting the argument accordingly will
+            immediately provide batches in the appropriate framework. Not
+            delegated to keyword arguments so users can pass a function
+            which also immediately casts the batch data to the GPU.
         internal_random_state : tuple
             The random state that the iterator will be initialized with.
-            Useful when we want to stop iteration and later continue where
+            This argument can be obtained by calling `.getstate` on the
+            instance of the Random object, and is exposed through the
+            `Iterator.get_internal_random_state` method. For most cases,
+            setting the random seed will suffice, while this argument is
+            useful when we want to stop iteration and later continue where
             we left off.
             If None, the iterator will create its own random state from the
             given seed, that can later be obtained if we want to store it.
@@ -153,6 +176,7 @@ class Iterator(IteratorBase):
 
         self._epoch = 0
         self._iterations = 0
+        self._matrix_class = matrix_class
 
         # set of fieldnames for which numericalization format warnings were issued
         # used to avoid spamming warnings between iterations
@@ -192,6 +216,31 @@ class Iterator(IteratorBase):
         """
         return self._iterations
 
+    @property
+    def matrix_class(self):
+        """
+        The class constructor of the batch matrix.
+        """
+        return self._matrix_class
+
+    @property
+    def batch_size(self):
+        """
+        The batch size of the iterator.
+        """
+        return self._batch_size
+
+    @property
+    def sort_key(self):
+        return self._sort_key
+
+    def reset(self):
+        """
+        Reset the epoch and iteration counter of the Iterator.
+        """
+        self._epoch = 0
+        self._iterations = 0
+
     def set_dataset(self, dataset: DatasetBase) -> None:
         """
         Sets the dataset for this Iterator to iterate over. Resets the epoch
@@ -202,18 +251,16 @@ class Iterator(IteratorBase):
         dataset: DatasetBase
             Dataset to iterate over.
         """
-        self._epoch = 0
-        self._iterations = 0
-
-        self.input_batch_class = namedtuple(
-            "InputBatch", [field.name for field in dataset.fields if not field.is_target]
-        )
-
-        self.target_batch_class = namedtuple(
-            "TargetBatch", [field.name for field in dataset.fields if field.is_target]
-        )
+        self.reset()
 
         self._dataset = dataset
+
+    def __setstate__(self, state):
+        self.__dict__ = state
+        if self._shuffle:
+            # Restore the random state to the one prior to start
+            # of last epoch so we can rewind to the correct batch
+            self.set_internal_random_state(self._shuffler_state)
 
     def __len__(self) -> int:
         """
@@ -225,7 +272,7 @@ class Iterator(IteratorBase):
             Number of batches s provided in one epoch.
         """
 
-        return math.ceil(len(self._dataset) / self._batch_size)
+        return math.ceil(len(self._dataset) / self.batch_size)
 
     def __iter__(self) -> PythonIterator[Tuple[NamedTuple, NamedTuple]]:
         """
@@ -246,18 +293,25 @@ class Iterator(IteratorBase):
             Iterator that iterates over batches of examples in the dataset.
         """
         indices = list(range(len(self._dataset)))
+
         if self._shuffle:
+            # Cache state prior to shuffle so we can use it when unpickling
+            self._shuffler_state = self.get_internal_random_state()
             self._shuffler.shuffle(indices)
 
         data = self._dataset[indices]
 
-        if self._sort_key is not None:
-            data = data.sorted(key=self._sort_key)
+        # If iteration was stopped, continue where we left off
+        start = self.iterations * self.batch_size
 
-        for i in range(0, len(data), self._batch_size):
-            batch_dataset = data[i : i + self._batch_size]
-            yield self._create_batch(batch_dataset)
+        for i in range(start, len(data), self.batch_size):
+            batch_instances = data[i : i + self.batch_size]
+
+            if self._sort_key is not None:
+                batch_instances = batch_instances.sorted(key=self._sort_key)
+
             self._iterations += 1
+            yield self._create_batch(batch_instances)
 
         # prepare for new epoch
         self._iterations = 0
@@ -267,10 +321,9 @@ class Iterator(IteratorBase):
 
         examples = dataset.examples
 
-        # dicts that will be used to create the InputBatch and TargetBatch
-        # objects
-        input_batch_dict = {}
-        target_batch_dict = {}
+        # dicts that will be used to store the input and target batch
+        input_batch = Batch()
+        target_batch = Batch()
 
         for field in dataset.fields:
             numericalizations = []
@@ -302,19 +355,25 @@ class Iterator(IteratorBase):
                 and not field._disable_batch_matrix
                 and possible_cast_to_matrix
             ):
-                batch = Iterator._arrays_to_matrix(field, numericalizations)
+                batch = Iterator._arrays_to_matrix(
+                    field, numericalizations, self.matrix_class
+                )
 
             else:
                 batch = numericalizations
 
+            if field.include_lengths:
+                # Include the length of each instance in the Field
+                # along with the numericalization
+                batch_lengths = self.matrix_class(
+                    [len(instance) for instance in numericalizations]
+                )
+                batch = (batch, batch_lengths)
+
             if field.is_target:
-                target_batch_dict[field.name] = batch
+                target_batch[field.name] = batch
             else:
-                input_batch_dict[field.name] = batch
-
-        input_batch = self.input_batch_class(**input_batch_dict)
-        target_batch = self.target_batch_class(**target_batch_dict)
-
+                input_batch[field.name] = batch
         return input_batch, target_batch
 
     def get_internal_random_state(self):
@@ -373,10 +432,12 @@ class Iterator(IteratorBase):
         self._shuffler.setstate(state)
 
     @staticmethod
-    def _arrays_to_matrix(field, arrays: List[np.ndarray]) -> np.ndarray:
+    def _arrays_to_matrix(
+        field, arrays: List[np.ndarray], matrix_class: Callable
+    ) -> np.ndarray:
         pad_length = Iterator._get_pad_length(field, arrays)
         padded_arrays = [field._pad_to_length(a, pad_length) for a in arrays]
-        return np.array(padded_arrays)
+        return matrix_class(padded_arrays)
 
     @staticmethod
     def _get_pad_length(field, numericalizations) -> int:
@@ -396,11 +457,11 @@ class Iterator(IteratorBase):
         return max(map(numericalization_length, numericalizations))
 
     def __repr__(self) -> str:
-        return "{}[batch_size: {}, sort_key: {}, shuffle: {}]".format(
-            self.__class__.__name__,
-            self._batch_size,
-            self._sort_key,
-            self._shuffle,
+        return (
+            f"{type(self).__name__}({{"
+            f"batch_size: {self._batch_size}, "
+            f"sort_key: {self._sort_key}, "
+            f"shuffle: {self._shuffle}}})"
         )
 
 
@@ -454,7 +515,9 @@ class BucketIterator(Iterator):
         batch_size=32,
         sort_key=None,
         shuffle=True,
-        seed=42,
+        seed=1,
+        matrix_class=np.array,
+        internal_random_state=None,
         look_ahead_multiplier=100,
         bucket_sort_key=None,
     ):
@@ -494,25 +557,38 @@ class BucketIterator(Iterator):
             )
 
         super().__init__(
-            dataset, batch_size, sort_key=sort_key, shuffle=shuffle, seed=seed
+            dataset,
+            batch_size,
+            sort_key=sort_key,
+            shuffle=shuffle,
+            seed=seed,
+            matrix_class=matrix_class,
+            internal_random_state=internal_random_state,
         )
 
         self.bucket_sort_key = bucket_sort_key
         self.look_ahead_multiplier = look_ahead_multiplier
 
     def __iter__(self) -> PythonIterator[Tuple[NamedTuple, NamedTuple]]:
-        step = self._batch_size * self.look_ahead_multiplier
+        step = self.batch_size * self.look_ahead_multiplier
         dataset = self._dataset
+
+        # Determine the step where iteration was stopped for lookahead & within bucket
+        lookahead_start = (
+            self.iterations // self.look_ahead_multiplier * self.look_ahead_multiplier
+        )
+        batch_start = self.iterations % self.look_ahead_multiplier
+
         if self._sort_key is not None:
             dataset = dataset.sorted(key=self._sort_key)
-        for i in range(0, len(dataset), step):
+        for i in range(lookahead_start, len(dataset), step):
             bucket = dataset[i : i + step]
 
             if self.bucket_sort_key is not None:
                 bucket = bucket.sorted(key=self.bucket_sort_key)
 
-            for j in range(0, len(bucket), self._batch_size):
-                batch_dataset = bucket[j : j + self._batch_size]
+            for j in range(batch_start, len(bucket), self.batch_size):
+                batch_dataset = bucket[j : j + self.batch_size]
                 input_batch, target_batch = self._create_batch(batch_dataset)
 
                 yield input_batch, target_batch
@@ -524,15 +600,12 @@ class BucketIterator(Iterator):
 
     def __repr__(self) -> str:
         return (
-            "{}[batch_size: {}, sort_key: {}, "
-            "shuffle: {}, look_ahead_multiplier: {}, bucket_sort_key: {}]".format(
-                self.__class__.__name__,
-                self._batch_size,
-                self._sort_key,
-                self._shuffle,
-                self.look_ahead_multiplier,
-                self.bucket_sort_key,
-            )
+            f"{type(self).__name__}({{"
+            f"batch_size: {self._batch_size}, "
+            f"sort_key: {self._sort_key}, "
+            f"shuffle: {self._shuffle}, "
+            f"look_ahead_multiplier: {self.look_ahead_multiplier},"
+            f"bucket_sort_key: {self.bucket_sort_key}}})"
         )
 
 
@@ -556,6 +629,7 @@ class HierarchicalDatasetIterator(Iterator):
         sort_key=None,
         shuffle=False,
         seed=1,
+        matrix_class=np.array,
         internal_random_state=None,
         context_max_length=None,
         context_max_depth=None,
@@ -591,9 +665,20 @@ class HierarchicalDatasetIterator(Iterator):
             internal_random_state is None, then this must not be None,
             otherwise a ValueError is raised.
             Default is 1.
+        matrix_class: callable
+            The constructor for the return batch datatype. Defaults to
+            `np.array`. When working with deep learning frameworks such
+            as tensorflow and torch, setting the argument accordingly will
+            immediately provide batches in the appropriate framework. Not
+            delegated to keyword arguments so users can pass a function
+            which also immediately casts the batch data to the GPU.
         internal_random_state : tuple
             The random state that the iterator will be initialized with.
-            Useful when we want to stop iteration and later continue where
+            This argument can be obtained by calling `.getstate` on the
+            instance of the Random object, and is exposed through the
+            `Iterator.get_internal_random_state` method. For most cases,
+            setting the random seed will suffice, while this argument is
+            useful when we want to stop iteration and later continue where
             we left off.
             If None, the iterator will create its own random state from the
             given seed, that can later be obtained if we want to store it.
@@ -635,7 +720,7 @@ class HierarchicalDatasetIterator(Iterator):
             )
 
         self._context_max_depth = context_max_depth
-        self._context_max_size = context_max_length
+        self._context_max_length = context_max_length
 
         super().__init__(
             dataset,
@@ -679,9 +764,9 @@ class HierarchicalDatasetIterator(Iterator):
         )
         context = list(context_iterator)
 
-        if self._context_max_size is not None:
+        if self._context_max_length is not None:
             # if context max size is defined, truncate it
-            context = context[-self._context_max_size :]
+            context = context[-self._context_max_length :]
 
         # add the example to the end of its own context
         context.append(node.example)
@@ -699,9 +784,9 @@ class HierarchicalDatasetIterator(Iterator):
 
         Returns
         -------
-        (namedtuple, namedtuple)
-            a tuple of two namedtuples, input batch and target batch, containing the
-            input and target fields of the batch respectively.
+        (Batch, Batch)
+            a tuple of two Batch instances, the input batch and target batch, containing
+            the input and target fields of the batch respectively.
         """
 
         input_batch_dict, target_batch_dict = defaultdict(list), defaultdict(list)
@@ -714,16 +799,16 @@ class HierarchicalDatasetIterator(Iterator):
                 node_context_dataset
             )
 
-            for key in input_sub_batch._fields:
+            for key in input_sub_batch.keys():
                 value = getattr(input_sub_batch, key)
                 input_batch_dict[key].append(value)
 
-            for key in target_sub_batch._fields:
+            for key in target_sub_batch.keys():
                 value = getattr(target_sub_batch, key)
                 target_batch_dict[key].append(value)
 
-        input_batch = self.input_batch_class(**input_batch_dict)
-        target_batch = self.target_batch_class(**target_batch_dict)
+        input_batch = Batch(input_batch_dict)
+        target_batch = Batch(target_batch_dict)
 
         return input_batch, target_batch
 
@@ -744,16 +829,22 @@ class HierarchicalDatasetIterator(Iterator):
             # creates a new list of nodes
             dataset_nodes = [dataset_nodes[i] for i in indices]
 
-        if self._sort_key is not None:
-            dataset_nodes.sort(key=lambda node: self._sort_key(node.example))
-
         return dataset_nodes
 
     def __iter__(self) -> PythonIterator[Tuple[NamedTuple, NamedTuple]]:
         dataset_nodes = self._data()
 
-        for i in range(0, len(dataset_nodes), self._batch_size):
-            batch_nodes = dataset_nodes[i : i + self._batch_size]
+        # If iteration was stopped, continue where we left off
+        start = self.iterations * self.batch_size
+
+        for i in range(start, len(dataset_nodes), self.batch_size):
+            batch_nodes = dataset_nodes[i : i + self.batch_size]
+
+            if self._sort_key is not None:
+                batch_nodes = batch_nodes.sorted(
+                    key=lambda node: self._sort_key(node.example)
+                )
+
             yield self._nodes_to_batch(batch_nodes)
             self._iterations += 1
 
@@ -763,13 +854,10 @@ class HierarchicalDatasetIterator(Iterator):
 
     def __repr__(self) -> str:
         return (
-            "{}[batch_size: {}, sort_key: {}, "
-            "shuffle: {}, context_max_length: {}, context_max_depth: {}]".format(
-                self.__class__.__name__,
-                self._batch_size,
-                self._sort_key,
-                self._shuffle,
-                self._context_max_size,
-                self._context_max_depth,
-            )
+            f"{type(self).__name__}({{"
+            f"batch_size: {self._batch_size}, "
+            f"sort_key: {self._sort_key}, "
+            f"shuffle: {self._shuffle}, "
+            f"context_max_length: {self._context_max_length}, "
+            f"context_max_depth: {self._context_max_depth}}})"
         )

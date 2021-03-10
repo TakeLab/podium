@@ -22,27 +22,29 @@ DOCLINES = __doc__.split('\n')
 
 
 INSTALL_REQUIRES = [
+    # for numericalization in batching
+    "numpy<=1.19",
     # for improved dataset pickling
     "dill",
     # for tokenization and data encoded in tree structure
     "nltk>=3.0",
-    # for numericalization in batching
-    "numpy",
     # for improved csv parsing
-    "pandas",
+    "pandas<1.2.0",
     # for downloading datasets over HTTP
     "paramiko",
     "requests",
     # for models and model selection
     "scikit-learn",
     # for sparse storage
-    "scipy",
-    # for preprocessing (tokenization, hooks, etc.)
-    "spacy",
+    "scipy<1.6.0",
     # progress bar in download and model selection
     "tqdm",
     # for keyword extraction
     "yake @ https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz",
+    # for some datasets
+    'xlrd',
+    # for labels in EuroVoc and nodes in HierarhicalDataset
+    "dataclasses;python_version<'3.7'",
 ]
 
 
@@ -51,6 +53,9 @@ TESTS_REQUIRE = [
     "pytest-cov",
     "pytest-mock",
     "urllib3",
+    # for preprocessing (tokenization, hooks, etc.)
+    "spacy",
+    "spacy-lookups-data"
 ]
 
 
@@ -67,12 +72,12 @@ DATASETS_REQUIRE = [
     "conllu",
     # to support HF Datasets conversion
     "datasets",
-    # for labels in EuroVoc and nodes in HierarhicalDataset
-    "dataclasses;python_version<'3.7'",
     # to support saving/loading datasets from a disk
     "pyarrow>=1.0.0",
     # to read a .xlsx file when processing EuroVoc
     "xlrd",
+    # to tokenize the input in the IMDB dataset
+    "spacy",
 ]
 
 
@@ -92,9 +97,6 @@ DOCS_REQUIRE = [
     'sphinx-copybutton',
     'recommonmark',
     'datasets',
-    'keras==2.2.4',
-    'tensorflow==1.15',
-    'torch',
     'xlrd',
 ]
 

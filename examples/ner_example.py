@@ -8,16 +8,16 @@ from collections import namedtuple
 from functools import partial
 
 import numpy as np
+from sklearn.metrics import f1_score
 
+from podium import BucketIterator, Field, Vocab
 from podium.datasets.impl.croatian_ner_dataset import CroatianNERDataset
-from podium.datasets.iterator import BucketIterator
-from podium.metrics import multiclass_f1_metric
-from podium.models import FeatureTransformer
-from podium.models.impl.blcc_model import BLCCModel
-from podium.models.impl.simple_trainers import SimpleTrainer
-from podium.storage import SpecialVocabSymbols, TokenizedField, Vocab
+from podium.experimental.models import FeatureTransformer
+from podium.experimental.models.impl.blcc_model import BLCCModel
+from podium.experimental.models.impl.simple_trainers import SimpleTrainer
 from podium.storage.resources.large_resource import LargeResource
-from podium.storage.vectorizers.vectorizer import BasicVectorStorage
+from podium.vectorizers.vectorizer import BasicVectorStorage
+from podium.vocab import PAD
 
 
 Inputs = namedtuple("Inputs", ["tokens", "casing"])
@@ -160,7 +160,7 @@ def ner_croatian_blcc_example(fields, dataset, feature_transform):
     print("Actual:")
     print(prediction_filtered)
 
-    f1 = multiclass_f1_metric(y_test_filtered, prediction_filtered, average="weighted")
+    f1 = f1_score(y_test_filtered, prediction_filtered, average="weighted")
     info_msg = f"F1: {f1}"
     print(info_msg)
 
@@ -181,12 +181,13 @@ def ner_dataset_classification_fields():
     """
     Function creates fields to use with the Croatian NER dataset on NER task.
     """
-    tokens = TokenizedField(name="tokens", vocab=Vocab())
-    casing = TokenizedField(
-        name="casing", vocab=Vocab(specials=(SpecialVocabSymbols.PAD,))
-    )
-    labels = TokenizedField(
-        name="labels", is_target=True, vocab=Vocab(specials=(SpecialVocabSymbols.PAD,))
+    tokens = Field(name="tokens", numericalizer=Vocab(), tokenizer=None)
+    casing = Field(name="casing", numericalizer=Vocab(specials=(PAD(),)), tokenizer=None)
+    labels = Field(
+        name="labels",
+        is_target=True,
+        numericalizer=Vocab(specials=(PAD(),)),
+        tokenizer=None,
     )
 
     casing.add_posttokenize_hook(casing_mapper_hook)

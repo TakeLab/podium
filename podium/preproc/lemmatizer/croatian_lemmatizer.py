@@ -7,7 +7,7 @@ any word inflexion for the Croatian language.
 import functools
 import os
 
-from podium.preproc.util import (
+from podium.preproc.utils import (
     capitalize_target_like_source,
     uppercase_target_like_source,
 )
