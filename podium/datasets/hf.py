@@ -149,7 +149,7 @@ class HFDatasetConverter(DatasetBase):
         hf_dataset : datasets.Dataset
             HuggingFace Dataset.
 
-        fields : dict(str, podium.storage.Field)
+        fields : dict(str, podium.Field)
             Dictionary that maps a column name of the dataset to a podium.Field.
             If passed None the default feature conversion rules will be used
             to build a dictonary from the dataset features.
@@ -168,10 +168,6 @@ class HFDatasetConverter(DatasetBase):
         super().__init__(fields or convert_features_to_fields(hf_dataset.features))
         self._dataset = hf_dataset
         self._example_factory = ExampleFactory(self.field_dict)
-
-    @property
-    def fields(self):
-        return list(self._fields)
 
     @property
     def dataset(self):
@@ -223,7 +219,7 @@ class HFDatasetConverter(DatasetBase):
 
         Returns
         -------
-        podium.storage.Dataset
+        podium.Dataset
             podium.Dataset instance.
         """
         return Dataset(list(self), self.fields)
