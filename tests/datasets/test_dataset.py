@@ -818,13 +818,14 @@ def test_from_pandas_field_dict(data):
 
     df = pd.DataFrame(data, columns=["text", "number"])
     fields = {
-        "text": Field("text", keep_raw=True, tokenizer="split"),
-        "number": Field("number", tokenizer=None),
+        "text": Field("text_field", keep_raw=True, tokenizer="split"),
+        "number": Field("number_field", tokenizer=None),
     }
 
     ds = Dataset.from_pandas(df, fields)
+    assert set(ds.field_dict) == set(["text_field", "number_field"])
 
-    for original, (raw, _) in zip(data, ds.text):
+    for original, (raw, _) in zip(data, ds.text_field):
         assert original[0] == raw
 
 

@@ -330,11 +330,12 @@ def test_from_pandas_index(data):
     import pandas as pd
 
     df = pd.DataFrame([[x[1]] for x in data], index=[x[0] for x in data])
-    fields = [Field("text", keep_raw=True, tokenizer="split")]
+    fields = [Field("text_field", keep_raw=True, tokenizer="split")]
 
     ds = DiskBackedDataset.from_pandas(
-        df, fields, index_field=Field("number", tokenizer=None, keep_raw=True)
+        df, fields, index_field=Field("number_field", tokenizer=None, keep_raw=True)
     )
 
-    for original, (raw, _) in zip(data, ds.number):
+    assert set(ds.field_dict) == set(["text_field", "number_field"])
+    for original, (raw, _) in zip(data, ds.number_field):
         assert original[0] == raw
