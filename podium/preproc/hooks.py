@@ -57,10 +57,16 @@ def posttokenize_hook(hook):
 
 
 def as_posttokenize_hook(hook):
+    """
+    Transforms a pretokenitation hook to a posttokenization hook.
+
+    This function supports only the built-in hooks and raises TypeError for the
+    user-provided hooks.
+    """
     try:
         hook_type = hook.__hook_type__
     except AttributeError:
-        return hook
+        raise TypeError("Only a built-in hook can be transformed")
     else:
         if hook_type == HookType.PRETOKENIZE:
 
