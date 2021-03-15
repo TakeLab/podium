@@ -36,15 +36,6 @@ Spacy Lemmatizer
    :members:
    :no-undoc-members:
 
-Functional
-----------
-
-.. automodule:: podium.preproc.functional
-   :members:
-   :no-undoc-members:
-   :show-inheritance:
-
-
 Stop words
 ----------
 

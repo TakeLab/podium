@@ -4,13 +4,16 @@ import pytest
 
 from podium.datasets import ExampleFactory
 from podium.field import Field
-from podium.preproc.functional import remove_stopwords, truecase
 from podium.preproc.hooks import (
+    HookType,
     MosesNormalizer,
     NLTKStemmer,
     RegexReplace,
     SpacyLemmatizer,
     TextCleanUp,
+    as_posttokenize_hook,
+    remove_stopwords,
+    truecase,
 )
 
 
@@ -20,7 +23,7 @@ def test_remove_stopwords():
     data = "I'll tell you a joke"
     field = Field(name="data")
     field.add_posttokenize_hook(remove_stopwords("en"))
-    example = ExampleFactory([field]).from_list(data)
+    example = ExampleFactory([field]).from_list([data])
 
     assert "you" not in example["data"][1]
     assert "a" not in example["data"][1]
@@ -114,3 +117,39 @@ def test_text_clean_up(kwargs, data, expected_output):
     example = ExampleFactory([field]).from_list([data])
 
     assert expected_output == example["data"][1]
+
+
+@pytest.mark.require_package("spacy")
+@pytest.mark.require_spacy_model("en_core_web_sm")
+def test_hook_type():
+    pretokenize_hooks = [
+        MosesNormalizer(),
+        RegexReplace([("", "")]),
+        TextCleanUp(),
+        truecase(),
+    ]
+    posttokenize_hooks = [remove_stopwords("en"), SpacyLemmatizer(), NLTKStemmer()]
+
+    assert all([hook.__hook_type__ == HookType.PRETOKENIZE for hook in pretokenize_hooks])
+    assert all(
+        [hook.__hook_type__ == HookType.POSTTOKENIZE for hook in posttokenize_hooks]
+    )
+
+
+def test_hook_conversion():
+    field = Field(name="data", tokenizer="split", keep_raw=True)
+    text_clean_up_hook = TextCleanUp(replace_url="<URL>")
+
+    assert text_clean_up_hook.__hook_type__ == HookType.PRETOKENIZE
+    with pytest.raises(ValueError):
+        field.add_posttokenize_hook(text_clean_up_hook)
+
+    text_clean_up_hook = as_posttokenize_hook(text_clean_up_hook)
+    assert text_clean_up_hook.__hook_type__ == HookType.POSTTOKENIZE
+
+    field.add_posttokenize_hook(text_clean_up_hook)
+
+    data = "url to github is https://github.com"
+    example = ExampleFactory([field]).from_list([data])
+
+    assert example["data"][1] == ["url", "to", "github", "is", "<URL>"]

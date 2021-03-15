@@ -2,13 +2,15 @@
 Package contains modules for preprocessing.
 """
 
-from .functional import remove_stopwords, truecase
 from .hooks import (
     MosesNormalizer,
     NLTKStemmer,
     RegexReplace,
     SpacyLemmatizer,
     TextCleanUp,
+    as_posttokenize_hook,
+    remove_stopwords,
+    truecase,
 )
 from .lemmatizer import CroatianLemmatizer
 from .sentencizers import SpacySentencizer
