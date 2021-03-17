@@ -76,15 +76,6 @@ Utilities
    :no-undoc-members:
    :show-inheritance:
 
-Yet another keyword extractor
------------------------------
-
-.. automodule:: podium.preproc.yake
-   :members:
-   :no-undoc-members:
-   :show-inheritance:
-
-
 Module contents
 ---------------
 
