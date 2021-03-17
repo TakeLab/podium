@@ -397,8 +397,8 @@ class KeywordExtractor:
         Parameters
         ----------
         algorithm : str
-            The algorithm used to extract keywords.
-            Supported algorithms: `rake` and `yake`
+            The algorithm used to extract keywords. Supported algorithms: `rake` and `yake`.
+        **kwargs: keyword arguments passed to the keyword extraction algorithm.
 
         Raises
         ------
