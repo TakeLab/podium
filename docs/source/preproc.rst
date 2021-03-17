@@ -19,7 +19,7 @@ Regex Replace
 
 
 Keyword Extractor
-^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^
 .. autoclass:: podium.preproc.KeywordExtractor
    :members:
    :no-undoc-members:
