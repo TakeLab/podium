@@ -14,6 +14,7 @@ from podium.utils.general_utils import load_spacy_model_or_raise
 __all__ = [
     "remove_stopwords",
     "truecase",
+    "KeywordExtractor",
     "MosesNormalizer",
     "NLTKStemmer",
     "RegexReplace",
@@ -379,6 +380,84 @@ class TextCleanUp:
             Cleaned up textual data.
         """
         return self._cleanup(raw)
+
+
+@posttokenize_hook
+class KeywordExtractor:
+    """
+    Posttokenization hook that extracts keywords from the raw textual data.
+
+    The tokenized data is ignored during this process.
+    """
+
+    def __init__(self, algorithm: str, **kwargs) -> None:
+        """
+        Keyword Extractor constructor.
+
+        Parameters
+        ----------
+        algorithm : str
+            The algorithm used to extract keywords.
+            Supported algorithms: `rake` and `yake`
+
+        Raises
+        ------
+        ImportError
+            If the keyword extraction algorithm is not installed.
+        ValueError
+            If the specified extraction algorithm is not supported.
+        """
+        if algorithm == "rake":
+            try:
+                import rake_nltk
+            except ImportError:
+                print(
+                    "Problem occured while trying to import rake-nltk. "
+                    "If the library is not installed visit "
+                    "https://csurfer.github.io/rake-nltk/_build/html/index.html "
+                    "for more details."
+                )
+                raise
+
+            extractor = rake_nltk.Rake(**kwargs)
+        elif algorithm == "yake":
+            try:
+                import yake
+            except ImportError:
+                print(
+                    "Problem occured while trying to import yake. "
+                    "If the library is not installed visit "
+                    "https://github.com/LIAAD/yake for more details."
+                )
+                raise
+
+            extractor = yake.KeywordExtractor(**kwargs)
+
+        else:
+            raise ValueError(
+                f"{algorithm} is not supported as keyword extraction algorithm. "
+                f"Available algorithms: {['rake', 'yake']}"
+            )
+
+        self._algorithm = algorithm
+        self._kw_extractor = extractor
+
+    def __call__(self, raw: str, tokenized: List[str]) -> Tuple[str, List[str]]:
+        """
+        Extracts keywords from the raw data.
+
+        Returns
+        -------
+        tuple(str, list of str)
+            2-tuple where the first element is left unchanged and the second
+            elements contains extracted keywords.
+        """
+        if self._algorithm == "rake":
+            self._kw_extractor.extract_keywords_from_text(raw)
+            keywords = self._kw_extractor.get_ranked_phrases()
+        elif self._algorithm == "yake":
+            keywords = [kw for kw, _ in self._kw_extractor.extract_keywords(raw)]
+        return raw, keywords
 
 
 @posttokenize_hook

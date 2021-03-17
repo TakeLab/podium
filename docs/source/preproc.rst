@@ -18,6 +18,13 @@ Regex Replace
    :no-undoc-members:
 
 
+Keyword Extractor
+^^^^^^^^^^^^
+.. autoclass:: podium.preproc.KeywordExtractor
+   :members:
+   :no-undoc-members:
+
+
 Text Cleanup
 ^^^^^^^^^^^^
 .. autoclass:: podium.preproc.TextCleanUp
