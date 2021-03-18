@@ -55,8 +55,9 @@ function addColabLink() {
     const pageName = parts[parts.length - 1].split(".")[0];
 
     if (hasNotebook.includes(pageName)) {
-        const colabLink = `
-        <button id="colab-link" onclick="window.open('https://colab.research.google.com/github/mttk/podium/blob/master/docs/source/notebooks/${pageName}.ipynb')"></button>`
+        const colabLink = `<a href="https://colab.research.google.com/github/github/mttk/podium/blob/master/docs/source/notebooks/${pageName}.ipynb">
+            <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+        </a>` 
         const leftMenu = document.querySelector(".wy-breadcrumbs-aside")
         leftMenu.innerHTML = colabLink + '\n' + leftMenu.innerHTML
     }
