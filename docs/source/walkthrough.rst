@@ -245,11 +245,11 @@ Since datasets can contain multiple input Fields, it is not trivial to determine
   :options: +NORMALIZE_WHITESPACE
 
   >>> def text_len_sort_key(example):
-  ...  # The argument is an instance of the Example class,
-  ...  # containing a tuple of raw and tokenized data under
-  ...  # the key for each Field.
-  ...  tokens = example["text"][1]
-  ...  return -len(tokens)
+  ...     # The argument is an instance of the Example class,
+  ...     # containing a tuple of raw and tokenized data under
+  ...     # the key for each Field.
+  ...     tokens = example["text"][1]
+  ...     return -len(tokens)
 
   >>> train_iter = Iterator(sst_train, batch_size=2, shuffle=False, sort_key=text_len_sort_key)
   >>> batch_x, batch_y = next(iter(train_iter))
@@ -408,8 +408,8 @@ The ``line2example`` function should accept a single line of the dataset file as
 .. code-block::
 
   >>> def custom_split(line):
-  >>>   line_parts = line.strip().split(",")
-  >>>   return line_parts
+  >>>     line_parts = line.strip().split(",")
+  >>>     return line_parts
   >>> 
   >>> dataset = TabularDataset('my_dataset.csv', fields=fields, line2example=custom_split)
   >>> print(dataset[0])

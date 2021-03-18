@@ -14,6 +14,12 @@ const versionMapping = {
 
 const navigationBckgColor = "#2980b9"
 
+const hasNotebook = [
+    "advanced",
+    "preprocessing",
+    "walkthrough",
+]
+
 function addIcon() {
     const podiumLogo = "https://png.pngtree.com/png-vector/20190330/ourlarge/pngtree-vector-podium-icon-png-image_892778.jpg";
     const image = document.createElement("img");
@@ -42,6 +48,23 @@ function addGithubButton() {
         </div>
     `;
     document.querySelector(".wy-side-nav-search .icon-home").insertAdjacentHTML('afterend', div);
+}
+
+function addColabLink() {
+    const parts = location.toString().split('/');
+    const pageName = parts[parts.length - 1].split(".")[0];
+
+    if (hasNotebook.includes(pageName)) {
+        const colabLink = `
+        <button id="colab-link" onclick="window.open('https://colab.research.google.com/github/mttk/podium/blob/master/docs/source/notebooks/${pageName}.ipynb')"></button>`
+        // const colabLink = `
+        // <div class="colab-link">
+        //     <img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg">
+        //     <button onclick="window.open('https://colab.research.google.com/github/mttk/podium/blob/master/docs/source/notebooks/${pageName}.ipynb')" />
+        // </div>`
+        const leftMenu = document.querySelector(".wy-breadcrumbs-aside")
+        leftMenu.innerHTML = colabLink + '\n' + leftMenu.innerHTML
+    }
 }
 
 function addVersionControl() {
@@ -118,6 +141,7 @@ function parseGithubButtons (){"use strict";var e=window.document,t=e.location,o
 function onLoad() {
     addIcon();
     addVersionControl();
+    addColabLink();
 // Uncomment when public
     //addGithubButton();
     //parseGithubButtons();

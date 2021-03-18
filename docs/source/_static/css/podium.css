@@ -53,3 +53,17 @@ a.icon.icon-home:hover {
 .wy-side-nav-search {
     width: auto;
 }
+
+#colab-link {
+    position: relative;
+    display: inline-block;
+    background-color: #f9f9f9;
+    border: none;
+    min-width: 117px;
+    padding: 15px 5px;
+    text-decoration: none;
+    background-image: url(https://colab.research.google.com/assets/colab-badge.svg);
+    background-repeat: no-repeat;
+    background-size: contain;
+    outline: none;
+}
