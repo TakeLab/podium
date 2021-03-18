@@ -432,16 +432,19 @@ INSTALL_CODE = """# Podium installation
 
 ADDITIONAL_DEPS = {
     "advanced.rst": textwrap.dedent(
-        """! pip install transformers
+        """\
+        ! pip install transformers
         """
     ),
     "preprocessing.rst": textwrap.dedent(
-        """! pip install sacremoses clean-text spacy https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz
+        """\
+        ! pip install sacremoses clean-text spacy https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz
         ! python -m spacy download en_core_web_sm
         """
     ),
     "walkthrough.rst": textwrap.dedent(
-        """! pip install datasets
+        """\
+        ! pip install datasets
         """
     )
 }
