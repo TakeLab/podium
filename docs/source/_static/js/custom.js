@@ -57,11 +57,6 @@ function addColabLink() {
     if (hasNotebook.includes(pageName)) {
         const colabLink = `
         <button id="colab-link" onclick="window.open('https://colab.research.google.com/github/mttk/podium/blob/master/docs/source/notebooks/${pageName}.ipynb')"></button>`
-        // const colabLink = `
-        // <div class="colab-link">
-        //     <img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg">
-        //     <button onclick="window.open('https://colab.research.google.com/github/mttk/podium/blob/master/docs/source/notebooks/${pageName}.ipynb')" />
-        // </div>`
         const leftMenu = document.querySelector(".wy-breadcrumbs-aside")
         leftMenu.innerHTML = colabLink + '\n' + leftMenu.innerHTML
     }
