@@ -3,6 +3,7 @@ Package contains modules for preprocessing.
 """
 
 from .hooks import (
+    KeywordExtractor,
     MosesNormalizer,
     NLTKStemmer,
     RegexReplace,

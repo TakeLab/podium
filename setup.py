@@ -39,8 +39,6 @@ INSTALL_REQUIRES = [
     "scipy<1.6.0",
     # progress bar in download and model selection
     "tqdm",
-    # for keyword extraction
-    "yake @ https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz",
     # for some datasets
     'xlrd',
     # for labels in EuroVoc and nodes in HierarhicalDataset
@@ -88,6 +86,10 @@ PREPROC_REQUIRE = [
     "clean-text",
     # for truecasing
     "truecase",
+    # for keyword extraction
+    "rake-nltk",
+    # for keyword extraction
+    "yake @ https://github.com/LIAAD/yake/archive/v0.4.4.tar.gz",
 ]
 
 

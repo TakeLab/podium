@@ -6,6 +6,7 @@ from podium.datasets import ExampleFactory
 from podium.field import Field
 from podium.preproc.hooks import (
     HookType,
+    KeywordExtractor,
     MosesNormalizer,
     NLTKStemmer,
     RegexReplace,
@@ -15,6 +16,18 @@ from podium.preproc.hooks import (
     remove_stopwords,
     truecase,
 )
+
+
+TEXT = """\
+Sources tell us that Google is acquiring Kaggle, a platform that hosts
+data science and machine learning competitions. Details about the
+transaction remain somewhat vague, but given that Google is hosting
+its Cloud Next conference in San Francisco this week, the official
+announcement could come as early as tomorrow.  Reached by phone,
+Kaggle co-founder CEO Anthony Goldbloom declined to deny that the
+acquisition is happening. Google itself declined
+'to comment on rumors'.
+"""
 
 
 @pytest.mark.require_package("spacy")
@@ -119,6 +132,25 @@ def test_text_clean_up(kwargs, data, expected_output):
     assert expected_output == example["data"][1]
 
 
+@pytest.mark.parametrize(
+    "alg,alg_pkg_name",
+    [
+        ("yake", "yake"),
+        ("rake", "rake_nltk"),
+    ],
+)
+def test_keyword_extractor(alg, alg_pkg_name):
+    pytest.importorskip(alg_pkg_name)
+
+    field = Field(name="data", tokenizer=None, keep_raw=True)
+    field.add_posttokenize_hook(KeywordExtractor(alg))
+    example = ExampleFactory([field]).from_list([TEXT])
+
+    # make sure all the keywords originate from the raw data
+    text_ = TEXT.lower()
+    assert all(kw in text_ for kws in example["data"][1] for kw in kws.lower().split())
+
+
 @pytest.mark.require_package("spacy")
 @pytest.mark.require_spacy_model("en_core_web_sm")
 def test_hook_type():
@@ -128,7 +160,12 @@ def test_hook_type():
         TextCleanUp(),
         truecase(),
     ]
-    posttokenize_hooks = [remove_stopwords("en"), SpacyLemmatizer(), NLTKStemmer()]
+    posttokenize_hooks = [
+        remove_stopwords("en"),
+        SpacyLemmatizer(),
+        NLTKStemmer(),
+        KeywordExtractor("yake"),
+    ]
 
     assert all([hook.__hook_type__ == HookType.PRETOKENIZE for hook in pretokenize_hooks])
     assert all(
