@@ -491,7 +491,7 @@ As an example, we will again turn to the SST dataset and some of our previously 
   >>> print(sst_train[222])
   Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
 
-Each ``Dataset`` instance in the SST dataset splits contains ``Field``s and a ``Vocab``. When we pickle a dataset, we also store those objects. We will now demonstrate how to store (and load) a pickled dataset.
+Each ``Dataset`` instance in the SST dataset splits contains ``Field``\s and a ``Vocab``. When we pickle a dataset, we also store those objects. We will now demonstrate how to store (and load) a pickled dataset.
 
 .. doctest:: saveload
   :options: +NORMALIZE_WHITESPACE

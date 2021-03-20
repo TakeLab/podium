@@ -149,6 +149,22 @@ Stopword removal
 Keyword extraction
 ------------------
 
+:class:`podium.preproc.KeywordExtractor` is a **special post-tokenization** hook that extracts keywords from the **raw** sequence. Currently, two keyword extraction algorithms are supported: ``yake`` and ``rake``.
+
+.. warning::
+   The results in the following example are not representative due to the short input text.
+
+.. code-block:: python
+
+   >>> from podium.preproc import KeywordExtractor
+   >>> keyword_extraction_hook = KeywordExtractor('yake', top=3)
+   >>> raw_text = 'Next conference in San Francisco this week, the official announcement could come as early as tomorrow.'
+   >>> tokenized_text = []
+   >>> _, keywords = keyword_extraction_hook(raw_text, tokenized_text)
+   >>> print(keywords)
+   ['san francisco', 'francisco this week', 'conference in san']
+
+
 Utilities
 =========
 
@@ -159,8 +175,7 @@ The SpaCy sentencizer
 
 :class:`podium.preproc.SpacySentencizer` can be used to split input strings into sentences prior to tokenization.
 
+Hook conversion
+---------------
 
-Yet another keyword extractor
------------------------------
-
-:class:`podium.preproc.YAKE` can be used to extract keywords from input strings.
+:func:`podium.preproc.as_posttokenize_hook` can be used to convert a built-in pretokenization hook to a post-tokenization hook.

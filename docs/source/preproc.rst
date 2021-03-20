@@ -16,7 +16,6 @@ Regex Replace
    :members:
    :no-undoc-members:
 
-<<<<<<< HEAD
 
 Keyword Extractor
 ^^^^^^^^^^^^^^^^^
@@ -25,8 +24,6 @@ Keyword Extractor
    :no-undoc-members:
 
 
-=======
->>>>>>> Doc fixes
 Text Cleanup
 ^^^^^^^^^^^^
 .. autoclass:: podium.preproc.TextCleanUp
@@ -45,18 +42,12 @@ Spacy Lemmatizer
    :members:
    :no-undoc-members:
 
-Keyword Excation
-^^^^^^^^^^^^^^^^
-.. autoclass:: podium.preproc.KeywordExtractor
-   :members:
-   :no-undoc-members:
-
-truecase
-^^^^^^^^^^^^^^^^^
+Truecasing
+^^^^^^^^^^
 .. autofunction:: podium.preproc.truecase
 
-remove_stopwords
-^^^^^^^^^^^^^^^^
+Stopwords removal
+^^^^^^^^^^^^^^^^^
 .. autofunction:: podium.preproc.remove_stopwords
 
 Stop words

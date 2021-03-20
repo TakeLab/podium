@@ -157,7 +157,7 @@ _re_math = re.compile(r":math:`([^`]+)`")
 # Re pattern to catch things between single backquotes.
 _re_single_backquotes = re.compile(r"(^|[^`])`([^`]+)`([^`]|$)")
 # Re pattern to catch things between double backquotes.
-_re_double_backquotes = re.compile(r"``([^`]+)``")
+_re_double_backquotes = re.compile(r"``([^`]+)``\\?")
 # Re pattern to catch things inside ` ` in :func/class/meth:`thing`.
 _re_func_class = re.compile(r":(?:func|class|meth):`([^`]+)`")
 
@@ -555,4 +555,4 @@ def convert_all_tutorials(path_to_docs=None, path_to_dest=None):
 
 if __name__ == "__main__":
     convert_all_tutorials()
-    _notebook_run('../notebooks/advanced.ipynb')
+    # _notebook_run('../notebooks/advanced.ipynb')
