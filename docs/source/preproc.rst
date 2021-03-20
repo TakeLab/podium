@@ -5,18 +5,18 @@ Hooks
 ------
 
 Moses Normalizer
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
 .. autoclass:: podium.preproc.MosesNormalizer
    :members:
    :no-undoc-members:
 
-
 Regex Replace
-^^^^^^^^^^^^^^
+^^^^^^^^^^^^^
 .. autoclass:: podium.preproc.RegexReplace
    :members:
    :no-undoc-members:
 
+<<<<<<< HEAD
 
 Keyword Extractor
 ^^^^^^^^^^^^^^^^^
@@ -25,6 +25,8 @@ Keyword Extractor
    :no-undoc-members:
 
 
+=======
+>>>>>>> Doc fixes
 Text Cleanup
 ^^^^^^^^^^^^
 .. autoclass:: podium.preproc.TextCleanUp
@@ -38,10 +40,24 @@ NLTK Stemmer
    :no-undoc-members:
 
 Spacy Lemmatizer
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
 .. autoclass:: podium.preproc.SpacyLemmatizer
    :members:
    :no-undoc-members:
+
+Keyword Excation
+^^^^^^^^^^^^^^^^
+.. autoclass:: podium.preproc.KeywordExtractor
+   :members:
+   :no-undoc-members:
+
+truecase
+^^^^^^^^^^^^^^^^^
+.. autofunction:: podium.preproc.truecase
+
+remove_stopwords
+^^^^^^^^^^^^^^^^
+.. autofunction:: podium.preproc.remove_stopwords
 
 Stop words
 ----------
@@ -71,10 +87,7 @@ Tokenizers
 Utilities
 ----------
 
-.. automodule:: podium.preproc.utils
-   :members:
-   :no-undoc-members:
-   :show-inheritance:
+.. autofunction:: podium.preproc.as_posttokenize_hook
 
 Module contents
 ---------------

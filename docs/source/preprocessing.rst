@@ -4,12 +4,12 @@
 Hooks
 ======
 
-Podium contains a number of predefined hook classes which you can instantiate and use in your Fields. Most of these hooks (if they have the ``as_pretokenization`` constructor parameter) are customizable and can work both as pretokenization hooks as well as posttokenization hooks.
+Podium contains a number of predefined hook classes which you can instantiate and use in your Fields. Most of these hooks (if they have the ``as_pretokenization`` constructor parameter) are customizable and can work both as pretokenization hooks as well as post-tokenization hooks.
 
 .. note::
-   If you apply a hook as posttokenization, it will be called for each element in the tokenized sequence!
+   If you apply a hook as post-tokenization, it will be called for each element in the tokenized sequence!
 
-   Hooks should be cast to posttokenization **only** if their application would otherwise influence the tokenization process. Setting a hook to posttokenization is expected to take longer than the same hook being used during pretokenization.
+   Hooks should be cast to post-tokenization **only** if their application would otherwise influence the tokenization process. Setting a hook to post-tokenization is expected to take longer than the same hook being used during pretokenization.
 
 
 Moses Normalizer
@@ -25,11 +25,12 @@ Moses Normalizer
    >>> print(moses(text))
    A _very_ spaced sentence
 
-By default, MosesNormalizer is a pretokenization hook, which means it expects a single string as an argument. We can cast it to a post-tokenization hook by setting ``as_pretokenization=False`` in the constructor. As a result, the hook now expectes two arguments.
+By default, MosesNormalizer is a pretokenization hook, which means it expects a single string as an argument. We can cast it to a post-tokenization hook with the :func:`podium.preproc.as_posttokenize_hook` helper function that transforms the built-in pretokenization hooks to post-tokenization hooks. As a result, the hook now expectes two arguments.
 
 .. code-block:: python
 
-   >>> moses = MosesNormalizer(language="en", as_pretokenization=False)
+   >>> from podium.preproc import as_posttokenize_hook
+   >>> moses = as_posttokenize_hook(moses)
    >>> raw_text = None
    >>> tokenized_text = ["A        ","         _very_","     spaced  "," sentence"]
    >>> print(moses(raw_text, tokenized_text))
@@ -138,6 +139,7 @@ Stopword removal
 
 .. code-block:: python
 
+   >>> from podium.preproc import remove_stopwords
    >>> remove_stopwords_hook = remove_stopwords('en')
    >>> raw_text = None
    >>> tokenized_text = ['in', 'my', 'opinion', 'an', 'exciting', 'and', 'funny', 'movie']
@@ -152,7 +154,7 @@ Various tools that can be used for preprocessing textual datasets, not necessari
 The SpaCy sentencizer
 ----------------------
 
-:class:`podium.preproc.SpacySentencizer` can bse used to split input strings into sentences prior to tokenization.
+:class:`podium.preproc.SpacySentencizer` can be used to split input strings into sentences prior to tokenization.
 
 
 Yet another keyword extractor

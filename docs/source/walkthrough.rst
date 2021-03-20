@@ -139,7 +139,7 @@ Looking at the image, your job is to define the color-coding between input data 
 Fields have a number of constructor arguments, only some of which we will enumerate here:
 
   - :obj:`name` (str): The name under which the Field's data will be stored in the dataset's Examples.
-  - :obj:`tokenizer` (str | callable | optional): The tokenizer for sequential data. You can pass a string to use a predefined tokenizer or pass a python callable which performs tokenization (e.g. a function or a class which implements ``__call__``). For predefined tokenizers, you should follow the ``name-args`` argument formatting convention. You can use ``'split'`` for the ``str.split`` tokenizer (has no additional args) or ``'spacy-en'`` for the spacy english tokenizer. If the data Field should not be tokenized, this argument should be None. Defaults to ``'split'``.
+  - :obj:`tokenizer` (str | callable | optional): The tokenizer for sequential data. You can pass a string to use a predefined tokenizer or pass a python callable which performs tokenization (e.g. a function or a class which implements ``__call__``). For predefined tokenizers, you should follow the ``name-args`` argument formatting convention. You can use ``'split'`` for the ``str.split`` tokenizer (has no additional args) or ``'spacy-en_core_web_sm'`` for the spacy english tokenizer. If the data Field should not be tokenized, this argument should be None. Defaults to ``'split'``.
   - :obj:`numericalizer` (Vocab | callable | optional): The method to convert tokens to indices. Traditionally, this argument should be a Vocab instance but users can define their own numericalization function and pass it as an argument. Custom numericalization can be used when you want to ensure that a certain token has a certain index for consistency with other work. If ``None``, numericalization won't be attempted.
   - :obj:`is_target` (bool): Whether this data Field is a target field (will be used as a label during prediction). This flag serves merely as a convenience, to separate batches into input and target data during iteration.
   - :obj:`fixed_length`: (int, optional): Usually, text batches are padded to the maximum length of an instance in batch (default behavior). However, if you are using a fixed-size model (e.g. CNN without pooling) you can use this argument to force each instance of this Field to be of ``fixed_length``. Longer instances will be right-truncated, shorter instances will be padded.
@@ -354,7 +354,7 @@ We have covered loading built-in datasets. However, it is often the case that yo
 
 Let's take an example of a natural language inference (NLI) dataset. In NLI, datasets have two input fields: the `premise` and the `hypothesis` and a single, multi-class label. The first two rows of such a dataset written in comma-separated-values (`csv`) format could like as follows:
 
-.. code-block:: bash
+.. code-block:: rest
 
   premise,hypothesis,label
   A man inspects the uniform of a figure in some East Asian country.,The man is sleeping,contradiction
@@ -364,11 +364,24 @@ For this dataset, we need to define three Fields. We also might want the fields 
 
 .. code-block::
 
+  >>> import csv
+  >>> from pathlib import Path
   >>> from podium import TabularDataset, Vocab, Field, LabelField
   >>> shared_vocab = Vocab()
-  >>> fields = {'premise':   Field('premise', numericalizer=shared_vocab, tokenizer="spacy-en"),
-  ...           'hypothesis':Field('hypothesis', numericalizer=shared_vocab, tokenizer="spacy-en"),
+  >>> fields = {'premise':   Field('premise', numericalizer=shared_vocab, tokenizer="spacy-en_core_web_sm"),
+  ...           'hypothesis':Field('hypothesis', numericalizer=shared_vocab, tokenizer="spacy-en_core_web_sm"),
   ...           'label':     LabelField('label')}
+  >>>
+  >>>
+  >>> csv_file_path = Path('my_dataset.csv')
+  >>> with open(csv_file_path, 'w', newline='') as csv_file:
+  >>>     writer = csv.DictWriter(csv_file, fieldnames=fields.keys())
+  >>>     writer.writeheader()
+  >>>     writer.writerow({
+  >>>         'premise': 'A man inspects the uniform of a figure in some East Asian country.',
+  >>>         'hypothesis': 'The man is sleeping',
+  >>>         'label': 'contradiction',
+  >>>     })
   >>>
   >>> dataset = TabularDataset('my_dataset.csv', format='csv', fields=fields)
   >>> print(dataset)
@@ -389,7 +402,7 @@ For this dataset, we need to define three Fields. We also might want the fields 
               name: label,
               is_target: True, 
               vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 1})
-          }),
+          })
       ]
   })
   >>> print(shared_vocab.itos)
@@ -452,17 +465,17 @@ Datasets from 🤗 can be used with other Podium components by wrapping them in 
   >>> imdb_train, imdb_test, imdb_unsupervised = HFDatasetConverter.from_dataset_dict(imdb).values()
   >>> imdb_train.finalize_fields()
   >>>
-  >>> pprint.pprint(imdb_train.as_dataset().fields)
+  >>> imdb_train.as_dataset().fields
   (Field({
       name: text,
       keep_raw: False,
       is_target: False,
       vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, is_finalized: False, size: 280617})
-  }),
-   LabelField({
+  }), LabelField({
       name: label,
       keep_raw: False,
-      is_target: True}))
+      is_target: True
+  }))
 
 When we load a 🤗 dataset, we internally perform automatic Field type inference and create Fields. While we expect these Fields to work in most cases, we also recommend you try constructing your own (check :ref:`fields`).
 An important aspect to note when using ``Vocab`` with HuggingFace datasets is that you **need to set** ``eager=False`` upon construction. Vocabularies in Podium are eager by default, which means that they construct frequency counts upon dataset loading. Since HuggingFace datasets are not loaded as part of Podium, vocabulary construction needs to be triggered manually by using non-eager ``Vocab`` s and calling ``Dataset.finalize_fields()`` to indicate that the vocabularies should be built.

@@ -29,7 +29,7 @@ def collect_refs():
     ref2doc = {}
     for doc_file in Path('..').rglob("*.rst"):
         doc_file_relative_path = doc_file.relative_to('..').as_posix()
-        with open(doc_file, "r") as f:
+        with open(doc_file, "r", encoding="utf-8") as f:
             doc_text = f.read()
             for label in _re_label.finditer(doc_text):
                 prev_line = None
@@ -433,18 +433,20 @@ INSTALL_CODE = """# Podium installation
 ADDITIONAL_DEPS = {
     "advanced.rst": textwrap.dedent(
         """\
-        ! pip install transformers
+        ! pip install transformers spacy
+        ! python -m spacy download en_core_web_sm
         """
     ),
     "preprocessing.rst": textwrap.dedent(
         """\
-        ! pip install sacremoses clean-text spacy https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz
+        ! pip install sacremoses clean-text spacy truecase https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz
         ! python -m spacy download en_core_web_sm
         """
     ),
     "walkthrough.rst": textwrap.dedent(
         """\
-        ! pip install datasets
+        ! pip install datasets spacy
+        ! python -m spacy download en_core_web_sm
         """
     )
 }
@@ -481,7 +483,7 @@ def convert_rst_file_to_notebook(
             If provided in conjunction with :obj:`origin_folder`, images encountered will be copied from
             :obj:`origin_folder` to this folder.
     """
-    with open(rst_file, 'r') as f:
+    with open(rst_file, 'r', encoding="utf-8") as f:
         content = f.read()
     lines = content.split("\n")
     lines = process_titles(lines)
@@ -495,7 +497,7 @@ def convert_rst_file_to_notebook(
             block_type = "code-block python"
 
         if block_type == 'title' or block_type == 'prose':
-            block = convert_table(convert_rst_formatting(convert_rst_links(block, rst_file)))
+            block = convert_table(convert_rst_formatting(convert_rst_links(block, Path(rst_file).name)))
             cells.append(markdown_cell(block))
         elif block_type == 'anchor':
             block = convert_anchor(block)
@@ -512,6 +514,10 @@ def convert_rst_file_to_notebook(
                     lines = source.split("\n")
                     new_lines = [line if line.startswith("#") else f"! {line}" for line in lines]
                     source = "\n".join(new_lines)
+                elif block_type.endswith('rest'):
+                    source = "```bash\n" + source + "\n```"
+                    cells.append(markdown_cell(source))
+                    continue
                 cells.append(code_cell(source, output=output))
         elif block_type.startswith("image"):
             image_name = block_type[len("image "):]
@@ -527,7 +533,7 @@ def convert_rst_file_to_notebook(
             block = convert_math(block)
             cells.append(markdown_cell(block))
         else:
-            block = convert_rst_formatting(convert_rst_links(block, rst_file))
+            block = convert_rst_formatting(convert_rst_links(block, Path(rst_file).name))
             block = convert_to_note(block, block_type)
             cells.append(markdown_cell(block))
 
@@ -549,3 +555,4 @@ def convert_all_tutorials(path_to_docs=None, path_to_dest=None):
 
 if __name__ == "__main__":
     convert_all_tutorials()
+    _notebook_run('../notebooks/advanced.ipynb')

@@ -762,7 +762,7 @@ class Field:
             self._tokenizer = get_tokenizer(self._tokenizer_arg_string)
 
     def __repr__(self):
-        vocab_str = f",\n    vocab: {self.vocab}\n" if self.use_vocab else ""
+        vocab_str = f",\n    vocab: {self.vocab}\n" if self.use_vocab else "\n"
         return (
             f"{type(self).__name__}({{"
             f"\n    name: {self.name},"
