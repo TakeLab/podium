@@ -555,4 +555,3 @@ def convert_all_tutorials(path_to_docs=None, path_to_dest=None):
 
 if __name__ == "__main__":
     convert_all_tutorials()
-    # _notebook_run('../notebooks/advanced.ipynb')
