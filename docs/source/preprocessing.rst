@@ -120,7 +120,7 @@ Spacy Lemmatizer
 Truecase
 --------
 
-:meth:`podium.preproc.truecase` is a **pre-tokenization** hook that applies `truecasing <https://github.com/daltonfury42/truecase>`__ the the input strings. The ``oov`` argument controls how the library handles out-of-vocabulary tokens, the options being ``{"title", "lower", "as-is"}``.
+:func:`podium.preproc.truecase` is a **pre-tokenization** hook that applies `truecasing <https://github.com/daltonfury42/truecase>`__ the the input strings. The ``oov`` argument controls how the library handles out-of-vocabulary tokens, the options being ``{"title", "lower", "as-is"}``.
 
 .. code-block:: python
 
@@ -132,7 +132,7 @@ Truecase
 Stopword removal
 -----------------
 
-:meth:`podium.preproc.remove_stopwords` is a **post-tokenization** hook that removes stop words from the tokenized sequence. The list of stop words is provided by `SpaCy <https://spacy.io/>`__ and the language is controlled by the ``language`` parameter.
+:func:`podium.preproc.remove_stopwords` is a **post-tokenization** hook that removes stop words from the tokenized sequence. The list of stop words is provided by `SpaCy <https://spacy.io/>`__ and the language is controlled by the ``language`` parameter.
 
 .. warning::
    The spacy stopword list is in lowercase, so it is recommended to lowercase your tokens prior to stopword removal to avoid unexpected behavior.
@@ -145,6 +145,9 @@ Stopword removal
    >>> tokenized_text = ['in', 'my', 'opinion', 'an', 'exciting', 'and', 'funny', 'movie']
    >>> print(remove_stopwords_hook(raw_text, tokenized_text))
    (None, [opinion', 'exciting', 'funny', 'movie'])
+
+Keyword extraction
+------------------
 
 Utilities
 =========

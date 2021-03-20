@@ -102,7 +102,7 @@ We will first implement a pretokenization hook which will lowercase our raw data
   ...     """Lowercases the input string"""
   ...     return raw.lower()
 
-And we're done! We can now add our hook to the text field either through the :meth:`podium.Field.add_pretokenize_hook` method of the Field or through the ``pretokenize_hooks`` constructor argument. We will first define a post-tokenization hook which removes punctuation and then apply them both to our text Field.
+And we're done! We can now add our hook to the text field either through the :func:`podium.Field.add_pretokenize_hook` method of the Field or through the ``pretokenize_hooks`` constructor argument. We will first define a post-tokenization hook which removes punctuation and then apply them both to our text Field.
 
 Removing punctuation as a post-tokenization hook
 ------------------------------------------------
@@ -300,7 +300,7 @@ Dataset manipulation
 Dataset splitting
 ---------------------
 
-It is often the case we want to somehow manipulate the size of our dataset. One common use-case is that our dataset comes in a single split -- and we wish to segment it into a train, test and perhaps validation split. For this, we have defined a :meth:`Dataset.split` function which allows you to split your dataset into arbitrary ratios:
+It is often the case we want to somehow manipulate the size of our dataset. One common use-case is that our dataset comes in a single split -- and we wish to segment it into a train, test and perhaps validation split. For this, we have defined a :func:`Dataset.split` function which allows you to split your dataset into arbitrary ratios:
 
 .. doctest:: dataset_splitting
 

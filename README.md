@@ -99,18 +99,18 @@ Load datasets from [🤗/datasets](https://github.com/huggingface/datasets):
 
 ```python
 
-  >>> from podium.datasets.hf import HFDatasetConverter
-  >>> import datasets
-  >>> # Load the huggingface dataset
-  >>> imdb = datasets.load_dataset('imdb')
-  >>> print(imdb.keys())
-  dict_keys(['train', 'test', 'unsupervised'])
-  >>> # Wrap it so it can be used in Podium (without being loaded in memory!)
-  >>> imdb_train, imdb_test, imdb_unsupervised = HFDatasetConverter.from_dataset_dict(imdb).values()
-  >>> # We need to trigger Vocab construction
-  >>> imdb_train.finalize_fields()
-  >>> print(imdb_train)
-  HFDatasetConverter({
+>>> from podium.datasets.hf import HFDatasetConverter
+>>> import datasets
+>>> # Load the huggingface dataset
+>>> imdb = datasets.load_dataset('imdb')
+>>> print(imdb.keys())
+dict_keys(['train', 'test', 'unsupervised'])
+>>> # Wrap it so it can be used in Podium (without being loaded in memory!)
+>>> imdb_train, imdb_test, imdb_unsupervised = HFDatasetConverter.from_dataset_dict(imdb).values()
+>>> # We need to trigger Vocab construction
+>>> imdb_train.finalize_fields()
+>>> print(imdb_train)
+HFDatasetConverter({
     size: 25000,
     fields: [
         Field({
@@ -122,9 +122,10 @@ Load datasets from [🤗/datasets](https://github.com/huggingface/datasets):
         LabelField({
             name: label,
             keep_raw: False,
-            is_target: True})
+            is_target: True
+        })
     ]
-  })
+})
 ```
 
 Load your own dataset from a standardized tabular format (e.g. `csv`, `tsv`, `jsonl`):
@@ -154,7 +155,7 @@ TabularDataset({
             name: label,
             is_target: True, 
             vocab: Vocab({specials: (), eager: False, finalized: True, size: 1})
-        }),
+        })
     ]
 })
 ```

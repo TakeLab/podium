@@ -108,6 +108,7 @@ downloaded_datasets/
 .data/
 .vscode/
 sst/
+imdb/
 
 .idea/
 *.pkl

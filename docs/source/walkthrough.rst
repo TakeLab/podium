@@ -24,7 +24,7 @@ Podium datasets come in three flavors:
 Loading built-in datasets
 ----------------------------
 
-One built-in dataset available in Podium is the `Stanford Sentiment Treebank <https://nlp.stanford.edu/sentiment/treebank.html>`__. In order to load the dataset, it is enough to call the :meth:`get_dataset_splits` method.
+One built-in dataset available in Podium is the `Stanford Sentiment Treebank <https://nlp.stanford.edu/sentiment/treebank.html>`__. In order to load the dataset, it is enough to call the :func:`get_dataset_splits` method.
 
 .. doctest:: sst
   :options: +NORMALIZE_WHITESPACE
@@ -53,7 +53,7 @@ One built-in dataset available in Podium is the `Stanford Sentiment Treebank <ht
   Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
 
 
-Each built-in Podium dataset has a :meth:`get_dataset_splits` method, which returns the `train`, `test` and `validation` split of that dataset, if available.
+Each built-in Podium dataset has a :func:`get_dataset_splits` method, which returns the `train`, `test` and `validation` split of that dataset, if available.
 
 The Vocabulary
 ---------------
@@ -80,13 +80,13 @@ We saw earlier that our dataset has two Fields: text and label. We will touch on
 Inside each of these two fields we can see a :class:`podium.Vocab` class, used for numericalization (converting token strings to indices). A Vocab is defined by two maps: the string-to-index mapping :attr:`podium.Vocab.stoi` and the index-to-string mapping :attr:`podium.Vocab.itos`.
 
 Vocabularies are built automatically for built-in datasets by counting the frequencies of tokens in the **train** set and then converting these frequences to the ``itos`` and ``stoi`` dictionaries. We can see that a ``Vocab`` is built by the ``is_finalized=True`` keyword in the printout.
-If you are constructing your own dataset or loading a dataset from HuggingFace (:ref:`hf-loading`), you will need to call the :meth:`podium.Dataset.finalize_fields()` method to signal that the vocabularies should be constructed.
+If you are constructing your own dataset or loading a dataset from HuggingFace (:ref:`hf-loading`), you will need to call the :func:`podium.Dataset.finalize_fields()` method to signal that the vocabularies should be constructed.
 
 Customizing Vocabs
 ^^^^^^^^^^^^^^^^^^
 We can customize Podium Vocabularies in one of two ways -- by controlling their constructor parameters and by defining a Vocabulary manually. 
 
-For the latter approach, the :class:`podium.Vocab` class has two static constructors: :meth:`podium.Vocab.from_itos` and :meth:`podium.Vocab.from_stoi`.
+For the latter approach, the :class:`podium.Vocab` class has two static constructors: :func:`podium.Vocab.from_itos` and :func:`podium.Vocab.from_stoi`.
 
 .. doctest:: custom_vocab
 
@@ -126,7 +126,7 @@ In order to use this new Vocab with a dataset, we first need to get familiar wit
 Customizing the preprocessing pipeline with Fields
 --------------------------------------------------
 
-Data processing in Podium is wholly encapsulated in the flexible :class:`podium.Field` class. Default Fields for the SST dataset are defined in the :meth:`podium.datasets.SST.get_dataset_splits` method, but you can easily redefine and customize them. We will only scratch the surface of customizing Fields in this section.
+Data processing in Podium is wholly encapsulated in the flexible :class:`podium.Field` class. Default Fields for the SST dataset are defined in the :func:`podium.datasets.SST.get_dataset_splits` method, but you can easily redefine and customize them. We will only scratch the surface of customizing Fields in this section.
 
 You can think of Fields as the path your data takes from the input to your model. In order for Fields to be able to process data, you need to which input data columns will pass through which Fields.
 
