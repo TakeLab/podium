@@ -68,14 +68,6 @@ Tokenizers
    :no-undoc-members:
    :show-inheritance:
 
-Utilities
-----------
-
-.. automodule:: podium.preproc.utils
-   :members:
-   :no-undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 
