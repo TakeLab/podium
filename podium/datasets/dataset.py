@@ -301,6 +301,29 @@ class DatasetBase(ABC):
         pass
 
     def to_pandas(self, include_raw=False) -> pd.DataFrame:
+        """
+        Creates a pandas dataframe containing all data from this Dataset. By
+        default, only processed data is kept in the dataframe.
+
+        If `include_raw` is True, raw data will also be stored under the
+        column name `{field name}_raw`, e.g. for a field called 'Text', the raw
+        data column name would be `Text_raw`.
+
+        When making pandas dataframes form big DiskBackedDatasets, care should
+        be taken to avoid overusing memory, as the whole dataset is loaded in to
+        memory.
+
+        Parameters
+        ----------
+        include_raw: bool
+            Whether to include raw data in the dataframe.
+
+        Returns
+        -------
+        DataFrame
+            Pandas dataframe containing all examples from this Dataset.
+        """
+
         # TODO add way to set dataframe index?
 
         column_names = []
