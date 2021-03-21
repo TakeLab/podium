@@ -111,7 +111,7 @@ class DatasetBase(ABC):
         else:
             raise AttributeError(f"Dataset has no field {field_name}.")
 
-    def field(self, name) -> Field:
+    def field(self, name: str) -> Field:
         """
         Returns the Field with a given name.
         """
@@ -299,6 +299,29 @@ class DatasetBase(ABC):
         Returns a list containing all examples of this dataset.
         """
         pass
+
+    def to_pandas(self, include_raw=False) -> pd.DataFrame:
+        # TODO add way to set dataframe index?
+
+        column_names = []
+        fields = self.fields
+
+        for field in fields:
+            column_names.append(field.name)
+            if include_raw:
+                column_names.append(field.name + "_raw")
+
+        def row_iterator():
+            for ex in self:
+                row = []
+                for field in fields:
+                    raw, tokenized = ex[field.name]
+                    row.append(tokenized)
+                    if include_raw:
+                        row.append(raw)
+                yield row
+
+        return pd.DataFrame(data=row_iterator(), columns=column_names)
 
 
 class Dataset(DatasetBase):

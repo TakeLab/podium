@@ -843,6 +843,36 @@ def test_from_pandas_index(data):
         assert original[1] == raw
 
 
+def test_to_pandas_no_raw(data, field_list):
+    dataset = create_dataset(data, field_list)
+    df = dataset.to_pandas(include_raw=False)
+
+    assert list(df.columns) == [f.name for f in dataset.fields]
+    assert len(df) == len(dataset)
+
+    for i in range(len(dataset)):
+        for field in dataset.fields:
+            assert df[field.name][i] == dataset[i][field.name][1]
+
+
+def test_to_pandas_with_raw(data, field_list):
+    dataset = create_dataset(data, field_list)
+    df = dataset.to_pandas(include_raw=True)
+
+    expected_column_names = []
+    for f in dataset.fields:
+        expected_column_names.append(f.name)
+        expected_column_names.append(f.name + "_raw")
+
+    assert list(df.columns) == expected_column_names
+    assert len(df) == len(dataset)
+
+    for i in range(len(dataset)):
+        for field in dataset.fields:
+            assert df[field.name][i] == dataset[i][field.name][1]
+            assert df[field.name + "_raw"][i] == dataset[i][field.name][0]
+
+
 @pytest.fixture
 def hierarchical_dataset_fields():
     name_field = Field("name", keep_raw=True, tokenizer=None)
