@@ -4,7 +4,7 @@
 Hooks
 ======
 
-Podium contains a number of predefined hook classes which you can instantiate and use in your Fields. Most of these hooks (if they have the ``as_pretokenization`` constructor parameter) are customizable and can work both as pretokenization hooks as well as post-tokenization hooks.
+Podium contains a number of predefined hook classes which you can instantiate and use in your Fields. Most of these hooks are customizable and can work both as pretokenization hooks as well as post-tokenization hooks.
 
 .. note::
    If you apply a hook as post-tokenization, it will be called for each element in the tokenized sequence!
@@ -170,7 +170,7 @@ Utilities
 
 Various tools that can be used for preprocessing textual datasets, not necessarily intended to be used as hooks.
 
-The SpaCy sentencizer
+SpaCy sentencizer
 ----------------------
 
 :class:`podium.preproc.SpacySentencizer` can be used to split input strings into sentences prior to tokenization.

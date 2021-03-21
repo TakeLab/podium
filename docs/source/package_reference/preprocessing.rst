@@ -50,40 +50,16 @@ Stopwords removal
 ^^^^^^^^^^^^^^^^^
 .. autofunction:: podium.preproc.remove_stopwords
 
-Stop words
-----------
-
-.. automodule:: podium.preproc.stop_words
-   :members:
-   :no-undoc-members:
-   :show-inheritance:
-
-
-Sentencizers
-------------
-
-.. automodule:: podium.preproc.sentencizers
-   :members:
-   :no-undoc-members:
-   :show-inheritance:
-
 Tokenizers
 -----------
 
-.. automodule:: podium.preproc.tokenizers
+.. autofunction:: podium.preproc.get_tokenizer
+
+.. autoclass:: podium.preproc.SpacySentencizer
    :members:
    :no-undoc-members:
-   :show-inheritance:
 
 Utilities
 ----------
 
 .. autofunction:: podium.preproc.as_posttokenize_hook
-
-Module contents
----------------
-
-.. automodule:: podium.preproc
-   :members:
-   :no-undoc-members:
-   :show-inheritance:

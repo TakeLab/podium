@@ -51,6 +51,10 @@ function addGithubButton() {
 }
 
 function addColabLink() {
+    if (location.toString().indexOf("package_reference") !== -1) {
+        return; 
+    }
+
     const parts = location.toString().split('/');
     const pageName = parts[parts.length - 1].split(".")[0];
 

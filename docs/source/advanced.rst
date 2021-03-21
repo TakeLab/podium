@@ -4,7 +4,7 @@
   from podium.datasets import SST
   from podium.vectorizers import GloVe, TfIdfVectorizer
 
-The Podium data flow
+Podium data flow
 ====================
 
 In Podium, data exists in three states: **raw** (as read from the dataset), **processed** (once the tokenizer and additional postprocessing have been applied) and **numericalized** (converted to indices).
@@ -208,7 +208,7 @@ Custom numericalization functions
 
 It is often the case you want to use a predefined numericalization function, be it a Vocabulary obtained from another repository or one with functionality which our Vocab doesn't cover.
 
-To do that, you should pass your own callable function as the ``numericalizer`` for the corresponding Field. Please also beware that in this case, you also need to define the padding token index in order for Podium to be able to batch your data. A common example, where you want to use a tokenizer and a numericalization function from a pretrained BERT model using the ``huggingface/transformers`` library can be implemented as follows:
+To do that, you should pass your own callable function as the ``numericalizer`` for the corresponding Field. Please also beware that in this case, you also need to define the padding token index in order for Podium to be able to batch your data. A common example, where you want to use a tokenizer and a numericalization function from a pretrained BERT model using the 🤗 transformers library can be implemented as follows:
 
 .. doctest:: transformers
   :skipif: transformers is None
@@ -250,7 +250,7 @@ We have so far covered the case where you have a single input column, tokenize a
 
 You can pass a tuple of Fields under the same input data column key, and all of the Fields will use data from input column with that name. If your output Fields share the (potentially expensive) tokenizer, we have implemented a class that optimized that part of preprocessing for you: the :class:`podium.MultioutputField`.
 
-The Multioutput Field
+Multioutput Field
 ---------------------
 
 Multioutput Fields are `fake` Fields which simply handle the shared pretokenization and tokenization part of the Field processing pipeline and then forward the data to the respective output Fields.

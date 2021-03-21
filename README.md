@@ -16,11 +16,13 @@ Our goal is to accelerate users' development of NLP models whichever aspect of t
 
 ## Installation
 
-Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
+### Installing from pip
 
-We also recommend usage of a virtual environment:
-- [```conda```](https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/environments.html#virtual-environments)
-- [```virtualenv```](https://virtualenv.pypa.io/en/latest/installation/)
+You can also install `podium` using pip
+
+```bash
+pip install podium-nlp
+```
 
 ### Installing from source
 
@@ -31,39 +33,9 @@ git clone git@github.com:mttk/podium.git && cd podium
 pip install .
 ```
 
-### Installing from wheel
-
-The following release wheels are available for Podium:
-
-
-- Version **1.1.0**:
-```bash
-pip install http://takelab.fer.hr/podium/releases/podium-1.1.0-py3-none-any.whl
-```
-
-- Version **1.0.1**:
-```bash
-pip install http://takelab.fer.hr/podium/releases/podium-1.0.1-py3-none-any.whl
-```
-
-- Version **1.0.0**:
-```bash
-pip install http://takelab.fer.hr/podium/releases/podium-1.0.0-py3-none-any.whl
-```
-
-### Installing from pip
-
-**[Coming soon]** You can also install `podium` using pip
-
-```bash
-pip install podium-nlp
-```
-
 For more detailed installation instructions, check the [installation page](http://takelab.fer.hr/podium/installation.html) in the documentation.
 
-## Usage examples
-
-For usage examples see the documentation pages [walkthrough](http://takelab.fer.hr/podium/walkthrough.html) and [examples](https://github.com/mttk/podium/tree/master/examples)
+## Usage
 
 ### Loading datasets
 
@@ -92,13 +64,11 @@ SST({
 })
 >>> print(sst_train[222]) # A short example
 Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
-
 ```
 
-Load datasets from [🤗/datasets](https://github.com/huggingface/datasets):
+Load datasets from [🤗 datasets](https://github.com/huggingface/datasets):
 
 ```python
-
 >>> from podium.datasets.hf import HFDatasetConverter
 >>> import datasets
 >>> # Load the huggingface dataset
@@ -160,7 +130,7 @@ TabularDataset({
 })
 ```
 
-Or define your own `Dataset` subclass (tutorial coming soon)
+Or define your own `Dataset` subclass (tutorial coming soon).
 
 ### Define your preprocessing
 
@@ -175,7 +145,6 @@ We wrap dataset pre-processing in customizable `Field` classes. Each `Field` has
 >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
 >>> print(vocab)
 Vocab({specials: ('<UNK>', '<PAD>'), eager: True, finalized: True, size: 5000})
-
 ```
 
 Each `Field` allows the user full flexibility modify the data in multiple stages:
@@ -208,10 +177,9 @@ Example({'text': (None, ['a', 'slick', 'engrossing', 'melodrama']), 'label': (No
 
 ### Use preprocessing from other libraries
 
-A common use-case is to incorporate existing components of pretrained language models, such as BERT. This is extremely simple to incorporate as part of our `Field`s. This snippet requires installation of the `transformers` (`pip install transformers`) library.
+A common use-case is to incorporate existing components of pretrained language models, such as BERT. This is extremely simple to incorporate as part of our `Field`s. This snippet requires installation of the `🤗 transformers` (`pip install transformers`) library.
 
 ```python
-
 >>> from transformers import BertTokenizer
 >>> # Load the tokenizer and fetch pad index
 >>> tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
@@ -225,8 +193,12 @@ A common use-case is to incorporate existing components of pretrained language m
 >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
 >>> print(sst_train[222])
 Example({'subword': (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.']), 'label': (None, 'positive')})
-
 ```
+
+For a more interactive introduction check out the tutorial on Google Colab: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/takelab/podium/blob/master/docs/source/notebooks/walkthrough.ipynb)
+
+More complex examples can be found in our [examples folder](./examples).
+
 
 ## Contributing
 
@@ -238,7 +210,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Authors
 
-* Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Silvije Skudar](https://github.com/sskudar), [Mario Šaško](https://github.com/mariosasko), [Filip Boltužić](https://github.com/FilipBolt) and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list of collaborators needs to mention: [Domagoj Pluščec](https://github.com/domi385), [Marin Kačan](https://github.com/mkacan), [Dunja Vesinger](https://github.com/dunja-v), [Mate Mijolović](https://github.com/matemijolovic).
+* Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Mario Šaško](https://github.com/mariosasko), [Filip Boltužić](https://github.com/FilipBolt) and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list of collaborators needs to mention: [Domagoj Pluščec](https://github.com/domi385), [Marin Kačan](https://github.com/mkacan), [Dunja Vesinger](https://github.com/dunja-v), [Mate Mijolović](https://github.com/matemijolovic).
 * Project made as part of [TakeLab](http://takelab.fer.hr) at Faculty of Electrical Engineering and Computing, University of Zagreb
 
 See also the list of [contributors](../../graphs/contributors) who participated in this project.
