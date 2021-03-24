@@ -1,4 +1,3 @@
-import csv
 import itertools
 import os
 import pickle
@@ -6,12 +5,13 @@ import shutil
 import tempfile
 import warnings
 from collections import defaultdict
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 from podium.field import Field, unpack_fields
 
 from .dataset import DatasetBase
-from .example_factory import Example, ExampleFactory
+from .example_factory import Example
+from .tabular_dataset import _load_tabular_file
 
 
 try:
@@ -218,14 +218,15 @@ class DiskBackedDataset(DatasetBase):
     @staticmethod
     def from_tabular_file(
         path: str,
-        format: str,
         fields: Union[Dict[str, Field], List[Field]],
+        format: str = "csv",
         cache_path: Optional[str] = None,
         data_types: Dict[str, Tuple[pa.DataType, pa.DataType]] = None,
-        chunk_size=10_000,
+        chunk_size: int = 1024,
+        line2example: Optional[Callable] = None,
         skip_header: bool = False,
         delimiter=None,
-        csv_reader_params: Dict = None,
+        csv_reader_params: Optional[Dict] = None,
     ) -> "DiskBackedDataset":
         """
         Loads a tabular file format (csv, tsv, json) as a DiskBackedDataset.
@@ -279,15 +280,18 @@ class DiskBackedDataset(DatasetBase):
             Maximum number of examples to be loaded before dumping to the on-disk cache
             file. Use lower number if memory usage is an issue while loading.
 
+        line2example : callable
+            The function mapping from a file line to Fields.
+            In case your dataset is not in one of the standardized formats,
+            you can provide a function which performs a custom split for
+            each input line.
+
         skip_header : bool
                 Whether to skip the first line of the input file.
                 If format is CSV/TSV and 'fields' is a dict, then skip_header
                 must be False and the data file must have a header.
                 Default is False.
-        delimiter: str
-            Delimiter used to separate columns in a row.
-            If set to None, the default delimiter for the given format will
-            be used.
+
         csv_reader_params : Dict
                 Parameters to pass to the csv reader. Only relevant when
                 format is csv or tsv.
@@ -299,62 +303,18 @@ class DiskBackedDataset(DatasetBase):
         DiskBackedDataset
             DiskBackedDataset instance containing the examples from the tabular file.
         """
-        format = format.lower()
-        csv_reader_params = {} if csv_reader_params is None else csv_reader_params
 
-        with open(os.path.expanduser(path), encoding="utf8") as f:
-            if format in {"csv", "tsv"}:
-                delimiter = "," if format == "csv" else "\t"
-                reader = csv.reader(f, delimiter=delimiter, **csv_reader_params)
-            elif format == "json":
-                reader = f
-            else:
-                raise ValueError(f"Invalid format: {format}")
+        example_generator = _load_tabular_file(
+            path, fields, format, line2example, skip_header, csv_reader_params
+        )
 
-            if skip_header:
-                if format == "json":
-                    raise ValueError(
-                        f"When using a {format} file, skip_header must be False."
-                    )
-                elif format in {"csv", "tsv"} and isinstance(fields, dict):
-                    raise ValueError(
-                        f"When using a dict to specify fields with a {format} "
-                        "file, skip_header must be False and the file must "
-                        "have a header."
-                    )
-
-                # skipping the header
-                next(reader)
-
-            # if format is CSV/TSV and fields is a dict, transform it to a list
-            if format in {"csv", "tsv"} and isinstance(fields, dict):
-                # we need a header to know the column names
-                header = next(reader)
-
-                # columns not present in the fields dict are ignored (None)
-                fields = [fields.get(column, None) for column in header]
-
-            # fields argument is the same for all examples
-            # fromlist is used for CSV/TSV because csv_reader yields data rows as
-            # lists, not strings
-            example_factory = ExampleFactory(fields)
-            make_example_function = {
-                "json": example_factory.from_json,
-                "csv": example_factory.from_list,
-                "tsv": example_factory.from_list,
-            }
-
-            make_example = make_example_function[format]
-
-            # map each line from the reader to an example
-            example_iterator = map(make_example, reader)
-            return DiskBackedDataset.from_examples(
-                fields,
-                example_iterator,
-                cache_path=cache_path,
-                data_types=data_types,
-                chunk_size=chunk_size,
-            )
+        return DiskBackedDataset.from_examples(
+            fields,
+            example_generator,
+            cache_path=cache_path,
+            data_types=data_types,
+            chunk_size=chunk_size,
+        )
 
     @staticmethod
     def _schema_to_data_types(

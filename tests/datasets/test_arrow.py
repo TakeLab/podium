@@ -223,7 +223,7 @@ def test_from_tabular(data, fields, tmpdir):
         writer = csv.writer(f)
         writer.writerows(data)
 
-    csv_dataset = DiskBackedDataset.from_tabular_file(test_file, "csv", fields)
+    csv_dataset = DiskBackedDataset.from_tabular_file(test_file, fields, format="csv")
     for ex, d in zip(csv_dataset, data):
         assert int(ex.number[0]) == d[0]
         assert ex.tokens[0] == d[1]
