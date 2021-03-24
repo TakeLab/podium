@@ -5,14 +5,13 @@ Hooks
 ------
 
 Moses Normalizer
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
 .. autoclass:: podium.preproc.MosesNormalizer
    :members:
    :no-undoc-members:
 
-
 Regex Replace
-^^^^^^^^^^^^^^
+^^^^^^^^^^^^^
 .. autoclass:: podium.preproc.RegexReplace
    :members:
    :no-undoc-members:
@@ -38,48 +37,29 @@ NLTK Stemmer
    :no-undoc-members:
 
 Spacy Lemmatizer
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
 .. autoclass:: podium.preproc.SpacyLemmatizer
    :members:
    :no-undoc-members:
 
-Stop words
-----------
+Truecasing
+^^^^^^^^^^
+.. autofunction:: podium.preproc.truecase
 
-.. automodule:: podium.preproc.stop_words
-   :members:
-   :no-undoc-members:
-   :show-inheritance:
-
-
-Sentencizers
-------------
-
-.. automodule:: podium.preproc.sentencizers
-   :members:
-   :no-undoc-members:
-   :show-inheritance:
+Stopwords removal
+^^^^^^^^^^^^^^^^^
+.. autofunction:: podium.preproc.remove_stopwords
 
 Tokenizers
 -----------
 
-.. automodule:: podium.preproc.tokenizers
+.. autofunction:: podium.preproc.get_tokenizer
+
+.. autoclass:: podium.preproc.SpacySentencizer
    :members:
    :no-undoc-members:
-   :show-inheritance:
 
 Utilities
 ----------
 
-.. automodule:: podium.preproc.utils
-   :members:
-   :no-undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: podium.preproc
-   :members:
-   :no-undoc-members:
-   :show-inheritance:
+.. autofunction:: podium.preproc.as_posttokenize_hook

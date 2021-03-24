@@ -114,7 +114,7 @@ class Field:
             - 'split' - default str.split(). Custom separator can be provided as
               `split-sep` where `sep` is the separator string.
             - 'spacy-lang' - the spacy tokenizer. The language model can be defined
-              by replacing `lang` with the language model name (e.g. `spacy-en`).
+              by replacing `lang` with the language model name. For example `spacy-en_core_web_sm`
 
             If None, the data will not be tokenized. The provided data will be
             stored in the `tokenized` data field as-is.
@@ -762,7 +762,7 @@ class Field:
             self._tokenizer = get_tokenizer(self._tokenizer_arg_string)
 
     def __repr__(self):
-        vocab_str = f",\n    vocab: {self.vocab}\n" if self.use_vocab else ""
+        vocab_str = f",\n    vocab: {self.vocab}\n" if self.use_vocab else "\n"
         return (
             f"{type(self).__name__}({{"
             f"\n    name: {self.name},"
@@ -817,7 +817,7 @@ class MultioutputField:
 
             - 'split' - default str.split()
             - 'spacy-lang' - the spacy tokenizer. The language model can be defined
-              by replacing `lang` with the language model name. For example `spacy-en`
+              by replacing `lang` with the language model name. For example `spacy-en_core_web_sm`
 
         pretokenize_hooks: Iterable[Callable[[Any], Any]]
             Iterable containing pretokenization hooks. Providing hooks in this way is
@@ -1074,7 +1074,7 @@ class MultilabelField(Field):
             - 'split' - default str.split(). Custom separator can be provided as
               `split-sep` where `sep` is the separator string.
             - 'spacy-lang' - the spacy tokenizer. The language model can be defined
-              by replacing `lang` with the language model name. For example `spacy-en`.
+              by replacing `lang` with the language model name. For example `spacy-en_core_web_sm`.
 
             If None, the data will not be tokenized and post-tokenization hooks wont be
             called. The provided data will be stored in the `tokenized` data field as-is.

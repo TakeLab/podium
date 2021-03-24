@@ -101,6 +101,7 @@ DOCS_REQUIRE = [
     'sphinx_rtd_theme',
     'sphinx-copybutton',
     'recommonmark',
+    'nbformat',
     'datasets',
     'xlrd',
 ]

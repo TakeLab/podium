@@ -117,7 +117,7 @@ class GloVe(BasicVectorStorage):
         path = os.path.join(LargeResource.BASE_RESOURCE_DIR, name, file_name)
 
         vectors_kwargs = {
-            "default_vector_function": random_normal_default_vector,
+            "default_vector_function": default_vector_function,
             "cache_path": cache_path,
             "max_vectors": max_vectors,
             "path": path,

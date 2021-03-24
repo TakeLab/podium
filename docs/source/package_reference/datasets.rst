@@ -20,7 +20,7 @@ DiskBackedDataset
    :members:
    :no-undoc-members:
 
-HuggingFaceDatasetConverter
+HFDatasetConverter
 ---------------------------
 .. autoclass:: podium.datasets.hf.HFDatasetConverter
    :members:

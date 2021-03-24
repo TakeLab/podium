@@ -23,46 +23,38 @@ The documentation is organized in four parts:
 
 .. toctree::
     :maxdepth: 2
-    :caption: Getting started
+    :caption: Getting Started
 
-    installation
     walkthrough
+    installation
     faq
 
 .. toctree::
     :maxdepth: 2
-    :caption: In depth overview
+    :caption: In Depth Overview
 
     advanced
     coming_soon
 
 .. toctree::
     :maxdepth: 2
-    :caption: Preprocessing tools
+    :caption: Preprocessing Tools
 
     preprocessing
 
 .. toctree::
    :maxdepth: 2
-   :caption: Core package Reference:
+   :caption: Package Reference
 
-   vocab_and_fields
-   datasets
-   iterators
-   vectorizers
-   resources
-   preproc
+   package_reference/vocab_and_fields
+   package_reference/preprocessing
+   package_reference/datasets
+   package_reference/iterators
+   package_reference/vectorizers
 
 .. toctree::
    :maxdepth: 2
-   :caption: Modules under development
+   :caption: Modules Under Development
 
    under_development
    model_implementations
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
