@@ -4,7 +4,7 @@
   from podium.datasets import SST
   from podium.vectorizers import GloVe, TfIdfVectorizer
 
-The Podium data flow
+Podium data flow
 ====================
 
 In Podium, data exists in three states: **raw** (as read from the dataset), **processed** (once the tokenizer and additional postprocessing have been applied) and **numericalized** (converted to indices).
@@ -50,9 +50,9 @@ We can see that now we also have the pre-tokenized text available to us. In the 
 How to interact with Fields
 ===========================
 
-In the previous section, we could see that text from the SST dataset is both in uppercase as well as lowercase. Apart from that, we might not want to keep punctuation tokens, which we can also see in the processed data. These are two cases for which we have designed pretokenization and posttokenization **hooks**.
+In the previous section, we could see that text from the SST dataset is both in uppercase as well as lowercase. Apart from that, we might not want to keep punctuation tokens, which we can also see in the processed data. These are two cases for which we have designed pretokenization and post-tokenization **hooks**.
 
-As we said earlier, data in Podium exists in three states: raw, processed and numericalized. You can intervene and add a custom transformation between each of these three states. Functions which modify raw data prior to tokenization are called **pretokenization hooks**, while functions which modify processed data prior to numericalization are called **posttokenization hooks**. We can see the Field process visualized for the text Field in the following image:
+As we said earlier, data in Podium exists in three states: raw, processed and numericalized. You can intervene and add a custom transformation between each of these three states. Functions which modify raw data prior to tokenization are called **pretokenization hooks**, while functions which modify processed data prior to numericalization are called **post-tokenization hooks**. We can see the Field process visualized for the text Field in the following image:
 
 .. image:: _static/field_internals.png
     :alt: Field visualisation
@@ -64,61 +64,61 @@ Pretokenization hooks have the following signature:
 .. doctest:: hooks
 
   >>> def pretokenizationHook(raw):
-  ...   raw = do_something(raw)
-  ...   return raw
+  ...     raw = do_something(raw)
+  ...     return raw
 
 Each pretokenization hook accepts one argument, the raw data for that instance, and returns one output, the modified raw data. The raw data is then updated accordingly in the Example instance. Posttokenization hooks follow a similar signature:
 
 .. doctest:: hooks
 
   >>> def posttokenization_hook(raw, processed):
-  ...   processed = do_something(raw, processed)
-  ...   return raw, processed
+  ...     processed = do_something(raw, processed)
+  ...     return raw, processed
 
-Each posttokenization hook accepts two arguments, the raw and processed data for that instance and returns two outputs, which are the modified raw and tokenized data. Both of those are then updated in the Example instance for that data Field in each dataset instance.
+Each post-tokenization hook accepts two arguments, the raw and processed data for that instance and returns two outputs, which are the modified raw and tokenized data. Both of those are then updated in the Example instance for that data Field in each dataset instance.
 If we want to define some text processing which requires some external attribute (e.g. storing the list of stop words for removing stop words), our hook can be a class as long as it implements the ``__call__`` method.
 
 
 .. doctest:: hooks
 
   >>> class PretokenizationHook:
-  ...   def __init__(self, metadata):
-  ...     self.metadata = metadata
+  ...     def __init__(self, metadata):
+  ...         self.metadata = metadata
   ...
-  ...   def __call__(self, raw):
-  ...     raw = do_something(raw, metadata)
-  ...     return raw
+  ...     def __call__(self, raw):
+  ...         raw = do_something(raw, metadata)
+  ...         return raw
 
 Let's now define a few concrete hooks and use them in our dataset.
 
 Lowercase as a pretokenization hook
 -----------------------------------
 
-We will first implement a pretokenization hook which will lowercase our raw data. Please beware that casing might influence your tokenizer, so it might be wiser to implement this as a posttokenization hook. In our case however, the tokenizer is ``str.split``, so we are safe. This hook is going to be very simple:
+We will first implement a pretokenization hook which will lowercase our raw data. Please beware that casing might influence your tokenizer, so it might be wiser to implement this as a post-tokenization hook. In our case however, the tokenizer is ``str.split``, so we are safe. This hook is going to be very simple:
 
 .. doctest:: hooks
 
   >>> def lowercase(raw):
-  ...   """Lowercases the input string"""
-  ...   return raw.lower()
+  ...     """Lowercases the input string"""
+  ...     return raw.lower()
 
-And we're done! We can now add our hook to the text field either through the :meth:`podium.Field.add_pretokenize_hook` method of the Field or through the ``pretokenize_hooks`` constructor argument. We will first define a posttokenization hook which removes punctuation and then apply them both to our text Field.
+And we're done! We can now add our hook to the text field either through the :func:`podium.Field.add_pretokenize_hook` method of the Field or through the ``pretokenize_hooks`` constructor argument. We will first define a post-tokenization hook which removes punctuation and then apply them both to our text Field.
 
-Removing punctuation as a posttokenization hook
------------------------------------------------
+Removing punctuation as a post-tokenization hook
+------------------------------------------------
 
-We will now similarly define a posttokenization hook to remove punctuation. We will use the punctuation list from python's built-in ``str`` module, which we will store as an attribute of our hook.
+We will now similarly define a post-tokenization hook to remove punctuation. We will use the punctuation list from python's built-in ``str`` module, which we will store as an attribute of our hook.
 
 .. doctest:: hooks
 
   >>> import string
   >>> class RemovePunct:
-  ...   def __init__(self):
-  ...     self.punct = set(string.punctuation)
+  ...     def __init__(self):
+  ...         self.punct = set(string.punctuation)
   ...
-  ...   def __call__(self, raw, tokenized):
-  ...     """Remove punctuation from tokenized data"""
-  ...     return raw, [tok for tok in tokenized if tok not in self.punct]
+  ...     def __call__(self, raw, tokenized):
+  ...         """Remove punctuation from tokenized data"""
+  ...         return raw, [tok for tok in tokenized if tok not in self.punct]
 
 Putting it all together
 -----------------------
@@ -161,11 +161,11 @@ To better understand how specials work, we will walk through the implementation 
 
   >>> from podium.vocab import Special
   >>> class BOS(Special):
-  ...   default_value = "<BOS>"
+  ...     token = "<BOS>"
   ...
-  ...   def apply(self, sequence):
-  ...      # Prepend to the sequence
-  ...      return [self] + sequence
+  ...     def apply(self, sequence):
+  ...         # Prepend to the sequence
+  ...         return [self] + sequence
   >>>
   >>> bos = BOS()
   >>> print(bos)
@@ -208,7 +208,7 @@ Custom numericalization functions
 
 It is often the case you want to use a predefined numericalization function, be it a Vocabulary obtained from another repository or one with functionality which our Vocab doesn't cover.
 
-To do that, you should pass your own callable function as the ``numericalizer`` for the corresponding Field. Please also beware that in this case, you also need to define the padding token index in order for Podium to be able to batch your data. A common example, where you want to use a tokenizer and a numericalization function from a pretrained BERT model using the ``huggingface/transformers`` library can be implemented as follows:
+To do that, you should pass your own callable function as the ``numericalizer`` for the corresponding Field. Please also beware that in this case, you also need to define the padding token index in order for Podium to be able to batch your data. A common example, where you want to use a tokenizer and a numericalization function from a pretrained BERT model using the 🤗 transformers library can be implemented as follows:
 
 .. doctest:: transformers
   :skipif: transformers is None
@@ -250,7 +250,7 @@ We have so far covered the case where you have a single input column, tokenize a
 
 You can pass a tuple of Fields under the same input data column key, and all of the Fields will use data from input column with that name. If your output Fields share the (potentially expensive) tokenizer, we have implemented a class that optimized that part of preprocessing for you: the :class:`podium.MultioutputField`.
 
-The Multioutput Field
+Multioutput Field
 ---------------------
 
 Multioutput Fields are `fake` Fields which simply handle the shared pretokenization and tokenization part of the Field processing pipeline and then forward the data to the respective output Fields.
@@ -266,15 +266,15 @@ One example of such a use-case would be extracting both word tokens as well as t
   >>> # Define hooks to extract raw text and POS tags
   >>> # from spacy token objects
   >>> def extract_text_hook(raw, tokenized):
-  ...   return raw, [token.text for token in tokenized]
+  ...     return raw, [token.text for token in tokenized]
   >>> def extract_pos_hook(raw, tokenized):
-  ...   return raw, [token.pos_ for token in tokenized]
+  ...     return raw, [token.pos_ for token in tokenized]
   >>>
   >>> # Define the output Fields and the MultioutputField
   >>> word = Field(name='word', numericalizer=Vocab(), posttokenize_hooks=[extract_text_hook])
   >>> pos = Field(name='pos', numericalizer=Vocab(), posttokenize_hooks=[extract_pos_hook])
   >>>
-  >>> spacy_tokenizer = spacy.load('en', disable=['parser', 'ner'])
+  >>> spacy_tokenizer = spacy.load('en_core_web_sm', disable=['parser', 'ner'])
   >>> text = MultioutputField([word, pos], tokenizer=spacy_tokenizer)
   >>>
   >>> label = LabelField(name='label')
@@ -288,7 +288,7 @@ One example of such a use-case would be extracting both word tokens as well as t
 
 MultioutputFields accept three parameters upon construction, which encapsulate the first part of the Field processing cycle:
 
-  - :obj:`output_fields` ``(List[Field])``: a sequence of Fields which will map tokenized data to outputs by applying posttokenization hooks and numericalization.
+  - :obj:`output_fields` ``(List[Field])``: a sequence of Fields which will map tokenized data to outputs by applying post-tokenization hooks and numericalization.
   - :obj:`tokenizer` ``(str | Callable)``: the tokenizer to use (keyword string or callable function). The same tokenizer will be used prior to passing data to all output Fields.
   - :obj:`pretokenization_hooks` ``(Tuple(Callable))``: a sequence of pretokenization hooks to apply to the raw data.
 
@@ -300,7 +300,7 @@ Dataset manipulation
 Dataset splitting
 ---------------------
 
-It is often the case we want to somehow manipulate the size of our dataset. One common use-case is that our dataset comes in a single split -- and we wish to segment it into a train, test and perhaps validation split. For this, we have defined a :meth:`Dataset.split` function which allows you to split your dataset into arbitrary ratios:
+It is often the case we want to somehow manipulate the size of our dataset. One common use-case is that our dataset comes in a single split -- and we wish to segment it into a train, test and perhaps validation split. For this, we have defined a :func:`Dataset.split` function which allows you to split your dataset into arbitrary ratios:
 
 .. doctest:: dataset_splitting
 
@@ -317,9 +317,9 @@ As you can notice from the example -- you can define the split sizes as integer 
 
   >>> from collections import Counter
   >>> def value_distribution(dataset, field='label'):
-  ...    c = Counter([ex[field][1] for ex in dataset])
-  ...    Z = sum(c.values())
-  ...    return {k: v/Z for k, v in c.items()}
+  ...     c = Counter([ex[field][1] for ex in dataset])
+  ...     Z = sum(c.values())
+  ...     return {k: v/Z for k, v in c.items()}
   >>> 
   >>> print(value_distribution(sst_train),
   ...       value_distribution(sst_dev),
@@ -371,7 +371,7 @@ For a simple example, we will take a look at the built-in SST and IMDB datasets:
   >>> # Luckily, both label vocabularies are already equal
   >>> print(imdb_train.field('label').vocab.itos)
   ['positive', 'negative']
-  >>> print(sst_train.fields('label').vocab.itos)
+  >>> print(sst_train.field('label').vocab.itos)
   ['positive', 'negative']
   >>> # Define a text Field for the concatenated dataset 
   >>> concat_text_field = Field("text", numericalizer=Vocab())
@@ -406,9 +406,9 @@ For this reason, usage of :class:`podium.datasets.BucketIterator` is recommended
   >>> # Define the iterators and our sort key
   >>> from podium import Iterator, BucketIterator
   >>> def instance_length(instance):
-  >>>   # Use the text Field
-  >>>   raw, tokenized = instance.text
-  >>>   return len(tokenized)
+  >>>     # Use the text Field
+  >>>     raw, tokenized = instance.text
+  >>>     return len(tokenized)
   >>> bucket_iter = BucketIterator(train, batch_size=32, bucket_sort_key=instance_length)
 
 The ``bucket_sort_key`` function defines how the instances in the dataset should be sorted. The method accepts an instance of the dataset, and should return a value which will be used as a sort key in the ``BucketIterator``. It might be interesting (and surprising) to see how much space (and time) do we earn by bucketing. We will define a naive iterator on the same dataset and measure the total amount of padding used when iterating over a dataset.
@@ -419,30 +419,30 @@ The ``bucket_sort_key`` function defines how the instances in the dataset should
   >>> vanilla_iter = Iterator(train, batch_size=32)
   >>>
   >>> def count_padding(batch, padding_idx):
-  >>>   return np.count_nonzero(batch == padding_idx)
-  >>> padding_index = vocab.padding_index()
+  >>>     return np.count_nonzero(batch == padding_idx)
+  >>> padding_index = vocab.get_padding_index()
   >>> 
   >>> for iterator in (vanilla_iter, bucket_iter):
-  >>>   total_padding = 0
-  >>>   total_size = 0
+  >>>     total_padding = 0
+  >>>     total_size = 0
   >>>
-  >>>   for batch_x, batch_y in iterator:
-  >>>       total_padding += count_padding(batch_x.text, padding_index)
-  >>>       total_size += batch_x.text.size
-  >>>   print(f"For {iterator.__class__.__name__}, padding = {total_padding}"
-  >>>         f" out of {total_size} = {total_padding/total_size:.2%}")
+  >>>     for batch_x, batch_y in iterator:
+  >>>         total_padding += count_padding(batch_x.text, padding_index)
+  >>>         total_size += batch_x.text.size
+  >>>     print(f"For {iterator.__class__.__name__}, padding = {total_padding}"
+  >>>           f" out of {total_size} = {total_padding/total_size:.2%}")
   For Iterator, padding = 148141 out of 281696 = 52.588961149608096%
   For BucketIterator, padding = 2125 out of 135680 = 1.5661851415094339%
 
 As we can see, the difference between using a regular Iterator and a BucketIterator is massive. Not only do we reduce the amount of padding, we have reduced the total amount of tokens processed by about 50%. The SST dataset, however, is a relatively small dataset so this experiment might be a bit biased. Let's take a look at the same statistics for the :class:`podium.datasets.IMDB` dataset. After changing the highligted data loading line in the first snippet to:
 
-.. code-block:: python
+.. code-block:: rest
 
-  >>> train, test = IMDB.get_dataset_splits(fields=fields)
+  train, test = IMDB.get_dataset_splits(fields=fields)
 
 And re-running the code, we obtain the following, still significant improvement:
 
-.. code-block:: python
+.. code-block:: rest
 
   For Iterator, padding = 13569936 out of 19414616 = 69.89546432440385%
   For BucketIterator, padding = 259800 out of 6104480 = 4.255890755641758%
@@ -452,11 +452,6 @@ Generally, using bucketing when iterating over your NLP dataset is preferred and
 
 Saving and loading Podium components
 =====================================
-
-.. testsetup:: saveload
-
-  import os
-  os.mkdir('cache')
 
 Preprocessing your dataset is often time-consuming and once you've done it, you wouldn't want to repeat the process. In Podium, we cache your processed and numericalized dataset so neither of these computations has to be done more than once. To ensure you don't have to repeat the potentially expensive preprocessing, all of our base components are picklable.
 
@@ -477,40 +472,45 @@ As an example, we will again turn to the SST dataset and some of our previously 
   >>>
   >>> print(sst_train)
   SST({
-        size: 6920,
-        fields: [
-            Field({
-                name: text,
-                keep_raw: False,
-                is_target: False,
-                vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, finalized: True, size: 5000})
-            }),
-            LabelField({
-                name: label,
-                keep_raw: False,
-                is_target: True,
-                vocab: Vocab({specials: (), eager: True, finalized: True, size: 3})
-            })
-        ]
+      size: 6920,
+      fields: [
+          Field({
+              name: text,
+              keep_raw: False,
+              is_target: False,
+              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, is_finalized: True, size: 5000})
+          }),
+          LabelField({
+              name: label,
+              keep_raw: False,
+              is_target: True,
+              vocab: Vocab({specials: (), eager: True, is_finalized: True, size: 3})
+          })
+      ]
     })
   >>> print(sst_train[222])
   Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
 
-Each ``Dataset`` instance in the SST dataset splits contains ``Field``s and a ``Vocab``. When we pickle a dataset, we also store those objects. We will now demonstrate how to store (and load) a pickled dataset in a folder which we opened previously, named ``cache``.
+Each ``Dataset`` instance in the SST dataset splits contains ``Field``\s and a ``Vocab``. When we pickle a dataset, we also store those objects. We will now demonstrate how to store (and load) a pickled dataset.
 
 .. doctest:: saveload
   :options: +NORMALIZE_WHITESPACE
 
-  >>> import os, pickle
-  >>> dataset_store_path = os.path.join('cache', 'sst_preprocessed.pkl')
+  >>> from pathlib import Path
+  >>> import pickle
+  >>>
+  >>> cache_dir = Path('cache')
+  >>> cache_dir.mkdir()
+  >>>
+  >>> dataset_store_path = cache_dir.joinpath('sst_preprocessed.pkl')
   >>>
   >>> # Save the dataset
   >>> with open(dataset_store_path, 'wb') as outfile:
-  ...    pickle.dump((sst_train, sst_dev, sst_test), outfile)
+  ...     pickle.dump((sst_train, sst_dev, sst_test), outfile)
   >>>
   >>> # Restore the dataset
   >>> with open(dataset_store_path, 'rb') as infile:
-  ...   sst_train, sst_dev, sst_test = pickle.load(infile)
+  ...     sst_train, sst_dev, sst_test = pickle.load(infile)
   >>> print(sst_train[222])
   Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
 
@@ -529,12 +529,12 @@ In case you don't want this behavior and would rather your unpickled iterator st
   [[  14 1057   10 2580    8   28    4 3334 3335    9  154   68    0   67
          5   11   81    9  274    8   83    6 4683   74 2901   38 1410 2581
          3    0 2102    0   49  870    0    2]]
-  >>> iterator_store_path = os.path.join('cache', 'sst_train_iter.pkl')
+  >>> iterator_store_path = cache_dir.joinpath('sst_train_iter.pkl')
   >>> with open(iterator_store_path, 'wb') as outfile:
-  ...   pickle.dump((train_iter), outfile)
+  ...     pickle.dump((train_iter), outfile)
   >>>
   >>> with open(iterator_store_path, 'rb') as infile:
-  ...   train_iter_restore = pickle.load(infile)
+  ...     train_iter_restore = pickle.load(infile)
 
 Now that we have loaded our Iterator, we can validate whether the loaded version will continue where the initial one left off:
 
@@ -551,12 +551,8 @@ Now that we have loaded our Iterator, we can validate whether the loaded version
 
 Of course, in case you want to start over, just call ``Iterator.reset()`` and the iteration will start from the beginning.
 
-.. testcleanup:: saveload
-
-  import shutil
-  shutil.rmtree('cache')
-
 .. testcleanup::
 
   import shutil
+  shutil.rmtree('cache')
   shutil.rmtree('sst')

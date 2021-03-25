@@ -878,7 +878,9 @@ class DatasetConcatView(DatasetBase):
         Updates and finalizes all eager override fields.
         """
         eager_fields = {
-            n: f for n, f in self._field_overrides.items() if not f.finalized and f.eager
+            n: f
+            for n, f in self._field_overrides.items()
+            if not f.is_finalized and f.eager
         }
 
         if eager_fields:

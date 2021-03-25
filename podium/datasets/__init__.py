@@ -23,10 +23,5 @@ from .impl.imdb_sentiment_dataset import IMDB
 from .impl.pauza_dataset import PauzaHRDataset
 from .impl.snli_dataset import SNLIDataset, SNLISimple
 from .impl.sst_sentiment_dataset import SST
-from .iterator import (
-    BucketIterator,
-    HierarchicalDatasetIterator,
-    Iterator,
-    SingleBatchIterator,
-)
+from .iterator import BucketIterator, HierarchicalIterator, Iterator, SingleBatchIterator
 from .tabular_dataset import TabularDataset

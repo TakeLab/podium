@@ -7,7 +7,7 @@ from podium.datasets import Dataset, ExampleFactory
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
 from podium.datasets.iterator import (
     BucketIterator,
-    HierarchicalDatasetIterator,
+    HierarchicalIterator,
     Iterator,
     SingleBatchIterator,
 )
@@ -57,7 +57,7 @@ def test_padding(fixed_length, expected_shape, json_file_path):
 
     assert input_batch.text.shape == expected_shape
 
-    pad_symbol = fields["text"].vocab.padding_index()
+    pad_symbol = fields["text"].vocab.get_padding_index()
 
     for i, row in enumerate(input_batch.text):
         if TABULAR_TEXT[i] is None:
@@ -546,7 +546,7 @@ def hierarchical_dataset_2(hierarchical_dataset_fields, hierarchical_dataset_par
 
 
 def test_hierarchical_dataset_iteration(hierarchical_dataset):
-    hit = HierarchicalDatasetIterator(dataset=hierarchical_dataset, batch_size=3)
+    hit = HierarchicalIterator(dataset=hierarchical_dataset, batch_size=3)
     batch_iter = iter(hit)
 
     input_batch_1, _ = next(batch_iter)
@@ -576,7 +576,7 @@ def test_hierarchical_dataset_iteration(hierarchical_dataset):
 
 
 def test_hierarchical_dataset_iteration_with_depth_limitation(hierarchical_dataset):
-    hit = HierarchicalDatasetIterator(
+    hit = HierarchicalIterator(
         dataset=hierarchical_dataset, batch_size=20, context_max_depth=0
     )
     batch_iter = iter(hit)
@@ -588,7 +588,7 @@ def test_hierarchical_dataset_iteration_with_depth_limitation(hierarchical_datas
 
 def test_hierarchial_dataset_iterator_numericalization_caching(hierarchical_dataset):
     # Run one epoch to cause lazy numericalization
-    hit = HierarchicalDatasetIterator(
+    hit = HierarchicalIterator(
         dataset=hierarchical_dataset, batch_size=20, context_max_depth=2
     )
     for _ in hit:
@@ -605,14 +605,14 @@ def test_hierarchial_dataset_iterator_numericalization_caching(hierarchical_data
 
 
 def test_hierarchical_no_dataset_set():
-    hi = HierarchicalDatasetIterator(batch_size=20, context_max_depth=2)
+    hi = HierarchicalIterator(batch_size=20, context_max_depth=2)
     with pytest.raises(AttributeError):
         for b in hi:
             pass
 
 
 def test_hierarchical_set_dataset_after(hierarchical_dataset, hierarchical_dataset_2):
-    hi = HierarchicalDatasetIterator(batch_size=3, context_max_depth=2)
+    hi = HierarchicalIterator(batch_size=3, context_max_depth=2)
     hi.set_dataset(hierarchical_dataset)
     batch_iter = iter(hi)
 

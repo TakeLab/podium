@@ -4,12 +4,12 @@
 Hooks
 ======
 
-Podium contains a number of predefined hook classes which you can instantiate and use in your Fields. Most of these hooks (if they have the ``as_pretokenization`` constructor parameter) are customizable and can work both as pretokenization hooks as well as posttokenization hooks.
+Podium contains a number of predefined hook classes which you can instantiate and use in your Fields. Most of these hooks are customizable and can work both as pretokenization hooks as well as post-tokenization hooks.
 
 .. note::
-   If you apply a hook as posttokenization, it will be called for each element in the tokenized sequence!
+   If you apply a hook as post-tokenization, it will be called for each element in the tokenized sequence!
 
-   Hooks should be cast to posttokenization **only** if their application would otherwise influence the tokenization process. Setting a hook to posttokenization is expected to take longer than the same hook being used during pretokenization.
+   Hooks should be cast to post-tokenization **only** if their application would otherwise influence the tokenization process. Setting a hook to post-tokenization is expected to take longer than the same hook being used during pretokenization.
 
 
 Moses Normalizer
@@ -25,11 +25,12 @@ Moses Normalizer
    >>> print(moses(text))
    A _very_ spaced sentence
 
-By default, MosesNormalizer is a pretokenization hook, which means it expects a single string as an argument. We can cast it to a post-tokenization hook by setting ``as_pretokenization=False`` in the constructor. As a result, the hook now expectes two arguments.
+By default, MosesNormalizer is a pretokenization hook, which means it expects a single string as an argument. We can cast it to a post-tokenization hook with the :func:`podium.preproc.as_posttokenize_hook` helper function that transforms the built-in pretokenization hooks to post-tokenization hooks. As a result, the hook now expectes two arguments.
 
 .. code-block:: python
 
-   >>> moses = MosesNormalizer(language="en", as_pretokenization=False)
+   >>> from podium.preproc import as_posttokenize_hook
+   >>> moses = as_posttokenize_hook(moses)
    >>> raw_text = None
    >>> tokenized_text = ["A        ","         _very_","     spaced  "," sentence"]
    >>> print(moses(raw_text, tokenized_text))
@@ -119,7 +120,7 @@ Spacy Lemmatizer
 Truecase
 --------
 
-:meth:`podium.preproc.truecase` is a **pre-tokenization** hook that applies `truecasing <https://github.com/daltonfury42/truecase>`__ the the input strings. The ``oov`` argument controls how the library handles out-of-vocabulary tokens, the options being ``{"title", "lower", "as-is"}``.
+:func:`podium.preproc.truecase` is a **pre-tokenization** hook that applies `truecasing <https://github.com/daltonfury42/truecase>`__ the the input strings. The ``oov`` argument controls how the library handles out-of-vocabulary tokens, the options being ``{"title", "lower", "as-is"}``.
 
 .. code-block:: python
 
@@ -131,31 +132,50 @@ Truecase
 Stopword removal
 -----------------
 
-:meth:`podium.preproc.remove_stopwords` is a **post-tokenization** hook that removes stop words from the tokenized sequence. The list of stop words is provided by `SpaCy <https://spacy.io/>`__ and the language is controlled by the ``language`` parameter.
+:func:`podium.preproc.remove_stopwords` is a **post-tokenization** hook that removes stop words from the tokenized sequence. The list of stop words is provided by `SpaCy <https://spacy.io/>`__ and the language is controlled by the ``language`` parameter.
 
 .. warning::
    The spacy stopword list is in lowercase, so it is recommended to lowercase your tokens prior to stopword removal to avoid unexpected behavior.
 
 .. code-block:: python
 
+   >>> from podium.preproc import remove_stopwords
    >>> remove_stopwords_hook = remove_stopwords('en')
    >>> raw_text = None
    >>> tokenized_text = ['in', 'my', 'opinion', 'an', 'exciting', 'and', 'funny', 'movie']
    >>> print(remove_stopwords_hook(raw_text, tokenized_text))
    (None, [opinion', 'exciting', 'funny', 'movie'])
 
+Keyword extraction
+------------------
+
+:class:`podium.preproc.KeywordExtractor` is a **special post-tokenization** hook that extracts keywords from the **raw** sequence. Currently, two keyword extraction algorithms are supported: ``yake`` and ``rake``.
+
+.. warning::
+   The results in the following example are not representative due to the short input text.
+
+.. code-block:: python
+
+   >>> from podium.preproc import KeywordExtractor
+   >>> keyword_extraction_hook = KeywordExtractor('yake', top=3)
+   >>> raw_text = 'Next conference in San Francisco this week, the official announcement could come as early as tomorrow.'
+   >>> tokenized_text = []
+   >>> _, keywords = keyword_extraction_hook(raw_text, tokenized_text)
+   >>> print(keywords)
+   ['san francisco', 'francisco this week', 'conference in san']
+
+
 Utilities
 =========
 
 Various tools that can be used for preprocessing textual datasets, not necessarily intended to be used as hooks.
 
-The SpaCy sentencizer
+SpaCy sentencizer
 ----------------------
 
-:class:`podium.preproc.SpacySentencizer` can bse used to split input strings into sentences prior to tokenization.
+:class:`podium.preproc.SpacySentencizer` can be used to split input strings into sentences prior to tokenization.
 
+Hook conversion
+---------------
 
-Yet another keyword extractor
------------------------------
-
-:class:`podium.preproc.YAKE` can be used to extract keywords from input strings.
+:func:`podium.preproc.as_posttokenize_hook` can be used to convert a built-in pretokenization hook to a post-tokenization hook.

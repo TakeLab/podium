@@ -11,7 +11,7 @@ from .datasets import (
     Dataset,
     Example,
     HierarchicalDataset,
-    HierarchicalDatasetIterator,
+    HierarchicalIterator,
     Iterator,
     SingleBatchIterator,
     TabularDataset,

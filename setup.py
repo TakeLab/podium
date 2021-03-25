@@ -23,24 +23,25 @@ DOCLINES = __doc__.split('\n')
 
 INSTALL_REQUIRES = [
     # for numericalization in batching
-    "numpy<=1.19",
+    "numpy;python_version>='3.7'",
+    "numpy<=1.19;python_version<'3.7'",
     # for improved dataset pickling
     "dill",
     # for tokenization and data encoded in tree structure
     "nltk>=3.0",
     # for improved csv parsing
-    "pandas<1.2.0",
+    "pandas;python_version>='3.7'",
+    "pandas<1.2.0;python_version<'3.7'",
     # for downloading datasets over HTTP
     "paramiko",
     "requests",
     # for models and model selection
     "scikit-learn",
     # for sparse storage
-    "scipy<1.6.0",
+    "scipy;python_version>='3.7'",
+    "scipy<1.6.0;python_version<'3.7'",
     # progress bar in download and model selection
     "tqdm",
-    # for keyword extraction
-    "yake @ https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz",
     # for some datasets
     'xlrd',
     # for labels in EuroVoc and nodes in HierarhicalDataset
@@ -88,6 +89,10 @@ PREPROC_REQUIRE = [
     "clean-text",
     # for truecasing
     "truecase",
+    # for keyword extraction
+    "rake-nltk",
+    # for keyword extraction
+    "yake @ https://github.com/LIAAD/yake/archive/v0.4.4.tar.gz",
 ]
 
 
@@ -96,6 +101,7 @@ DOCS_REQUIRE = [
     'sphinx_rtd_theme',
     'sphinx-copybutton',
     'recommonmark',
+    'nbformat',
     'datasets',
     'xlrd',
 ]

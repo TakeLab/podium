@@ -18,3 +18,9 @@ SingleBatchIterator
 .. autoclass:: podium.datasets.SingleBatchIterator
    :members:
    :no-undoc-members:
+
+HierarchicalIterator
+--------------------
+.. autoclass:: podium.datasets.HierarchicalIterator
+   :members:
+   :no-undoc-members:

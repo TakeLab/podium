@@ -8,6 +8,7 @@ from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 
+from podium.preproc.hooks import HookType
 from podium.preproc.tokenizers import get_tokenizer
 from podium.vocab import Vocab
 
@@ -23,6 +24,9 @@ class PretokenizationPipeline:
         self.hooks = deque(hooks)
 
     def add_hook(self, hook: PretokenizationHookType):
+        hook_type = getattr(hook, "__hook_type__", HookType.PRETOKENIZE)
+        if hook_type != HookType.PRETOKENIZE:
+            raise ValueError("Hook is not a pretokenization hook")
         self.hooks.append(hook)
 
     def process(self, raw):
@@ -45,6 +49,11 @@ class PosttokenizationPipeline:
         self.hooks = deque(hooks)
 
     def add_hook(self, hook: PosttokenizationHookType):
+        hook_type = getattr(hook, "__hook_type__", HookType.POSTTOKENIZE)
+        if hook_type != HookType.POSTTOKENIZE:
+            raise ValueError(
+                "Hook is not a posttokenization hook. Please wrap your hook with the `podium.preproc.as_posttokenize_hook` function to turn it into a posttokenization hook."
+            )
         self.hooks.append(hook)
 
     def process(self, raw, tokenized):
@@ -105,7 +114,7 @@ class Field:
             - 'split' - default str.split(). Custom separator can be provided as
               `split-sep` where `sep` is the separator string.
             - 'spacy-lang' - the spacy tokenizer. The language model can be defined
-              by replacing `lang` with the language model name (e.g. `spacy-en`).
+              by replacing `lang` with the language model name. For example `spacy-en_core_web_sm`
 
             If None, the data will not be tokenized. The provided data will be
             stored in the `tokenized` data field as-is.
@@ -237,7 +246,7 @@ class Field:
         if not isinstance(missing_data_token, (int, float)):
             raise ValueError(
                 f"Missing data token of Field '{name}' is of type"
-                f" '{type(missing_data_token).__name__}'. Must be int or float"
+                f" '{type(missing_data_token).__name__}'. Must be int or float."
             )
         self._missing_data_token = missing_data_token
 
@@ -442,7 +451,6 @@ class Field:
         ------
             If data is None and missing data is not allowed.
         """
-
         if data is None:
             if not self._allow_missing_data:
                 raise ValueError(f"Missing data not allowed in field {self.name}")
@@ -480,7 +488,7 @@ class Field:
         self._vocab += data
 
     @property
-    def finalized(self) -> bool:
+    def is_finalized(self) -> bool:
         """
         Returns whether the field's Vocab vas finalized. If the field has no
         vocab, returns True.
@@ -491,7 +499,7 @@ class Field:
             Whether the field's Vocab vas finalized. If the field has no
             vocab, returns True.
         """
-        return True if self.vocab is None else self.vocab.finalized
+        return True if self.vocab is None else self.vocab.is_finalized
 
     def finalize(self):
         """
@@ -535,7 +543,7 @@ class Field:
         raw = raw if self._keep_raw else None
 
         # Self.eager checks if a vocab is used so this won't error
-        if self.eager and not self.vocab.finalized:
+        if self.eager and not self.vocab.is_finalized:
             self.update_vocab(tokenized)
         return self.name, (raw, tokenized)
 
@@ -667,7 +675,7 @@ class Field:
                 pad_symbol = custom_pad_symbol
 
             elif self.use_vocab:
-                pad_symbol = self.vocab.padding_index()
+                pad_symbol = self.vocab.get_padding_index()
 
             else:
                 pad_symbol = self._padding_token
@@ -754,7 +762,7 @@ class Field:
             self._tokenizer = get_tokenizer(self._tokenizer_arg_string)
 
     def __repr__(self):
-        vocab_str = f",\n    vocab: {self.vocab}\n" if self.use_vocab else ""
+        vocab_str = f",\n    vocab: {self.vocab}\n" if self.use_vocab else "\n"
         return (
             f"{type(self).__name__}({{"
             f"\n    name: {self.name},"
@@ -809,7 +817,7 @@ class MultioutputField:
 
             - 'split' - default str.split()
             - 'spacy-lang' - the spacy tokenizer. The language model can be defined
-              by replacing `lang` with the language model name. For example `spacy-en`
+              by replacing `lang` with the language model name. For example `spacy-en_core_web_sm`
 
         pretokenize_hooks: Iterable[Callable[[Any], Any]]
             Iterable containing pretokenization hooks. Providing hooks in this way is
@@ -1004,7 +1012,7 @@ class LabelField(Field):
             # Default to a vocabulary if custom numericalize is not set
             numericalizer = Vocab(specials=())
 
-        if isinstance(numericalizer, Vocab) and numericalizer.has_specials:
+        if isinstance(numericalizer, Vocab) and numericalizer.specials:
             raise ValueError(
                 "Vocab contains special symbols."
                 " Vocabs with special symbols cannot be used"
@@ -1066,7 +1074,7 @@ class MultilabelField(Field):
             - 'split' - default str.split(). Custom separator can be provided as
               `split-sep` where `sep` is the separator string.
             - 'spacy-lang' - the spacy tokenizer. The language model can be defined
-              by replacing `lang` with the language model name. For example `spacy-en`.
+              by replacing `lang` with the language model name. For example `spacy-en_core_web_sm`.
 
             If None, the data will not be tokenized and post-tokenization hooks wont be
             called. The provided data will be stored in the `tokenized` data field as-is.
@@ -1141,7 +1149,7 @@ class MultilabelField(Field):
         if numericalizer is None:
             numericalizer = Vocab(specials=())
 
-        if isinstance(numericalizer, Vocab) and numericalizer.has_specials:
+        if isinstance(numericalizer, Vocab) and numericalizer.specials:
             raise ValueError(
                 "Vocab contains special symbols."
                 " Vocabs with special symbols cannot be used"

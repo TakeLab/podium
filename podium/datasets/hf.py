@@ -3,7 +3,6 @@ Module contains the converter class for processing the HuggingFace Datasets.
 """
 from typing import Dict, Iterator, Optional, Union
 
-import podium
 from podium.datasets import Dataset, DatasetBase
 from podium.field import Field, LabelField
 from podium.vocab import Vocab
@@ -26,103 +25,93 @@ def _identity(x):
     return x
 
 
-class _FeatureConverter:
+def _convert_feature(name: str, feature: datasets.features.FeatureType) -> Field:
     """
     Class for converting features of the HuggingFace Dataset to the
     podium.Fields.
 
-    Notes
-    -----
-    This class should not be used directly. Instead, use
-    the `convert_features_to_fields` function for conversion.
+    Parameters
+    ----------
+    name : str
+        Name of the column corresponding to the feature.
+    feature : datasets.features.FeatureType
+        Column feature.
+
+    Returns
+    -------
+    podium.Field
+        podium.Field after the conversion.
+
+    Raises
+    ------
+    TypeError
+        If conversion of the given feature type is not supported.
     """
+    if isinstance(feature, datasets.ClassLabel):
+        field = LabelField(name=name, numericalizer=_identity, allow_missing_data=False)
+        return field
 
-    @staticmethod
-    def convert(name: str, feature: datasets.features.FeatureType) -> Field:
-        """
-        Convert a feature to the podium.Field.
+    elif isinstance(feature, datasets.Value):
+        dtype = feature.dtype
 
-        Parameters:
-        name : str
-            Name of the column corresponding to the feature.
-        feature : datasets.features.FeatureType
-            Column feature.
+        if dtype in {
+            "bool",
+            "binary",
+            "large_binary",
+            "uint8",
+            "uint16",
+            "uint32",
+            "uint64",
+            "int8",
+            "int16",
+            "int32",
+            "int64",
+            "float16",
+            "float32",
+            "float64",
+            "float",  # alias for float32
+            "double",  # alias for float64
+        }:
+            kwargs = {
+                "tokenizer": None,
+                "keep_raw": False,
+                "numericalizer": _identity,
+            }
 
-        Returns
-        -------
-        podium.Field
-            podium.Field after the conversion.
-
-        Raises
-        ------
-        TypeError
-            If conversion of the given feature type is not supported.
-        """
-        if isinstance(feature, datasets.ClassLabel):
-            field = LabelField(
-                name=name, numericalizer=_identity, allow_missing_data=False
-            )
-            return field
-
-        elif isinstance(feature, datasets.Value):
-            dtype = feature.dtype
-
-            if dtype in {
-                "bool",
-                "uint8",
-                "uint16",
-                "uint32",
-                "uint64",
-                "int8",
-                "int16",
-                "int32",
-                "int64",
-                "float16",
-                "float32",
-                "float64",
-            }:
-                kwargs = {
-                    "tokenizer": None,
-                    "keep_raw": False,
-                    "numericalizer": _identity,
-                }
-
-            elif dtype in {"string", "utf8"}:
-                # Since the dataset won't _actually_ be loaded, we have to
-                # set eager to False here so .finalize_fields() triggers
-                # the Vocab construction later.
-                kwargs = {"numericalizer": Vocab(eager=False)}
-
-            else:
-                # some dtypes are not processed and stored as-is
-                # for the full list see:
-                # https://arrow.apache.org/docs/python/api/datatypes.html#factory-functions
-                kwargs = {"tokenizer": None, "keep_raw": False, "numericalizer": None}
-
-        elif isinstance(
-            feature,
-            (
-                dict,
-                list,
-                datasets.Sequence,
-                datasets.Translation,
-                datasets.TranslationVariableLanguages,
-            ),
-        ):
-            kwargs = {"tokenizer": None, "keep_raw": False, "numericalizer": None}
+        elif dtype in {"string", "large_string", "utf8"}:
+            # Since the dataset won't actually be loaded, we have to
+            # set eager to False here so .finalize_fields() triggers
+            # the Vocab construction later.
+            kwargs = {"numericalizer": Vocab(eager=False)}
 
         else:
-            TypeError(
-                f"Conversion for feature type {type(feature).__name__} "
-                "is not supported"
-            )
+            # the other dtypes are not processed and are stored as-is,
+            # for the full list see: https://arrow.apache.org/docs/python/api/datatypes.html#factory-functions
+            kwargs = {"tokenizer": None, "keep_raw": False, "numericalizer": None}
 
-        # allow missing data for all fields except
-        # the ones corresponding to the datasets.ClassLabel
-        kwargs.update({"allow_missing_data": True})
-        field = Field(name=name, **kwargs)
+    elif isinstance(
+        feature,
+        (
+            dict,
+            list,
+            datasets.Sequence,
+            datasets.Translation,
+            datasets.TranslationVariableLanguages,
+        ),
+    ):
+        kwargs = {"tokenizer": None, "keep_raw": False, "numericalizer": None}
 
-        return field
+    else:
+        TypeError(
+            f"Conversion for feature type {type(feature).__name__} " "is not supported"
+        )
+
+    # allow missing data for all fields except
+    # the ones corresponding to the datasets.ClassLabel
+    kwargs.update({"allow_missing_data": True})
+    field = Field(name=name, **kwargs)
+
+    return field
 
 
 def convert_features_to_fields(
@@ -130,7 +119,7 @@ def convert_features_to_fields(
 ) -> Dict[str, Field]:
     """
     Convert a dictionary that maps column names of the HuggingFace Dataset to
-    the features into a dictionary that maps column names to the podium.Fields.
+    the features into a dictionary that maps column names to podium.Fields.
 
     Parameters
     ----------
@@ -140,17 +129,14 @@ def convert_features_to_fields(
     Returns
     -------
     dict(str, podium.Field)
-        Dictionary that maps a column name to the podium.Field.
+        Dictionary that maps a column name to a podium.Field.
     """
-    return {
-        name: _FeatureConverter.convert(name, feature)
-        for name, feature in features.items()
-    }
+    return {name: _convert_feature(name, feature) for name, feature in features.items()}
 
 
 class HFDatasetConverter(DatasetBase):
     """
-    Class for converting rows from the HuggingFace Datasets to podium.Example.
+    Class for converting rows from the HuggingFace Datasets to podium.Examples.
     """
 
     def __init__(
@@ -165,7 +151,7 @@ class HFDatasetConverter(DatasetBase):
             HuggingFace Dataset.
 
         fields : dict(str, podium.Field)
-            Dictionary that maps a column name of the dataset to the podium.Field.
+            Dictionary that maps a column name of the dataset to a podium.Field.
             If passed None the default feature conversion rules will be used
             to build a dictonary from the dataset features.
 
@@ -183,10 +169,6 @@ class HFDatasetConverter(DatasetBase):
         super().__init__(fields or convert_features_to_fields(hf_dataset.features))
         self._dataset = hf_dataset
         self._example_factory = ExampleFactory(self.field_dict)
-
-    @property
-    def fields(self):
-        return list(self._fields)
 
     @property
     def dataset(self):
@@ -248,7 +230,7 @@ class HFDatasetConverter(DatasetBase):
         dataset_dict: Dict[str, datasets.Dataset],
         fields: Optional[Dict[str, Field]] = None,
         cast_to_podium: bool = False,
-    ) -> Dict[str, Union["HFDatasetConverter", podium.Dataset]]:
+    ) -> Dict[str, Union["HFDatasetConverter", Dataset]]:
         """
         Copies the keys of given dictionary and converts the corresponding
         HuggingFace Datasets to the HFDatasetConverter instances.

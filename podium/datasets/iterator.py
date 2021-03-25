@@ -609,17 +609,17 @@ class BucketIterator(Iterator):
         )
 
 
-class HierarchicalDatasetIterator(Iterator):
+class HierarchicalIterator(Iterator):
     """
     Iterator used to create batches for Hierarchical Datasets.
 
-    It creates batches in the form of lists of matrices. In the batch namedtuple
-    that gets returned, every attribute corresponds to a field in the dataset.
-    For every field in the dataset, the namedtuple contains a list of matrices,
-    where every matrix represents the context of an example in the batch. The
-    rows of a matrix contain numericalized representations of the examples that
-    make up the context of an example in the batch with the representation of
-    the example itself being in the last row of its own context matrix.
+    It creates batches in the form of lists of matrices. In the batch that gets
+    returned, every attribute corresponds to a field in the dataset. For every
+    field in the dataset, the batch contains a list of matrices, where every
+    matrix represents the context of an example in the batch. The rows of a
+    matrix contain numericalized representations of the examples that make up
+    the context of an example in the batch with the representation of the
+    example itself being in the last row of its own context matrix.
     """
 
     def __init__(
@@ -728,6 +728,7 @@ class HierarchicalDatasetIterator(Iterator):
             sort_key=sort_key,
             shuffle=shuffle,
             seed=seed,
+            matrix_class=matrix_class,
             internal_random_state=internal_random_state,
         )
 
