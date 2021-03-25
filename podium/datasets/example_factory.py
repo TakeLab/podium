@@ -5,6 +5,7 @@ classes used for storage in Dataset classes.
 
 import csv
 import json
+import textwrap
 import xml.etree.ElementTree as ET
 from enum import Enum
 from typing import Union
@@ -47,7 +48,9 @@ class Example(dict):
 
     def __repr__(self):
         attr_dict = {k: v for k, v in self.items() if not k.endswith("_")}
-        return f"{type(self).__name__}({attr_dict})"
+        delimiter = f",\n{' '*9}"
+        attr_str = delimiter.join([f"{repr(k)}: {repr(v)}" for k,v in attr_dict.items()])
+        return f"{type(self).__name__}({{{attr_str}}})"
 
     @staticmethod
     def with_fields(fields):

@@ -106,6 +106,7 @@ class Iterator(IteratorBase):
         shuffle=True,
         seed=1,
         matrix_class=np.array,
+        disable_batch_matrix=False,
         internal_random_state=None,
     ):
         """
@@ -177,6 +178,7 @@ class Iterator(IteratorBase):
         self._epoch = 0
         self._iterations = 0
         self._matrix_class = matrix_class
+        self._disable_batch_matrix = disable_batch_matrix
 
         # set of fieldnames for which numericalization format warnings were issued
         # used to avoid spamming warnings between iterations
@@ -342,6 +344,7 @@ class Iterator(IteratorBase):
             if (
                 not possible_cast_to_matrix
                 and not field._disable_batch_matrix
+                and not self._disable_batch_matrix
                 and field.name not in self._numericalization_format_warned_fieldnames
             ):
                 warnings.warn(
@@ -353,6 +356,7 @@ class Iterator(IteratorBase):
             if (
                 len(numericalizations) > 0
                 and not field._disable_batch_matrix
+                and not self._disable_batch_matrix
                 and possible_cast_to_matrix
             ):
                 batch = Iterator._arrays_to_matrix(
@@ -471,7 +475,7 @@ class SingleBatchIterator(Iterator):
     dataset.
     """
 
-    def __init__(self, dataset: DatasetBase = None, shuffle=True):
+    def __init__(self, dataset: DatasetBase = None, shuffle=True, add_padding=True):
         """
         Creates an Iterator that creates one batch per epoch containing all
         examples in the dataset.
@@ -489,8 +493,14 @@ class SingleBatchIterator(Iterator):
             shuffled (the only difference shuffling can make is in the
             order of elements with the same value of sort_key)..
             Default is False.
+
+        add_padding : bool
+            A flag denoting whether to add padding to the iterator. If
+            set to False, numericalized Fields will be returned as lists of
+            numericalized instances.
         """
-        super().__init__(dataset=dataset, batch_size=len(dataset), shuffle=shuffle)
+        super().__init__(dataset=dataset, batch_size=len(dataset),
+                         shuffle=shuffle, disable_batch_matrix=not add_padding)
 
     def set_dataset(self, dataset: DatasetBase) -> None:
         super().set_dataset(dataset)

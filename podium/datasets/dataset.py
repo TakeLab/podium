@@ -149,10 +149,20 @@ class DatasetBase(ABC):
         for field in self.fields:
             field.finalize()
 
-    def batch(self) -> Tuple[NamedTuple, NamedTuple]:
+    def batch(self, add_padding=False) -> Tuple[NamedTuple, NamedTuple]:
         """
         Creates an input and target batch containing the whole dataset. The
         format of the batch is the same as the batches returned by the.
+
+        Parameters
+        ----------
+        add_padding : bool
+            A flag indicading whether the dataset should be padded when
+            returned as a single batch. Please note that setting this
+            argument to true can consume a large amount of memory since
+            the dataset will be expanded to [num_instances, max_size] as
+            every instance in the dataset needs to be padded to the size
+            of the longest one. Defaults to `False`
 
         Returns
         -------
@@ -163,7 +173,37 @@ class DatasetBase(ABC):
         # Imported here because of circular import
         from podium.datasets import SingleBatchIterator
 
-        return next(iter(SingleBatchIterator(self, shuffle=False)))
+        return next(iter(SingleBatchIterator(self, shuffle=False, add_padding=add_padding)))
+
+    def as_dict(self, include_raw=False):
+        """
+        Converts the entire dataset to a dictionary, where the field names
+        map to lists of processed Examples.
+
+        Parameters
+        ----------
+        include_raw : bool
+            A flag denoting whether raw data should be included in the output dictionary,
+            which can be used to debug your preprocessing pipeline. Defaults to `False`.
+
+        Returns
+        -------
+        dataset_as_dict
+                The entire dataset as a python dict. Field names are keys,
+                values are lists of (raw, tokenized) data if `include_raw`
+                is set to `True` or tokenized data otherwise.
+        """
+        dataset_as_dict = {}
+
+        for field in self.fields:
+            field_values = getattr(self, field.name)
+            if not include_raw:
+                # Strip raw data 
+                _, field_values = zip(*field_values)
+
+            dataset_as_dict[field.name] = list(field_values)
+
+        return dataset_as_dict
 
     def sorted(self, key: Callable[[Example], Any], reverse=False) -> "DatasetBase":
         """
