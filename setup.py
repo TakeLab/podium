@@ -160,5 +160,4 @@ setup(
         "Topic :: Text Processing",
     ],
     keywords="podium nlp natural-language-processing machine learning",
-    zip_safe=False,
 )
