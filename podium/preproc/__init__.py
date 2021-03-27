@@ -13,7 +13,5 @@ from .hooks import (
     remove_stopwords,
     truecase,
 )
-from .lemmatizer import CroatianLemmatizer
 from .sentencizers import SpacySentencizer
-from .stemmer import CroatianStemmer
 from .tokenizers import get_tokenizer
