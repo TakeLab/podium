@@ -115,6 +115,7 @@ jobs:
       run: |
         cd docs
         make doctest
+        make linkcheck --jobs 2 SPHINXOPTS="-W"
         make html SPHINXOPTS="-W"
     - name: Upload docs artifact
       uses: actions/upload-artifact@v2

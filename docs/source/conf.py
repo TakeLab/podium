@@ -13,9 +13,6 @@
 import os
 import sys
 
-# Quick fix for cross-reference warnings:
-from sphinx.domains.python import PythonDomain
-
 
 sys.path.insert(0, os.path.abspath('../../'))
 
@@ -101,19 +98,20 @@ napoleon_use_ivar = False
 napoleon_use_param = True
 napoleon_use_rtype = True
 
-
-class PatchedPythonDomain(PythonDomain):
-    def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):
-        if 'refspecific' in node:
-            del node['refspecific']
-        return super(PatchedPythonDomain, self).resolve_xref(
-            env, fromdocname, builder, typ, target, node, contnode)
+# Check internal links are correct or not
+nitpicky = True
+nitpick_ignore = [
+    # ("py:class", ".."),
+    ("py:obj", "output_fields"),
+    ("py:obj", "tokenizer"),
+    ("py:obj", "pretokenization_hooks"),
+]
 
 
 def setup(app):
-    #sphinx.add_domain(PatchedPythonDomain, override=True)
     app.add_css_file('css/podium.css')
     app.add_js_file('js/custom.js')
+
 
 # only run doctests marked with a ".. doctest::" directive
 doctest_test_doctest_blocks = ''
@@ -126,8 +124,7 @@ except ImportError:
 
 try:
     import spacy
-    spacy.load('en', disable=['parser', 'ner'])
+    spacy.load('en_core_web_sm', disable=['parser', 'ner'])
 except (ImportError, IOError):
     spacy = None
-
 '''

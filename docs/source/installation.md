@@ -4,9 +4,9 @@ Podium is tested on Python 3.6+.
 
 We recommend you use a virtual environment:
 - [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/environments.html#virtual-environments)
-- [virtualenv](https://virtualenv.pypa.io/en/latest/installation/)
+- [virtualenv](https://virtualenv.pypa.io/en/latest/installation.html)
 
-If you’re unfamiliar with Python virtual environments, check out the [user guide](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/).
+If you're unfamiliar with Python virtual environments, check out the [user guide](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/).
 
 ## Install via pip
 

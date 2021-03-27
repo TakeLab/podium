@@ -4,7 +4,7 @@ Dataset classes
 
 Dataset
 -----------------
-.. autoclass:: podium.datasets.Dataset
+.. autoclass:: podium.Dataset
    :members:
    :no-undoc-members:
 

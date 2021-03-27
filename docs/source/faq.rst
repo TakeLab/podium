@@ -4,7 +4,7 @@ FAQ
 **Q: Can I just load and retrieve a numericalized dataset from Podium?**
 
 
-**A:** Yes, you can use the :meth:`Podium.datasets.Dataset.batch()` method. You still need to define the Fields if you are not using a built-in dataset.
+**A:** Yes, you can use the :func:`podium.Dataset.batch` method. You still need to define the Fields if you are not using a built-in dataset.
 
 
 .. code-block:: python
