@@ -55,12 +55,6 @@ Stanford Natural Language Inference
    :members:
    :no-undoc-members:
 
-Eurovoc Dataset
-^^^^^^^^^^^^^^^
-.. autoclass:: podium.datasets.impl.EuroVocDataset
-   :members:
-   :no-undoc-members:
-
 Cornell Movie Dialogs Dataset
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. autoclass:: podium.datasets.impl.CornellMovieDialogsConversationalDataset
@@ -74,17 +68,5 @@ Built-in datasets (HR)
 Pauza Reviews Dataset
 ^^^^^^^^^^^^^^^^^^^^^
 .. autoclass:: podium.datasets.impl.PauzaHRDataset
-   :members:
-   :no-undoc-members:
-
-Named Entity Recognition dataset
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. autoclass:: podium.datasets.impl.CroatianNERDataset
-   :members:
-   :no-undoc-members:
-
-Catacx Datasets
-^^^^^^^^^^^^^^^
-.. autoclass:: podium.datasets.impl.CatacxDataset
    :members:
    :no-undoc-members:

@@ -42,9 +42,7 @@ INSTALL_REQUIRES = [
     "scipy<1.6.0;python_version<'3.7'",
     # progress bar in download and model selection
     "tqdm",
-    # for some datasets
-    'xlrd',
-    # for labels in EuroVoc and nodes in HierarhicalDataset
+    # for nodes in HierarhicalDataset
     "dataclasses;python_version<'3.7'",
 ]
 
@@ -75,8 +73,6 @@ DATASETS_REQUIRE = [
     "datasets",
     # to support saving/loading datasets from a disk
     "pyarrow>=1.0.0",
-    # to read a .xlsx file when processing EuroVoc
-    "xlrd",
     # to tokenize the input in the IMDB dataset
     "spacy",
 ]
@@ -103,13 +99,10 @@ DOCS_REQUIRE = [
     'recommonmark',
     'nbformat',
     'datasets',
-    'xlrd',
 ]
 
 
 EXTRAS_REQUIRE = {
-    # for blcc model
-    "blcc": ["keras==2.2.4", "tensorflow==1.15"],
     # for training and evaluation of PyTorch models
     "torch": ["torch"],
     # dependencies for all dataset implementations (including the ones in dataload)
@@ -144,10 +137,6 @@ setup(
     ),
     install_requires=INSTALL_REQUIRES,
     extras_require=EXTRAS_REQUIRE,
-    package_data={
-        "podium": [
-            "preproc/stemmer/data/*.txt"
-        ]},
     python_requires=">=3.6",
     classifiers=[
         # maturity level
@@ -171,5 +160,4 @@ setup(
         "Topic :: Text Processing",
     ],
     keywords="podium nlp natural-language-processing machine learning",
-    zip_safe=False,
 )
