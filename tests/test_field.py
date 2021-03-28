@@ -460,7 +460,7 @@ def test_field_is_target():
 
 
 def test_field_vocab_no_tokenization():
-    vocab = Vocab()
+    vocab = Vocab(eager=True)
     pretokenized_input1 = ["word", "words", "uttering"]
     pretokenized_input2 = ["word", "words"]
     pretokenized_input3 = ["word"]
@@ -576,7 +576,7 @@ def test_multilabel_field_vocab_numericalization(tokens):
 
 
 def test_multilabel_field_class_count():
-    vocab = Vocab(specials=())
+    vocab = Vocab(specials=(), eager=True)
     field = MultilabelField(name="test field", num_of_classes=None, numericalizer=vocab)
 
     example_1 = ["class1", "class2", "class3", "class4"]
@@ -624,7 +624,7 @@ def test_multilabel_field_custom_numericalization(tokens, expected_numericalizat
 
 
 def test_multilabel_too_many_classes_in_data_exception():
-    vocab = Vocab(specials=())
+    vocab = Vocab(specials=(), eager=True)
     field = MultilabelField(name="test_field", num_of_classes=3, numericalizer=vocab)
 
     for data in "cls1", "cls2", "cls3", "cls4":

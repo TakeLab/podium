@@ -31,6 +31,7 @@ One built-in dataset available in Podium is the `Stanford Sentiment Treebank <ht
 
   >>> from podium.datasets import SST
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits() # doctest:+ELLIPSIS
+  >>> sst_train.finalize_fields()
   >>> print(sst_train)
   SST({
       size: 6920,
@@ -50,7 +51,8 @@ One built-in dataset available in Podium is the `Stanford Sentiment Treebank <ht
       ]
   })
   >>> print(sst_train[222]) # A short example
-  Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
+  Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']),
+           'label': (None, 'positive')})
 
 
 Each built-in Podium dataset has a :func:`get_dataset_splits` method, which returns the `train`, `test` and `validation` split of that dataset, if available.
@@ -96,7 +98,7 @@ For the latter approach, the :class:`podium.Vocab` class has two static construc
   >>> custom_stoi = {'This':0, 'is':1, 'a':2, 'sample':3}
   >>> vocab = Vocab.from_stoi(custom_stoi)
   >>> print(vocab)
-  Vocab({specials: (), eager: True, is_finalized: True, size: 4})
+  Vocab({specials: (), eager: False, is_finalized: True, size: 4})
 
 This way, we can define a static dictionary which we might have obtained on another dataset to use for our current task. Similarly, it is possible to define a ``Vocab`` by a sequence of strings -- an ``itos``:
 
@@ -106,7 +108,7 @@ This way, we can define a static dictionary which we might have obtained on anot
   >>> custom_itos = [UNK(), 'this', 'is', 'a', 'sample']
   >>> vocab = Vocab.from_itos(custom_itos)
   >>> print(vocab)
-  Vocab({specials: ('<UNK>',), eager: True, is_finalized: True, size: 5})
+  Vocab({specials: ('<UNK>',), eager: False, is_finalized: True, size: 5})
 
 In this example we have also defined a Special token (:ref:`specials`) to use in our vocabulary. Both of these static constructors are equivalent and can produce the same ``Vocab`` mapping.
 
@@ -159,13 +161,13 @@ The SST dataset has two textual data columns (fields): (1) the input text of the
       name: text,
       keep_raw: False,
       is_target: False,
-      vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, is_finalized: False, size: 0})
+      vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: False, size: 0})
   })
   LabelField({
       name: label,
       keep_raw: False,
       is_target: True,
-      vocab: Vocab({specials: (), eager: True, is_finalized: False, size: 0})
+      vocab: Vocab({specials: (), eager: False, is_finalized: False, size: 0})
   })
 
 That's it! We have defined our Fields. In order for them to be initialized, we need to `show` them a dataset. For built-in datasets, this is done behind the scenes in the ``get_dataset_splits`` method. We will elaborate how to do this yourself in :ref:`custom-loading`.
@@ -174,8 +176,9 @@ That's it! We have defined our Fields. In order for them to be initialized, we n
 
   >>> fields = {'text': text, 'label': label}
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+  >>> sst_train.finalize_fields()
   >>> print(small_vocabulary)
-  Vocab({specials: ('<UNK>', '<PAD>'), eager: True, is_finalized: True, size: 5000})
+  Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 5000})
 
 Our new Vocab has been limited to the 5000 most frequent words. If your `Vocab` contains the unknown special token :class:`podium.vocab.UNK`, the words not present in the vocabulary will be set to the value of the unknown token. The unknown token is one of the default `special` tokens in the Vocab, alongside the padding token :class:`podium.vocab.PAD`. You can read more about these in :ref:`specials`.
 
@@ -227,19 +230,18 @@ Traditionally, when using a neural model, whether it is a RNN or a transformer v
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+  >>> sst_train.finalize_fields()
   >>>
   >>> train_iter = Iterator(sst_train, batch_size=2, shuffle=False)
   >>> batch_x, batch_y = next(iter(train_iter))
   >>> text, lengths = batch_x.text
   >>> print(text, lengths, sep='\n')
-  [[   14  1057    10  2580     8    28     4  3334  3335     9   154    68
-     7451    67     5    11    81     9   274     8    83     6  4683    74
-     2901    38  1410  2581     3 10747  2102  7452    49   870 10748     2
-        1]
-   [   14  3336  2314  7453     7    68    14  4684     7     4  7454    67
-     4685    10    48  1058    11     6  7455     7   772    65    32  4686
-     2582 10749  1112   830     9  5715   649     7 10750  5716     9 10751
-        2]]
+  [[  14 1144    9 2955    8   27    4 2956 3752   10  149   62 5067   64
+         5   11   93   10  264    8   85    7 5068   72 3753   38 2048 2957
+         3 7565 3754 7566   49  778 7567    2    1]
+   [  14 2958 2420 5069    6   62   14 3755    6    4 5070   64 5071    9
+        48  830   11    7 5072    6  639   68   37 2959 2049 7568 1058  730
+        10 7569  568    6 7570 5073   10 7571    2]]
   [36 37]
 
 When setting the ``include_lengths=True`` for a Field, its batch component will be a tuple containing the numericalized batch and the lengths of each instance in the batch. When using recurrent cells, it is often the case we want to sort the instances within the batch according to length, e.g. in order for them to be used with :class:`torch.nn.utils.rnn.PackedSequence` objects.
@@ -260,14 +262,12 @@ Since datasets can contain multiple input Fields, it is not trivial to determine
   >>> batch_x, batch_y = next(iter(train_iter))
   >>> text, lengths = batch_x.text
   >>> print(text, lengths, sep="\n")
-  [[   14  3336  2314  7453     7    68    14  4684     7     4  7454    67
-     4685    10    48  1058    11     6  7455     7   772    65    32  4686
-     2582 10749  1112   830     9  5715   649     7 10750  5716     9 10751
-        2]
-   [   14  1057    10  2580     8    28     4  3334  3335     9   154    68
-     7451    67     5    11    81     9   274     8    83     6  4683    74
-     2901    38  1410  2581     3 10747  2102  7452    49   870 10748     2
-        1]]
+  [[  14 2958 2420 5069    6   62   14 3755    6    4 5070   64 5071    9
+        48  830   11    7 5072    6  639   68   37 2959 2049 7568 1058  730
+        10 7569  568    6 7570 5073   10 7571    2]
+   [  14 1144    9 2955    8   27    4 2956 3752   10  149   62 5067   64
+       5   11   93   10  264    8   85    7 5068   72 3753   38 2048 2957
+       3 7565 3754 7566   49  778 7567    2    1]]
   [37 36]
 
 And here we can see, that even for our small, two-instance batch, the elements in the batch are now properly sorted according to length.
@@ -320,6 +320,7 @@ As we intend to use the whole dataset at once, we will also set ``disable_batch_
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+  >>> sst_train.finalize_fields()
 
 Since the Tf-Idf vectorizer needs information from the dataset to compute the inverse document frequency, we first need to fit it on the dataset.
 
@@ -341,10 +342,10 @@ Now our vectorizer has seen the dataset as well as the vocabulary and has all th
   >>> print(type(tfidf_batch), tfidf_batch.shape)
   <class 'scipy.sparse.csr.csr_matrix'> (6920, 4998)
   >>> print(tfidf_batch[222])
-  (0, 1658) 0.617113703893198
-  (0, 654)  0.5208201737884445
-  (0, 450)  0.5116152860290002
-  (0, 20) 0.2515101839877878
+  (0, 2111) 0.617113703893198
+  (0, 549)  0.5208201737884445
+  (0, 499)  0.5116152860290002
+  (0, 19) 0.2515101839877878
   (0, 1)  0.12681755258500052
   (0, 0)  0.08262419651916046
 
@@ -389,6 +390,7 @@ For this dataset, we need to define three Fields. We also might want the fields 
   >>>     })
   >>>
   >>> dataset = TabularDataset('my_dataset.csv', format='csv', fields=fields)
+  >>> dataset.finalize_fields()
   >>> print(dataset)
   TabularDataset({
       size: 1,
@@ -430,6 +432,7 @@ The ``line2example`` function should accept a single line of the dataset file as
   >>>     return line_parts
   >>> 
   >>> dataset = TabularDataset('my_dataset.csv', fields=fields, line2example=custom_split)
+  >>> dataset.finalize_fields()
   >>> print(dataset[0])
   Example({'premise': (None, ['A', 'man', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.']), 'hypothesis': (None, ['The', 'man', 'is', 'sleeping']); label: (None, 'contradiction')})
 

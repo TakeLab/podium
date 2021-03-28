@@ -16,8 +16,10 @@ The data is processed immediately when the instance is loaded from disk and then
 
   >>> from podium.datasets import SST
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits()
+  >>> sst_train.finalize_fields()
   >>> print(sst_train[222]) 
-  Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
+  Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']),
+           'label': (None, 'positive')})
 
 We can unpack the Example class with the bracket notation, as you would a dictionary.
 
@@ -40,6 +42,7 @@ What are the ``None`` s? This is the `raw` data, which by default isn't stored i
   >>> fields = {'text': text, 'label': label}
   >>>
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+  >>> sst_train.finalize_fields()
   >>> print(sst_train[222]['text'])
   ('A slick , engrossing melodrama .', ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])
 
@@ -133,6 +136,7 @@ Putting it all together
   >>> fields = {'text': text, 'label': label}
   >>>
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+  >>> sst_train.finalize_fields()
   >>> print(sst_train[222]['text'])
   ('a slick , engrossing melodrama .', ['a', 'slick', 'engrossing', 'melodrama'])
 
@@ -194,7 +198,9 @@ To see the effect of the ``apply`` method, we will once again take a look at the
   >>> text = Field(name='text', numericalizer=vocab)
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
+  >>> 
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+  >>> sst_train.finalize_fields()
   >>> print(sst_train[222]['text'])
   (None, ['<BOS>', 'A', 'slick', ',', 'engrossing', 'melodrama', '.'])
 
@@ -227,6 +233,7 @@ To do that, you should pass your own callable function as the ``numericalizer`` 
   >>> fields = {'text': subword_field, 'label': label}
   >>>
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+  >>> sst_train.finalize_fields()
   >>> print(sst_train[222]['text'])
   (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.'])
 
@@ -472,6 +479,7 @@ As an example, we will again turn to the SST dataset and some of our previously 
   >>> 
   >>> fields = {'text': text, 'label': label}
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+  >>> sst_train.finalize_fields()
   >>>
   >>> print(sst_train)
   SST({
@@ -481,16 +489,16 @@ As an example, we will again turn to the SST dataset and some of our previously 
               name: text,
               keep_raw: False,
               is_target: False,
-              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, is_finalized: True, size: 5000})
+              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 5000})
           }),
           LabelField({
               name: label,
               keep_raw: False,
               is_target: True,
-              vocab: Vocab({specials: (), eager: True, is_finalized: True, size: 3})
+              vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 2})
           })
       ]
-    })
+  })
   >>> print(sst_train[222])
   Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
 
@@ -529,9 +537,9 @@ In case you don't want this behavior and would rather your unpickled iterator st
   >>>
   >>> batch_input, batch_target = next(iter(train_iter))
   >>> print(batch_input.text)
-  [[  14 1057   10 2580    8   28    4 3334 3335    9  154   68    0   67
-         5   11   81    9  274    8   83    6 4683   74 2901   38 1410 2581
-         3    0 2102    0   49  870    0    2]]
+  [[  14 1144    9 2955    8   27    4 2956 3752   10  149   62    0   64
+       5   11   93   10  264    8   85    7    0   72 3753   38 2048 2957
+       3    0 3754    0   49  778    0    2]]
   >>> iterator_store_path = cache_dir.joinpath('sst_train_iter.pkl')
   >>> with open(iterator_store_path, 'wb') as outfile:
   ...     pickle.dump((train_iter), outfile)

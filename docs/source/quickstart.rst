@@ -27,6 +27,7 @@ Data preprocessing in Podium is done in pipelines called Fields. Each dataset co
   >>> fields = {'text':text, 'label':label}
   >>>
   >>> dataset = TabularDataset('sample_dataset.csv', fields=fields, format='csv')
+  >>> dataset.finalize_fields()
   >>> print(dataset[1])
   Example({'input_text': (None, ['Amazingly', 'lame', '.']),
            'target': (None, 'negative')})
@@ -42,6 +43,7 @@ You might wonder, why not simply use the input column names from the header to s
   >>> fields = {'text':(text, char), 'label':label}
   >>>
   >>> dataset_with_chars = TabularDataset('sample_dataset.csv', fields=fields, format='csv')
+  >>> dataset.finalize_fields().finalize_fields()
   >>> print(dataset_with_chars[1])
   Example({'input_text': (None, ['Amazingly', 'lame', '.']),
            'input_chars': (None, ['A', 'm', 'a', 'z', 'i', 'n', 'g', 'l', 'y', ' ', 'l', 'a', 'm', 'e', ' ', '.']),
@@ -82,6 +84,7 @@ We can add these hooks to the Field constructor and load the dataset again, appy
   >>> label = LabelField(name='target')
   >>> fields = {'text':text, 'label':label}
   >>> filtered_dataset = TabularDataset('sample_dataset.csv', fields=fields, format='csv')
+  >>> filtered_dataset.finalize_fields()
   >>> print(filtered_dataset[1])
   Example({'input_text': (None, ['amazingly', 'lame']),
            'target': (None, 'negative')})

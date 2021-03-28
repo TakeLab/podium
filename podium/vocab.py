@@ -186,7 +186,7 @@ class Vocab:
         min_freq=1,
         specials: Optional[Union[Special, Iterable[Special]]] = (UNK(), PAD()),
         keep_freqs: bool = False,
-        eager: bool = True,
+        eager: bool = False,
     ) -> None:
         """
         Vocab constructor. Specials are first in the vocabulary.
