@@ -188,7 +188,7 @@ def test_indexing(pyarrow_dataset, data):
 
 def test_batching(data, pyarrow_dataset):
     pyarrow_dataset.finalize_fields()
-    input_batch, target_batch = pyarrow_dataset.batch()
+    input_batch, target_batch = pyarrow_dataset.batch(add_padding=True)
     assert hasattr(target_batch, "number")
     assert hasattr(input_batch, "tokens")
 

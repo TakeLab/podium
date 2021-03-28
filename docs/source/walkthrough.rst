@@ -60,7 +60,7 @@ Each built-in Podium dataset has a :func:`get_dataset_splits` method, which retu
 The Vocabulary
 ---------------
 
-We saw earlier that our dataset has two Fields: text and label. We will touch on what exactly Fields are later, but for now let's retrieve and print them out.
+We saw earlier that our dataset has two Fields: text and label. We will go into detail on what exactly Fields are later, but for now let's just retrieve and print them out.
 
 .. doctest:: sst
 
@@ -79,7 +79,7 @@ We saw earlier that our dataset has two Fields: text and label. We will touch on
       vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 2})
   })
 
-Inside each of these two fields we can see a :class:`podium.Vocab` class, used for numericalization (converting token strings to indices). A Vocab is defined by two maps: the string-to-index mapping :attr:`podium.Vocab.stoi` and the index-to-string mapping :attr:`podium.Vocab.itos`.
+Inside each of these two fields we can see a :class:`podium.Vocab` class, used for numericalization (converting tokens to indices). A Vocab is defined by two maps: the string-to-index mapping :attr:`podium.Vocab.stoi` and the index-to-string mapping :attr:`podium.Vocab.itos`.
 
 Vocabularies are built automatically for built-in datasets by counting the frequencies of tokens in the **train** set and then converting these frequences to the ``itos`` and ``stoi`` dictionaries. We can see that a ``Vocab`` is built by the ``is_finalized=True`` keyword in the printout.
 If you are constructing your own dataset or loading a dataset from 🤗 (:ref:`hf-loading`), you will need to call the :func:`podium.Dataset.finalize_fields()` method to signal that the vocabularies should be constructed.

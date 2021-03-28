@@ -49,7 +49,7 @@ class Example(dict):
     def __repr__(self):
         attr_dict = {k: v for k, v in self.items() if not k.endswith("_")}
         delimiter = f",\n{' '*9}"
-        attr_str = delimiter.join([f"{repr(k)}: {repr(v)}" for k,v in attr_dict.items()])
+        attr_str = delimiter.join([f"{repr(k)}: {repr(v)}" for k, v in attr_dict.items()])
         return f"{type(self).__name__}({{{attr_str}}})"
 
     @staticmethod

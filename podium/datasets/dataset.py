@@ -173,12 +173,14 @@ class DatasetBase(ABC):
         # Imported here because of circular import
         from podium.datasets import SingleBatchIterator
 
-        return next(iter(SingleBatchIterator(self, shuffle=False, add_padding=add_padding)))
+        return next(
+            iter(SingleBatchIterator(self, shuffle=False, add_padding=add_padding))
+        )
 
     def as_dict(self, include_raw=False):
         """
-        Converts the entire dataset to a dictionary, where the field names
-        map to lists of processed Examples.
+        Converts the entire dataset to a dictionary, where the field names map
+        to lists of processed Examples.
 
         Parameters
         ----------
@@ -198,7 +200,7 @@ class DatasetBase(ABC):
         for field in self.fields:
             field_values = getattr(self, field.name)
             if not include_raw:
-                # Strip raw data 
+                # Strip raw data
                 _, field_values = zip(*field_values)
 
             dataset_as_dict[field.name] = list(field_values)

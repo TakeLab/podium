@@ -117,7 +117,6 @@ class PauzaHRDataset(Dataset):
             dir_path=os.path.join(data_location, PauzaHRDataset.TEST_DIR), fields=fields
         )
 
-        train_dataset.finalize_fields()
         return (train_dataset, test_dataset)
 
     @staticmethod

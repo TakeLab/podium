@@ -499,8 +499,12 @@ class SingleBatchIterator(Iterator):
             set to False, numericalized Fields will be returned as lists of
             numericalized instances.
         """
-        super().__init__(dataset=dataset, batch_size=len(dataset),
-                         shuffle=shuffle, disable_batch_matrix=not add_padding)
+        super().__init__(
+            dataset=dataset,
+            batch_size=len(dataset),
+            shuffle=shuffle,
+            disable_batch_matrix=not add_padding,
+        )
 
     def set_dataset(self, dataset: DatasetBase) -> None:
         super().set_dataset(dataset)

@@ -141,8 +141,6 @@ class SNLISimple(Dataset):
             file_path=os.path.join(data_location, SNLISimple.DEV_FILE_NAME), fields=fields
         )
 
-        # It is enough to finalize the fields once
-        train_dataset.finalize_fields()
         return train_dataset, test_dataset, dev_dataset
 
     @staticmethod

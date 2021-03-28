@@ -162,6 +162,6 @@ If you want to use the data to train a machine learning model, this can also be 
   {'target': array([[1],
          [0]])}
 
-Each element yielded by Podium iterators is a ``tuple`` of input data and target data (the response variable(s)). Response variables can be marked as such by setting ``is_target=True`` in their Field constructor. Both elements of the tuple are instances of our ``Batch`` class, a dict-tuple hybrid which unpacks by value rather than by key (as standard python dictionaries do).
+Each element yielded by Podium iterators is a ``tuple`` of input data and response variable(s). Response variables can be marked as such by setting ``is_target=True`` in their Field constructor. Both elements of the tuple are instances of our ``Batch`` class, a dict-tuple hybrid which unpacks by value rather than by key (as standard python dictionaries do).
 
 For a comprehensive overview of data prep for models, check :ref:`iterating` and the subsequent documentation chapters, and for the recommended way of iterating over NLP data, check :ref:`bucketing`. 
