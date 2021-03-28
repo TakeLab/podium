@@ -55,6 +55,8 @@ One built-in dataset available in Podium is the `Stanford Sentiment Treebank <ht
 
 Each built-in Podium dataset has a :func:`get_dataset_splits` method, which returns the `train`, `test` and `validation` split of that dataset, if available.
 
+.. _vocab:
+
 The Vocabulary
 ---------------
 
@@ -122,6 +124,7 @@ You might want to limit the size of your Vocab for larger datasets. To do so, de
 
 In order to use this new Vocab with a dataset, we first need to get familiar with Fields.
 
+.. _fields:
 
 Customizing the preprocessing pipeline with Fields
 --------------------------------------------------
@@ -185,6 +188,8 @@ LabelField
 A common case in datasets is a data Field which contains a label, represented as a string (e.g. positive/negative, a news document category). For defining such a Field, you would need to set a number of its arguments which would lead to a lot of repetetive code.
 
 For convenience, ``LabelField`` sets the required defaults for you, and all you need to define is its name. LabelFields always have a ``fixed_length`` of 1, are not tokenized and are by default set as the target for batching.
+
+.. _iterating:
 
 Iterating over datasets
 ------------------------

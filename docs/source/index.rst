@@ -25,9 +25,9 @@ The documentation is organized in four parts:
     :maxdepth: 2
     :caption: Getting Started
 
+    installation
     quickstart
     walkthrough
-    installation
     faq
 
 .. toctree::

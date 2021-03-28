@@ -45,7 +45,7 @@ What are the ``None`` s? This is the `raw` data, which by default isn't stored i
 
 We can see that now we also have the pre-tokenized text available to us. In the case of SST this is not very useful because the tokenizer is simply ``str.split``, an easyily reversible function. In the case of non-reversible tokenizers (e.g. the ones in ``spacy``), you might want to keep the raw instance for future reference.
 
-.. _fields:
+.. _interact_fields:
 
 How to interact with Fields
 ===========================
@@ -202,6 +202,8 @@ Where we can see that the special token was indeed added to the beginning of the
 
 Finally, it is important to note that there is an implicit distinction between special tokens. The unknown (:class:`podium.vocab.UNK`) and padding (:class:`podium.vocab.PAD`) special tokens are something we refer to as **core** special tokens, whose functionality is hardcoded in the implementation of the ``Vocab`` due to them being deeply integrated with the way iterators and numericalization work.
 The only difference between normal and core specials is that core specials are added to the sequence by other Podium classes (their behavior is hardcoded) instead of by their apply method.
+
+.. _custom_numericalization:
 
 Custom numericalization functions
 ===========================================
@@ -384,6 +386,7 @@ For a simple example, we will take a look at the built-in SST and IMDB datasets:
 There are a few important takeaways here: (1) the concatenated dataset will **only** contain the intersection of Fields from the sub-datasets. The intersection is determined by the **name** of each Field. If one dataset has Fields named ``text`` and ``label``, while the other has Fields named ``text``, ``label`` and ``meta``, the concatenated dataset will only contain the ``text`` and ``label`` Fields. (2) the Vocabularies for the Fields with the same name **have to be equal**. This is, of course, to avoid the issue where the same word maps to different indices between vocabularies. This is achieveable either by using a shared vocabulary in same Fields of the datasets from the beginning or by defining a ``field_override`` map, which directs data from the sub-datasets through the new Field.
 In the latter case, you can use each sub-dataset on their own with independent vocabularies, while the concatenation will have its own, merged vocabulary.
 
+.. _bucketing:
 
 Bucketing instances when iterating
 ==================================
