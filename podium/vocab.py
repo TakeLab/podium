@@ -22,6 +22,8 @@ from typing import (
 
 import numpy as np
 
+from podium.utils.general_utils import repr_type_and_attrs
+
 
 T = TypeVar("T", bound=Hashable)
 
@@ -679,13 +681,13 @@ class Vocab:
         return iter(self.itos)
 
     def __repr__(self) -> str:
-        return (
-            f"{type(self).__name__}({{"
-            f"specials: {self.specials}, "
-            f"eager: {self.eager}, "
-            f"is_finalized: {self.is_finalized}, "
-            f"size: {len(self)}}})"
-        )
+        attrs = {
+            "specials": self.specials,
+            "eager": self.eager,
+            "is_finalized": self.is_finalized,
+            "size": len(self),
+        }
+        return repr_type_and_attrs(self, attrs)
 
     @overload
     def __getitem__(self, idx_or_token: int) -> int:

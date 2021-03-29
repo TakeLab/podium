@@ -7,6 +7,7 @@ import numpy as np
 
 from podium.datasets.dataset import Dataset
 from podium.datasets.iterator import Iterator, SingleBatchIterator
+from podium.utils.general_utils import repr_type_and_attrs
 
 from .batch_transform_functions import default_feature_transform, default_label_transform
 from .model import AbstractSupervisedModel
@@ -312,4 +313,5 @@ class Experiment:
             )
 
     def __repr__(self):
-        return f"{type(self).__name__}[model: {self.model}, trainer: {self.trainer}]"
+        attrs = {"model": self.model, "trainer": self.trainer}
+        return repr_type_and_attrs(self, attrs)
