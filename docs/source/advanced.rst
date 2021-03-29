@@ -55,7 +55,7 @@ How to interact with Fields
 
 In the previous section, we could see that text from the SST dataset is both in uppercase as well as lowercase. Apart from that, we might not want to keep punctuation tokens, which we can also see in the processed data. These are two cases for which we have designed pretokenization and post-tokenization **hooks**.
 
-As we said earlier, data in Podium exists in three states: raw, processed and numericalized. You can intervene and add a custom transformation between each of these three states. Functions which modify raw data prior to tokenization are called **pretokenization hooks**, while functions which modify processed data prior to numericalization are called **post-tokenization hooks**. We can see the Field process visualized for the text Field in the following image:
+As we mentioned earlier, data in Podium exists in three states: first raw, then processed and finally numericalized. You can intervene and add custom transformations inbetween any of these three states. Functions which modify raw data prior to tokenization are called **pre-tokenization hooks**, while functions which modify processed data prior to numericalization are called **post-tokenization hooks**. We can see the Field process visualized for the text Field in the following image:
 
 .. image:: _static/field_internals.png
     :alt: Field visualisation

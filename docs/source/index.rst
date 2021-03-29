@@ -15,10 +15,10 @@ Contents
 ---------------------------------
 The documentation is organized in four parts:
 
-- **Getting started**: an overview of the scope of the library,
+- **Quickstart**: an quick preview of the library,
+- **Walkthrough**: a description of how the basics work,
 - **In-depth overview**: examples of advanced usage of Podium,
-- **Core package Reference**: documentation of methods and classes in Podium ready for use,
-- **Modules under development**: parts of the library which are either stale/outdated or pending major revision.
+- **Core package Reference**: the documentation of methods and classes in Podium.
 
 
 .. toctree::
@@ -28,7 +28,6 @@ The documentation is organized in four parts:
     installation
     quickstart
     walkthrough
-    faq
 
 .. toctree::
     :maxdepth: 2

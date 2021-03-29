@@ -43,7 +43,7 @@ You might wonder, why not simply use the input column names from the header to s
   >>> fields = {'text':(text, char), 'label':label}
   >>>
   >>> dataset_with_chars = TabularDataset('sample_dataset.csv', fields=fields, format='csv')
-  >>> dataset.finalize_fields().finalize_fields()
+  >>> dataset.finalize_fields()
   >>> print(dataset_with_chars[1])
   Example({'input_text': (None, ['Amazingly', 'lame', '.']),
            'input_chars': (None, ['A', 'm', 'a', 'z', 'i', 'n', 'g', 'l', 'y', ' ', 'l', 'a', 'm', 'e', ' ', '.']),
@@ -136,12 +136,22 @@ If you are only after the full numericalized dataset, we've got you covered. Use
 
   >>> batch_x, batch_y = dataset.batch(add_padding=True)
   >>> print(batch_x, batch_y, sep="\n")
-  {'input': array([[3, 4, 5, 2],
+  {'input_text': array([[3, 4, 5, 2],
        [6, 7, 2, 1]])}
   {'target': array([[0],
          [1]])}
 
-Since our dataset is small, we can set ``add_padding=True``, in which case the output of each Field is padded to the same length and packed into a matrix (in this case concretely, a numpy array).
+We can easily validate that the numericalized instances correspond to the input data:
+
+.. code-block:: python
+
+  >>> vocab = dataset.field('input_text').vocab
+  >>> for instance in batch_x.input_text:
+  ...     print(vocab.reverse_numericalize(instance))
+  ['Absorbing', 'character', 'study']
+  ['Amazingly', 'lame', '<PAD>']
+
+Since our example dataset is small, we can set ``add_padding=True``, which causes output of each Field to be padded to the same length and packed into a matrix (in this case concretely, a numpy array).
 
 .. note::
   When obtaining larger datasets as a single batch, we recommend leaving ``add_padding=False`` (default) or your entire dataset will be padded to the length of the longest instance, causing memory issues.

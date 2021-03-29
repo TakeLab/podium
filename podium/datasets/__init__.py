@@ -22,3 +22,15 @@ from .impl.snli_dataset import SNLIDataset, SNLISimple
 from .impl.sst_sentiment_dataset import SST
 from .iterator import BucketIterator, HierarchicalIterator, Iterator, SingleBatchIterator
 from .tabular_dataset import TabularDataset
+
+
+def list_builtin_datasets():
+    builtin_datasets = [
+        "CornellMovieDialogsConversationalDataset",
+        "IMDB",
+        "SNLIDataset",
+        "SNLISimple",
+        "SST",
+    ]
+
+    print(f"Built-in datasets: {builtin_datasets}")
