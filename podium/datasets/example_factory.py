@@ -46,7 +46,9 @@ class Example(dict):
         raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
     def __repr__(self):
-        attr_str = textwrap.indent(',\n'.join(f'{k!r}: {v!r}' for k, v in self.d.items()), ' ' * 4)
+        attr_str = textwrap.indent(
+            ",\n".join(f"{k!r}: {v!r}" for k, v in self.d.items()), " " * 4
+        )
         return f"{type(self).__name__}({{\n{attr_str}\n}})"
 
     @staticmethod
