@@ -142,7 +142,7 @@ class Field:
             Affects iteration over batches by separating target and non-target Fields.
 
         include_lengths : bool
-            Flag indicating whether the batch representation of this field should 
+            Flag indicating whether the batch representation of this field should
             include the length of every instance in the batch.
 
             If ``True``, the batch element under the name
@@ -157,8 +157,8 @@ class Field:
             in each minibatch.
 
         allow_missing_data : bool
-            A flag determining if the Field allows missing data. If 
-            ``allow_missing_data=False`` and a ``None`` value is present in the raw data, 
+            A flag determining if the Field allows missing data. If
+            ``allow_missing_data=False`` and a ``None`` value is present in the raw data,
             a ``ValueError`` will be raised.
             If ``allow_missing_data=True``, and a ``None`` value is present in the raw data,
             it will be stored and numericalized properly.
@@ -175,7 +175,7 @@ class Field:
 
         disable_numericalize_caching : bool
             Flag which determines whether the numericalization of this field should be
-            cached. 
+            cached.
 
             Should be set to ``True`` if the numericalization can differ
             between ``numericalize`` function calls for the same instance.

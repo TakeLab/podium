@@ -348,9 +348,11 @@ class DatasetBase(ABC):
 
 class Dataset(DatasetBase):
     """
-    A general purpose container for datasets. A dataset is a shallow wrapper for
-    a list of `Example` instances which contain the dataset data as well as the
-    corresponding `Field` instances, which (pre)process the columns of each example.
+    A general purpose container for datasets.
+
+    A dataset is a shallow wrapper for a list of `Example` instances which
+    contain the dataset data as well as the corresponding `Field` instances,
+    which (pre)process the columns of each example.
     """
 
     def __init__(self, examples, fields, sort_key=None):
@@ -636,8 +638,8 @@ class Dataset(DatasetBase):
 
         Call before using the dataset to precompute and cache numericalized
         values and avoid lazy numericalization during iteration. The main
-        difference when calling this class is that the speed of the first
-        epoch will be consistent with each subsequent one.
+        difference when calling this class is that the speed of the first epoch
+        will be consistent with each subsequent one.
         """
         for example in self.examples:
             for field in self.fields:

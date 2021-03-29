@@ -118,7 +118,7 @@ class Iterator(IteratorBase):
             The dataset to iterate over.
         batch_size : int
             Batch size for batched iteration. If the dataset size is
-            not a multiple of batch_size the last returned batch 
+            not a multiple of batch_size the last returned batch
             will be smaller (``len(dataset) % batch_size``).
         sort_key : callable
             A ``callable`` used to sort instances within a batch.
@@ -138,7 +138,7 @@ class Iterator(IteratorBase):
             The constructor for the return batch datatype. Defaults to
             ``np.array``.
             When working with deep learning frameworks such
-            as `tensorflow <https://www.tensorflow.org/>`_ and 
+            as `tensorflow <https://www.tensorflow.org/>`_ and
             `pytorch <https://pytorch.org/>`_, setting this argument
             allows customization of the batch datatype.
         internal_random_state : tuple
@@ -274,11 +274,10 @@ class Iterator(IteratorBase):
 
     def __iter__(self) -> PythonIterator[Tuple[NamedTuple, NamedTuple]]:
         """
-        Returns an iterator over the given dataset.
-        The iterator yields tuples in the form ``(input_batch,
-        target_batch)``.
-        The input_batch and target_batch are dict subclasses which unpack
-        to values instead of keys::
+        Returns an iterator over the given dataset. The iterator yields tuples
+        in the form ``(input_batch, target_batch)``. The input_batch and
+        target_batch are dict subclasses which unpack to values instead of
+        keys::
 
             >>> batch = Batch({
             ...    'a': np.array([0]),
@@ -515,8 +514,8 @@ class BucketIterator(Iterator):
     Creates a bucket iterator which uses a look-ahead heuristic to batch
     examples in a way that minimizes the amount of necessary padding.
 
-    Uses a bucket of size N x batch_size, and sorts instances within the
-    bucket before splitting into batches, minimizing necessary padding.
+    Uses a bucket of size N x batch_size, and sorts instances within the bucket
+    before splitting into batches, minimizing necessary padding.
     """
 
     def __init__(
@@ -626,9 +625,9 @@ class HierarchicalIterator(Iterator):
     corresponds to a field in the dataset. For every field in the dataset, the
     batch contains a list of matrices, where every matrix represents the context
     of an example in the batch. The rows of a matrix contain numericalized
-    representations of the examples that make up the context of an example
-    in the batch with the representation of the example itself being in the
-    last row of its own context matrix.
+    representations of the examples that make up the context of an example in
+    the batch with the representation of the example itself being in the last
+    row of its own context matrix.
     """
 
     def __init__(
@@ -652,7 +651,7 @@ class HierarchicalIterator(Iterator):
             The dataset to iterate over.
         batch_size : int
             Batch size for batched iteration. If the dataset size is
-            not a multiple of batch_size the last returned batch 
+            not a multiple of batch_size the last returned batch
             will be smaller (``len(dataset) % batch_size``).
         sort_key : callable
             A ``callable`` used to sort instances within a batch.
@@ -672,7 +671,7 @@ class HierarchicalIterator(Iterator):
             The constructor for the return batch datatype. Defaults to
             ``np.array``.
             When working with deep learning frameworks such
-            as `tensorflow <https://www.tensorflow.org/>`_ and 
+            as `tensorflow <https://www.tensorflow.org/>`_ and
             `pytorch <https://pytorch.org/>`_, setting this argument
             allows customization of the batch datatype.
         internal_random_state : tuple
