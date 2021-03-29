@@ -63,7 +63,10 @@ SST({
     ]
 })
 >>> print(sst_train[222]) # A short example
-Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
+Example({
+    text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']),
+    label: (None, 'positive')
+})
 ```
 
 Load datasets from [🤗 datasets](https://github.com/huggingface/datasets):
@@ -84,13 +87,13 @@ HFDatasetConverter({
     size: 25000,
     fields: [
         Field({
-            name: text,
+            name: 'text',
             keep_raw: False,
             is_target: False,
             vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 280619})
         }),
         LabelField({
-            name: label,
+            name: 'label',
             keep_raw: False,
             is_target: True
         })
@@ -112,17 +115,17 @@ TabularDataset({
     size: 1,
     fields: [
         Field({
-            name: premise,
+            name: 'premise',
             is_target: False, 
             vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 19})
         }),
         Field({
-            name: hypothesis,
+            name: 'hypothesis',
             is_target: False, 
             vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 19})
         }),
         LabelField({
-            name: label,
+            name: 'label',
             is_target: True, 
             vocab: Vocab({specials: (), eager: False, finalized: True, size: 1})
         })
@@ -168,8 +171,10 @@ You could decide to lowercase all the characters and filter out all non-alphanum
 >>> fields = {'text': text, 'label': label}
 >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
 >>> print(sst_train[222])
-Example({'text': (None, ['a', 'slick', 'engrossing', 'melodrama']), 'label': (None, 'positive')})
-
+Example({
+    text: (None, ['a', 'slick', 'engrossing', 'melodrama']),
+    label: (None, 'positive')
+})
 ```
 
 **Pre-tokenization** hooks do not see the tokenized data and are applied (and modify) only `raw` data. 
@@ -192,7 +197,9 @@ A common use-case is to incorporate existing components of pretrained language m
 >>> fields = {'text': subword_field, 'label': label}
 >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
 >>> print(sst_train[222])
-Example({'subword': (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.']), 'label': (None, 'positive')})
+Example({
+    subword: (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.']),label: (None, 'positive')
+})
 ```
 
 For a more interactive introduction check out the tutorial on Google Colab: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/takelab/podium/blob/master/docs/source/notebooks/walkthrough.ipynb)

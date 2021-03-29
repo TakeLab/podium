@@ -28,6 +28,7 @@ import numpy as np
 import pandas as pd
 
 from podium.field import Field, unpack_fields
+from podium.utils.general_utils import repr_type_and_attrs
 
 from .example_factory import Example, ExampleFactory
 
@@ -230,11 +231,10 @@ class DatasetBase(ABC):
         return self[shuffled_indices]
 
     def __repr__(self):
-        fields_str = ",\n".join([textwrap.indent(repr(f), " " * 8) for f in self.fields])
-        return (
-            f"{type(self).__name__}"
-            f"({{\n    size: {len(self)},\n    fields: [\n{fields_str}\n    ]\n}})"
-        )
+        fields_str = ",\n".join(textwrap.indent(repr(f), " " * 8) for f in self.fields)
+        fields_str = f"[\n{fields_str}\n    \n]"
+        attrs = {"size": len(self), "fields": fields_str}
+        return repr_type_and_attrs(self, attrs, with_newlines=True, repr_values=False)
 
     @abstractmethod
     def __len__(self) -> int:

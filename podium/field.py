@@ -2,6 +2,7 @@
 Module contains dataset's field definition and methods for construction.
 """
 import itertools
+import textwrap
 from collections import deque
 from collections.abc import Iterator
 from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
@@ -10,6 +11,7 @@ import numpy as np
 
 from podium.preproc.hooks import HookType
 from podium.preproc.tokenizers import get_tokenizer
+from podium.utils.general_utils import repr_type_and_attrs
 from podium.vocab import Vocab
 
 
@@ -762,14 +764,14 @@ class Field:
             self._tokenizer = get_tokenizer(self._tokenizer_arg_string)
 
     def __repr__(self):
-        vocab_str = f",\n    vocab: {self.vocab}\n" if self.use_vocab else "\n"
-        return (
-            f"{type(self).__name__}({{"
-            f"\n    name: {self.name},"
-            f"\n    keep_raw: {self._keep_raw},"
-            f"\n    is_target: {self.is_target}"
-            f"{vocab_str}}})"
-        )
+        attrs = {
+            "name": self.name,
+            "keep_raw": self._keep_raw,
+            "is_target": self.is_target,
+        }
+        if self.use_vocab:
+            attrs["vocab"] = self.vocab
+        return repr_type_and_attrs(self, attrs, with_newlines=True)
 
     def get_output_fields(self) -> Iterable["Field"]:
         """
@@ -932,6 +934,14 @@ class MultioutputField:
         MultioutputField.
         """
         self._pretokenization_pipeline.clear()
+
+    def __repr__(self):
+        fields_str = ",\n".join(
+            textwrap.indent(repr(f), " " * 8) for f in self._output_fields
+        )
+        fields_str = f"[\n{fields_str}\n    \n]"
+        attrs = {"fields": fields_str}
+        return repr_type_and_attrs(self, attrs, with_newlines=True, repr_values=False)
 
 
 class LabelField(Field):

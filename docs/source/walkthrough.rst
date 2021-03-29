@@ -36,13 +36,13 @@ One built-in dataset available in Podium is the `Stanford Sentiment Treebank <ht
       size: 6920,
       fields: [
           Field({
-              name: text,
+              name: 'text',
               keep_raw: False,
               is_target: False,
               vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 16284})
           }),
           LabelField({
-              name: label,
+              name: 'label',
               keep_raw: False,
               is_target: True,
               vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 2})
@@ -50,7 +50,10 @@ One built-in dataset available in Podium is the `Stanford Sentiment Treebank <ht
       ]
   })
   >>> print(sst_train[222]) # A short example
-  Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
+  Example({
+      text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']),
+      label: (None, 'positive')
+  })
 
 
 Each built-in Podium dataset has a :func:`get_dataset_splits` method, which returns the `train`, `test` and `validation` split of that dataset, if available.
@@ -65,13 +68,13 @@ We saw earlier that our dataset has two Fields: text and label. We will touch on
   >>> text_field, label_field = sst_train.fields
   >>> print(text_field, label_field, sep='\n')
   Field({
-      name: text,
+      name: 'text',
       keep_raw: False,
       is_target: False,
       vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 16284})
   })
   LabelField({
-      name: label,
+      name: 'label',
       keep_raw: False,
       is_target: True,
       vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 2})
@@ -153,13 +156,13 @@ The SST dataset has two textual data columns (fields): (1) the input text of the
   >>> label = LabelField(name='label')
   >>> print(text, label, sep='\n')
   Field({
-      name: text,
+      name: 'text',
       keep_raw: False,
       is_target: False,
       vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, is_finalized: False, size: 0})
   })
   LabelField({
-      name: label,
+      name: 'label',
       keep_raw: False,
       is_target: True,
       vocab: Vocab({specials: (), eager: True, is_finalized: False, size: 0})
@@ -389,17 +392,17 @@ For this dataset, we need to define three Fields. We also might want the fields 
       size: 1,
       fields: [
           Field({
-              name: premise,
+              name: 'premise',
               is_target: False, 
               vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 19})
           }),
           Field({
-              name: hypothesis,
+              name: 'hypothesis',
               is_target: False, 
               vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 19})
           }),
           LabelField({
-              name: label,
+              name: 'label',
               is_target: True, 
               vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 1})
           })
@@ -426,7 +429,10 @@ The ``line2example`` function should accept a single line of the dataset file as
   >>> 
   >>> dataset = TabularDataset('my_dataset.csv', fields=fields, line2example=custom_split)
   >>> print(dataset[0])
-  Example({'premise': (None, ['A', 'man', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.']), 'hypothesis': (None, ['The', 'man', 'is', 'sleeping']); label: (None, 'contradiction')})
+  Example({
+      premise: (None, ['A', 'man', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.']),
+      hypothesis: (None, ['The', 'man', 'is', 'sleeping']); label: (None, 'contradiction')
+  })
 
 
 Here, for simplicity, we (naively) assume that the content of the Field data will not contain commas. 
@@ -467,12 +473,12 @@ Datasets from 🤗 can be used with other Podium components by wrapping them in 
   >>>
   >>> imdb_train.as_dataset().fields
   (Field({
-      name: text,
+      name: 'text',
       keep_raw: False,
       is_target: False,
       vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, is_finalized: False, size: 280617})
   }), LabelField({
-      name: label,
+      name: 'label',
       keep_raw: False,
       is_target: True
   }))
