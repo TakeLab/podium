@@ -61,12 +61,3 @@ Cornell Movie Dialogs Dataset
    :members:
    :no-undoc-members:
 
-
-Built-in datasets (HR)
-----------------------
-
-Pauza Reviews Dataset
-^^^^^^^^^^^^^^^^^^^^^
-.. autoclass:: podium.datasets.impl.PauzaHRDataset
-   :members:
-   :no-undoc-members:

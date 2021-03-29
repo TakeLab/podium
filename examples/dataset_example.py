@@ -3,8 +3,8 @@ Example how to use simple PauzaHR dataset.
 """
 import dill
 
-from podium.datasets.impl.pauza_dataset import PauzaHRDataset
-from podium.storage.resources.large_resource import LargeResource
+from podium.datasets import SST
+from podium.storage import LargeResource
 
 
 if __name__ == "__main__":
@@ -12,7 +12,7 @@ if __name__ == "__main__":
     # https://github.com/mttk/podium/wiki/Large-resources
     LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
 
-    train_set, test_set = PauzaHRDataset.get_train_test_dataset()
+    train_set, _, test_set = SST.get_dataset_splits()
     print(f"train set {len(train_set)}")
     print(f"test set {len(test_set)}")
 
