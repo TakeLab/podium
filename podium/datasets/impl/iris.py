@@ -5,7 +5,7 @@ from podium.datasets.example_factory import ExampleFactory
 from podium.field import Field
 
 
-class IrisDataset(Dataset):
+class Iris(Dataset):
     """
     This is the classic Iris dataset. This is perhaps the best known database to
     be found in the pattern recognition literature.
@@ -24,7 +24,7 @@ class IrisDataset(Dataset):
         """
         x, y = load_iris(return_X_y=True)
 
-        fields = IrisDataset._get_default_fields()
+        fields = Iris.get_default_fields()
         example_factory = ExampleFactory(fields)
 
         data = ((*x_, y_) for x_, y_ in zip(x, y))
@@ -33,7 +33,7 @@ class IrisDataset(Dataset):
         super().__init__(examples, fields)
 
     @staticmethod
-    def _get_default_fields():
+    def get_default_fields():
         def identity(x):
             return x
 

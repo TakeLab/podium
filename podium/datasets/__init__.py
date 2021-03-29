@@ -16,9 +16,9 @@ from .dataset import (
 from .example_factory import Example, ExampleFactory, ExampleFormat
 from .hierarhical_dataset import HierarchicalDataset
 from .impl.conllu_dataset import CoNLLUDataset
-from .impl.cornell_movie_dialogs_dataset import CornellMovieDialogsConversationalDataset
-from .impl.imdb_sentiment_dataset import IMDB
-from .impl.snli_dataset import SNLIDataset, SNLISimple
-from .impl.sst_sentiment_dataset import SST
+from .impl.cornell_movie_dialogs import CornellMovieDialogs
+from .impl.imdb import IMDB
+from .impl.snli import SNLI, SNLISimple
+from .impl.sst import SST
 from .iterator import BucketIterator, HierarchicalIterator, Iterator, SingleBatchIterator
 from .tabular_dataset import TabularDataset

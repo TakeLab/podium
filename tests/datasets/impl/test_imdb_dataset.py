@@ -4,7 +4,7 @@ import tempfile
 import pytest
 
 from podium.datasets.dataset import Dataset
-from podium.datasets.impl.imdb_sentiment_dataset import IMDB
+from podium.datasets.impl.imdb import IMDB
 from podium.storage.resources.large_resource import LargeResource
 from podium.utils.general_utils import load_spacy_model_or_raise
 

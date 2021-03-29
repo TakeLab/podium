@@ -4,7 +4,7 @@ import tempfile
 import pytest
 
 from podium.datasets.dataset import Dataset
-from podium.datasets.impl.sst_sentiment_dataset import SST
+from podium.datasets.impl.sst import SST
 from podium.storage.resources.large_resource import LargeResource
 
 
