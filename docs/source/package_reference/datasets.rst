@@ -48,16 +48,21 @@ Internet Movie DataBase
    :members:
    :no-undoc-members:
 
-
 Stanford Natural Language Inference
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. autoclass:: podium.datasets.impl.SNLISimple
+.. autoclass:: podium.datasets.impl.SNLI
    :members:
    :no-undoc-members:
 
-Cornell Movie Dialogs Dataset
+Cornell Movie Dialogs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. autoclass:: podium.datasets.impl.CornellMovieDialogsConversationalDataset
+.. autoclass:: podium.datasets.impl.CornellMovieDialogs
+   :members:
+   :no-undoc-members:
+
+Iris
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. autoclass:: podium.datasets.impl.Iris
    :members:
    :no-undoc-members:
 

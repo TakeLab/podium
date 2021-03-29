@@ -3,9 +3,9 @@ Package contains concrete datasets.
 """
 
 from .conllu_dataset import CoNLLUDataset
-from .cornell_movie_dialogs_dataset import CornellMovieDialogsConversationalDataset
-from .imdb_sentiment_dataset import IMDB
-from .iris_dataset import IrisDataset
+from .cornell_movie_dialogs import CornellMovieDialogs
+from .imdb import IMDB
+from .iris import Iris
 from .pauza_dataset import PauzaHRDataset
-from .snli_dataset import SNLIDataset, SNLISimple
-from .sst_sentiment_dataset import SST
+from .snli import SNLI, SNLISimple
+from .sst import SST

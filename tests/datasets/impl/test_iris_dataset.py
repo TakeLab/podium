@@ -1,10 +1,10 @@
 from sklearn.datasets import load_iris
 
-from podium.datasets.impl.iris_dataset import IrisDataset
+from podium.datasets.impl.iris import Iris
 
 
 def test_iris_dataset():
-    iris_ds = IrisDataset()
+    iris_ds = Iris()
 
     x, y = load_iris(return_X_y=True)
 
