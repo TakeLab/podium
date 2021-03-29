@@ -303,7 +303,7 @@ Dataset manipulation
 Dataset splitting
 ---------------------
 
-It is often the case we want to somehow manipulate the size of our dataset. One common use-case is that our dataset comes in a single split -- and we wish to segment it into a train, test and perhaps validation split. For this, we have defined a :func:`Dataset.split` function which allows you to split your dataset into arbitrary ratios:
+It is often the case we want to somehow manipulate the size of our dataset. One common use-case is that our dataset comes in a single split -- and we wish to segment it into a train, test and perhaps validation split. For this, we have defined a :func:`podium.Dataset.split` function which allows you to split your dataset into arbitrary ratios:
 
 .. doctest:: dataset_splitting
 
@@ -437,7 +437,7 @@ The ``bucket_sort_key`` function defines how the instances in the dataset should
   For Iterator, padding = 148141 out of 281696 = 52.588961149608096%
   For BucketIterator, padding = 2125 out of 135680 = 1.5661851415094339%
 
-As we can see, the difference between using a regular Iterator and a BucketIterator is massive. Not only do we reduce the amount of padding, we have reduced the total amount of tokens processed by about 50%. The SST dataset, however, is a relatively small dataset so this experiment might be a bit biased. Let's take a look at the same statistics for the :class:`podium.datasets.IMDB` dataset. After changing the highligted data loading line in the first snippet to:
+As we can see, the difference between using a regular Iterator and a BucketIterator is massive. Not only do we reduce the amount of padding, we have reduced the total amount of tokens processed by about 50%. The SST dataset, however, is a relatively small dataset so this experiment might be a bit biased. Let's take a look at the same statistics for the :class:`podium.datasets.impl.IMDB` dataset. After changing the highligted data loading line in the first snippet to:
 
 .. code-block:: rest
 
