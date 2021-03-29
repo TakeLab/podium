@@ -5,6 +5,7 @@ from json import JSONDecodeError
 
 import dill
 import numpy as np
+import pandas as pd
 import pytest
 
 from podium.datasets import ExampleFactory
@@ -764,7 +765,6 @@ def test_unpack_fields():
 
 def test_eager_tokenization():
     def create_dataset():
-
         fields = (
             Field("text", numericalizer=Vocab()),
             Field("source", numericalizer=Vocab(), tokenizer=list),
@@ -799,7 +799,6 @@ def test_eager_tokenization():
 
 
 def test_from_pandas_field_list(data):
-    import pandas as pd
 
     df = pd.DataFrame(data)
     fields = [
@@ -814,8 +813,6 @@ def test_from_pandas_field_list(data):
 
 
 def test_from_pandas_field_dict(data):
-    import pandas as pd
-
     df = pd.DataFrame(data, columns=["text", "number"])
     fields = {
         "text": Field("text_field", keep_raw=True, tokenizer="split"),
@@ -830,8 +827,6 @@ def test_from_pandas_field_dict(data):
 
 
 def test_from_pandas_index(data):
-    import pandas as pd
-
     df = pd.DataFrame([[x[0]] for x in data], index=[x[1] for x in data])
     fields = [Field("text", keep_raw=True, tokenizer="split")]
 
