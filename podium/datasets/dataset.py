@@ -157,9 +157,9 @@ class DatasetBase(ABC):
         Parameters
         ----------
         add_padding : bool
-            A flag indicading whether the dataset should be padded when
+            A flag indicating whether the dataset should be padded when
             returned as a single batch. Please note that setting this
-            argument to true can consume a large amount of memory since
+            argument to True can consume a large amount of memory since
             the dataset will be expanded to [num_instances, max_size] as
             every instance in the dataset needs to be padded to the size
             of the longest one. Defaults to `False`

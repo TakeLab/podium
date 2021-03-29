@@ -9,7 +9,7 @@ TakeLab Podium
 Data loading & preprocessing library for natural language processing.
 Compatible with all deep learning frameworks, based in NumPy.
 
-The goal of Podium is to be **lightweight**, in terms of code and dependencies, **flexible**, to cover most common use-cases and easily adapt to more specific ones, **clearly defined**, so new users can quickly understand the sequence of operations and how to inject their custom functionality and **well documented and tested**.
+The goal of Podium is to be **lightweight**, in terms of code and dependencies, **flexible**, to cover most common use-cases and easily adapt to more specific ones and **clearly defined**, so new users can quickly understand the sequence of operations and how to inject their custom functionality.
 
 Contents
 ---------------------------------

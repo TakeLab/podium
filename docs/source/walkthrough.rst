@@ -71,7 +71,7 @@ You can load a dataset in 🤗 datasets and then convert it to a Podium dataset 
 
 .. code-block:: python
 
-  >>> from podium.datasets.hf import HFDatasetConverter
+  >>> from podium.datasets.hf import HFDatasetConverter as HF
   >>> import datasets
   >>> # Loading a huggingface dataset returns an instance of DatasetDict
   >>> # which contains the dataset splits (usually: train, valid, test, 
@@ -87,7 +87,7 @@ Datasets from 🤗 can be used with other Podium components by wrapping them in 
   >>> # We create an adapter for huggingface dataset schema to podium Fields.
   >>> # These are not yet Podium datasets, but behave as such (you can iterate
   >>> # over them as if they were).
-  >>> imdb_train, imdb_test, imdb_unsupervised = HFDatasetConverter.from_dataset_dict(imdb).values()
+  >>> imdb_train, imdb_test, imdb_unsupervised = HF.from_dataset_dict(imdb).values()
   >>> imdb_train.finalize_fields()
   >>>
   >>> imdb_train.as_dataset().fields
@@ -254,6 +254,11 @@ Inside each of these two fields we can see a :class:`podium.Vocab` class, used f
 
 Vocabularies are built automatically for built-in datasets by counting the frequencies of tokens in the **train** set and then converting these frequences to the ``itos`` and ``stoi`` dictionaries. We can see that a ``Vocab`` is built by the ``is_finalized=True`` keyword in the printout.
 If you are constructing your own dataset or loading a dataset from 🤗 (:ref:`hf-loading`), you will need to call the :func:`podium.Dataset.finalize_fields()` method to signal that the vocabularies should be constructed.
+
+Finalizing vocabularies
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+
 
 Customizing Vocabs
 ^^^^^^^^^^^^^^^^^^

@@ -2,7 +2,7 @@
 Quickstart
 ============
 
-To get you started with Podium, we will use a sample from a movie review classification dataset stored in a comma-separated value (``csv``) file named ``sample_dataset.csv``:
+To get you started with Podium, we will use a sample from a movie review classification dataset stored in a ``csv`` file named ``sample_dataset.csv``:
 
 .. code-block:: python
 
@@ -24,7 +24,7 @@ Data preprocessing in Podium is done in pipelines called Fields. Each dataset co
   >>> text = Field(name='input_text', tokenizer="split", numericalizer=Vocab())
   >>> label = LabelField(name='target')
   >>> # Map the column names to Fields
-  >>> fields = {'text':text, 'label':label}
+  >>> fields = {'text': text, 'label': label}
   >>>
   >>> dataset = TabularDataset('sample_dataset.csv', fields=fields, format='csv')
   >>> dataset.finalize_fields()
@@ -32,15 +32,16 @@ Data preprocessing in Podium is done in pipelines called Fields. Each dataset co
   Example({'input_text': (None, ['Amazingly', 'lame', '.']),
            'target': (None, 'negative')})
 
-In this example, we used the built-in :class:`podium.TabularDataset` loader to load our ``csv`` dataset. The loader reads the dataset and uses the ``fields`` dictionary to determine how input data columns map to Fields. Each dataset instance is stored in a :class:`podium.Example` instance, with the data for each Field stored under that Field's name. An Example is a ``dict`` subclass with some convenience functions.
+In this example, we used the built-in :class:`podium.TabularDataset` loader to load our ``csv`` dataset. The loader reads the dataset and uses the ``fields`` dictionary to determine how input data columns map to Fields. Each dataset instance is stored in a :class:`podium.Example`, with the data for each Field stored under that Field's name.
 
 You might wonder, why not simply use the input column names from the header to store data in Examples. This is because you might want to map a single input to multiple Fields, like so:
 
 .. code-block:: python
 
-  >>> # ...
+  >>> text = Field(name='input_text', tokenizer="split", numericalizer=Vocab())
   >>> char = Field(name='input_chars', tokenizer=list, numericalizer=Vocab())
-  >>> fields = {'text':(text, char), 'label':label}
+  >>> label = LabelField(name='target')
+  >>> fields = {'text': (text, char), 'label': label}
   >>>
   >>> dataset_with_chars = TabularDataset('sample_dataset.csv', fields=fields, format='csv')
   >>> dataset.finalize_fields()
@@ -55,9 +56,9 @@ Adding your own preprocessing with hooks
 -----------------------------------------
 
 The main way to customize data preprocessing in Podium is with functions we call *hooks*.
-Briefly, hooks are python callables that modify data which passes through Fields. They come in two flavors: pre-tokenization and post-tokenization. The main difference between them is their signature -- pre-tokenization hooks work only on raw data, while post-tokenization hooks work on both raw and tokenized data.
+Briefly, hooks are python callables that modify data which passes through Fields. They come in two flavors: pre-tokenization and post-tokenization. Pre-tokenization hooks mdoify only raw data, while post-tokenization hooks modify both raw and tokenized data.
 
-Looking at our dataset, we might want to lowercase the data and remove punctuation. For demonstrative purposes, we will make lowercasing a pre-tokenization hook and puntuation removal a post-tokenization hook. Please be aware that tokenizers (e.g. ``spacy``, ``nltk``) are commonly sensitive to word casing and lowercasing should be done as a post-tokenization hook in that case.
+Looking at our dataset, we might want to lowercase the data and remove punctuation. We will make lowercasing a pre-tokenization hook and punctuation removal a post-tokenization hook. Please be aware that tokenizers (e.g. ``spacy``, ``nltk``) are commonly sensitive to word casing so lowercasing might be best done in post-tokenization.
 
 .. code-block:: python
 
@@ -82,15 +83,14 @@ We can add these hooks to the Field constructor and load the dataset again, appy
   ...              posttokenize_hooks=[RemovePunct()]
   ...        )
   >>> label = LabelField(name='target')
-  >>> fields = {'text':text, 'label':label}
+  >>> fields = {'text': text, 'label': label}
   >>> filtered_dataset = TabularDataset('sample_dataset.csv', fields=fields, format='csv')
   >>> filtered_dataset.finalize_fields()
   >>> print(filtered_dataset[1])
   Example({'input_text': (None, ['amazingly', 'lame']),
            'target': (None, 'negative')})
 
-For a more detailed overview of what hooks are and how to use them, check out :ref:`interact_fields`.
-
+For a more detailed overview of what hooks are and how to use them, check out :ref:`fields` and :ref:`interact_fields`.
 
 Mapping tokens to indices
 --------------------------
@@ -101,11 +101,12 @@ Apart from the tokenization, each Field also constructed a :class:`podium.Vocab`
 
   >>> text_vocab = dataset.field('input_text').vocab
   >>> print(text_vocab)
-  Vocab({specials: ('<UNK>', '<PAD>'), eager: True, is_finalized: True, size: 7})
+  Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 7})
   >>> print(text_vocab.stoi) # String-to-integer
   {'<UNK>': 0, '<PAD>': 1, '.': 2, 'Absorbing': 3, 'character': 4, 'study': 5, 'Amazingly': 6, 'lame': 7}
 
-When loading data, a Field automatically collects frequencies of tokens and relays them to its Vocab. When signaled, the Vocab constructs a **string-to-integer** (stoi) ``dict`` and **index-to-string** (itos) ``list``. Once ``stoi`` and ``itos`` are constructed the Vocab is finalized, cannot be updated and will raise warnings if you attempt to do so.
+When loading data, a Field automatically collects frequencies of tokens and relays them to its Vocab. When signaled, the Vocab constructs a **string-to-integer** (stoi) ``dict`` and **index-to-string** (itos) ``list``. Once ``stoi`` and ``itos`` are constructed the Vocab is finalized, cannot be updated and will raise an error if you attempt to do so.
+The vocabularies are finalized **by you** -- you need to call :meth:`Dataset.finalize_fields` which subsequently tells every Field in the dataset to finalize its Vocab, if it has one. 
 
 Apart from using our ``Vocab`` class to perform numericalization, you can also pass your own callable which maps tokens to indices. Vocabularies (:ref:`vocab`) contain special tokens, which we designed to be easily extensible (:ref:`specials`).
 

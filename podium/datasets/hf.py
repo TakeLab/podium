@@ -27,7 +27,7 @@ def _identity(x):
 
 def _convert_feature(name: str, feature: datasets.features.FeatureType) -> Field:
     """
-    Class for converting features of the HuggingFace Dataset to the
+    Function for converting features of the HuggingFace Dataset to the
     podium.Fields.
 
     Parameters
