@@ -98,15 +98,6 @@ napoleon_use_ivar = False
 napoleon_use_param = True
 napoleon_use_rtype = True
 
-# Check internal links are correct or not
-nitpicky = True
-nitpick_ignore = [
-    # ("py:class", ".."),
-    ("py:obj", "output_fields"),
-    ("py:obj", "tokenizer"),
-    ("py:obj", "pretokenization_hooks"),
-]
-
 
 def setup(app):
     app.add_css_file('css/podium.css')
