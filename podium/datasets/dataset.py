@@ -44,6 +44,13 @@ class DatasetBase(ABC):
         self._field_dict = {f.name: f for f in self.fields}
 
     @property
+    def examples(self) -> List[Example]:
+        """
+        List containing all Examples.
+        """
+        return self._get_examples()
+
+    @property
     def fields(self) -> Tuple[Field]:
         """
         List containing all fields of this dataset.
@@ -56,13 +63,6 @@ class DatasetBase(ABC):
         Dictionary mapping the Dataset's field names to the respective Fields.
         """
         return self._field_dict
-
-    @property
-    def examples(self) -> List[Example]:
-        """
-        List containing all Examples.
-        """
-        return self._get_examples()
 
     def __iter__(self) -> Iterator[Example]:
         """
@@ -88,8 +88,8 @@ class DatasetBase(ABC):
 
         Returns
         ------
-            an Iterator iterating over values of the field with the given name
-            for every example in the dataset.
+        iterable
+            An iterable over values of the referenced Field for every dataset Example
 
         Raises
         ------
@@ -111,7 +111,12 @@ class DatasetBase(ABC):
 
     def field(self, name) -> Field:
         """
-        Returns the Field with a given name.
+        Returns the Field in a dataset with a given name, if it exists.
+
+        Returns
+        -------
+        Field or None
+            The referenced `Field` or `None` if no `Field` with the given name exists.
         """
         return self._field_dict.get(name, None)
 
@@ -312,7 +317,7 @@ class DatasetBase(ABC):
         original dataset. If a complete deep-copy of the dataset, or its slice,
         is needed please refer to the `get` method.
 
-        Usage example:
+        Example::
 
             example = dataset[1] # Indexing by single integer returns a single example
 
@@ -344,16 +349,8 @@ class DatasetBase(ABC):
 class Dataset(DatasetBase):
     """
     A general purpose container for datasets. A dataset is a shallow wrapper for
-    a list of `Example` classes which store the instance data as well as the
-    corresponding `Field` classes, which process the columns of each example.
-
-    Attributes
-    ----------
-    examples : list
-        A list containing the instances of the dataset as Example classes.
-    fields : list
-        A list of Field objects defining preprocessing for data fields of
-        the dataset.
+    a list of `Example` instances which contain the dataset data as well as the
+    corresponding `Field` instances, which (pre)process the columns of each example.
     """
 
     def __init__(self, examples, fields, sort_key=None):
@@ -392,7 +389,7 @@ class Dataset(DatasetBase):
         original dataset. If a complete deep-copy of the dataset, or its slice,
         is needed please refer to the `get` method.
 
-        Usage example:
+        Example::
 
             example = dataset[1] # Indexing by single integer returns a single example
 
@@ -517,7 +514,7 @@ class Dataset(DatasetBase):
                 examples=filtered_examples, fields=self.fields, sort_key=self.sort_key
             )
 
-    def filtered(self, predicate: Callable[[Example], bool]) -> "DatasetBase":
+    def filtered(self, predicate: Callable[[Example], bool]) -> "Dataset":
         return self.filter(predicate, inplace=False)
 
     def split(
@@ -637,8 +634,10 @@ class Dataset(DatasetBase):
         Generates and caches numericalized data for every example in the
         dataset.
 
-        Call before using the dataset to avoid lazy numericalization during
-        iteration.
+        Call before using the dataset to precompute and cache numericalized
+        values and avoid lazy numericalization during iteration. The main
+        difference when calling this class is that the speed of the first
+        epoch will be consistent with each subsequent one.
         """
         for example in self.examples:
             for field in self.fields:
@@ -648,8 +647,7 @@ class Dataset(DatasetBase):
 
     def __getstate__(self):
         """
-        Method obtains dataset state. It is used for pickling dataset data to
-        file.
+        Returns the dataset state, used for pickling datasets.
 
         Returns
         -------
@@ -660,8 +658,7 @@ class Dataset(DatasetBase):
 
     def __setstate__(self, state):
         """
-        Method sets dataset state. It is used for unpickling dataset data from
-        file.
+        Restores dataset state, used for unpickling datasets.
 
         Parameters
         ----------
@@ -700,7 +697,7 @@ class Dataset(DatasetBase):
 
     def shuffle_examples(self, random_state=None):
         """
-        Shuffles the examples in this dataset.
+        Shuffles the examples in this dataset in-place.
 
         Parameters
         ----------

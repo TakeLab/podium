@@ -115,58 +115,54 @@ class Iterator(IteratorBase):
         Parameters
         ----------
         dataset : DatasetBase
-            The dataset whose examples the iterator will iterate over.
+            The dataset to iterate over.
         batch_size : int
-            The size of the batches that the iterator will return. If the
-            number of examples in the dataset is not a multiple of
-            batch_size the last returned batch will be smaller
-            (dataset_len MOD batch_size).
+            Batch size for batched iteration. If the dataset size is
+            not a multiple of batch_size the last returned batch 
+            will be smaller (``len(dataset) % batch_size``).
         sort_key : callable
-            A callable object used to sort the instances in a batch.
-            If None, the batch instances won't be sorted.
-            Default is None.
+            A ``callable`` used to sort instances within a batch.
+            If ``None``, batch instances won't be sorted.
+            Default is ``None``.
         shuffle : bool
-            A flag denoting whether the examples should be shuffled before
-            each iteration.
-            If sort_key is not None, this flag being True may not have any
-            effect since the dataset will always be sorted after being
-            shuffled (the only difference shuffling can make is in the
-            order of elements with the same value of sort_key).
-            Default is False.
+            Flag denoting whether examples should be shuffled prior
+            to each epoch.
+            Default is ``False``.
         seed : int
-            The seed that the iterator's internal random state will be
-            initialized with. Useful when we want repeatable random shuffling.
-            Only relevant if shuffle is True. If shuffle is True and
-            internal_random_state is None, then this must not be None,
-            otherwise a ValueError is raised.
-            Default is 1.
+            The initial random seed.
+            Only used if ``shuffle=True``. Raises ``ValueError`` if
+            ``shuffle=True``, ``internal_random_state=None`` and
+            ``seed=None``.
+            Default is ``1``.
         matrix_class: callable
             The constructor for the return batch datatype. Defaults to
-            `np.array`. When working with deep learning frameworks such
-            as tensorflow and torch, setting the argument accordingly will
-            immediately provide batches in the appropriate framework. Not
-            delegated to keyword arguments so users can pass a function
-            which also immediately casts the batch data to the GPU.
+            ``np.array``.
+            When working with deep learning frameworks such
+            as `tensorflow <https://www.tensorflow.org/>`_ and 
+            `pytorch <https://pytorch.org/>`_, setting this argument
+            allows customization of the batch datatype.
         internal_random_state : tuple
             The random state that the iterator will be initialized with.
-            This argument can be obtained by calling `.getstate` on the
-            instance of the Random object, and is exposed through the
-            `Iterator.get_internal_random_state` method. For most cases,
-            setting the random seed will suffice, while this argument is
-            useful when we want to stop iteration and later continue where
-            we left off.
-            If None, the iterator will create its own random state from the
-            given seed, that can later be obtained if we want to store it.
-            Only relevant if shuffle is True. If shuffle is True and seed is
-            None, then this must not be None, otherwise a ValueError is
-            raised.
-            Default is None.
+            Obtained by calling ``.getstate`` on an instance of the Random
+            object, exposed through the ``Iterator.get_internal_random_state``
+            method.
+
+            For most use-cases, setting the random seed will suffice.
+            This argument is useful when we want to stop iteration at a certain
+            batch of the dataset and later continue exactly where we left off.
+
+            If ``None``, the Iterator will create its own random state from the
+            given seed.
+            Only relevant if ``shuffle=True``. A ``ValueError`` is raised if
+            ``shuffle=True``, ``internal_random_state=None`` and
+            ``seed=None``.
+            Default is ``None``.
 
         Raises
         ------
         ValueError
-            If shuffle is True and both seed and internal_random_state are
-            None.
+            If ``shuffle=True`` and both ``seed`` and ``internal_random_state`` are
+            ``None``.
         """
 
         self._batch_size = batch_size
@@ -214,7 +210,7 @@ class Iterator(IteratorBase):
     @property
     def iterations(self) -> int:
         """
-        Number of batches returned for the current epoch.
+        The number of batches returned so far in the current epoch.
         """
         return self._iterations
 
@@ -278,21 +274,31 @@ class Iterator(IteratorBase):
 
     def __iter__(self) -> PythonIterator[Tuple[NamedTuple, NamedTuple]]:
         """
-        Returns an iterator object that knows how to iterate over the given
-        dataset. The iterator yields tuples in the form (input_batch,
-        target_batch). The input_batch and target_batch objects have attributes
-        that correspond to the names of input fields and target fields
-        (respectively) of the dataset. The values of those attributes are numpy
-        matrices, whose rows are the numericalized values of that field in the
-        examples that are in the batch. Rows of sequential fields (that are of
-        variable length) are all padded to a common length. The common length is
-        either the fixed_length attribute of the field or, if that is not given,
-        the maximum length of all examples in the batch.
+        Returns an iterator over the given dataset.
+        The iterator yields tuples in the form ``(input_batch,
+        target_batch)``.
+        The input_batch and target_batch are dict subclasses which unpack
+        to values instead of keys::
+
+            >>> batch = Batch({
+            ...    'a': np.array([0]),
+            ...    'b': np.array([1])
+            ... })
+            >>> a, b = batch
+            >>> a
+            array([0])
+            >>> b
+            array([1])
+
+        Batch keys correspond to dataset Field names. Batch values are
+        by default numpy ndarrays, although the data type can be changed
+        through the ``matrix_class`` argument. Rows correspond to dataset
+        instances, while each element is a numericalized value of the input.
 
         Returns
         -------
         iter
-            Iterator that iterates over batches of examples in the dataset.
+            Iterator over batches of examples in the dataset.
         """
         indices = list(range(len(self._dataset)))
 
@@ -384,13 +390,10 @@ class Iterator(IteratorBase):
         """
         Returns the internal random state of the iterator.
 
-        Useful when we want to stop iteration and later continue where we left
-        off. We can store the random state obtained with this method and later
-        initialize another iterator with the same random state and continue
-        iterating.
+        Useful if we want to stop iteration at a certain batch, and later
+        continue exactly at that batch..
 
-        Only to be called if shuffle is True, otherwise a RuntimeError is
-        raised.
+        Only used if ``shuffle=True``.
 
         Returns
         -------
@@ -400,12 +403,12 @@ class Iterator(IteratorBase):
         Raises
         ------
         RuntimeError
-            If shuffle is False.
+            If ``shuffle=False``.
         """
 
         if not self._shuffle:
             raise RuntimeError(
-                "Iterator with shuffle=False does not have an internal random state."
+                "Iterator with `shuffle=False` does not have an internal random state."
             )
 
         return self._shuffler.getstate()
@@ -414,23 +417,20 @@ class Iterator(IteratorBase):
         """
         Sets the internal random state of the iterator.
 
-        Useful when we want to stop iteration and later continue where we left
-        off. We can take the random state previously obtained from another
-        iterator to initialize this iterator with the same state and continue
-        iterating where the previous iterator stopped.
+        Useful if we want to stop iteration at a certain batch, and later
+        continue exactly at that batch..
 
-        Only to be called if shuffle is True, otherwise a RuntimeError is
-        raised.
+        Only used if ``shuffle=True``.
 
         Raises
         ------
         RuntimeError
-            If shuffle is False.
+            If ``shuffle=False``.
         """
 
         if not self._shuffle:
             raise RuntimeError(
-                "Iterator with shuffle=False does not have an internal random state."
+                "Iterator with `shuffle=False` does not have an internal random state."
             )
 
         self._shuffler.setstate(state)
@@ -483,21 +483,17 @@ class SingleBatchIterator(Iterator):
         Parameters
         ----------
         dataset : DatasetBase
-            The dataset whose examples the iterator will iterate over.
+            The dataset to iterate over.
 
         shuffle : bool
-            A flag denoting whether the examples should be shuffled before
-            each iteration.
-            If sort_key is not None, this flag being True may not have any
-            effect since the dataset will always be sorted after being
-            shuffled (the only difference shuffling can make is in the
-            order of elements with the same value of sort_key)..
-            Default is False.
+            Flag denoting whether examples should be shuffled before
+            each epoch.
+            Default is ``False``.
 
         add_padding : bool
-            A flag denoting whether to add padding to the iterator. If
-            set to False, numericalized Fields will be returned as lists of
-            numericalized instances.
+            Flag denoting whether to add padding to batches yielded by the
+            iterator. If set to ``False``, numericalized Fields will be
+            returned as python lists of ``matrix_class`` instances.
         """
         super().__init__(
             dataset=dataset,
@@ -516,11 +512,11 @@ class SingleBatchIterator(Iterator):
 
 class BucketIterator(Iterator):
     """
-    Creates a bucket iterator that uses a look-ahead heuristic to try and batch
+    Creates a bucket iterator which uses a look-ahead heuristic to batch
     examples in a way that minimizes the amount of necessary padding.
 
-    It creates a bucket of size N x batch_size, and sorts that bucket before
-    splitting it into batches, so there is less padding necessary.
+    Uses a bucket of size N x batch_size, and sorts instances within the
+    bucket before splitting into batches, minimizing necessary padding.
     """
 
     def __init__(
@@ -543,20 +539,19 @@ class BucketIterator(Iterator):
         Parameters
         ----------
         look_ahead_multiplier : int
-            Number that denotes how many times the look-ahead bucket is larger
-            than the batch_size.
-            If look_ahead_multiplier == 1, then BucketIterator behaves like a
-            normal iterator except with sorting within the batches.
-            If look_ahead_multiplier >= (num_examples / batch_size), then
-            BucketIterator behaves like a normal iterator that sorts the
+            Multiplier of ``batch_size`` which determines the size of the
+            look-ahead bucket.
+            If ``look_ahead_multiplier == 1``, then the BucketIterator behaves
+            like a normal Iterator.
+            If ``look_ahead_multiplier >= (num_examples / batch_size)``, then
+            the BucketIterator behaves like a normal iterator that sorts the
             whole dataset.
-            Default is 100.
+            Default is ``100``.
         bucket_sort_key : callable
-            The callable object used to sort the examples in the bucket that
-            is to be batched.
-            If bucket_sort_key is None, then sort_key must not be None,
-            otherwise a ValueError is raised.
-            Default is None.
+            The callable object used to sort examples in the bucket.
+            If ``bucket_sort_key=None``, then the ``sort_key`` must not be ``None``,
+            otherwise a ``ValueError`` is raised.
+            Default is ``None``.
 
         Raises
         ------
@@ -627,13 +622,13 @@ class HierarchicalIterator(Iterator):
     """
     Iterator used to create batches for Hierarchical Datasets.
 
-    It creates batches in the form of lists of matrices. In the batch that gets
-    returned, every attribute corresponds to a field in the dataset. For every
-    field in the dataset, the batch contains a list of matrices, where every
-    matrix represents the context of an example in the batch. The rows of a
-    matrix contain numericalized representations of the examples that make up
-    the context of an example in the batch with the representation of the
-    example itself being in the last row of its own context matrix.
+    Creates batches as lists of matrices. In the returned batch, every attribute
+    corresponds to a field in the dataset. For every field in the dataset, the
+    batch contains a list of matrices, where every matrix represents the context
+    of an example in the batch. The rows of a matrix contain numericalized
+    representations of the examples that make up the context of an example
+    in the batch with the representation of the example itself being in the
+    last row of its own context matrix.
     """
 
     def __init__(
@@ -654,52 +649,48 @@ class HierarchicalIterator(Iterator):
         Parameters
         ----------
         dataset : DatasetBase
-            The dataset whose examples the iterator will iterate over.
+            The dataset to iterate over.
         batch_size : int
-            The size of the batches that the iterator will return. If the
-            number of examples in the dataset is not a multiple of
-            batch_size the last returned batch will be smaller
-            (dataset_len MOD batch_size). Defaults to 32.
+            Batch size for batched iteration. If the dataset size is
+            not a multiple of batch_size the last returned batch 
+            will be smaller (``len(dataset) % batch_size``).
         sort_key : callable
-            A callable object used to sort the dataset prior to batching. If
-            None, the dataset won't be sorted.
-            Default is None.
+            A ``callable`` used to sort instances within a batch.
+            If ``None``, batch instances won't be sorted.
+            Default is ``None``.
         shuffle : bool
-            A flag denoting whether the examples should be shuffled before
-            each iteration.
-            If sort_key is not None, this flag being True may not have any
-            effect since the dataset will always be sorted after being
-            shuffled (the only difference shuffling can make is in the
-            order of elements with the same value of sort_key)..
-            Default is False.
+            Flag denoting whether examples should be shuffled prior
+            to each epoch.
+            Default is ``False``.
         seed : int
-            The seed that the iterator's internal random state will be
-            initialized with. Useful when we want repeatable random shuffling.
-            Only relevant if shuffle is True. If shuffle is True and
-            internal_random_state is None, then this must not be None,
-            otherwise a ValueError is raised.
-            Default is 1.
+            The initial random seed.
+            Only used if ``shuffle=True``. Raises ``ValueError`` if
+            ``shuffle=True``, ``internal_random_state=None`` and
+            ``seed=None``.
+            Default is ``1``.
         matrix_class: callable
             The constructor for the return batch datatype. Defaults to
-            `np.array`. When working with deep learning frameworks such
-            as tensorflow and torch, setting the argument accordingly will
-            immediately provide batches in the appropriate framework. Not
-            delegated to keyword arguments so users can pass a function
-            which also immediately casts the batch data to the GPU.
+            ``np.array``.
+            When working with deep learning frameworks such
+            as `tensorflow <https://www.tensorflow.org/>`_ and 
+            `pytorch <https://pytorch.org/>`_, setting this argument
+            allows customization of the batch datatype.
         internal_random_state : tuple
             The random state that the iterator will be initialized with.
-            This argument can be obtained by calling `.getstate` on the
-            instance of the Random object, and is exposed through the
-            `Iterator.get_internal_random_state` method. For most cases,
-            setting the random seed will suffice, while this argument is
-            useful when we want to stop iteration and later continue where
-            we left off.
-            If None, the iterator will create its own random state from the
-            given seed, that can later be obtained if we want to store it.
-            Only relevant if shuffle is True. If shuffle is True and seed is
-            None, then this must not be None, otherwise a ValueError is
-            raised.
-            Default is None.
+            Obtained by calling ``.getstate`` on an instance of the Random
+            object, exposed through the ``Iterator.get_internal_random_state``
+            method.
+
+            For most use-cases, setting the random seed will suffice.
+            This argument is useful when we want to stop iteration at a certain
+            batch of the dataset and later continue exactly where we left off.
+
+            If ``None``, the Iterator will create its own random state from the
+            given seed.
+            Only relevant if ``shuffle=True``. A ``ValueError`` is raised if
+            ``shuffle=True``, ``internal_random_state=None`` and
+            ``seed=None``.
+            Default is ``None``.
         context_max_depth: int
             The maximum depth of the context retrieved for an example in the batch.
             While generating the context, the iterator will take 'context_max_depth'

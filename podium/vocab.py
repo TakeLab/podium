@@ -205,13 +205,18 @@ class Vocab:
             the finalization
         eager : bool
             if `True` the frequencies will be built immediately upon
-            dataset loading. While not obvious, the main effect of
-            this argument if set to `True` is that the frequencies of
-            the vocabulary will be built based on all datasets
-            that use this vocabulary, while if set to `False`, the
-            vocabulary will be built by iterating again over the
-            datasets passed as argument to the `finalize_fields`
-            function.
+            dataset loading. The main effect of this argument if set
+            to `True` is that the frequencies of the vocabulary will
+            be built based on all datasets that use this vocabulary,
+            while if set to `False`, the vocabulary will be built
+            by iterating again over the datasets passed as argument
+            to the `finalize_fields` function. If you are using multiple
+            datasets and wish to manually control on which subset of
+            dataset splits the vocab is built on, eager should be False.
+            If you are using one or multiple large datasets and/or want to
+            build the vocabulary on all of the splits, eager should be
+            set to True for performance optimization (one loop over the
+            datasets instead of two).
         """
         self._max_size = max_size
         self._min_freq = min_freq

@@ -5,9 +5,10 @@ Dataset classes
 Dataset
 -----------------
 .. autoclass:: podium.datasets.Dataset
-   :members:
    :inherited-members:
+   :members:
    :no-undoc-members:
+   :member-order: groupwise
 
 TabularDataset
 -----------------
