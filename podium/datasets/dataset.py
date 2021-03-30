@@ -43,7 +43,6 @@ class DatasetBase(ABC):
 
     def __init__(self, fields: Union[Dict[str, FieldType], List[FieldType]]):
         self._fields = tuple(unpack_fields(fields))
-        self._field_name_to_field = {f.name: f for f in self.fields}
 
     @property
     def fields(self) -> Tuple[Field]:
@@ -58,7 +57,7 @@ class DatasetBase(ABC):
         Dictionary containing all field names mapping to their respective
         Fields.
         """
-        return {f.name: f for f in self.fields}
+        return {f.name: f for f in self._fields}
 
     @property
     def examples(self) -> List[Example]:
@@ -105,7 +104,7 @@ class DatasetBase(ABC):
 
             def attr_generator(_dataset, _field_name):
                 for x in _dataset:
-                    yield x[field_name]
+                    yield x[_field_name]
 
             return attr_generator(self, field_name)
 
@@ -116,7 +115,7 @@ class DatasetBase(ABC):
         """
         Returns the Field with a given name.
         """
-        return self._field_name_to_field.get(name, None)
+        return self.field_dict.get(name, None)
 
     def finalize_fields(self, *datasets: "DatasetBase") -> None:
         """
@@ -345,6 +344,12 @@ class DatasetBase(ABC):
                 yield row
 
         return pd.DataFrame(data=row_iterator(), columns=column_names)
+
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, state):
+        self.__dict__ = state
 
 
 class Dataset(DatasetBase):
@@ -651,30 +656,6 @@ class Dataset(DatasetBase):
                 # Generate and cache the numericalized data
                 # the return value is ignored
                 field.get_numericalization_for_example(example)
-
-    def __getstate__(self):
-        """
-        Method obtains dataset state. It is used for pickling dataset data to
-        file.
-
-        Returns
-        -------
-        state : dict
-            dataset state dictionary
-        """
-        return self.__dict__
-
-    def __setstate__(self, state):
-        """
-        Method sets dataset state. It is used for unpickling dataset data from
-        file.
-
-        Parameters
-        ----------
-        state : dict
-            dataset state dictionary
-        """
-        self.__dict__ = state
 
     def _dataset_copy_with_examples(
         self, examples: list, deep_copy: bool = False
