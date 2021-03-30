@@ -70,7 +70,7 @@ function addColabLink() {
 function addCustomFooter() {
     const customFooter = document.createElement("div");
     const questionOrIssue = document.createElement("div");
-    questionOrIssue.innerHTML = "Hava a question? Create an <a href='https://github.com/TakeLab/podium/issues'>issue</a> or a <a href='https://github.com/TakeLab/podium/discussions'>discussion</a> in our GitHub repo.";
+    questionOrIssue.innerHTML = "Have a question or a discussion? Create an <a href='https://github.com/TakeLab/podium/issues'>issue</a> or a <a href='https://github.com/TakeLab/podium/discussions'>discussion</a> in our GitHub repo.";
     customFooter.appendChild(questionOrIssue);
     customFooter.classList.add("footer");
     document.querySelector("footer").appendChild(customFooter);
