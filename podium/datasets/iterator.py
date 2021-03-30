@@ -14,6 +14,7 @@ import numpy as np
 
 from podium.datasets.dataset import Dataset, DatasetBase
 from podium.datasets.hierarhical_dataset import HierarchicalDataset
+from podium.utils.general_utils import repr_type_and_attrs
 
 
 class Batch(dict):
@@ -460,12 +461,13 @@ class Iterator(IteratorBase):
         return max(map(numericalization_length, numericalizations))
 
     def __repr__(self) -> str:
-        return (
-            f"{type(self).__name__}({{"
-            f"batch_size: {self._batch_size}, "
-            f"sort_key: {self._sort_key}, "
-            f"shuffle: {self._shuffle}}})"
-        )
+        attrs = {
+            "batch_size": self._batch_size,
+            "epoch": self._epoch,
+            "iteration": self._iterations,
+            "shuffle": self._shuffle,
+        }
+        return repr_type_and_attrs(self, attrs, with_newlines=True)
 
 
 class SingleBatchIterator(Iterator):
@@ -607,14 +609,14 @@ class BucketIterator(Iterator):
         self._epoch += 1
 
     def __repr__(self) -> str:
-        return (
-            f"{type(self).__name__}({{"
-            f"batch_size: {self._batch_size}, "
-            f"sort_key: {self._sort_key}, "
-            f"shuffle: {self._shuffle}, "
-            f"look_ahead_multiplier: {self.look_ahead_multiplier},"
-            f"bucket_sort_key: {self.bucket_sort_key}}})"
-        )
+        attrs = {
+            "batch_size": self._batch_size,
+            "epoch": self._epoch,
+            "iteration": self._iterations,
+            "shuffle": self._shuffle,
+            "look_ahead_multiplier": self.look_ahead_multiplier,
+        }
+        return repr_type_and_attrs(self, attrs, with_newlines=True)
 
 
 class HierarchicalIterator(Iterator):
@@ -858,11 +860,12 @@ class HierarchicalIterator(Iterator):
         self._epoch += 1
 
     def __repr__(self) -> str:
-        return (
-            f"{type(self).__name__}({{"
-            f"batch_size: {self._batch_size}, "
-            f"sort_key: {self._sort_key}, "
-            f"shuffle: {self._shuffle}, "
-            f"context_max_length: {self._context_max_length}, "
-            f"context_max_depth: {self._context_max_depth}}})"
-        )
+        attrs = {
+            "batch_size": self._batch_size,
+            "epoch": self._epoch,
+            "iteration": self._iterations,
+            "shuffle": self._shuffle,
+            "context_max_length": self._context_max_length,
+            "context_max_depth": self._context_max_depth,
+        }
+        return repr_type_and_attrs(self, attrs, with_newlines=True)

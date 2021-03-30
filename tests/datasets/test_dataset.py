@@ -5,6 +5,7 @@ from json import JSONDecodeError
 
 import dill
 import numpy as np
+import pandas as pd
 import pytest
 
 from podium.datasets import ExampleFactory
@@ -764,7 +765,6 @@ def test_unpack_fields():
 
 def test_eager_tokenization():
     def create_dataset():
-
         fields = (
             Field("text", numericalizer=Vocab()),
             Field("source", numericalizer=Vocab(), tokenizer=list),
@@ -796,6 +796,76 @@ def test_eager_tokenization():
 
         assert example_eager["source_"] is not None
         assert all(example_eager["source_"] == example_lazy.source_)
+
+
+def test_from_pandas_field_list(data):
+
+    df = pd.DataFrame(data)
+    fields = [
+        Field("text", keep_raw=True, tokenizer="split"),
+        Field("number", tokenizer=None),
+    ]
+
+    ds = Dataset.from_pandas(df, fields)
+
+    for original, (raw, _) in zip(data, ds.text):
+        assert original[0] == raw
+
+
+def test_from_pandas_field_dict(data):
+    df = pd.DataFrame(data, columns=["text", "number"])
+    fields = {
+        "text": Field("text_field", keep_raw=True, tokenizer="split"),
+        "number": Field("number_field", tokenizer=None),
+    }
+
+    ds = Dataset.from_pandas(df, fields)
+    assert set(ds.field_dict) == set(["text_field", "number_field"])
+
+    for original, (raw, _) in zip(data, ds.text_field):
+        assert original[0] == raw
+
+
+def test_from_pandas_index(data):
+    df = pd.DataFrame([[x[0]] for x in data], index=[x[1] for x in data])
+    fields = [Field("text", keep_raw=True, tokenizer="split")]
+
+    ds = Dataset.from_pandas(
+        df, fields, index_field=Field("numbers", tokenizer=None, keep_raw=True)
+    )
+
+    for original, (raw, _) in zip(data, ds.numbers):
+        assert original[1] == raw
+
+
+def test_to_pandas_no_raw(data, field_list):
+    dataset = create_dataset(data, field_list)
+    df = dataset.to_pandas(include_raw=False)
+
+    assert list(df.columns) == [f.name for f in dataset.fields]
+    assert len(df) == len(dataset)
+
+    for i in range(len(dataset)):
+        for field in dataset.fields:
+            assert df[field.name][i] == dataset[i][field.name][1]
+
+
+def test_to_pandas_with_raw(data, field_list):
+    dataset = create_dataset(data, field_list)
+    df = dataset.to_pandas(include_raw=True)
+
+    expected_column_names = []
+    for f in dataset.fields:
+        expected_column_names.append(f.name)
+        expected_column_names.append(f.name + "_raw")
+
+    assert list(df.columns) == expected_column_names
+    assert len(df) == len(dataset)
+
+    for i in range(len(dataset)):
+        for field in dataset.fields:
+            assert df[field.name][i] == dataset[i][field.name][1]
+            assert df[field.name + "_raw"][i] == dataset[i][field.name][0]
 
 
 @pytest.fixture

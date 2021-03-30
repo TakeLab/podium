@@ -52,7 +52,10 @@ Regex Replace
    >>> fields={'text':text, 'label':label}
    >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
    >>> print(sst_train[222])
-   Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
+   Example({
+       text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']),
+       label: (None, 'positive')
+   })
 
 Now, we need to define our replacements, each a ``(Pattern, str)`` tuple where the pattern matched is replaced with the string.
 
@@ -69,7 +72,10 @@ Now, we need to define our replacements, each a ``(Pattern, str)`` tuple where t
    >>> fields={'text':text, 'label':label}
    >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields=fields)
    >>> print(sst_train[222])
-   Example({'text': ('A slick  engrossing melodrama ', ['A', 'slick', 'engrossing', 'melodrama']), 'label': (None, 'positive')})
+   Example({
+       text: ('A slick  engrossing melodrama ', ['A', 'slick', 'engrossing', 'melodrama']),
+       label: (None, 'positive')
+   })
 
 As we can see, the non-alphanumeric characters have been removed from the sequence. Similarly, you can pass a list of regex replacements which will then be executed in the order given. Please do take note that regular expressions are not known for their speed and if you can perform a replacement without using one, it might be beneficial.
 
@@ -86,7 +92,10 @@ Text Cleanup
    >>> text = Field('text', numericalizer=Vocab(), pretokenize_hooks=[cleanup], keep_raw=True)
    >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields={'text':text, 'label':label})
    >>> print(sst_train[222])
-   Example({'text': ('A slick engrossing melodrama', ['A', 'slick', 'engrossing', 'melodrama']), 'label': (None, 'positive')})
+   Example({
+       text: ('A slick engrossing melodrama', ['A', 'slick', 'engrossing', 'melodrama']),
+       label: (None, 'positive')
+   })
 
 
 NLTK Stemmer
@@ -101,7 +110,10 @@ NLTK Stemmer
    >>> text = Field('text', numericalizer=Vocab(), posttokenize_hooks=[stemmer])
    >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields={'text':text, 'label':label})
    >>> print(sst_train[222])
-   Example({'text': (None, ['a', 'slick', ',', 'engross', 'melodrama', '.']), 'label': (None, 'positive')})
+   Example({
+       text: (None, ['a', 'slick', ',', 'engross', 'melodrama', '.']),
+       label: (None, 'positive')
+   })
 
 Spacy Lemmatizer
 ----------------
@@ -115,7 +127,10 @@ Spacy Lemmatizer
    >>> text = Field('text', numericalizer=Vocab(), posttokenize_hooks=[stemmer])
    >>> sst_train, sst_test, sst_dev = SST.get_dataset_splits(fields={'text':text, 'label':label})
    >>> print(sst_train[222])
-   Example({'text': (None, ['a', 'slick', ',', 'engross', 'melodrama', '.']), 'label': (None, 'positive')})
+   Example({
+       text: (None, ['a', 'slick', ',', 'engross', 'melodrama', '.']),
+       label: (None, 'positive')
+   })
 
 Truecase
 --------

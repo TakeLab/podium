@@ -29,10 +29,10 @@ CornellMovieDialogsNamedTuple = namedtuple(
 )
 
 
-class CornellMovieDialogsConversationalDataset(Dataset):
+class CornellMovieDialogs(Dataset):
     """
-    Cornell Movie Dialogs Conversational dataset which contains sentences and
-    replies from movies.
+    Cornell Movie Dialogs dataset which contains sentences and replies from
+    movies.
     """
 
     def __init__(self, data, fields=None):
@@ -58,11 +58,9 @@ class CornellMovieDialogsConversationalDataset(Dataset):
             )
 
         if not fields:
-            fields = CornellMovieDialogsConversationalDataset.get_default_fields()
-        examples = CornellMovieDialogsConversationalDataset._create_examples(
-            data=data, fields=fields
-        )
-        super(CornellMovieDialogsConversationalDataset, self).__init__(
+            fields = CornellMovieDialogs.get_default_fields()
+        examples = CornellMovieDialogs._create_examples(data=data, fields=fields)
+        super(CornellMovieDialogs, self).__init__(
             **{"examples": examples, "fields": fields}
         )
 

@@ -40,13 +40,13 @@ One built-in dataset available in Podium is the `Stanford Sentiment Treebank <ht
       size: 6920,
       fields: [
           Field({
-              name: text,
+              name: 'text',
               keep_raw: False,
               is_target: False,
               vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 16284})
           }),
           LabelField({
-              name: label,
+              name: 'label',
               keep_raw: False,
               is_target: True,
               vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 2})
@@ -54,8 +54,10 @@ One built-in dataset available in Podium is the `Stanford Sentiment Treebank <ht
       ]
   })
   >>> print(sst_train[222]) # A short example
-  Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']),
-           'label': (None, 'positive')})
+  Example({
+      text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']),
+      label: (None, 'positive')
+  })
 
 
 Each built-in Podium dataset has a :func:`get_dataset_splits` method, which returns the `train`, `test` and `validation` split of that dataset, if available.
@@ -238,13 +240,13 @@ We saw earlier that our dataset has two Fields: text and label. We will go into 
   >>> text_field, label_field = sst_train.fields
   >>> print(text_field, label_field, sep='\n')
   Field({
-      name: text,
+      name: 'text',
       keep_raw: False,
       is_target: False,
       vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 16284})
   })
   LabelField({
-      name: label,
+      name: 'label',
       keep_raw: False,
       is_target: True,
       vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 2})
@@ -332,13 +334,13 @@ The SST dataset has two textual data columns (fields): (1) the input text of the
   >>> label = LabelField(name='label')
   >>> print(text, label, sep='\n')
   Field({
-      name: text,
+      name: 'text',
       keep_raw: False,
       is_target: False,
       vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: False, size: 0})
   })
   LabelField({
-      name: label,
+      name: 'label',
       keep_raw: False,
       is_target: True,
       vocab: Vocab({specials: (), eager: False, is_finalized: False, size: 0})
@@ -524,7 +526,6 @@ Now our vectorizer has seen the dataset as well as the vocabulary and has all th
   (0, 0)  0.08262419651916046
 
 The Tf-Idf counts are highly sparse since not all words from the vocabulary are present in every instance. To reduce the memory footprint of count-based numericalization, we store the values in a `SciPy <https://www.scipy.org/>`__ `sparse matrix <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix>`__, which can be used in various `scikit-learn <https://scikit-learn.org/stable/>`__ models.
-
 
 .. testcleanup::
 

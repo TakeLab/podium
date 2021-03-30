@@ -61,10 +61,19 @@ function addColabLink() {
     if (hasNotebook.includes(pageName)) {
         const colabLink = `<a href="https://colab.research.google.com/github/TakeLab/podium/blob/master/docs/source/notebooks/${pageName}.ipynb">
             <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-        </a>` 
-        const leftMenu = document.querySelector(".wy-breadcrumbs-aside")
-        leftMenu.innerHTML = colabLink + '\n' + leftMenu.innerHTML
+        </a>`;
+        const leftMenu = document.querySelector(".wy-breadcrumbs-aside");
+        leftMenu.innerHTML = colabLink + '\n' + leftMenu.innerHTML;
     }
+}
+
+function addCustomFooter() {
+    const customFooter = document.createElement("div");
+    const questionOrIssue = document.createElement("div");
+    questionOrIssue.innerHTML = "Have a question or a discussion? Create an <a href='https://github.com/TakeLab/podium/issues'>issue</a> or a <a href='https://github.com/TakeLab/podium/discussions'>discussion</a> in our GitHub repo.";
+    customFooter.appendChild(questionOrIssue);
+    customFooter.classList.add("footer");
+    document.querySelector("footer").appendChild(customFooter);
 }
 
 function addVersionControl() {
@@ -142,6 +151,7 @@ function onLoad() {
     addIcon();
     addVersionControl();
     addColabLink();
+    addCustomFooter();
 // Uncomment when public
     //addGithubButton();
     //parseGithubButtons();

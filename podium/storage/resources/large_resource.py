@@ -149,13 +149,6 @@ class LargeResource:
             if arg not in arguments or not arguments[arg]:
                 raise ValueError(f"Large resource argument {arg} is missing.")
 
-    def __repr__(self):
-        return "{}[name: {}, uri: {}]".format(
-            self.__class__.__name__,
-            self.config[LargeResource.RESOURCE_NAME],
-            self.config[LargeResource.URI],
-        )
-
 
 class SCPLargeResource(LargeResource):
     """

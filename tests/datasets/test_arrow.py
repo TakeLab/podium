@@ -294,3 +294,48 @@ def test_sorted(data, pyarrow_dataset):
     )
     for d, ex in zip(reverse_sorted_data, reverse_sorted_dataset):
         assert d[0] == ex["number"][0]
+
+
+def test_from_pandas_field_list(data):
+    import pandas as pd
+
+    df = pd.DataFrame(data)
+    fields = [
+        Field("number", tokenizer=None),
+        Field("text", keep_raw=True, tokenizer="split"),
+    ]
+
+    ds = DiskBackedDataset.from_pandas(df, fields)
+
+    for original, (raw, _) in zip(data, ds.text):
+        assert original[1] == raw
+
+
+def test_from_pandas_field_dict(data):
+    import pandas as pd
+
+    df = pd.DataFrame(data, columns=["number", "text"])
+    fields = {
+        "number": Field("number", tokenizer=None),
+        "text": Field("text", keep_raw=True, tokenizer="split"),
+    }
+
+    ds = DiskBackedDataset.from_pandas(df, fields)
+
+    for original, (raw, _) in zip(data, ds.text):
+        assert original[1] == raw
+
+
+def test_from_pandas_index(data):
+    import pandas as pd
+
+    df = pd.DataFrame([[x[1]] for x in data], index=[x[0] for x in data])
+    fields = [Field("text_field", keep_raw=True, tokenizer="split")]
+
+    ds = DiskBackedDataset.from_pandas(
+        df, fields, index_field=Field("number_field", tokenizer=None, keep_raw=True)
+    )
+
+    assert set(ds.field_dict) == set(["text_field", "number_field"])
+    for original, (raw, _) in zip(data, ds.number_field):
+        assert original[0] == raw

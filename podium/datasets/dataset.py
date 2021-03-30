@@ -25,10 +25,12 @@ from typing import (
 )
 
 import numpy as np
+import pandas as pd
 
 from podium.field import Field, unpack_fields
+from podium.utils.general_utils import repr_type_and_attrs
 
-from .example_factory import Example
+from .example_factory import Example, ExampleFactory
 
 
 FieldType = Optional[Union[Field, List[Field]]]
@@ -109,7 +111,7 @@ class DatasetBase(ABC):
         else:
             raise AttributeError(f"Dataset has no field {field_name}.")
 
-    def field(self, name) -> Field:
+    def field(self, name: str) -> Field:
         """
         Returns the Field in a dataset with a given name, if it exists.
 
@@ -275,11 +277,10 @@ class DatasetBase(ABC):
         return self[shuffled_indices]
 
     def __repr__(self):
-        fields_str = ",\n".join([textwrap.indent(repr(f), " " * 8) for f in self.fields])
-        return (
-            f"{type(self).__name__}"
-            f"({{\n    size: {len(self)},\n    fields: [\n{fields_str}\n    ]\n}})"
-        )
+        fields_str = ",\n".join(textwrap.indent(repr(f), " " * 8) for f in self.fields)
+        fields_str = f"[\n{fields_str}\n    \n]"
+        attrs = {"size": len(self), "fields": fields_str}
+        return repr_type_and_attrs(self, attrs, with_newlines=True, repr_values=False)
 
     @abstractmethod
     def __len__(self) -> int:
@@ -344,6 +345,52 @@ class DatasetBase(ABC):
         Returns a list containing all examples of this dataset.
         """
         pass
+
+    def to_pandas(self, include_raw=False) -> pd.DataFrame:
+        """
+        Creates a pandas dataframe containing all data from this Dataset. By
+        default, only processed data is kept in the dataframe.
+
+        If `include_raw` is True, raw data will also be stored under the
+        column name `{field name}_raw`, e.g. for a field called 'Text', the raw
+        data column name would be `Text_raw`.
+
+        When making pandas dataframes form big DiskBackedDatasets, care should
+        be taken to avoid overusing memory, as the whole dataset is loaded in to
+        memory.
+
+        Parameters
+        ----------
+        include_raw: bool
+            Whether to include raw data in the dataframe.
+
+        Returns
+        -------
+        DataFrame
+            Pandas dataframe containing all examples from this Dataset.
+        """
+
+        # TODO add way to set dataframe index?
+
+        column_names = []
+        fields = self.fields
+
+        for field in fields:
+            column_names.append(field.name)
+            if include_raw:
+                column_names.append(field.name + "_raw")
+
+        def row_iterator():
+            for ex in self:
+                row = []
+                for field in fields:
+                    raw, tokenized = ex[field.name]
+                    row.append(tokenized)
+                    if include_raw:
+                        row.append(raw)
+                yield row
+
+        return pd.DataFrame(data=row_iterator(), columns=column_names)
 
 
 class Dataset(DatasetBase):
@@ -728,6 +775,56 @@ class Dataset(DatasetBase):
             Dataset instance created from the passed DatasetBase instance.
         """
         return Dataset(dataset.examples, dataset.fields)
+
+    @classmethod
+    def from_pandas(
+        cls,
+        df,
+        fields: Union[Dict[str, Field], List[Field]],
+        index_field: Optional[Field] = None,
+    ) -> "Dataset":
+        """
+        Creates a Dataset instance from a pandas Dataframe.
+
+        Parameters
+        ----------
+        df: pandas.Dataframe
+            Pandas dataframe from which data will be taken.
+
+        fields: Union[Dict[str, Field], List[Field]]
+            A mapping from dataframe columns to example fields.
+            This allows the user to rename columns from the data file,
+            to create multiple fields from the same column and also to
+            select only a subset of columns to load.
+
+            A value stored in the list/dict can be either a Field
+            (1-to-1 mapping), a tuple of Fields (1-to-n mapping) or
+            None (ignore column).
+
+            If type is list, then it should map from the column index to
+            the corresponding field/s (i.e. the fields in the list should
+            be in the same order as the columns in the dataframe).
+
+            If type is dict, then it should be a map from the column name
+            to the corresponding field/s. Column names not present in
+            the dict's keys are ignored.
+
+        index_field: Optional[Field]
+            Field which will be used to process the index column of the Dataframe.
+            If None, the index column will be ignored.
+
+        Returns
+        -------
+        Dataset
+            Dataset containing data from the Dataframe
+        """
+        examples = list(_pandas_to_examples(df, fields, index_field=index_field))
+        if isinstance(fields, dict):
+            fields = [index_field] + list(fields.values())
+        else:
+            fields = [index_field] + fields
+
+        return Dataset(examples, fields)
 
 
 class DatasetConcatView(DatasetBase):
@@ -1341,15 +1438,15 @@ def concat(
 
     Parameters
     ----------
-        datasets: List[DatasetBase]
-            A list datasets to be concatenated.
-        field_overrides: Union[Dict[str, Field], List[Field]]
-            A dict or list containing fields that will be used to override
-            existing fields. Can be either a dict mapping old field names to new
-            ones, or a list, in which case the field with the same name will be
-            overridden. The overridden field will not be present in the
-            concatenated view. The override field (if eager) will be updated
-            with all examples from the concatenation.
+    datasets: List[DatasetBase]
+        A list datasets to be concatenated.
+    field_overrides: Union[Dict[str, Field], List[Field]]
+        A dict or list containing fields that will be used to override
+        existing fields. Can be either a dict mapping old field names to new
+        ones, or a list, in which case the field with the same name will be
+        overridden. The overridden field will not be present in the
+        concatenated view. The override field (if eager) will be updated
+        with all examples from the concatenation.
 
     Returns
     -------
@@ -1378,3 +1475,80 @@ def create_view(dataset: DatasetBase, i: Union[Sequence[int], slice]) -> Dataset
         return DatasetSlicedView(dataset, i)
     else:
         return DatasetIndexedView(dataset, i)
+
+
+def _pandas_to_examples(
+    df: pd.DataFrame,
+    fields: Optional[Union[Dict[str, Field], List[Field]]] = None,
+    index_field=None,
+) -> Iterator[Example]:
+    """
+    Utility function for lazy loading of Examples from pandas Dataframes.
+
+    Parameters
+    ----------
+    df: pandas.Dataframe
+        Pandas dataframe from which data will be taken.
+
+    fields: Optional[Union[Dict[str, Field], List[Field]]]
+        A mapping from dataframe columns to example fields.
+        This allows the user to rename columns from the data file,
+        to create multiple fields from the same column and also to
+        select only a subset of columns to load.
+
+        A value stored in the list/dict can be either a Field
+        (1-to-1 mapping), a tuple of Fields (1-to-n mapping) or
+        None (ignore column).
+
+        If type is list, then it should map from the column index to
+        the corresponding field/s (i.e. the fields in the list should
+        be in the same order as the columns in the dataframe).
+
+        If type is dict, then it should be a map from the column name
+        to the corresponding field/s. Column names not present in
+        the dict's keys are ignored.
+
+    index_field: Optional[Field]
+        Field which will be used to process the index column of the Dataframe.
+        If None, the index column will be ignored.
+
+    Returns
+    -------
+    Iterator[Example]
+        Iterator iterating over Examples created from the columns of the passed Dataframe.
+    """
+    if fields is None:
+        fields = {}
+
+    if isinstance(fields, (list, tuple)):
+        field_list = list(fields)
+        if len(field_list) != len(df.columns):
+            raise ValueError(
+                f"Invalid number of fields. "
+                f"Number of fields is {len(field_list)}, "
+                f"number of columns in dataframe is {len(df.columns)}."
+            )
+
+    elif isinstance(fields, dict):
+        field_list = [None] * len(df.columns)
+        column_name_index = {name: index for index, name in enumerate(df.columns)}
+        for column_name, field in fields.items():
+            if column_name not in column_name_index:
+                raise ValueError(
+                    f"Column '{column_name}' for field '{field}' "
+                    f"not present in the dataframe."
+                )
+
+            field_list[column_name_index[column_name]] = field
+
+    else:
+        raise TypeError(
+            f"Invalid 'fields' type. Must be either list, tuple or dict. "
+            f"Passed type: '{type(fields).__name__}'"
+        )
+
+    field_list = [index_field] + field_list
+    example_factory = ExampleFactory(field_list)
+
+    for row in df.itertuples():
+        yield example_factory.from_list(row)

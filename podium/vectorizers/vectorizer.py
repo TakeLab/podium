@@ -8,6 +8,8 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
+from podium.utils.general_utils import repr_type_and_attrs
+
 
 def zeros_default_vector(token, dim):
     """
@@ -221,7 +223,8 @@ class VectorStorage(ABC):
         return np.vstack([self.token_to_vector(token) for token in vocab])
 
     def __repr__(self):
-        return f"{type(self).__name__}({{size: {len(self)}}})"
+        attrs = {"size": len(self)}
+        return repr_type_and_attrs(self, attrs)
 
 
 class BasicVectorStorage(VectorStorage):

@@ -4,7 +4,7 @@ Dataset classes
 
 Dataset
 -----------------
-.. autoclass:: podium.datasets.Dataset
+.. autoclass:: podium.Dataset
    :inherited-members:
    :members:
    :no-undoc-members:
@@ -50,25 +50,21 @@ Internet Movie DataBase
    :members:
    :no-undoc-members:
 
-
 Stanford Natural Language Inference
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. autoclass:: podium.datasets.impl.SNLISimple
+.. autoclass:: podium.datasets.impl.SNLI
    :members:
    :no-undoc-members:
 
-Cornell Movie Dialogs Dataset
+Cornell Movie Dialogs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. autoclass:: podium.datasets.impl.CornellMovieDialogsConversationalDataset
+.. autoclass:: podium.datasets.impl.CornellMovieDialogs
    :members:
    :no-undoc-members:
 
-
-Built-in datasets (HR)
-----------------------
-
-Pauza Reviews Dataset
-^^^^^^^^^^^^^^^^^^^^^
-.. autoclass:: podium.datasets.impl.PauzaHRDataset
+Iris
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. autoclass:: podium.datasets.impl.Iris
    :members:
    :no-undoc-members:
+

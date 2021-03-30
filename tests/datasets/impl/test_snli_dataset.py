@@ -4,7 +4,7 @@ import tempfile
 import pytest
 
 from podium.datasets.dataset import Dataset
-from podium.datasets.impl.snli_dataset import SNLISimple
+from podium.datasets.impl.snli import SNLISimple
 from podium.storage.resources.large_resource import LargeResource
 
 

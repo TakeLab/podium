@@ -18,8 +18,10 @@ The data is processed immediately when the instance is loaded from disk and then
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits()
   >>> sst_train.finalize_fields()
   >>> print(sst_train[222]) 
-  Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']),
-           'label': (None, 'positive')})
+  Example({
+      text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']),
+      label: (None, 'positive')
+  })
 
 We can unpack the Example class with the bracket notation, as you would a dictionary.
 
@@ -309,7 +311,7 @@ Dataset manipulation
 Dataset splitting
 ---------------------
 
-It is often the case we want to somehow manipulate the size of our dataset. One common use-case is that our dataset comes in a single split -- and we wish to segment it into a train, test and perhaps validation split. For this, we have defined a :func:`Dataset.split` function which allows you to split your dataset into arbitrary ratios:
+It is often the case we want to somehow manipulate the size of our dataset. One common use-case is that our dataset comes in a single split -- and we wish to segment it into a train, test and perhaps validation split. For this, we have defined a :func:`podium.Dataset.split` function which allows you to split your dataset into arbitrary ratios:
 
 .. doctest:: dataset_splitting
 
@@ -444,7 +446,7 @@ The ``bucket_sort_key`` function defines how the instances in the dataset should
   For Iterator, padding = 148141 out of 281696 = 52.588961149608096%
   For BucketIterator, padding = 2125 out of 135680 = 1.5661851415094339%
 
-As we can see, the difference between using a regular Iterator and a BucketIterator is massive. Not only do we reduce the amount of padding, we have reduced the total amount of tokens processed by about 50%. The SST dataset, however, is a relatively small dataset so this experiment might be a bit biased. Let's take a look at the same statistics for the :class:`podium.datasets.IMDB` dataset. After changing the highligted data loading line in the first snippet to:
+As we can see, the difference between using a regular Iterator and a BucketIterator is massive. Not only do we reduce the amount of padding, we have reduced the total amount of tokens processed by about 50%. The SST dataset, however, is a relatively small dataset so this experiment might be a bit biased. Let's take a look at the same statistics for the :class:`podium.datasets.impl.IMDB` dataset. After changing the highligted data loading line in the first snippet to:
 
 .. code-block:: rest
 
@@ -486,13 +488,13 @@ As an example, we will again turn to the SST dataset and some of our previously 
       size: 6920,
       fields: [
           Field({
-              name: text,
+              name: 'text',
               keep_raw: False,
               is_target: False,
               vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 5000})
           }),
           LabelField({
-              name: label,
+              name: 'label',
               keep_raw: False,
               is_target: True,
               vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 2})
@@ -500,7 +502,10 @@ As an example, we will again turn to the SST dataset and some of our previously 
       ]
   })
   >>> print(sst_train[222])
-  Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
+  Example({
+      text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']),
+      label: (None, 'positive')
+  })
 
 Each ``Dataset`` instance in the SST dataset splits contains ``Field``\s and a ``Vocab``. When we pickle a dataset, we also store those objects. We will now demonstrate how to store (and load) a pickled dataset.
 
@@ -523,7 +528,10 @@ Each ``Dataset`` instance in the SST dataset splits contains ``Field``\s and a `
   >>> with open(dataset_store_path, 'rb') as infile:
   ...     sst_train, sst_dev, sst_test = pickle.load(infile)
   >>> print(sst_train[222])
-  Example({'text': (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']), 'label': (None, 'positive')})
+  Example({
+      text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']),
+      label: (None, 'positive')
+  })
 
 Each of the components -- ``Field``, ``Vocab`` and ``Example`` can also be pickled separately. Apart from being able to save and load a ``Dataset`` and its components, you can also store an ``Iterator`` mid-iteration and it **will continue on the batch on which you left off**.
 In case you don't want this behavior and would rather your unpickled iterator starts from the beginning, you can call ``Iterator.reset()`` which will reset iterator to the start of the dataset.

@@ -40,6 +40,10 @@ a.icon.icon-home {
     margin: 10 auto;
 }
 
+.footer {
+    margin-top: 20px;
+}
+
 /*Home icon hover*/
 a.icon.icon-home:hover {
     background-color: #3498DB;
