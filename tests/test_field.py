@@ -234,7 +234,7 @@ def test_field_get_tokenizer_callable():
 
 @pytest.mark.skip(
     "obsolete as the combination no longer raises an error, "
-    "see https://github.com/mttk/podium/pull/180 for more information"
+    "see https://github.com/TakeLab/podium/pull/180 for more information"
 )
 def test_field_get_tokenizer_spacy_exception():
     # vocab = MockVocab()

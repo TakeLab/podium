@@ -48,7 +48,7 @@ class Example(dict):
 
     def __repr__(self):
         attr_str = textwrap.indent(
-            ",\n".join(f"{k!r}: {v!r}" for k, v in self.d.items()), " " * 4
+            ",\n".join(f"{k!r}: {v!r}" for k, v in self.items()), " " * 4
         )
         return f"{type(self).__name__}({{\n{attr_str}\n}})"
 

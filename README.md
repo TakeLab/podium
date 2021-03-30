@@ -29,7 +29,7 @@ pip install podium-nlp
 Commands to install `podium` from source
 
 ```bash
-git clone git@github.com:mttk/podium.git && cd podium
+git clone git@github.com:TakeLab/podium.git && cd podium
 pip install .
 ```
 
@@ -147,7 +147,7 @@ We wrap dataset pre-processing in customizable `Field` classes. Each `Field` has
 Vocab({specials: ('<UNK>', '<PAD>'), eager: True, finalized: True, size: 5000})
 ```
 
-Each `Field` allows the user full flexibility modify the data in multiple stages:
+Each `Field` allows the user full flexibility to modify the data in multiple stages:
 - Prior to tokenization (by using pre-tokenization `hooks`)
 - During tokenization (by using your own `tokenizer`)
 - Post tokenization (by using post-tokenization `hooks`)
@@ -172,8 +172,8 @@ Example({'text': (None, ['a', 'slick', 'engrossing', 'melodrama']), 'label': (No
 
 ```
 
-**Pre-tokenization** hooks do not see the tokenized data and are applied (and modify) only `raw` data. 
-**Post-tokenization** hooks have access to tokenized data, and can be applied to either `raw` or `tokenized` data.
+**Pre-tokenization** accept and modify only on `raw` data.
+**Post-tokenization** accept and modify `raw` and `tokenized` data.
 
 ### Use preprocessing from other libraries
 
@@ -195,7 +195,7 @@ A common use-case is to incorporate existing components of pretrained language m
 Example({'subword': (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.']), 'label': (None, 'positive')})
 ```
 
-For a more interactive introduction check out the tutorial on Google Colab: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/takelab/podium/blob/master/docs/source/notebooks/walkthrough.ipynb)
+For a more interactive introduction, check out the tutorial on Google Colab: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/takelab/podium/blob/master/docs/source/notebooks/walkthrough.ipynb)
 
 More complex examples can be found in our [examples folder](./examples).
 
@@ -210,8 +210,8 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Authors
 
-* Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Mario Šaško](https://github.com/mariosasko), [Filip Boltužić](https://github.com/FilipBolt) and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list of collaborators needs to mention: [Silvije Skudar](https://github.com/sskudar), [Domagoj Pluščec](https://github.com/domi385), [Marin Kačan](https://github.com/mkacan), [Dunja Vesinger](https://github.com/dunja-v), [Mate Mijolović](https://github.com/matemijolovic).
-* Project made as part of [TakeLab](http://takelab.fer.hr) at Faculty of Electrical Engineering and Computing, University of Zagreb
+* Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Mario Šaško](https://github.com/mariosasko), [Filip Boltužić](https://github.com/FilipBolt), and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list of collaborators: [Silvije Skudar](https://github.com/sskudar), [Domagoj Pluščec](https://github.com/domi385), [Marin Kačan](https://github.com/mkacan), [Dunja Vesinger](https://github.com/dunja-v), [Mate Mijolović](https://github.com/matemijolovic).
+* Project made as part of [TakeLab](http://takelab.fer.hr) at Faculty of Electrical Engineering and Computing, University of Zagreb.
 
 See also the list of [contributors](../../graphs/contributors) who participated in this project.
 

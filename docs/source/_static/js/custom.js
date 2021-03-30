@@ -42,7 +42,7 @@ function addGithubButton() {
         <div class="github-repo">
             <a 
                 class="github-button"
-                href="https://github.com/mttk/podium" data-size="large" data-show-count="true" aria-label="Star mttk/podium on GitHub">
+                href="https://github.com/TakeLab/podium" data-size="large" data-show-count="true" aria-label="Star TakeLab/podium on GitHub">
                 Star
             </a>
         </div>
@@ -59,7 +59,7 @@ function addColabLink() {
     const pageName = parts[parts.length - 1].split(".")[0];
 
     if (hasNotebook.includes(pageName)) {
-        const colabLink = `<a href="https://colab.research.google.com/github/mttk/podium/blob/master/docs/source/notebooks/${pageName}.ipynb">
+        const colabLink = `<a href="https://colab.research.google.com/github/TakeLab/podium/blob/master/docs/source/notebooks/${pageName}.ipynb">
             <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
         </a>` 
         const leftMenu = document.querySelector(".wy-breadcrumbs-aside")
