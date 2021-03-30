@@ -147,8 +147,8 @@ Let's take an example of a natural language inference (NLI) dataset. In NLI, dat
       writer = csv.DictWriter(csv_file, fieldnames=field_names)
       writer.writeheader()
       writer.writerow({
-          'premise': 'A man inspects the uniform of a figure in some East Asian country.',
-          'hypothesis': 'The man is sleeping',
+          'premise': 'A man inspects the uniform of a figure in some East Asian country .',
+          'hypothesis': 'The man is sleeping ',
           'label': 'contradiction',
       })
 
@@ -159,8 +159,8 @@ For this dataset, we need to define three Fields. We also might want the fields 
 
   >>> from podium import TabularDataset, Vocab, Field, LabelField
   >>> shared_vocab = Vocab()
-  >>> fields = {'premise':   Field('premise', numericalizer=shared_vocab, tokenizer="spacy-en_core_web_sm"),
-  ...           'hypothesis':Field('hypothesis', numericalizer=shared_vocab, tokenizer="spacy-en_core_web_sm"),
+  >>> fields = {'premise':   Field('premise', numericalizer=shared_vocab),
+  ...           'hypothesis':Field('hypothesis', numericalizer=shared_vocab),
   ...           'label':     LabelField('label')}
   >>>
   >>> dataset = TabularDataset(dataset_path, format='csv', fields=fields)
