@@ -260,9 +260,11 @@ Inside each of these two fields we can see a :class:`podium.Vocab` class, used f
 Vocabularies are built automatically for built-in datasets by counting the frequencies of tokens in the **train** set and then converting these frequences to the ``itos`` and ``stoi`` dictionaries. We can see that a ``Vocab`` is built by the ``is_finalized=True`` keyword in the printout.
 If you are constructing your own dataset or loading a dataset from 🤗 (:ref:`hf-loading`), you will need to call the :func:`podium.Dataset.finalize_fields()` method to signal that the vocabularies should be constructed.
 
+.. _finalizing_vocab:
+
+
 Finalizing vocabularies
 ^^^^^^^^^^^^^^^^^^^^^^^^
-
 
 
 Customizing Vocabs
