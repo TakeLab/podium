@@ -1,5 +1,7 @@
 # TakeLab Podium
 
+Polishing for public release [1.4.] still in progress :)
+
 ## What is Podium?
 
 Podium is a framework agnostic Python natural language processing library which standardizes data loading and preprocessing.
