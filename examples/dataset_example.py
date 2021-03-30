@@ -9,7 +9,7 @@ from podium.storage import LargeResource
 
 if __name__ == "__main__":
     # for large resource settings see
-    # https://github.com/mttk/podium/wiki/Large-resources
+    # https://github.com/TakeLab/podium/wiki/Large-resources
     LargeResource.BASE_RESOURCE_DIR = "downloaded_datasets"
 
     train_set, _, test_set = SST.get_dataset_splits()

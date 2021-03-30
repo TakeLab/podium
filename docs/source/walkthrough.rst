@@ -155,6 +155,7 @@ Let's take an example of a natural language inference (NLI) dataset. In NLI, dat
 For this dataset, we need to define three Fields. We also might want the fields for `premise` and `hypothesis` to share their Vocab.
 
 .. doctest:: tabular
+  :options: +NORMALIZE_WHITESPACE
 
   >>> from podium import TabularDataset, Vocab, Field, LabelField
   >>> shared_vocab = Vocab()
@@ -168,24 +169,24 @@ For this dataset, we need to define three Fields. We also might want the fields 
   TabularDataset({
       size: 1,
       fields: [
-          Field({
-              name: premise,
-              keep_raw: False,
-              is_target: False, 
-              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 19})
-          }),
-          Field({
-              name: hypothesis,
-              keep_raw: False,
-              is_target: False,
-              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 19})
-          }),
-          LabelField({
-              name: label,
-              keep_raw: False,
-              is_target: True,
-              vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 1})
-          })
+              Field({
+                  name: 'premise',
+                  keep_raw: False,
+                  is_target: False,
+                  vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 19})
+              }),
+              Field({
+                  name: 'hypothesis',
+                  keep_raw: False,
+                  is_target: False,
+                  vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 19})
+              }),
+              LabelField({
+                  name: 'label',
+                  keep_raw: False,
+                  is_target: True,
+                  vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 1})
+              })
       ]
   })
   >>> print(shared_vocab.itos)
@@ -209,9 +210,11 @@ The ``line2example`` function should accept a single line of the dataset file as
   >>> 
   >>> dataset = TabularDataset(dataset_path, fields=fields, line2example=custom_split)
   >>> print(dataset[0])
-  Example({'premise': (None, ['A', 'man', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.']),
-           'hypothesis': (None, ['The', 'man', 'is', 'sleeping']),
-           'label': (None, 'contradiction')})
+  Example({
+      premise: (None, ['A', 'man', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.']),
+      hypothesis: (None, ['The', 'man', 'is', 'sleeping']),
+      label: (None, 'contradiction')
+  })
 
 .. testcleanup:: tabular
 
