@@ -46,6 +46,7 @@ Use some of our pre-defined datasets:
 ```python
 >>> from podium.datasets import SST
 >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits()
+>>> sst_train.finalize_fields() # Trigger vocab construction
 >>> print(sst_train)
 SST({
     size: 6920,
@@ -112,6 +113,7 @@ Load your own dataset from a standardized tabular format (e.g. `csv`, `tsv`, `js
 ...           'hypothesis':Field('hypothesis', numericalizer=Vocab()),
 ...           'label':     LabelField('label')}
 >>> dataset = TabularDataset('my_dataset.csv', format='csv', fields=fields)
+>>> dataset.finalize_fields() # Trigger vocab construction
 >>> print(dataset)
 TabularDataset({
     size: 1,
