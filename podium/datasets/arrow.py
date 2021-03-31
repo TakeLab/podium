@@ -36,6 +36,11 @@ def _chunkify(iterable, n):
         yield chunk
 
 
+TEMP_CACHE_FILENAME_PREFIX = "podium_arrow_cache_"
+CACHE_TABLE_FILENAME = "podium_arrow_cache.arrow"
+CACHE_FIELDS_FILENAME = "podium_fields.pkl"
+
+
 class DiskBackedDataset(DatasetBase):
     """
     Podium dataset implementation which uses PyArrow as its data storage
@@ -44,10 +49,6 @@ class DiskBackedDataset(DatasetBase):
     Examples are stored in a file which is then memory mapped for fast random
     access.
     """
-
-    TEMP_CACHE_FILENAME_PREFIX = "podium_arrow_cache_"
-    CACHE_TABLE_FILENAME = "podium_arrow_cache.arrow"
-    CACHE_FIELDS_FILENAME = "podium_fields.pkl"
 
     def __init__(
         self,
@@ -176,12 +177,12 @@ class DiskBackedDataset(DatasetBase):
 
         if cache_path is None:
             cache_path = tempfile.mkdtemp(
-                prefix=DiskBackedDataset.TEMP_CACHE_FILENAME_PREFIX
+                prefix=TEMP_CACHE_FILENAME_PREFIX
             )
 
         # dump dataset table
         cache_table_path = os.path.join(
-            cache_path, DiskBackedDataset.CACHE_TABLE_FILENAME
+            cache_path, CACHE_TABLE_FILENAME
         )
 
         # TODO hande cache case when cache is present
@@ -545,13 +546,13 @@ class DiskBackedDataset(DatasetBase):
         """
         # load fields
         fields_file_path = os.path.join(
-            cache_path, DiskBackedDataset.CACHE_FIELDS_FILENAME
+            cache_path, CACHE_FIELDS_FILENAME
         )
         with open(fields_file_path, "rb") as fields_cache_file:
             fields = pickle.load(fields_cache_file)
 
         # load dataset as memory mapped arrow table
-        table_file_path = os.path.join(cache_path, DiskBackedDataset.CACHE_TABLE_FILENAME)
+        table_file_path = os.path.join(cache_path, CACHE_TABLE_FILENAME)
         mmapped_file = pa.memory_map(table_file_path)
         table = pa.RecordBatchFileReader(mmapped_file).read_all()
         return DiskBackedDataset(table, fields, cache_path, mmapped_file)
@@ -586,7 +587,7 @@ class DiskBackedDataset(DatasetBase):
 
         if cache_path is None:
             cache_path = tempfile.mkdtemp(
-                prefix=DiskBackedDataset.TEMP_CACHE_FILENAME_PREFIX
+                prefix=TEMP_CACHE_FILENAME_PREFIX
             )
 
         if not os.path.isdir(cache_path):
@@ -594,14 +595,14 @@ class DiskBackedDataset(DatasetBase):
 
         # pickle fields
         cache_fields_path = os.path.join(
-            cache_path, DiskBackedDataset.CACHE_FIELDS_FILENAME
+            cache_path, CACHE_FIELDS_FILENAME
         )
         with open(cache_fields_path, "wb") as fields_cache_file:
             pickle.dump(self.fields, fields_cache_file)
 
         # dump table
         cache_table_path = os.path.join(
-            cache_path, DiskBackedDataset.CACHE_TABLE_FILENAME
+            cache_path, CACHE_TABLE_FILENAME
         )
         with pa.OSFile(cache_table_path, "wb") as f:
             with pa.RecordBatchFileWriter(f, self.table.schema) as writer:
@@ -738,6 +739,10 @@ class DiskBackedDataset(DatasetBase):
         """
         yield from self._recordbatch_to_examples(self.table, self.fields)
 
+    def __del__(self):
+        if self.mmapped_file is not None:
+            self.close()
+
     def close(self):
         """
         Closes resources held by the DiskBackedDataset.
@@ -842,3 +847,13 @@ class DiskBackedDataset(DatasetBase):
         return DiskBackedDataset.from_examples(
             fields, example_iterator, cache_path, data_types, chunk_size
         )
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        del state["mmapped_file"]
+        return state
+
+    def __setstate__(self, state):
+        mmapped_file = pa.memory_map(os.path.join(state["cache_path"], CACHE_TABLE_FILENAME))
+        state["mmapped_file"] = mmapped_file
+        self.__dict__ = state

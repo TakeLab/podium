@@ -346,7 +346,7 @@ class DatasetBase(ABC):
         return pd.DataFrame(data=row_iterator(), columns=column_names)
 
     def __getstate__(self):
-        return self.__dict__
+        return self.__dict__.copy()
 
     def __setstate__(self, state):
         self.__dict__ = state
