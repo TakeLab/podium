@@ -41,8 +41,8 @@ We have transformed the train dataset to a sparse matrix containing TF-IDF value
   >>> # Obtain accuracy on the train set
   >>> y_hat = svm.predict(tfidf_batch)
   >>> acc = accuracy_score(y_hat, y.label.ravel())
-  >>> print(f"Accuracy on train set: {acc:.4f}")
-  0.9597
+  >>> print(f"Accuracy on the train set: {acc:.4f}")
+  Accuracy on train set: 0.9597
 
 And for a more accurate performance evaluation of our model we turn to the test set:
 
@@ -52,8 +52,8 @@ And for a more accurate performance evaluation of our model we turn to the test 
   >>> tfidf_test_batch = tfidf_vectorizer.transform(test_x.text)
   >>> y_test_hat = svm.predict(tfidf_test_batch)
   >>> acc = accuracy_score(y_test_hat, test_y.label.ravel())
-  >>> print(f"Accuracy on test set: {acc:.4f}")
-  Accuracy on test set: 0.7946
+  >>> print(f"Accuracy on the test set: {acc:.4f}")
+  Accuracy on the test set: 0.7946
 
 Our basic unigram TF-IDF linear SVM performs pretty well on the SST dataset, reaching accuracy of almost ``0.8``. While this example encapsulates the basics of using Podium with ``scikit-learn``\s ``SVM``, we will delve a bit deeper and consider some additional preprocessing.
 
@@ -91,6 +91,7 @@ We will now incorporate these two hooks into our text input Field:
 
 .. code-block:: python
 
+  >>> # Use [1-3]grams, inclusive
   >>> ngram_hook = NGramHook(1,3)
   >>> vocab = Vocab(max_size=5000, specials=())
   >>> text = Field(name='text', numericalizer=vocab, 
@@ -102,4 +103,41 @@ We will now incorporate these two hooks into our text input Field:
   >>> fields = {'text': text, 'label': label}
   >>> train, dev, test = SST.get_dataset_splits(fields=fields)
   >>> train.finalize_fields()
+  >>> print(text.vocab.itos[40:50])
+  [('at',), ('from',), ('one',), ('have',), ('I',), ('like',), ('his',), ('in', 'the'), ('all',), ("'",)]
 
+We can see that our new Vocab now contains tuples as its tokens -- as long as an item in a sequence is hashable, we can represent it as part of a Vocab! We can see that one 2-gram ``('in', 'the')`` has made its way into the 50 most frequent tokens.
+
+As before, we need to train the TFIDF vectorizer and apply it to our data (which now includes 1-, 2- and 3-grams):
+
+.. code-block:: python
+
+  >>> dataset_batch = train.batch(add_padding=True)
+  >>> tfidf_vectorizer = TfIdfVectorizer()
+  >>> tfidf_vectorizer.fit(train, field=train.field('text'))
+  >>> tfidf_batch = tfidf_vectorizer.transform(dataset_batch.text)
+  >>> print(type(tfidf_batch), tfidf_batch.shape)
+  <class 'scipy.sparse.csr.csr_matrix'> (6920, 5000)
+
+We can now train our SVM classification model and evaluate it on the train and test set:
+
+.. code-block:: python
+
+  >>> svm = LinearSVC()
+  >>> text, label = dataset_batch
+  >>> svm.fit(tfidf_batch, label.ravel())
+  >>> # Compute accuracy on the train set
+  >>> y_hat = svm.predict(tfidf_batch)
+  >>> acc = accuracy_score(y_hat, label.ravel())
+  >>> print(f"Accuracy on the train set: {acc:.4f}")
+  Accuracy on the train set: 0.9575
+  >>>
+  >>> # Compute accuracy on the test set
+  >>> test_text, test_label = test.batch(add_padding=True)
+  >>> tfidf_test_batch = tfidf_vectorizer.transform(test_text)
+  >>> y_test_hat = svm.predict(tfidf_test_batch)
+  >>> acc = accuracy_score(y_test_hat, test_label.ravel())
+  >>> print(f"Accuracy on the test set: {acc:.4f}")
+  Accuracy on the test set: 0.7743
+
+Sadly, our new model didn't perform better than our initial one on the train set, but there are many avenues we can try further, such as tuning the hyperparameters of the LinearSVC model on the development set or filtering out stop words and punctuation. We encourage you to open this example in Colab and try some things yourself!
