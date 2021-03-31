@@ -272,7 +272,7 @@ def convert_math(text):
 def convert_anchor(text):
     """ Convert text to an anchor that can be used in the notebook."""
     anchor_name = _re_anchor_section.search(text).groups()[0]
-    return f"<a id='{anchor_name}'></a>"
+    return f"<a name='{anchor_name}' id='{anchor_name}'></a>"
 
 
 ###################################
