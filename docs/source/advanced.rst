@@ -7,7 +7,7 @@
 Podium data flow
 ====================
 
-In Podium, data exists in three states: **raw** (as read from the dataset), **processed** (once the tokenizer and additional postprocessing have been applied) and **numericalized** (converted to indices).
+In Podium, data exists in three states: **raw** (prior to tokenization), **processed** (once the tokenizer and additional postprocessing have been applied) and **numericalized** (converted to indices).
 
 The data is processed immediately when the instance is loaded from disk and then stored in the Example class. Each instance of an Example (a shallow wrapper of a python dictionary) contains one instance of the dataset. Both the `raw` and `processed` data are stored as a tuple attribute under the name of the Field in an Example. You can see this in the SST example:
 

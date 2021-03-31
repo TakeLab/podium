@@ -26,9 +26,9 @@ from .tabular_dataset import TabularDataset
 
 def list_builtin_datasets():
     builtin_datasets = [
-        "CornellMovieDialogsConversationalDataset",
+        "CornellMovieDialogs",
         "IMDB",
-        "SNLIDataset",
+        "SNLI",
         "SNLISimple",
         "SST",
     ]

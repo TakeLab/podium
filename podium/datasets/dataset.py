@@ -185,7 +185,7 @@ class DatasetBase(ABC):
             iter(SingleBatchIterator(self, shuffle=False, add_padding=add_padding))
         )
 
-    def as_dict(self, include_raw=False):
+    def as_dict(self, include_raw=False) -> Dict[str, List[Any]]:
         """
         Converts the entire dataset to a dictionary, where the field names map
         to lists of processed Examples.
