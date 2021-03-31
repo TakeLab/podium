@@ -60,52 +60,63 @@ One built-in dataset available in Podium is the `Stanford Sentiment Treebank <ht
   })
 
 
-Each built-in Podium dataset has a :func:`get_dataset_splits` method, which returns the `train`, `test` and `validation` split of that dataset, if available.
+Each built-in Podium dataset has a :func:`get_dataset_splits` method, which returns the `train`, `test` and `validation` splits of that dataset, if available.
 
 .. _hf-loading:
 
 Loading 🤗 datasets
 ^^^^^^^^^^^^^^^^^^^^
 
-The recently released `🤗 datasets <https://github.com/huggingface/datasets>`__ library implements a large number of NLP datasets. For your convenience (and not to reimplement data loading for each one of them), we have created a wrapper for 🤗 datasets, which allows you to map all of the 600+ datasets directly to your Podium pipeline.
+The popular `🤗 datasets <https://github.com/huggingface/datasets>`__ library implements a large number of NLP datasets. For simplicity, we have created a wrapper for 🤗 datasets, which allows you to map all of the 600+ datasets directly to your Podium pipeline.
 
-You can load a dataset in 🤗 datasets and then convert it to a Podium dataset as follows:
+Converting a dataset from 🤗 datasets into Podium requires some work from your side, although we have automated it as much as possible. We will first take a look at one example 🤗 dataset:
+
+.. code-block:: python
+
+  >>> import datasets
+  >>> from pprint import pprint
+  >>> # Loading a huggingface dataset returns an instance of DatasetDict
+  >>> # which contains the dataset splits (usually: train, valid, test) 
+  >>> imdb = datasets.load_dataset('imdb')
+  >>> print(imdb.keys())
+  dict_keys(['train', 'test', 'unsupervised'])
+  >>> 
+  >>> # Each dataset has a set of features which need to be mapped
+  >>> # to Podium Fields.
+  >>> print(imdb['train'].features)
+  {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], names_file=None, id=None),
+   'text': Value(dtype='string', id=None)}
+
+As is the case with loading your custom dataset, ``features`` of 🤗 datasets need to be mapped to Podium Fields in order to direct the data flow for preprocessing.
+
+Datasets from 🤗 need to either (1) be wrapped them in :class:`podium.datasets.hf.HFDatasetConverter`, in which case they remain as `pyarrow <https://arrow.apache.org/docs/python/>`__ disk-backed datasets or (2) cast into a Podium :class:`podium.datasets.Dataset`, making them concrete and loading them in memory. The latter operation can be memory intensive for some datasets. We will first take a look at using disk-backed 🤗 datasets.
 
 .. code-block:: python
 
   >>> from podium.datasets.hf import HFDatasetConverter as HF
-  >>> import datasets
-  >>> # Loading a huggingface dataset returns an instance of DatasetDict
-  >>> # which contains the dataset splits (usually: train, valid, test, 
-  >>> # but other splits can also be contained such as in the case of IMDB)
-  >>> imdb = datasets.load_dataset('imdb')
-  >>> print(imdb.keys())
-  dict_keys(['train', 'test', 'unsupervised'])
-
-Datasets from 🤗 can be used with other Podium components by wrapping them in the :class:`podium.datasets.hf.HFDatasetConverter`, in which case they remain as disk-backed datasets backed by `pyarrow <https://arrow.apache.org/docs/python/>`__ or by casting them into a Podium :class:`podium.datasets.Dataset`, making them concrete and loading them in memory. This operation can be memory intensive for some datasets. We will first take a look at using disk-backed 🤗 datasets.
-
-.. code-block:: python
-
-  >>> # We create an adapter for huggingface dataset schema to podium Fields.
-  >>> # These are not yet Podium datasets, but behave as such (you can iterate
-  >>> # over them as if they were).
+  >>> # We create an adapter for huggingface dataset schema to podium Fields,
+  >>> # allowing you to use wrapped 🤗 datasets as Podium ones
   >>> imdb_train, imdb_test, imdb_unsupervised = HF.from_dataset_dict(imdb).values()
   >>> imdb_train.finalize_fields()
   >>>
-  >>> imdb_train.as_dataset().fields
-  (Field({
-      name: text,
-      keep_raw: False,
-      is_target: False,
-      vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, is_finalized: False, size: 280617})
-  }), LabelField({
-      name: label,
+  >>> print(imdb_train.field_dict())
+  {'label': LabelField({
+      name: 'label',
       keep_raw: False,
       is_target: True
-  }))
+  }),
+   'text': Field({
+      name: 'text',
+      keep_raw: False,
+      is_target: False,
+      vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 280619})
+  })}
 
-When we load a 🤗 dataset, we internally perform automatic Field type inference and create Fields. While we expect these Fields to work in most cases, we also recommend you try constructing your own (check :ref:`fields`).
-An important aspect to note when using ``Vocab`` with 🤗 datasets is that you **need to set** ``eager=False`` upon construction. Vocabularies in Podium are eager by default, which means that they construct frequency counts upon dataset loading. Since 🤗 datasets are not loaded as part of Podium, vocabulary construction needs to be triggered manually by using non-eager ``Vocab`` s and calling ``Dataset.finalize_fields()`` to indicate that the vocabularies should be built.
+.. note::
+  Conversion from features to Fields is **automatically inferred** by default. This is a process which can be error prone, many assumptions have to be made. Nevertheless, it will work for basic use-cases.
+  In general, we recommend you set the ``fields`` argument of ``from_dataset_dict``.
+
+When we load a 🤗 dataset, we internally perform automatic Field type inference and create Fields. While we expect these Fields to work in most cases, we recommend you try constructing your own.
 
 Once the ``Field`` s are constructed, we can use the dataset as if it was part of Podium:
 
@@ -123,13 +134,12 @@ Once the ``Field`` s are constructed, we can use the dataset as if it was part o
   [[0]
    [0]]
 
-
 .. _custom-loading:
 
 Loading your custom dataset
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-We have covered loading built-in datasets. However, it is often the case that you want to work on a dataset that you either constructed or we have not yet implemented the loading function for. If that dataset is in a simple tabular format, you can use :class:`podium.datasets.TabularDataset`.
+We have covered loading built-in datasets. However, it is often the case that you want to work on a dataset that you either constructed or we have not yet implemented the loading function for. If that dataset is in a simple tabular format (one row = one instance), you can use :class:`podium.datasets.TabularDataset`.
 
 Let's take an example of a natural language inference (NLI) dataset. In NLI, datasets have two input fields: the `premise` and the `hypothesis` and a single, multi-class label. The first two rows of such a dataset written in comma-separated-values (`csv`) format could look as follows:
 
@@ -195,8 +205,8 @@ For this dataset, we need to define three Fields. We also might want the fields 
 
 Our ``TabularDataset`` supports three keyword formats out-of-the-box:
 
-1. **csv**: the comma-separated values format, which uses python's ``csv.reader`` to read comma delimited files. Additional arguments to the reader can be passed via the ``csv_reader_params`` argument.
-2. **tsv**: the tab-separated values format, handled similarly to csv except that the delimiter is ``"\t"``.
+1. **csv**: the comma-separated values format, which uses python's ``csv.reader`` to read comma delimited files. Pass additional arguments to the reader via the ``csv_reader_params`` argument,
+2. **tsv**: the tab-separated values format, handled similarly to csv except that the delimiter is ``"\t"``,
 3. **json**: the line-json format, where each line of the input file in in json format.
 
 Since these formats are not exhaustive, we also support loading other custom line-dataset formats through using the ``line2example`` argument of ``TabularDataset``.
@@ -226,10 +236,11 @@ The ``line2example`` function should accept a single line of the dataset file as
 
 
 Here, for simplicity, we (naively) assume that the content of the Field data will not contain commas. 
-Please note that the line which we pass to the ``line2example`` function still contains the newline symbol which you need to strip.
+Please note that the line which we pass to the ``line2example`` function will contain the newline symbol which you need to strip.
 
 When the ``line2example`` argument is not ``None``, the ``format`` argument will be ignored.
 
+In addition to datasets in the standard tabular format, we also support loading datasets from `pandas <https://pandas.pydata.org/>`__ :meth:`podium.datasets.Dataset.from_pandas` or the CoNLL column-based data format :class:`podium.datasets.impl.CoNLLUDataset`.
 
 .. _vocab:
 

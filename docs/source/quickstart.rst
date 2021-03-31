@@ -28,7 +28,8 @@ To get you started with Podium, we will use a sample from a movie review classif
   Absorbing character study ., positive
   Amazingly lame ., negative
 
-The header of this dataset defines the names of the input columns (features).
+
+In Podium, there are three ways of loading datasets -- (1) :ref:`builtin-loading`, (2) :ref:`hf-loading` and (3) :ref:`custom-loading`. For the purposes of this quick overview we will load a custom dataset from disk, but we encourage you to take a look at the other ways to load datasets as well.
 
 Preprocessing data with Fields
 -------------------------------
