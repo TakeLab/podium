@@ -110,9 +110,7 @@ def test_pipeline_fit_raw():
         ):
             #  Using single batch iterator so only one batch
             batch = dataset.batch()
-            model.fit(
-                feature_transformer.transform(batch), label_transform_fun(batch)
-            )
+            model.fit(feature_transformer.transform(batch), label_transform_fun(batch))
 
     # Test for list format
     fields_list = [fields["Name"], fields["Score"], fields["Age"]]

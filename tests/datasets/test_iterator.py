@@ -98,9 +98,7 @@ def test_create_batch(tabular_dataset):
 
     iter_len = len(iterator)
     assert iter_len == 4
-    for i, (batch, expected_row_length) in enumerate(
-        zip(iterator, expected_row_lengths)
-    ):
+    for i, (batch, expected_row_length) in enumerate(zip(iterator, expected_row_lengths)):
         assert hasattr(batch, "text") and hasattr(batch, "rating")
 
         assert batch.text.shape[1] == expected_row_length
@@ -368,9 +366,7 @@ def test_single_batch_iterator(tabular_dataset):
         assert len(batch.rating) == 7
 
     sliced_dataset = tabular_dataset[:5]
-    for i, (batch) in enumerate(
-        single_batch_iterator(sliced_dataset)
-    ):
+    for i, (batch) in enumerate(single_batch_iterator(sliced_dataset)):
         assert i == 0, "Multiple batches from SingleBatchIterator"
         assert single_batch_iterator._batch_size == len(sliced_dataset)
         assert len(batch.text) == 5

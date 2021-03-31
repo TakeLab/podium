@@ -73,9 +73,9 @@ class IteratorBase(ABC):
         """
         Returns an iterator object that knows how to iterate over the given
         dataset. The iterator yields a Batch instance: adictionary subclass
-        which contains batched data for every field stored under the name
-        of that Field. The Batch object unpacks over values (instead of keys)
-        in the same order as the Fields in the dataset.
+        which contains batched data for every field stored under the name of
+        that Field. The Batch object unpacks over values (instead of keys) in
+        the same order as the Fields in the dataset.
 
         Returns
         -------
@@ -380,7 +380,6 @@ class Iterator(IteratorBase):
                     [len(instance) for instance in numericalizations]
                 )
                 batch = (batch, batch_lengths)
-
 
             full_batch[field.name] = batch
         return full_batch
@@ -800,9 +799,7 @@ class HierarchicalIterator(Iterator):
             # all examples that make up the current node's context
             node_context_examples = self._get_node_context(node)
             node_context_dataset = Dataset(node_context_examples, self._dataset.fields)
-            sub_batch = super()._create_batch(
-                node_context_dataset
-            )
+            sub_batch = super()._create_batch(node_context_dataset)
 
             for key in sub_batch.keys():
                 value = getattr(sub_batch, key)
