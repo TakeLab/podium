@@ -12,8 +12,8 @@ To get you started with Podium, we will use a sample from a movie review classif
 
 The header of this dataset defines the names of the input columns (features).
 
-Mapping data to Fields
------------------------
+Preprocessing data with Fields
+-------------------------------
 
 Data preprocessing in Podium is done in pipelines called Fields. Each dataset column is mapped to one or more :class:`podium.Field` instances, which handle tokenization and additional data transforms. What **you** need to do is define how input data maps to Fields. 
 
@@ -29,8 +29,10 @@ Data preprocessing in Podium is done in pipelines called Fields. Each dataset co
   >>> dataset = TabularDataset('sample_dataset.csv', fields=fields, format='csv')
   >>> dataset.finalize_fields()
   >>> print(dataset[1])
-  Example({'input_text': (None, ['Amazingly', 'lame', '.']),
-           'target': (None, 'negative')})
+  Example({
+    input_text: (None, ['Amazingly', 'lame', '.']),
+    target: (None, 'negative')
+  })
 
 In this example, we used the built-in :class:`podium.TabularDataset` loader to load our ``csv`` dataset. The loader reads the dataset and uses the ``fields`` dictionary to determine how input data columns map to Fields. Each dataset instance is stored in a :class:`podium.Example`, with the data for each Field stored under that Field's name.
 
@@ -46,9 +48,11 @@ You might wonder, why not simply use the input column names from the header to s
   >>> dataset_with_chars = TabularDataset('sample_dataset.csv', fields=fields, format='csv')
   >>> dataset.finalize_fields()
   >>> print(dataset_with_chars[1])
-  Example({'input_text': (None, ['Amazingly', 'lame', '.']),
-           'input_chars': (None, ['A', 'm', 'a', 'z', 'i', 'n', 'g', 'l', 'y', ' ', 'l', 'a', 'm', 'e', ' ', '.']),
-           'target': (None, 'negative')})
+  Example({
+    input: (None, ['Amazingly', 'lame', '.']),
+    input_chars: (None, ['A', 'm', 'a', 'z', 'i', 'n', 'g', 'l', 'y', ' ', 'l', 'a', 'm', 'e', ' ', '.']),
+    target: (None, 'negative')
+  })
 
 You might wonder what the ``None``\s we've been seeing represent. For each Field, we store raw and processed data as a tuple. The first element of the tuple is reserved for raw data, by default blank to preserve memory. For a detailed overview of the Field constructor arguments and how to use them, check :ref:`fields`.
 
@@ -108,7 +112,7 @@ Apart from the tokenization, each Field also constructed a :class:`podium.Vocab`
 When loading data, a Field automatically collects frequencies of tokens and relays them to its Vocab. When signaled, the Vocab constructs a **string-to-integer** (stoi) ``dict`` and **index-to-string** (itos) ``list``. Once ``stoi`` and ``itos`` are constructed the Vocab is finalized, cannot be updated and will raise an error if you attempt to do so.
 The vocabularies are finalized **by you** -- you need to call :meth:`Dataset.finalize_fields` which subsequently tells every Field in the dataset to finalize its Vocab, if it has one. Please check :ref:`finalizing_vocab` for a more detailed explanation.
 
-Apart from using our ``Vocab`` class to perform numericalization, you can also pass your own callable which maps tokens to indices. Vocabularies (:ref:`vocab`) contain special tokens, which we designed to be easily extensible (:ref:`specials`).
+Apart from using our ``Vocab`` class to perform numericalization, you can also pass your own callable which maps tokens to indices. Vocabularies (:ref:`vocab`) contain special tokens, which we designed to be easily customizable (:ref:`specials`).
 
 
 Retrieving processed data
@@ -178,4 +182,4 @@ If you want to use the data to train a machine learning model, this can also be 
 
 Each element yielded by Podium iterators is a ``tuple`` of input data and response variable(s). Response variables can be marked as such by setting ``is_target=True`` in their Field constructor. Both elements of the tuple are instances of our ``Batch`` class, a dict-tuple hybrid which unpacks by value rather than by key (as standard python dictionaries do).
 
-For a comprehensive overview of data prep for models, check :ref:`iterating` and the subsequent documentation chapters, and for the recommended way of iterating over NLP data, check :ref:`bucketing`. 
+For a comprehensive overview of data prep for models, check :ref:`iterating` and the subsequent documentation chapters. For the recommended way of iterating over NLP data, check :ref:`bucketing`.

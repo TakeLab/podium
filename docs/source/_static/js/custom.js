@@ -3,7 +3,7 @@
 
 // These two things need to be updated at each release for the version selector.
 // Last stable version
-const stableVersion = "v1.1.0"
+const stableVersion = "v0.1.0"
 // Dictionary doc folder to label
 const versionMapping = {
     "master": "master",
@@ -15,6 +15,7 @@ const versionMapping = {
 const navigationBckgColor = "#2980b9"
 
 const hasNotebook = [
+    "quickstart",
     "advanced",
     "preprocessing",
     "walkthrough",

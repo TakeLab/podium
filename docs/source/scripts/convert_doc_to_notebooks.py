@@ -16,6 +16,7 @@ DOC_BASE_URL = "http://takelab.fer.hr/podium/"
 # These are the doc files converted, add any new tutorial to this list if you want it handled by the conversion
 # script.
 TUTORIAL_FILES = [
+    "quickstart.rst",
     "advanced.rst",
     "preprocessing.rst",
     "walkthrough.rst",
