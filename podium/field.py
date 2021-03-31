@@ -21,7 +21,7 @@ TokenizerType = Optional[Union[str, Callable[[Any], List[str]]]]
 NumericalizerType = Callable[[str], Union[int, float]]
 
 
-class PretokenizationPipeline:
+class _PretokenizationPipeline:
     def __init__(self, hooks=()):
         self.hooks = deque(hooks)
 
@@ -46,7 +46,7 @@ class PretokenizationPipeline:
         self.hooks.clear()
 
 
-class PosttokenizationPipeline:
+class _PosttokenizationPipeline:
     def __init__(self, hooks=()):
         self.hooks = deque(hooks)
 
@@ -258,8 +258,8 @@ class Field:
             )
         self._fixed_length = fixed_length
 
-        self._pretokenize_pipeline = PretokenizationPipeline()
-        self._posttokenize_pipeline = PosttokenizationPipeline()
+        self._pretokenize_pipeline = _PretokenizationPipeline()
+        self._posttokenize_pipeline = _PosttokenizationPipeline()
         self._allow_missing_data = allow_missing_data
 
         if not isinstance(missing_data_token, (int, float)):
@@ -844,7 +844,7 @@ class MultioutputField:
         """
 
         self._tokenizer_arg = tokenizer
-        self._pretokenization_pipeline = PretokenizationPipeline()
+        self._pretokenization_pipeline = _PretokenizationPipeline()
 
         if pretokenize_hooks is not None:
             if not isinstance(pretokenize_hooks, (list, tuple)):
