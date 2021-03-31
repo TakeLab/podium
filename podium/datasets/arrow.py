@@ -176,14 +176,10 @@ class DiskBackedDataset(DatasetBase):
         fields = unpack_fields(fields)
 
         if cache_path is None:
-            cache_path = tempfile.mkdtemp(
-                prefix=TEMP_CACHE_FILENAME_PREFIX
-            )
+            cache_path = tempfile.mkdtemp(prefix=TEMP_CACHE_FILENAME_PREFIX)
 
         # dump dataset table
-        cache_table_path = os.path.join(
-            cache_path, CACHE_TABLE_FILENAME
-        )
+        cache_table_path = os.path.join(cache_path, CACHE_TABLE_FILENAME)
 
         # TODO hande cache case when cache is present
 
@@ -545,9 +541,7 @@ class DiskBackedDataset(DatasetBase):
             the DiskBackedDataset loaded from the passed cache directory.
         """
         # load fields
-        fields_file_path = os.path.join(
-            cache_path, CACHE_FIELDS_FILENAME
-        )
+        fields_file_path = os.path.join(cache_path, CACHE_FIELDS_FILENAME)
         with open(fields_file_path, "rb") as fields_cache_file:
             fields = pickle.load(fields_cache_file)
 
@@ -586,24 +580,18 @@ class DiskBackedDataset(DatasetBase):
             )
 
         if cache_path is None:
-            cache_path = tempfile.mkdtemp(
-                prefix=TEMP_CACHE_FILENAME_PREFIX
-            )
+            cache_path = tempfile.mkdtemp(prefix=TEMP_CACHE_FILENAME_PREFIX)
 
         if not os.path.isdir(cache_path):
             os.mkdir(cache_path)
 
         # pickle fields
-        cache_fields_path = os.path.join(
-            cache_path, CACHE_FIELDS_FILENAME
-        )
+        cache_fields_path = os.path.join(cache_path, CACHE_FIELDS_FILENAME)
         with open(cache_fields_path, "wb") as fields_cache_file:
             pickle.dump(self.fields, fields_cache_file)
 
         # dump table
-        cache_table_path = os.path.join(
-            cache_path, CACHE_TABLE_FILENAME
-        )
+        cache_table_path = os.path.join(cache_path, CACHE_TABLE_FILENAME)
         with pa.OSFile(cache_table_path, "wb") as f:
             with pa.RecordBatchFileWriter(f, self.table.schema) as writer:
                 writer.write(self.table)
@@ -854,6 +842,8 @@ class DiskBackedDataset(DatasetBase):
         return state
 
     def __setstate__(self, state):
-        mmapped_file = pa.memory_map(os.path.join(state["cache_path"], CACHE_TABLE_FILENAME))
+        mmapped_file = pa.memory_map(
+            os.path.join(state["cache_path"], CACHE_TABLE_FILENAME)
+        )
         state["mmapped_file"] = mmapped_file
         self.__dict__ = state
