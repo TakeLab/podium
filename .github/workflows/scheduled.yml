@@ -1,0 +1,28 @@
+name: Scheduled jobs
+
+on:
+  repository_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  check_notebooks:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install 
+    - name: Execute notebooks 
+      run: |
+        cd docs/source/scripts
+        python check_notebooks.py --num_proc auto

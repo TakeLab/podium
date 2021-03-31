@@ -428,7 +428,7 @@ def rm_first_line(text):
 INSTALL_CODE = """# Podium installation
 ! pip install podium-nlp
 # To install from source instead of the last release, comment the command above and uncomment the following one.
-# ! pip install git+https://github.com/takelab/podium
+# ! pip install git+https://github.com/TakeLab/podium.git
 """
 
 ADDITIONAL_DEPS = {

@@ -207,7 +207,7 @@ Example({
 })
 ```
 
-For a more interactive introduction, check out the quickstart on Google Colab: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/takelab/podium/blob/master/docs/source/notebooks/quickstart.ipynb)
+For a more interactive introduction, check out the quickstart on Google Colab: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/TakeLab/podium/blob/master/docs/source/notebooks/quickstart.ipynb)
 
 More complex examples can be found in our [examples folder](./examples).
 
