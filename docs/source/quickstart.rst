@@ -132,8 +132,8 @@ Apart from the tokenization, each Field also constructed a :class:`podium.Vocab`
   >>> print(text_vocab.stoi) # String-to-integer
   {'<UNK>': 0, '<PAD>': 1, '.': 2, 'Absorbing': 3, 'character': 4, 'study': 5, 'Amazingly': 6, 'lame': 7}
 
-When loading data, a Field automatically collects frequencies of tokens and relays them to its Vocab. When signaled, the Vocab constructs a **string-to-integer** (stoi) ``dict`` and **index-to-string** (itos) ``list``. Once ``stoi`` and ``itos`` are constructed the Vocab is finalized, cannot be updated and will raise an error if you attempt to do so.
-The vocabularies are finalized **by you** -- you need to call :meth:`Dataset.finalize_fields` which subsequently tells every Field in the dataset to finalize its Vocab, if it has one. Please check :ref:`finalizing_vocab` for a more detailed explanation.
+When loading data, a Field automatically collects frequencies of tokens and relays them to its Vocab. When signaled, the Vocab constructs a **string-to-integer** (stoi) ``dict`` and **index-to-string** (itos) ``list``. Once ``stoi`` and ``itos`` are constructed the Vocab is finalized, it cannot be updated any longer and will raise an error if you attempt to do so.
+The vocabularies are finalized **by you** -- you need to call :meth:`Dataset.finalize_fields` which subsequently tells every Field in the dataset to finalize its Vocab, if it has one. Check :ref:`finalizing_vocab` for a more detailed explanation of why this is necessary.
 
 Apart from using our ``Vocab`` class to perform numericalization, you can also pass your own callable which maps tokens to indices. Vocabularies (:ref:`vocab`) contain special tokens, which we designed to be easily customizable (:ref:`specials`).
 
