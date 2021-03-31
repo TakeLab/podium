@@ -5,7 +5,8 @@ Polishing for public release [1.4.] still in progress :)
 ## What is Podium?
 
 Podium is a framework agnostic Python natural language processing library which standardizes data loading and preprocessing.
-Our goal is to accelerate users' development of NLP models whichever aspect of the library they decide to use.
+Our goal is to accelerate users' development of NLP models whichever aspect of the library they decide to use. Check out our [documentation](http://takelab.fer.hr/podium/) for more details. 
+The main source of inspiration for Podium is an old version of [torchtext](https://github.com/pytorch/text).
 
 ### Contents
 
@@ -181,8 +182,8 @@ Example({
 })
 ```
 
-**Pre-tokenization** accept and modify only on `raw` data.
-**Post-tokenization** accept and modify `raw` and `tokenized` data.
+**Pre-tokenization** hooks accept and modify only on `raw` data.
+**Post-tokenization** hooks accept and modify `raw` and `tokenized` data.
 
 ### Use preprocessing from other libraries
 
@@ -206,14 +207,13 @@ Example({
 })
 ```
 
-For a more interactive introduction, check out the tutorial on Google Colab: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/takelab/podium/blob/master/docs/source/notebooks/walkthrough.ipynb)
+For a more interactive introduction, check out the quickstart on Google Colab: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/takelab/podium/blob/master/docs/source/notebooks/quickstart.ipynb)
 
 More complex examples can be found in our [examples folder](./examples).
 
-
 ## Contributing
 
-To learn more about making a contribution to Podium, please see our [Contribution page](CONTRIBUTING.md).
+We welcome contributions! To learn more about making a contribution to Podium, please see our [Contribution page](CONTRIBUTING.md).
 
 ## Versioning
 
