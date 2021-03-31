@@ -15,7 +15,7 @@ To setup the project locally, follow the steps below:
    ```bash
    git clone git@github.com:<your GitHub handle>/podium.git
    cd podium
-   git remote add upstream git@github.com:mttk/podium.git
+   git remote add upstream git@github.com:TakeLab/podium.git
    ```
 
 3. Build the project in development mode.

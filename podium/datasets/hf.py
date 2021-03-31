@@ -1,10 +1,12 @@
 """
 Module contains the converter class for processing the HuggingFace Datasets.
 """
+import textwrap
 from typing import Dict, Iterator, Optional, Union
 
 from podium.datasets import Dataset, DatasetBase
 from podium.field import Field, LabelField
+from podium.utils.general_utils import repr_type_and_attrs
 from podium.vocab import Vocab
 
 from .example_factory import Example, ExampleFactory
@@ -27,7 +29,8 @@ def _identity(x):
 
 def _convert_feature(name: str, feature: datasets.features.FeatureType) -> Field:
     """
-    Convert a feature to a podium.Field.
+    Function for converting features of the HuggingFace Dataset to the
+    podium.Fields.
 
     Parameters
     ----------
@@ -212,6 +215,16 @@ class HFDatasetConverter(DatasetBase):
 
     def __len__(self) -> int:
         return len(self.dataset)
+
+    def __repr__(self):
+        fields_str = ",\n".join(textwrap.indent(repr(f), " " * 8) for f in self.fields)
+        fields_str = f"[\n{fields_str}\n    \n]"
+        attrs = {
+            "dataset_name": self._dataset.builder_name,
+            "size": len(self),
+            "fields": fields_str,
+        }
+        return repr_type_and_attrs(self, attrs, with_newlines=True, repr_values=False)
 
     def as_dataset(self) -> Dataset:
         """
