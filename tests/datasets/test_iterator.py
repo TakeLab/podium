@@ -53,13 +53,13 @@ def test_padding(fixed_length, expected_shape, json_file_path):
 
     iterator = Iterator(dataset=ds, batch_size=batch_size, shuffle=False)
 
-    input_batch, _ = next(iter(iterator))
+    batch = next(iter(iterator))
 
-    assert input_batch.text.shape == expected_shape
+    assert batch.text.shape == expected_shape
 
     pad_symbol = fields["text"].vocab.get_padding_index()
 
-    for i, row in enumerate(input_batch.text):
+    for i, row in enumerate(batch.text):
         if TABULAR_TEXT[i] is None:
             # if missing data
             continue
@@ -98,21 +98,20 @@ def test_create_batch(tabular_dataset):
 
     iter_len = len(iterator)
     assert iter_len == 4
-    for i, ((x_batch, y_batch), expected_row_length) in enumerate(
+    for i, (batch, expected_row_length) in enumerate(
         zip(iterator, expected_row_lengths)
     ):
-        assert hasattr(x_batch, "text") and not hasattr(x_batch, "rating")
-        assert hasattr(y_batch, "rating") and not hasattr(y_batch, "text")
+        assert hasattr(batch, "text") and hasattr(batch, "rating")
 
-        assert x_batch.text.shape[1] == expected_row_length
-        assert y_batch.rating.shape[1] == 1
+        assert batch.text.shape[1] == expected_row_length
+        assert batch.rating.shape[1] == 1
 
         if (i + 1) == iter_len:
-            assert x_batch.text.shape[0] == 1
-            assert y_batch.rating.shape[0] == 1
+            assert batch.text.shape[0] == 1
+            assert batch.rating.shape[0] == 1
         else:
-            assert x_batch.text.shape[0] == batch_size
-            assert y_batch.rating.shape[0] == batch_size
+            assert batch.text.shape[0] == batch_size
+            assert batch.rating.shape[0] == batch_size
 
 
 @pytest.mark.usefixtures("json_file_path")
@@ -139,10 +138,10 @@ def test_not_numericalizable_field(json_file_path):
     dataset = create_tabular_dataset_from_json(fields, json_file_path)
 
     with pytest.warns(UserWarning):
-        for x_batch, _ in Iterator(dataset, batch_size=len(dataset), shuffle=False):
-            assert isinstance(x_batch.non_numericalizable_field, (list, tuple))
+        for batch in Iterator(dataset, batch_size=len(dataset), shuffle=False):
+            assert isinstance(batch.non_numericalizable_field, (list, tuple))
             for i, batch_data, real_data in zip(
-                range(len(dataset)), x_batch.non_numericalizable_field, TABULAR_TEXT
+                range(len(dataset)), batch.non_numericalizable_field, TABULAR_TEXT
             ):
                 if i == 3:
                     assert batch_data is None
@@ -195,8 +194,8 @@ def test_include_lengths(length_included_tabular_dataset):
     # Since we're not shuffling, this shouldn't change
     expected_batch_lengths = [[3, 1], [4, 1], [2, 3], [6]]
 
-    for (x_batch, _), expected_batch_length in zip(iterator, expected_batch_lengths):
-        text, lengths = x_batch.text
+    for batch, expected_batch_length in zip(iterator, expected_batch_lengths):
+        text, lengths = batch.text
         # Should contain same number of instances
         assert lengths.shape[0] == text.shape[0]
         # Number of columns should be equal to max length
@@ -224,8 +223,8 @@ def test_sort_key(length_included_tabular_dataset):
     # Since we're not shuffling, this shouldn't change
     expected_batch_lengths = [[3, 1], [4, 1], [3, 2], [6]]
 
-    for (x_batch, _), expected_batch_length in zip(iterator, expected_batch_lengths):
-        text, lengths = x_batch.text
+    for batch, expected_batch_length in zip(iterator, expected_batch_lengths):
+        text, lengths = batch.text
         assert np.array_equal(lengths, expected_batch_length)
 
 
@@ -351,9 +350,9 @@ def test_iterator_missing_data_in_batch(json_file_path):
     fields["text_with_missing_data"] = missing_value_field
     ds = create_tabular_dataset_from_json(fields, json_file_path)
 
-    for x_batch, _ in Iterator(ds, batch_size=len(ds), shuffle=False):
+    for batch in Iterator(ds, batch_size=len(ds), shuffle=False):
         # test if the value we know is missing is correctly filled out
-        missing_value_row = x_batch.missing_value_field[3]
+        missing_value_row = batch.missing_value_field[3]
         assert np.all(missing_value_row == missing_data_default_value)
 
 
@@ -363,19 +362,19 @@ def test_single_batch_iterator(tabular_dataset):
 
     assert single_batch_iterator._batch_size == len(tabular_dataset)
     assert len(single_batch_iterator) == 1
-    for i, (input_batch, target_batch) in enumerate(single_batch_iterator):
+    for i, (batch) in enumerate(single_batch_iterator):
         assert i == 0, "Multiple batches from SingleBatchIterator"
-        assert len(input_batch.text) == 7
-        assert len(target_batch.rating) == 7
+        assert len(batch.text) == 7
+        assert len(batch.rating) == 7
 
     sliced_dataset = tabular_dataset[:5]
-    for i, (input_batch, target_batch) in enumerate(
+    for i, (batch) in enumerate(
         single_batch_iterator(sliced_dataset)
     ):
         assert i == 0, "Multiple batches from SingleBatchIterator"
         assert single_batch_iterator._batch_size == len(sliced_dataset)
-        assert len(input_batch.text) == 5
-        assert len(target_batch.rating) == 5
+        assert len(batch.text) == 5
+        assert len(batch.rating) == 5
 
 
 @pytest.mark.parametrize(
@@ -410,8 +409,8 @@ def test_bucket_iterator(
         look_ahead_multiplier=look_ahead_multiplier,
     )
 
-    for (x_batch, _), expected_row_length in zip(iterator, expected_row_lengths):
-        assert x_batch.text.shape[1] == expected_row_length
+    for batch, expected_row_length in zip(iterator, expected_row_lengths):
+        assert batch.text.shape[1] == expected_row_length
 
 
 @pytest.mark.usefixtures("tabular_dataset")
@@ -437,7 +436,7 @@ def test_bucket_iterator_no_dataset_on_init(tabular_dataset):
     )
     # since no dataset is set, one can not iterate
     with pytest.raises(TypeError):
-        for x_batch, y_batch in bi:
+        for batch in bi:
             pass
 
 
@@ -453,7 +452,7 @@ def test_bucket_iterator_set_dataset_on_init(tabular_dataset):
     # setting dataset
     bi.set_dataset(tabular_dataset)
     # iterating over dataset
-    for x_batch, y_batch in bi:
+    for batch in bi:
         # asserting to iterate
         assert True
 
@@ -468,26 +467,26 @@ def test_iterator_batch_as_list():
     examples = [ef.from_list(raw_example) for raw_example in raw_dataset]
     ds = Dataset(examples, fields)
 
-    for i, (input_batch, _) in enumerate(Iterator(ds, batch_size=2, shuffle=False)):
-        assert isinstance(input_batch.test_field, list)
-        batch = input_batch.test_field
+    for i, batch in enumerate(Iterator(ds, batch_size=2, shuffle=False)):
+        assert isinstance(batch.test_field, list)
+        field_batch = batch.test_field
         if i == 0:
-            assert len(batch) == 2
-            assert np.all(batch[0] == [1, 2, 3, 4])
-            assert np.all(batch[1] == [2, 3, 4])
+            assert len(field_batch) == 2
+            assert np.all(field_batch[0] == [1, 2, 3, 4])
+            assert np.all(field_batch[1] == [2, 3, 4])
 
         if i == 2:
-            assert len(batch) == 1
-            assert np.all(batch[0] == [3, 4])
+            assert len(field_batch) == 1
+            assert np.all(field_batch[0] == [3, 4])
 
 
 def iterators_behave_identically(iterator_1, iterator_2, reset=True):
     all_equal = True
 
-    for (x_batch_1, y_batch_1), (x_batch_2, y_batch_2) in zip(iterator_1, iterator_2):
+    for (batch_1), (batch_2) in zip(iterator_1, iterator_2):
 
-        x_equal = np.array_equal(x_batch_1.text, x_batch_2.text)
-        y_equal = np.array_equal(y_batch_1.rating, y_batch_2.rating)
+        x_equal = np.array_equal(batch_1.text, batch_2.text)
+        y_equal = np.array_equal(batch_1.rating, batch_2.rating)
 
         equal = x_equal and y_equal
 
@@ -549,27 +548,27 @@ def test_hierarchical_dataset_iteration(hierarchical_dataset):
     hit = HierarchicalIterator(dataset=hierarchical_dataset, batch_size=3)
     batch_iter = iter(hit)
 
-    input_batch_1, _ = next(batch_iter)
-    assert len(input_batch_1.number) == 3
-    assert np.all(input_batch_1.number[0] == [[1]])
-    assert np.all(input_batch_1.number[1] == [[1], [2]])
-    assert np.all(input_batch_1.number[2] == [[1], [2], [3]])
+    batch_1 = next(batch_iter)
+    assert len(batch_1.number) == 3
+    assert np.all(batch_1.number[0] == [[1]])
+    assert np.all(batch_1.number[1] == [[1], [2]])
+    assert np.all(batch_1.number[2] == [[1], [2], [3]])
 
-    input_batch_2, _ = next(batch_iter)
-    assert len(input_batch_2.number) == 3
-    assert np.all(input_batch_2.number[0] == [[1], [2], [4]])
-    assert np.all(input_batch_2.number[1] == [[5]])
-    assert np.all(input_batch_2.number[2] == [[5], [6]])
+    batch_2 = next(batch_iter)
+    assert len(batch_2.number) == 3
+    assert np.all(batch_2.number[0] == [[1], [2], [4]])
+    assert np.all(batch_2.number[1] == [[5]])
+    assert np.all(batch_2.number[2] == [[5], [6]])
 
-    input_batch_3, _ = next(batch_iter)
-    assert len(input_batch_1.number) == 3
-    assert np.all(input_batch_3.number[0] == [[5], [6], [7]])
-    assert np.all(input_batch_3.number[1] == [[5], [6], [7], [8]])
-    assert np.all(input_batch_3.number[2] == [[5], [6], [7], [8], [9]])
+    batch_3 = next(batch_iter)
+    assert len(batch_3.number) == 3
+    assert np.all(batch_3.number[0] == [[5], [6], [7]])
+    assert np.all(batch_3.number[1] == [[5], [6], [7], [8]])
+    assert np.all(batch_3.number[2] == [[5], [6], [7], [8], [9]])
 
-    input_batch_4, _ = next(batch_iter)
-    assert len(input_batch_4.number) == 1
-    assert np.all(input_batch_4.number[0] == [[5], [6], [7], [8], [10]])
+    batch_4 = next(batch_iter)
+    assert len(batch_4.number) == 1
+    assert np.all(batch_4.number[0] == [[5], [6], [7], [8], [10]])
 
     with pytest.raises(StopIteration):
         next(batch_iter)
@@ -581,9 +580,9 @@ def test_hierarchical_dataset_iteration_with_depth_limitation(hierarchical_datas
     )
     batch_iter = iter(hit)
 
-    input_batch, _ = next(batch_iter)
-    assert np.all(input_batch.number[2] == [[2], [3]])
-    assert np.all(input_batch.number[8] == [[8], [9]])
+    batch = next(batch_iter)
+    assert np.all(batch.number[2] == [[2], [3]])
+    assert np.all(batch.number[8] == [[8], [9]])
 
 
 def test_hierarchial_dataset_iterator_numericalization_caching(hierarchical_dataset):
@@ -616,27 +615,27 @@ def test_hierarchical_set_dataset_after(hierarchical_dataset, hierarchical_datas
     hi.set_dataset(hierarchical_dataset)
     batch_iter = iter(hi)
 
-    input_batch_1, _ = next(batch_iter)
-    assert len(input_batch_1.number) == 3
-    assert np.all(input_batch_1.number[0] == [[1]])
-    assert np.all(input_batch_1.number[1] == [[1], [2]])
-    assert np.all(input_batch_1.number[2] == [[1], [2], [3]])
+    batch_1 = next(batch_iter)
+    assert len(batch_1.number) == 3
+    assert np.all(batch_1.number[0] == [[1]])
+    assert np.all(batch_1.number[1] == [[1], [2]])
+    assert np.all(batch_1.number[2] == [[1], [2], [3]])
 
-    input_batch_2, _ = next(batch_iter)
-    assert len(input_batch_2.number) == 3
-    assert np.all(input_batch_2.number[0] == [[1], [2], [4]])
-    assert np.all(input_batch_2.number[1] == [[5]])
-    assert np.all(input_batch_2.number[2] == [[5], [6]])
+    batch_2 = next(batch_iter)
+    assert len(batch_2.number) == 3
+    assert np.all(batch_2.number[0] == [[1], [2], [4]])
+    assert np.all(batch_2.number[1] == [[5]])
+    assert np.all(batch_2.number[2] == [[5], [6]])
 
-    input_batch_3, _ = next(batch_iter)
-    assert len(input_batch_1.number) == 3
-    assert np.all(input_batch_3.number[0] == [[5], [6], [7]])
-    assert np.all(input_batch_3.number[1] == [[5], [6], [7], [8]])
-    assert np.all(input_batch_3.number[2] == [[5], [6], [7], [8], [9]])
+    batch_3 = next(batch_iter)
+    assert len(batch_3.number) == 3
+    assert np.all(batch_3.number[0] == [[5], [6], [7]])
+    assert np.all(batch_3.number[1] == [[5], [6], [7], [8]])
+    assert np.all(batch_3.number[2] == [[5], [6], [7], [8], [9]])
 
-    input_batch_4, _ = next(batch_iter)
-    assert len(input_batch_4.number) == 1
-    assert np.all(input_batch_4.number[0] == [[5], [6], [7], [8], [10]])
+    batch_4 = next(batch_iter)
+    assert len(batch_4.number) == 1
+    assert np.all(batch_4.number[0] == [[5], [6], [7], [8], [10]])
 
     with pytest.raises(StopIteration):
         next(batch_iter)
@@ -645,21 +644,21 @@ def test_hierarchical_set_dataset_after(hierarchical_dataset, hierarchical_datas
     hi.set_dataset(hierarchical_dataset_2)
     batch_iter = iter(hi)
 
-    input_batch_1, _ = next(batch_iter)
-    assert len(input_batch_1.number) == 3
-    assert np.all(input_batch_1.number[0] == [[1]])
-    assert np.all(input_batch_1.number[1] == [[1], [2]])
-    assert np.all(input_batch_1.number[2] == [[1], [2], [3]])
+    batch_1 = next(batch_iter)
+    assert len(batch_1.number) == 3
+    assert np.all(batch_1.number[0] == [[1]])
+    assert np.all(batch_1.number[1] == [[1], [2]])
+    assert np.all(batch_1.number[2] == [[1], [2], [3]])
 
-    input_batch_2, _ = next(batch_iter)
-    assert len(input_batch_2.number) == 3
-    assert np.all(input_batch_2.number[0] == [[5]])
-    assert np.all(input_batch_2.number[1] == [[5], [6]])
-    assert np.all(input_batch_2.number[2] == [[5], [6], [7]])
+    batch_2 = next(batch_iter)
+    assert len(batch_2.number) == 3
+    assert np.all(batch_2.number[0] == [[5]])
+    assert np.all(batch_2.number[1] == [[5], [6]])
+    assert np.all(batch_2.number[2] == [[5], [6], [7]])
 
-    input_batch_3, _ = next(batch_iter)
-    assert len(input_batch_3.number) == 1
-    assert np.all(input_batch_3.number[0] == [[5], [6], [7], [10]])
+    batch_3 = next(batch_iter)
+    assert len(batch_3.number) == 1
+    assert np.all(batch_3.number[0] == [[5], [6], [7], [10]])
 
     with pytest.raises(StopIteration):
         next(batch_iter)
