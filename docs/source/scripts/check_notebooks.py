@@ -1,4 +1,5 @@
 import argparse
+import copy
 import multiprocessing
 import textwrap
 from functools import partial
@@ -14,25 +15,25 @@ INSTALL_SOURCE_VERSION_COMMAND = "# ! pip install git+https://github.com/TakeLab
 
 
 def replace_install_release_with_source(nb):
-    cell = nb.cells[0]
+    cell = nb["cells"][0]
     # sanity check
     assert cell["cell_type"] == "code"
-    assert isinstance(cell.source, list)
+    assert isinstance(cell["source"], str)
 
-    irv_idx = cell["source"].index(INSTALL_RELEASE_VERSION_COMMAND)
-    cell["source"][irv_idx] = "# " + cell["source"][irv_idx]
+    assert INSTALL_RELEASE_VERSION_COMMAND in cell["source"]
+    cell["source"] = cell["source"].replace(INSTALL_RELEASE_VERSION_COMMAND, "# " + INSTALL_RELEASE_VERSION_COMMAND)
 
-    isv_idx = cell["source"].index(INSTALL_SOURCE_VERSION_COMMAND)
-    cell["source"][isv_idx] = cell["source"][isv_idx][cell["source"][isv_idx].index("!"):]
+    assert INSTALL_SOURCE_VERSION_COMMAND in cell["source"]
+    cell["source"] = cell["source"].replace(INSTALL_SOURCE_VERSION_COMMAND, INSTALL_SOURCE_VERSION_COMMAND[2:])
 
 
 def check_notebook_output(notebook_path, env="python3"):
     with open(notebook_path, encoding="utf-8") as f:
         nb = nbformat.read(f, as_version=4)
 
-    original_nb = nb.copy()
+    original_nb = nb
     ep = ExecutePreprocessor(kernel_name=env)
-    new_nb = nb
+    new_nb = copy.deepcopy(nb)
     replace_install_release_with_source(new_nb)
     try:
         ep.preprocess(new_nb, {"metadata": {"path": str(Path(notebook_path).parent)}})
@@ -40,6 +41,7 @@ def check_notebook_output(notebook_path, env="python3"):
         print(f"Error happened while executing the notebook {notebook_path.name}")
         raise
 
+    print(new_nb)
     report = []
     assert len(original_nb["cells"]) == len(new_nb["cells"])
     for i, (original_cell, new_cell) in enumerate(zip(original_nb["cells"], new_nb["cell"])):
@@ -48,9 +50,9 @@ def check_notebook_output(notebook_path, env="python3"):
             continue
 
         # sanity check
-        assert isinstance(original_cell["source"], list)
+        assert isinstance(original_cell["source"], str)
         # skip cells with commands
-        for line in original_cell["source"]:
+        for line in original_cell["source"].splitlines():
             if line.strip().startswith(("!", "%")):
                 continue
 
@@ -71,7 +73,7 @@ def check_notebook_output(notebook_path, env="python3"):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--env", help="kernel that executes the notebook")
+    parser.add_argument("--env", default="python3", help="kernel that executes the notebook")
     parser.add_argument("--num_proc", help="number of processes for parallel execution")
     args = parser.parse_args()
 
@@ -102,5 +104,5 @@ if __name__ == "__main__":
                 for notebook, report in reports
         ])
         raise Exception(
-            "❌❌ Found mismatches in the outputs of the notebooks:\n\n" + reports_str
+            "❌❌ Mismatches found in the outputs of the notebooks:\n\n" + reports_str
         )
