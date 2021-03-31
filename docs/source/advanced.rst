@@ -440,9 +440,9 @@ The ``bucket_sort_key`` function defines how the instances in the dataset should
   >>>     total_padding = 0
   >>>     total_size = 0
   >>>
-  >>>     for batch_x, batch_y in iterator:
-  >>>         total_padding += count_padding(batch_x.text, padding_index)
-  >>>         total_size += batch_x.text.size
+  >>>     for batch in iterator:
+  >>>         total_padding += count_padding(batch.text, padding_index)
+  >>>         total_size += batch.text.size
   >>>     print(f"For {iterator.__class__.__name__}, padding = {total_padding}"
   >>>           f" out of {total_size} = {total_padding/total_size:.2%}")
   For Iterator, padding = 148141 out of 281696 = 52.588961149608096%
@@ -545,8 +545,8 @@ In case you don't want this behavior and would rather your unpickled iterator st
   >>> # Disable shuffling for consistency
   >>> train_iter = Iterator(sst_train, batch_size=1, shuffle=False)
   >>>
-  >>> batch_input, batch_target = next(iter(train_iter))
-  >>> print(batch_input.text)
+  >>> batch = next(iter(train_iter))
+  >>> print(batch.text)
   [[  14 1144    9 2955    8   27    4 2956 3752   10  149   62    0   64
        5   11   93   10  264    8   85    7    0   72 3753   38 2048 2957
        3    0 3754    0   49  778    0    2]]
@@ -561,13 +561,13 @@ Now that we have loaded our Iterator, we can validate whether the loaded version
 
 .. doctest:: saveload
 
-  >>> restored_batch_input, restored_batch_target = next(iter(train_iter_restore))
-  >>> batch_input, batch_target = next(iter(train_iter))
+  >>> restored_batch = next(iter(train_iter_restore))
+  >>> batch = next(iter(train_iter))
   >>>
   >>> import numpy as np
-  >>> print(np.array_equal(batch_input.text, restored_batch_input.text))
+  >>> print(np.array_equal(batch.text, restored_batch.text))
   True
-  >>> print(np.array_equal(batch_target.label, restored_batch_target.label))
+  >>> print(np.array_equal(batch.label, restored_batch.label))
   True
 
 Of course, in case you want to start over, just call ``Iterator.reset()`` and the iteration will start from the beginning.

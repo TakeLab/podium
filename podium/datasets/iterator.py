@@ -26,6 +26,9 @@ class Batch(dict):
             return self[name]
         raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
+    def __repr__(self):
+        return repr_type_and_attrs(self, self, with_newlines=True, repr_values=False)
+
 
 class IteratorBase(ABC):
     """
