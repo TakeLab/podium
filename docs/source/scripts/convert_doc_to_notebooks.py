@@ -492,8 +492,14 @@ def convert_rst_file_to_notebook(
     deps = INSTALL_CODE + "\n" + additional_deps if additional_deps else INSTALL_CODE
     cells = [code_cell(deps.strip())]
     for block, block_type in blocks:
-        if block_type.startswith('test'):
+
+        # Add test setup blocks  (import, dataset construction)
+        # skip all other test blocks
+        if block_type.startswith('testsetup'):
+            block_type = "code-block python"
+        elif block_type.startswith('test'):
             continue
+
         if block_type.startswith('doctest'):
             block_type = "code-block python"
 

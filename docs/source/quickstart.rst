@@ -4,13 +4,30 @@ Quickstart
 
 To get you started with Podium, we will use a sample from a movie review classification dataset stored in a ``csv`` file named ``sample_dataset.csv``:
 
-.. code-block:: python
+.. code-block:: bash
 
   text, label
   Absorbing character study, positive
   Amazingly lame, negative
 
 The header of this dataset defines the names of the input columns (features).
+
+.. testsetup:: quickstart
+
+  import csv
+  dataset_path = 'sample.csv'
+  field_names = ('text', 'label')
+  with open(dataset_path, 'w', newline='') as csv_file:
+      writer = csv.DictWriter(csv_file, fieldnames=field_names)
+      writer.writeheader()
+      writer.writerow({
+          'text': 'Absorbing character study',
+          'label': 'positive',
+      })
+      writer.writerow({
+          'text': 'Amazingly lame',
+          'label': 'negative',
+      })
 
 Preprocessing data with Fields
 -------------------------------
