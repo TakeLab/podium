@@ -22,7 +22,7 @@ To get you started with Podium, we will use a sample from a movie review classif
           'label': 'negative',
       })
 
-.. code-block::
+.. code-block:: rest
 
   text, label
   Absorbing character study ., positive
