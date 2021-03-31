@@ -185,7 +185,6 @@ class SST(Dataset):
             subtrees=subtrees,
         )
 
-        train_dataset.finalize_fields()
         return (train_dataset, valid_dataset, test_dataset)
 
     @staticmethod

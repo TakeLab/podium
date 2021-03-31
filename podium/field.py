@@ -21,7 +21,7 @@ TokenizerType = Optional[Union[str, Callable[[Any], List[str]]]]
 NumericalizerType = Callable[[str], Union[int, float]]
 
 
-class PretokenizationPipeline:
+class _PretokenizationPipeline:
     def __init__(self, hooks=()):
         self.hooks = deque(hooks)
 
@@ -46,7 +46,7 @@ class PretokenizationPipeline:
         self.hooks.clear()
 
 
-class PosttokenizationPipeline:
+class _PosttokenizationPipeline:
     def __init__(self, hooks=()):
         self.hooks = deque(hooks)
 
@@ -108,89 +108,106 @@ class Field:
             Field name, used for referencing data in the dataset.
 
         tokenizer : str | callable | optional
-            The tokenizer that is to be used when preprocessing raw data.
-            The user can provide his own tokenizer as a callable object or specify one of
-            the registered tokenizers by a string. The available pre-registered tokenizers
-            are:
+            The tokenizer used when preprocessing raw data.
 
-            - 'split' - default str.split(). Custom separator can be provided as
-              `split-sep` where `sep` is the separator string.
+            Users can provide their own tokenizers as a ``callable`` or specify one of
+            the registered tokenizers by passing a string keyword.
+            Available pre-registered tokenizers are:
+
+            - 'split' - default, ``str.split()``. A custom separator can be provided as
+              ``split-sep`` where ``sep`` is the separator string.
             - 'spacy-lang' - the spacy tokenizer. The language model can be defined
-              by replacing `lang` with the language model name. For example `spacy-en_core_web_sm`
+              by replacing ``lang`` with the language model name.
+              Example ``spacy-en_core_web_sm``
 
-            If None, the data will not be tokenized. The provided data will be
-            stored in the `tokenized` data field as-is.
+            If ``None``, the data will not be tokenized. Raw input data will be
+            stored as ``tokenized``.
 
         keep_raw : bool
-            Whether to store untokenized preprocessed data.
-            If True, the raw data will be run trough the provided pretokenize
-            hooks and stored in the 'raw' part of the example tuple.
+            Flag determining whether to store raw data.
+
+            If ``True``, raw data will be stored in the 'raw' part of the Example tuple.
 
         numericalizer : callable
             Object used to numericalize tokens.
-            Can either be a Vocab, a custom numericalization callable or None.
-            If it's a Vocab, this field will update it after preprocessing (or during
-            finalization if eager is False) and use it to numericalize data. Also, the
-            Vocab's padding token will be used instead of the Field's.
-            If it's a Callable, It will be used to numericalize data token by token.
-            If None, numericalization won't be attempted and batches will be created as
-            lists instead of numpy matrices.
 
-         is_target : bool
-            Whether this field is a target variable. Affects iteration over
-            batches.
+            Can be a ``Vocab``, a custom numericalizer callable or ``None``.
+            If the numericalizer is a ``Vocab`` instance, Vocab's padding token will
+            be used instead of the Field's.
+            If a ``Callable`` is passed, it will be used to numericalize data token by token.
+            If ``None``, numericalization won't be attempted for this Fieldand batches will
+            be created as lists instead of numpy matrices.
 
-         include_lengths : bool
-            Whether the batch representation of this field should include the length
-            of every instance in the batch. If true, the batch element under the name
-            of this Field will be a tuple of (numericalized values, lengths).
+        is_target : bool
+            Flag indicating whether this field contains a target (response) variable.
+
+            Affects iteration over batches by separating target and non-target Fields.
+
+        include_lengths : bool
+            Flag indicating whether the batch representation of this field should
+            include the length of every instance in the batch.
+
+            If ``True``, the batch element under the name
+            of this Field will be a tuple of ``(numericalized values, lengths)``.
 
         fixed_length : int, optional
-            To which length should the field be fixed. If it is not None every
-            example in the field will be truncated or padded to given length
-            during batching. If the batched data is not a vector, this parameter is
+            Number indicating to which length should the field length be fixed.
+            If set, every example in the field will be truncated or padded to the given length
+            during batching. If the batched data is not a sequence, this parameter is
             ignored.
+            If ``None``, the batch data will be padded to the length of the longest instance
+            in each minibatch.
 
         allow_missing_data : bool
-            Whether the field allows missing data. In the case 'allow_missing_data'
-            is False and None is sent to be preprocessed, an ValueError will be raised.
-            If 'allow_missing_data' is True, if a None is sent to be preprocessed, it will
-            be stored and later numericalized properly.
+            A flag determining if the Field allows missing data. If
+            ``allow_missing_data=False`` and a ``None`` value is present in the raw data,
+            a ``ValueError`` will be raised.
+            If ``allow_missing_data=True``, and a ``None`` value is present in the raw data,
+            it will be stored and numericalized properly.
+            Defaults to ``False``.
 
         disable_batch_matrix: bool
-            Whether the batch created for this field will be compressed into a matrix.
-            If False, the batch returned by an Iterator or Dataset.batch() will contain
-            a matrix of numericalizations for all examples (if possible).
-            If True, a list of unpadded vectors(or other data type) will be returned
+            Flag indicating whether the data contained in this Field should be packed into
+            a matrix.
+            If ``False``, the batch returned by an ``Iterator`` or ``Dataset.batch()`` will
+            contain a padded matrix of numericalizations for all examples.
+            If ``True``, a list of unpadded numericalizations will be returned
             instead. For missing data, the value in the list will be None.
+            Defaults to ``False``.
 
         disable_numericalize_caching : bool
-            The flag which determines whether the numericalization of this field should be
-            cached. This flag should be set to True if the numericalization can differ
-            between `numericalize` function calls for the same instance. When set to False,
-            the numericalization values will be cached and reused each time the instance
-            is used as part of a batch. The flag is passed to the numericalizer to indicate
+            Flag which determines whether the numericalization of this field should be
+            cached.
+
+            Should be set to ``True`` if the numericalization can differ
+            between ``numericalize`` function calls for the same instance.
+            When set to ``False``, the numericalization values will be cached upon
+            first computation and reused in each subsqeuent time.
+
+            The flag is passed to the numericalizer to indicate
             use of its nondeterministic setting. This flag is mainly intended be used in the
             case of masked language modelling, where we wish the inputs to be masked
             (nondeterministic), and the outputs (labels) to not be masked while using the
-            same vocabulary.
+            same Vocab.
+            Defaults to ``False``.
 
         padding_token : int
             Padding token used when numericalizer is a callable. If the numericalizer is
-            None or a Vocab, this value is ignored.
+            ``None`` or a ``Vocab`` instance, this value is ignored.
+            Defaults to ``-999``.
 
         missing_data_token : Union[int, float]
-            Token to use to mark batch rows as missing. If data for a field is missing,
-            its matrix row will be filled with this value. For non-numericalizable fields,
-            this parameter is ignored and the value will be None.
+            Token used to mark instance data as missing. For non-numericalizable fields,
+            this parameter is ignored and their value will be ``None``.
+            Defaults to ``-1``.
 
         pretokenize_hooks: Iterable[Callable[[Any], Any]]
             Iterable containing pretokenization hooks. Providing hooks in this way is
-            identical to calling `add_pretokenize_hook`.
+            identical to calling ``add_pretokenize_hook``.
 
         posttokenize_hooks: Iterable[Callable[[Any, List[str]], Tuple[Any, List[str]]]]
             Iterable containing posttokenization hooks. Providing hooks in this way is
-            identical to calling `add_posttokenize_hook`.
+            identical to calling ``add_posttokenize_hook``.
 
         Raises
         ------
@@ -241,8 +258,8 @@ class Field:
             )
         self._fixed_length = fixed_length
 
-        self._pretokenize_pipeline = PretokenizationPipeline()
-        self._posttokenize_pipeline = PosttokenizationPipeline()
+        self._pretokenize_pipeline = _PretokenizationPipeline()
+        self._posttokenize_pipeline = _PosttokenizationPipeline()
         self._allow_missing_data = allow_missing_data
 
         if not isinstance(missing_data_token, (int, float)):
@@ -827,7 +844,7 @@ class MultioutputField:
         """
 
         self._tokenizer_arg = tokenizer
-        self._pretokenization_pipeline = PretokenizationPipeline()
+        self._pretokenization_pipeline = _PretokenizationPipeline()
 
         if pretokenize_hooks is not None:
             if not isinstance(pretokenize_hooks, (list, tuple)):
