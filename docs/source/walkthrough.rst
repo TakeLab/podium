@@ -240,7 +240,7 @@ Please note that the line which we pass to the ``line2example`` function will co
 
 When the ``line2example`` argument is not ``None``, the ``format`` argument will be ignored.
 
-In addition to datasets in the standard tabular format, we also support loading datasets from `pandas <https://pandas.pydata.org/>`__ :meth:`podium.datasets.Dataset.from_pandas` or the CoNLL column-based data format :class:`podium.datasets.impl.CoNLLUDataset`.
+In addition to datasets in the standard tabular format, we also support loading datasets from `pandas <https://pandas.pydata.org/>`__ with :meth:`podium.Dataset.from_pandas` or the CoNLL column-based data format :class:`podium.datasets.CoNLLUDataset`.
 
 .. _vocab:
 
@@ -268,8 +268,7 @@ We saw earlier that our dataset has two Fields: text and label. We will go into 
 
 Inside each of these two fields we can see a :class:`podium.Vocab` class, used for numericalization (converting tokens to indices). A Vocab is defined by two maps: the string-to-index mapping :attr:`podium.Vocab.stoi` and the index-to-string mapping :attr:`podium.Vocab.itos`.
 
-Vocabularies are built automatically for built-in datasets by counting the frequencies of tokens in the **train** set and then converting these frequences to the ``itos`` and ``stoi`` dictionaries. We can see that a ``Vocab`` is built by the ``is_finalized=True`` keyword in the printout.
-If you are constructing your own dataset or loading a dataset from 🤗 (:ref:`hf-loading`), you will need to call the :func:`podium.Dataset.finalize_fields()` method to signal that the vocabularies should be constructed.
+After loading all the datasets you wish to build your vocabularies on, you need to call the :func:`podium.Dataset.finalize_fields()` method to signal that the vocabularies should be constructed.
 
 .. _finalizing_vocab:
 
@@ -277,12 +276,36 @@ If you are constructing your own dataset or loading a dataset from 🤗 (:ref:`h
 Finalizing vocabularies
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
+We will now briefly explain the reasoning behind the required boilerplate ``finalize_fields`` call and why it is important. The main reason is that manually calling this line gives users more control over which dataset splits, or datasets, are the vocabularies constructed.
+
+For an example, we might want to either construct the vocabulary on **all** dataset splits:
+
+.. doctest:: vocab_finalize
+
+  >>> train, dev, test = SST.get_dataset_splits()
+  >>> train.finalize_fields(train, dev, test)
+  >>> print(train.field('text').vocab)
+  Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 19425})
+
+We did this by passing any number of Datasets as the argument of ``finalize_fields``, indicating  the frequencies for the Vocabularies should be counted on all of those datasets. Once ``finalize_fields`` is called on a ``Dataset`` instance, the ``Dataset`` iterates over all of its ``Fields``, updates frequency counts of their ``Vocab`` instances (if they are used) on all given datasets.
+
+In case the argument is left as ``None`` (default), the vocabularies will only be built on the dataset on which ``finalize_fields`` is called:
+
+.. doctest:: vocab_finalize
+
+  >>> train, dev, test = SST.get_dataset_splits()
+  >>> train.finalize_fields()
+  >>> print(train.field('text').vocab)
+  Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 16284})
+
+In this case, the ``Vocab`` was not built in the ``dev`` and ``test`` splits, preventing information leakage in some types of models. Another case where manual finalization of Fields is useful is :ref:`dataset_concat`. All in all, this line of boilerplate code allows a higher degree of control to the user.
+
+.. note::
+  If your Dataset doesn't use a Podium ``Vocab``, you are not required to call ``finalize_fields``. 
 
 Customizing Vocabs
 ^^^^^^^^^^^^^^^^^^
-We can customize Podium Vocabularies in one of two ways -- by controlling their constructor parameters and by defining a Vocabulary manually. 
-
-For the latter approach, the :class:`podium.Vocab` class has two static constructors: :func:`podium.Vocab.from_itos` and :func:`podium.Vocab.from_stoi`.
+We can customize Podium Vocabularies in one of two ways -- by controlling their constructor parameters and by defining a Vocabulary manually. For the latter approach, the :class:`podium.Vocab` class has two static constructors: :func:`podium.Vocab.from_itos` and :func:`podium.Vocab.from_stoi`.
 
 .. doctest:: custom_vocab
 
@@ -469,7 +492,7 @@ Loading pretrained word vectors
 
 With most deep learning models, we want to use pre-trained word embeddings. In Podium, this process is very simple. If your field uses a vocabulary, it has already built an inventory of tokens for your dataset.
 
-A number of predefined vectorizers are available (:class:`podium.vectorizers.GloVe`, :class:`podium.vectorizers.NlplVectorizer`, :class:`podium.vectorizers.TfIdfVectorizer`), as well as a standardized loader :class:`podium.vectorizers.BasicVectorStorage` for loading word2vec-style format of word embeddings from disk.
+A number of predefined vectorizers are available (:class:`podium.vectorizers.GloVe` and :class:`podium.vectorizers.NlplVectorizer`), as well as a standardized loader :class:`podium.vectorizers.BasicVectorStorage` for loading word2vec-style format of word embeddings from disk.
 
 For example, we will use the `GloVe <https://nlp.stanford.edu/projects/glove/>`__ vectors. The procedure to load these vectors has two steps:
 
@@ -487,11 +510,10 @@ The output of the function call is a numpy matrix of word embeddings which you c
   >>> glove = GloVe()
   >>> embeddings = glove.load_vocab(vocab)
   >>> print(f"For vocabulary of size: {len(vocab)} loaded embedding matrix of shape: {embeddings.shape}")
-  >>>
+  For vocabulary of size: 21701 loaded embedding matrix of shape: (21701, 300)
   >>> # We can obtain vectors for a single word (given the word is loaded) like this:
   >>> word = "sport"
   >>> print(f"Vector for {word}: {glove.token_to_vector(word)}")
-  For vocabulary of size: 21701 loaded embedding matrix of shape: (21701, 300)
   Vector for sport: [ 0.34566    0.15934    0.48444   -0.13693    0.18737    0.2678
    -0.39159    0.4931    -0.76111   -1.4586     0.41475    0.55837
    ...

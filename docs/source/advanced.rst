@@ -261,8 +261,8 @@ We have so far covered the case where you have a single input column, tokenize a
 
 You can pass a tuple of Fields under the same input data column key, and all of the Fields will use data from input column with that name. If your output Fields share the (potentially expensive) tokenizer, we have implemented a class that optimized that part of preprocessing for you: the :class:`podium.MultioutputField`.
 
-Multioutput Field
----------------------
+The Multioutput Field
+----------------------
 
 Multioutput Fields are `fake` Fields which simply handle the shared pretokenization and tokenization part of the Field processing pipeline and then forward the data to the respective output Fields.
 
@@ -360,6 +360,8 @@ As we can see, the sizes of our splits are the same, but in this case the label 
   {'negative': 0.47832369942196534, 'positive': 0.5216763005780347}
   {'negative': 0.47832369942196534, 'positive': 0.5216763005780347}
   {'negative': 0.47832369942196534, 'positive': 0.5216763005780347}
+
+.. _dataset_concat:
 
 Dataset concatenation
 ---------------------
