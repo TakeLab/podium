@@ -390,11 +390,9 @@ class HierarchicalDataset:
         state : dict
             dataset state dictionary
         """
-        d = dict(self.__dict__)
-
-        del d["_parser"]
-
-        return d
+        state = self.__dict__.copy()
+        del state["_parser"]
+        return state
 
     def __setstate__(self, state):
         """

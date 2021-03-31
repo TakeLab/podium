@@ -104,7 +104,7 @@ class DatasetBase(ABC):
 
             def attr_generator(_dataset, _field_name):
                 for x in _dataset:
-                    yield x[field_name]
+                    yield x[_field_name]
 
             return attr_generator(self, field_name)
 
@@ -120,7 +120,8 @@ class DatasetBase(ABC):
         Field or None
             The referenced `Field` or `None` if no `Field` with the given name exists.
         """
-        return self._field_dict.get(name, None)
+
+        return self.field_dict.get(name, None)
 
     def finalize_fields(self, *datasets: "DatasetBase") -> None:
         """
@@ -391,6 +392,12 @@ class DatasetBase(ABC):
                 yield row
 
         return pd.DataFrame(data=row_iterator(), columns=column_names)
+
+    def __getstate__(self):
+        return self.__dict__.copy()
+
+    def __setstate__(self, state):
+        self.__dict__ = state
 
 
 class Dataset(DatasetBase):
@@ -693,28 +700,6 @@ class Dataset(DatasetBase):
                 # Generate and cache the numericalized data
                 # the return value is ignored
                 field.get_numericalization_for_example(example)
-
-    def __getstate__(self):
-        """
-        Returns the dataset state, used for pickling datasets.
-
-        Returns
-        -------
-        state : dict
-            dataset state dictionary
-        """
-        return self.__dict__
-
-    def __setstate__(self, state):
-        """
-        Restores dataset state, used for unpickling datasets.
-
-        Parameters
-        ----------
-        state : dict
-            dataset state dictionary
-        """
-        self.__dict__ = state
 
     def _dataset_copy_with_examples(
         self, examples: list, deep_copy: bool = False
