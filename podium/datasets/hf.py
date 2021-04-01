@@ -180,7 +180,6 @@ class HFDatasetConverter(DatasetBase):
         yield from self
 
     def __getitem__(self, i):
-        print(f"Called with {i}")
         raw_examples = self.dataset[i]
 
         # Index or slice

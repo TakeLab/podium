@@ -307,9 +307,6 @@ class Iterator(IteratorBase):
             self._shuffler_state = self.get_internal_random_state()
             self._shuffler.shuffle(indices)
 
-        # This is extremely memory intensive for each iteration
-        # data = self._dataset[indices]
-
         # If iteration was stopped, continue where we left off
         start = self.iterations * self.batch_size
 
