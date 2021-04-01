@@ -38,18 +38,18 @@ jobs:
         pip install .[quality]
     - name: Check black compliance
       run: |
-        black --check --line-length 90 --target-version py36 podium tests examples
+        black --check --line-length 90 --target-version py36 podium tests
     - name: Check isort compliance
       run: |
-        isort --check-only podium tests examples
+        isort --check-only podium tests
     - name: Check docformatter compliance
       run: |
-        docformatter podium tests examples --check --recursive \
+        docformatter podium tests --check --recursive \
           --wrap-descriptions 80 --wrap-summaries 80 \
           --pre-summary-newline --make-summary-multi-line
     - name: Check flake8 compliance
       run: |
-        flake8 podium tests examples
+        flake8 podium tests
   
   build_and_test:
     runs-on: ${{ matrix.os }}
