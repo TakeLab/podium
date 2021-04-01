@@ -1,6 +1,5 @@
 import argparse
 import copy
-import multiprocess
 import os
 import shutil
 import string
@@ -9,6 +8,7 @@ import textwrap
 from functools import partial
 from pathlib import Path
 
+import multiprocess
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
 
@@ -20,7 +20,7 @@ INSTALL_SST_COMMAND = "python -c \"from podium.datasets import SST; SST.get_data
 TRANS_TABLE = str.maketrans(dict.fromkeys(string.whitespace))
 
 
-def inject_sst():
+def inject_shared_download():
     delim = "&" if os.name == "nt" else ";"
     subprocess.call(
         delim.join([INSTALL_SOURCE_VERSION_COMMAND[4:], INSTALL_SST_COMMAND]),
@@ -108,7 +108,7 @@ def check_notebook_output(notebook_path, env="python3", ignore_whitespace=False)
         new_cell_stdout_ = new_cell_stdout
 
         if ignore_whitespace:
-            original_cell = original_cell_stdout.translate(TRANS_TABLE)
+            original_cell_stdout = original_cell_stdout.translate(TRANS_TABLE)
             new_cell_stdout = new_cell_stdout.translate(TRANS_TABLE)
         else:
             if new_cell_stdout[-1] == "\n" and original_cell_stdout[-1] != "\n":
@@ -150,8 +150,8 @@ if __name__ == "__main__":
             report = check_notebook_output(notebook_path, env=args.env, ignore_whitespace=args.ignore_whitespace)
             reports.append(report)
     else:
-        # inject the SST dataset to prevent parallel download
-        inject_sst()
+        # predownload datasets/vectorizers to prevent parallel download
+        inject_shared_download()
         with multiprocess.Pool(num_proc) as pool:
             reports = pool.map(partial(check_notebook_output, env=args.env, ignore_whitespace=args.ignore_whitespace), notebook_paths)
 
@@ -168,7 +168,7 @@ if __name__ == "__main__":
                     for i, original_output, new_output in report),
                 " " * 4,
             )
-            for notebook, report in reports
+            for notebook, report in reports if len(report) > 0
         ])
         raise Exception(
             "❌❌ Mismatches found in the outputs of the notebooks:\n\n" + reports_str
