@@ -2,7 +2,7 @@ Pytorch RNN classifier
 =======================
 
 In this example, we will cover a simple RNN-based classifier model implemented in Pytorch. We will use the IMDB dataset loaded from 🤗/datasets, preprocess it with Fields and train the model briefly.
-While having a GPU is not necessary it is recommended as otherwise training the model, even for a single epoch, will take a while.
+While having a GPU is not necessary, it is recommended as otherwise training the model -- even for a single epoch -- will take a while.
 
 Loading a dataset from 🤗/datasets
 -----------------------------------
