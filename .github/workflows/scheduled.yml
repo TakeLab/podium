@@ -16,7 +16,7 @@ jobs:
         python-version: [3.6]
     defaults:
       run:
-        working-direcory: docs/source/scripts
+        working-directory: docs/source/scripts
 
     steps:
     - uses: actions/checkout@v2
