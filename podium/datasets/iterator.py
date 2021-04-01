@@ -493,9 +493,14 @@ class SingleBatchIterator(Iterator):
             iterator. If set to ``False``, numericalized Fields will be
             returned as python lists of ``matrix_class`` instances.
         """
+
+        batch_size = 0
+        if dataset is not None:
+            batch_size=len(dataset)
+
         super().__init__(
             dataset=dataset,
-            batch_size=len(dataset),
+            batch_size=batch_size,
             shuffle=shuffle,
             disable_batch_matrix=not add_padding,
         )
