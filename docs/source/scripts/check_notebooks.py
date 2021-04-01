@@ -101,7 +101,7 @@ def check_notebook_output(notebook_path, env="python3", ignore_whitespace=False)
 
         new_cell_stdout = "".join([
             new_cell_output["text"]
-            for new_cell_output in new_cell["outputs"] if new_cell_output["name"] == "stdout"
+            for new_cell_output in new_cell["outputs"] if new_cell_output["output_type"] == "stream" and new_cell_output["name"] == "stdout"
         ])
 
         original_cell_stdout_ = original_cell_stdout
