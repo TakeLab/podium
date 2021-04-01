@@ -313,7 +313,7 @@ class Iterator(IteratorBase):
         # If iteration was stopped, continue where we left off
         start = self.iterations * self.batch_size
 
-        for i in range(start, len(data), self.batch_size):
+        for i in range(start, len(self._dataset), self.batch_size):
             batch_indices = indices[i : i + self.batch_size]
             batch_instances = self._dataset[batch_indices]
 
