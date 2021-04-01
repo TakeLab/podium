@@ -315,7 +315,7 @@ class Iterator(IteratorBase):
 
         for i in range(start, len(data), self.batch_size):
             batch_indices = indices[i : i + self.batch_size]
-            batch_instances = data[batch_indices]
+            batch_instances = self._dataset[batch_indices]
 
             if self._sort_key is not None:
                 batch_instances = batch_instances.sorted(key=self._sort_key)
