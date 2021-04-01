@@ -197,9 +197,9 @@ class Experiment:
 
         # Fit the feature transformer if it needs fitting
         if self.feature_transformer.requires_fitting():
-            for x_batch, y_batch in SingleBatchIterator(dataset, shuffle=False):
-                y = self.label_transform_fn(y_batch)
-                self.feature_transformer.fit(x_batch, y)
+            for batch in SingleBatchIterator(dataset, shuffle=False):
+                y = self.label_transform_fn(batch)
+                self.feature_transformer.fit(batch, y)
 
         # Create new model instance
         self.model = self.model_class(**model_args)
@@ -296,8 +296,8 @@ class Experiment:
         else:
             prediction_iterator = Iterator(batch_size=batch_size, shuffle=False)
 
-            for x_batch, _ in prediction_iterator(dataset):
-                x_batch_tensor = self.feature_transformer.transform(x_batch)
+            for batch in prediction_iterator(dataset):
+                x_batch_tensor = self.feature_transformer.transform(batch)
                 batch_prediction = self.model.predict(x_batch_tensor, **kwargs)
                 prediction_tensor = batch_prediction[prediction_key]
                 y.append(prediction_tensor)

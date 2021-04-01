@@ -26,6 +26,9 @@ class Batch(dict):
             return self[name]
         raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
+    def __repr__(self):
+        return repr_type_and_attrs(self, self, with_newlines=True, repr_values=False)
+
 
 class IteratorBase(ABC):
     """
@@ -69,10 +72,10 @@ class IteratorBase(ABC):
     def __iter__(self) -> PythonIterator[Tuple[NamedTuple, NamedTuple]]:
         """
         Returns an iterator object that knows how to iterate over the given
-        dataset. The iterator yields tuples in the form (input_batch,
-        target_batch). The input_batch and target_batch objects have attributes
-        that correspond to the names of input fields and target fields
-        (respectively) of the dataset.
+        dataset. The iterator yields a Batch instance: adictionary subclass
+        which contains batched data for every field stored under the name of
+        that Field. The Batch object unpacks over values (instead of keys) in
+        the same order as the Fields in the dataset.
 
         Returns
         -------
@@ -273,7 +276,7 @@ class Iterator(IteratorBase):
 
         return math.ceil(len(self._dataset) / self.batch_size)
 
-    def __iter__(self) -> PythonIterator[Tuple[NamedTuple, NamedTuple]]:
+    def __iter__(self) -> PythonIterator[Batch]:
         """
         Returns an iterator over the given dataset. The iterator yields tuples
         in the form ``(input_batch, target_batch)``. The input_batch and
@@ -329,9 +332,7 @@ class Iterator(IteratorBase):
 
         examples = dataset.examples
 
-        # dicts that will be used to store the input and target batch
-        input_batch = Batch()
-        target_batch = Batch()
+        full_batch = Batch()
 
         for field in dataset.fields:
             numericalizations = []
@@ -380,11 +381,8 @@ class Iterator(IteratorBase):
                 )
                 batch = (batch, batch_lengths)
 
-            if field.is_target:
-                target_batch[field.name] = batch
-            else:
-                input_batch[field.name] = batch
-        return input_batch, target_batch
+            full_batch[field.name] = batch
+        return full_batch
 
     def get_internal_random_state(self):
         """
@@ -599,9 +597,9 @@ class BucketIterator(Iterator):
 
             for j in range(batch_start, len(bucket), self.batch_size):
                 batch_dataset = bucket[j : j + self.batch_size]
-                input_batch, target_batch = self._create_batch(batch_dataset)
+                batch = self._create_batch(batch_dataset)
 
-                yield input_batch, target_batch
+                yield batch
                 self._iterations += 1
 
         # prepare for new epoch
@@ -791,33 +789,25 @@ class HierarchicalIterator(Iterator):
 
         Returns
         -------
-        (Batch, Batch)
-            a tuple of two Batch instances, the input batch and target batch, containing
-            the input and target fields of the batch respectively.
+        (Batch)
+            a Batch instance containing numericalized Field data.
         """
 
-        input_batch_dict, target_batch_dict = defaultdict(list), defaultdict(list)
+        batch_dict = defaultdict(list)
 
         for node in nodes:
             # all examples that make up the current node's context
             node_context_examples = self._get_node_context(node)
             node_context_dataset = Dataset(node_context_examples, self._dataset.fields)
-            input_sub_batch, target_sub_batch = super()._create_batch(
-                node_context_dataset
-            )
+            sub_batch = super()._create_batch(node_context_dataset)
 
-            for key in input_sub_batch.keys():
-                value = getattr(input_sub_batch, key)
-                input_batch_dict[key].append(value)
+            for key in sub_batch.keys():
+                value = getattr(sub_batch, key)
+                batch_dict[key].append(value)
 
-            for key in target_sub_batch.keys():
-                value = getattr(target_sub_batch, key)
-                target_batch_dict[key].append(value)
+        batch = Batch(batch_dict)
 
-        input_batch = Batch(input_batch_dict)
-        target_batch = Batch(target_batch_dict)
-
-        return input_batch, target_batch
+        return batch
 
     def _data(self):
         """Generates a list of Nodes to be used in batch iteration.

@@ -188,17 +188,17 @@ def test_indexing(pyarrow_dataset, data):
 
 def test_batching(data, pyarrow_dataset):
     pyarrow_dataset.finalize_fields()
-    input_batch, target_batch = pyarrow_dataset.batch(add_padding=True)
-    assert hasattr(target_batch, "number")
-    assert hasattr(input_batch, "tokens")
+    batch = pyarrow_dataset.batch(add_padding=True)
+    assert hasattr(batch, "number")
+    assert hasattr(batch, "tokens")
 
-    assert isinstance(target_batch.number, np.ndarray)
-    assert len(target_batch.number) == len(pyarrow_dataset)
-    for (raw, _), b in zip(pyarrow_dataset.number, target_batch.number):
+    assert isinstance(batch.number, np.ndarray)
+    assert len(batch.number) == len(pyarrow_dataset)
+    for (raw, _), b in zip(pyarrow_dataset.number, batch.number):
         assert raw == b
 
     tokens_vocab = pyarrow_dataset.field_dict["tokens"].vocab
-    for (_, tokenized), batch_row in zip(pyarrow_dataset.tokens, input_batch.tokens):
+    for (_, tokenized), batch_row in zip(pyarrow_dataset.tokens, batch.tokens):
         assert len(tokenized) == len(batch_row)
         for token, index in zip(tokenized, batch_row):
             assert index == tokens_vocab[token]

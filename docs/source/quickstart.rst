@@ -164,19 +164,21 @@ If you are only after the full numericalized dataset, we've got you covered. Use
 .. doctest:: quickstart
   :options: +NORMALIZE_WHITESPACE
 
-  >>> batch_x, batch_y = dataset.batch(add_padding=True)
-  >>> print(batch_x, batch_y, sep="\n")
-  {'input_text': array([[3, 4, 5, 2],
-        [6, 7, 2, 1]])}
-  {'target': array([[0],
-        [1]])}
+  >>> dataset_batch = dataset.batch(add_padding=True)
+  >>> print(dataset_batch)
+  Batch({
+      input_text: [[3 4 5 2]
+       [6 7 2 1]],
+      target: [[0]
+       [1]]
+  })
 
 We can easily validate that the numericalized instances correspond to the input data:
 
 .. doctest:: quickstart
 
   >>> vocab = dataset.field('input_text').vocab
-  >>> for instance in batch_x.input_text:
+  >>> for instance in dataset_batch.input_text:
   ...     print(vocab.reverse_numericalize(instance))
   ['Absorbing', 'character', 'study', '.']
   ['Amazingly', 'lame', '.', '<PAD>']
@@ -198,14 +200,16 @@ If you want to use the data to train a machine learning model, this can also be 
   >>> from podium import Iterator
   >>> 
   >>> train_iter = Iterator(dataset, batch_size=2)
-  >>> for batch_x, batch_y in train_iter:
-  ...     print(batch_x, batch_y, sep="\n")
-  {'input_text': array([[6, 7, 2, 1],
-         [3, 4, 5, 2]])}
-  {'target': array([[1],
-         [0]])}
+  >>> for batch in train_iter:
+  ...     print(batch)
+  Batch({
+      input_text: [[6 7 2 1]
+       [3 4 5 2]],
+      target: [[1]
+       [0]]
+  })
 
-Each element yielded by Podium iterators is a ``tuple`` of input data and response variable(s). Response variables can be marked as such by setting ``is_target=True`` in their Field constructor. Both elements of the tuple are instances of our ``Batch`` class, a dict-tuple hybrid which unpacks by value rather than by key (as standard python dictionaries do).
+Each element yielded by Podium iterators is an instance of our ``Batch`` class, a dict-tuple hybrid which unpacks by value rather than by key (as standard python dictionaries do).
 
 For a comprehensive overview of data prep for models, check :ref:`iterating` and the subsequent documentation chapters. For the recommended way of iterating over NLP data, check :ref:`bucketing`
 

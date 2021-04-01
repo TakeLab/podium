@@ -156,10 +156,10 @@ def test_concat_view_batching(dataset):
 
     concat_dataset = DatasetConcatView([dataset_1, dataset_2])
 
-    input_batch, target_batch = concat_dataset.batch(add_padding=True)
+    batch = concat_dataset.batch(add_padding=True)
 
     expected = [[x] for x in range(10)]
-    assert np.all(input_batch.number == expected)
+    assert np.all(batch.number == expected)
 
 
 def test_indexed_view(dataset):
@@ -179,14 +179,13 @@ def test_indexed_view_batching(dataset):
     indices = [1, 5, 6, 5]
     dataset_view = DatasetIndexedView(dataset, indices=indices)
 
-    view_input_batch, view_target_batch = dataset_view.batch(add_padding=True)
-    dataset_input_batch, dataset_target_batch = dataset.batch(add_padding=True)
+    view_batch = dataset_view.batch(add_padding=True)
+    dataset_batch = dataset.batch(add_padding=True)
 
-    assert len(view_input_batch) == 1
-    assert len(view_target_batch) == 2
+    assert len(view_batch) == 3
 
-    assert np.all(view_input_batch.number == dataset_input_batch.number[indices])
-    assert np.all(view_target_batch.name == dataset_target_batch.name[indices])
+    assert np.all(view_batch.number == dataset_batch.number[indices])
+    assert np.all(view_batch.name == dataset_batch.name[indices])
 
 
 def test_sliced_view(dataset):
@@ -224,14 +223,13 @@ def test_sliced_view_batching(dataset):
     indices = list(range(start, stop, step))
     dataset_view = DatasetSlicedView(dataset, s=slc)
 
-    view_input_batch, view_target_batch = dataset_view.batch(add_padding=True)
-    dataset_input_batch, dataset_target_batch = dataset.batch(add_padding=True)
+    view_batch = dataset_view.batch(add_padding=True)
+    dataset_batch = dataset.batch(add_padding=True)
 
-    assert len(view_input_batch) == 1
-    assert len(view_target_batch) == 2
+    assert len(view_batch) == 3
 
-    assert np.all(view_input_batch.number == dataset_input_batch.number[indices])
-    assert np.all(view_target_batch.name == dataset_target_batch.name[indices])
+    assert np.all(view_batch.number == dataset_batch.number[indices])
+    assert np.all(view_batch.name == dataset_batch.name[indices])
 
     # test negative step
     start, stop, step = 8, 3, -2
@@ -239,13 +237,12 @@ def test_sliced_view_batching(dataset):
     indices = list(range(start, stop, step))
     dataset_view = DatasetSlicedView(dataset, s=slc)
 
-    view_input_batch, view_target_batch = dataset_view.batch(add_padding=True)
+    view_batch = dataset_view.batch(add_padding=True)
 
-    assert len(view_input_batch) == 1
-    assert len(view_target_batch) == 2
+    assert len(view_batch) == 3
 
-    assert np.all(view_input_batch.number == dataset_input_batch.number[indices])
-    assert np.all(view_target_batch.name == dataset_target_batch.name[indices])
+    assert np.all(view_batch.number == dataset_batch.number[indices])
+    assert np.all(view_batch.name == dataset_batch.name[indices])
 
 
 def test_slice_view_to_dataset(dataset, tmp_path):

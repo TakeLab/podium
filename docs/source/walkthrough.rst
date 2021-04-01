@@ -125,8 +125,8 @@ Once the ``Field`` s are constructed, we can use the dataset as if it was part o
   >>> from podium import Iterator
   >>> it = Iterator(imdb_train, batch_size=2)
   >>>
-  >>> text_batch, label_batch = next(iter(it))
-  >>> print(text_batch.text, label_batch.label, sep="\n")
+  >>> text, label = next(iter(it))
+  >>> print(text, label, sep="\n")
   [[    49     24      7    172   1671    156     22  11976      5   1757
     3409   7124    202      ...     1]
   [   523     64     28    353     10      3    227     21      7  73941
@@ -361,7 +361,6 @@ Fields have a number of constructor arguments, only some of which we will enumer
   - :obj:`name` (str): The name under which the Field's data will be stored in the dataset's Examples.
   - :obj:`tokenizer` (str | callable | optional): The tokenizer for sequential data. You can pass a string to use a predefined tokenizer or pass a python callable which performs tokenization (e.g. a function or a class which implements ``__call__``). For predefined tokenizers, you should follow the ``name-args`` argument formatting convention. You can use ``'split'`` for the ``str.split`` tokenizer (has no additional args) or ``'spacy-en_core_web_sm'`` for the spacy english tokenizer. If the data Field should not be tokenized, this argument should be None. Defaults to ``'split'``.
   - :obj:`numericalizer` (Vocab | callable | optional): The method to convert tokens to indices. Traditionally, this argument should be a Vocab instance but users can define their own numericalization function and pass it as an argument. Custom numericalization can be used when you want to ensure that a certain token has a certain index for consistency with other work. If ``None``, numericalization won't be attempted.
-  - :obj:`is_target` (bool): Whether this data Field is a target field (will be used as a label during prediction). This flag serves merely as a convenience, to separate batches into input and target data during iteration.
   - :obj:`fixed_length`: (int, optional): Usually, text batches are padded to the maximum length of an instance in batch (default behavior). However, if you are using a fixed-size model (e.g. CNN without pooling) you can use this argument to force each instance of this Field to be of ``fixed_length``. Longer instances will be right-truncated, shorter instances will be padded.
 
 The SST dataset has two textual data columns (fields): (1) the input text of the movie review and (2) the label. We need to define a ``Field`` for each of these.
@@ -418,23 +417,23 @@ Podium contains methods to iterate over data. Let's take a look at :class:`podiu
   :options: +NORMALIZE_WHITESPACE
 
   >>> from podium import Iterator
-  >>> train_iter = Iterator(sst_train, batch_size=2)
-  >>> batch_x, batch_y = next(iter(train_iter))
-  >>> print(batch_x, batch_y, sep='\n')
-  {'text': array([[ 1390,   193,  3035,    12,     4,   652, 13874,   310,    11,
-              101, 13875,    12,    31,    14,   729,  1733,     5,     9,
-              144,  7287,     8,  3656,   193,  7357,   700,     2,     1,
-                1,     1,     1],
-           [   29,  1659,   827,     8,    27,     7,  6115,     3,  4635,
-               63,     3,    19,     4,    55, 15634,   231,   170,     9,
-              128,    48,   123,   656,   130,   190,  2047,     8,   803,
-               74,    79,     2]])}
-  {'label': array([[1],
-           [1]])}
+  >>> train_iter = Iterator(sst_train, batch_size=2, shuffle=False)
+  >>> batch = next(iter(train_iter))
+  >>> print(batch)
+  Batch({
+        text: [[  14 1144    9 2955    8   27    4 2956 3752   10  149   62 5067   64
+             5   11   93   10  264    8   85    7 5068   72 3753   38 2048 2957
+             3 7565 3754 7566   49  778 7567    2    1]
+         [  14 2958 2420 5069    6   62   14 3755    6    4 5070   64 5071    9
+            48  830   11    7 5072    6  639   68   37 2959 2049 7568 1058  730
+            10 7569  568    6 7570 5073   10 7571    2]],
+        label: [[0]
+         [0]]
+    })
 
 
 There are a couple of things we need to unpack here. Firstly, our textual input data and class labels were converted to indices. This happened without our intervention -- built-in datasets have a default preprocessing pipeline, which handles text tokenization and numericalization.
-Secondly, while iterating we obtained two `Batch` instances. `Batch` is a special dictionary that also acts as a `namedtuple` by supporting tuple unpacking and attribute lookup. By default, Podium Iterators group input and target data Fields during iteration. If your dataset contains multiple input or target fields, they will also be present as attributes of the namedtuples.
+Secondly, while iterating we obtained a `Batch` instance. A `Batch` is a special dictionary that also acts as a `namedtuple` by supporting tuple unpacking and attribute lookup.
 
 Traditionally, when using a neural model, whether it is a RNN or a transformer variant, you require lengths of each instance in the dataset to create packed sequences or compute the attention mask, respectively. 
 
@@ -448,15 +447,15 @@ Traditionally, when using a neural model, whether it is a RNN or a transformer v
   >>> sst_train.finalize_fields()
   >>>
   >>> train_iter = Iterator(sst_train, batch_size=2, shuffle=False)
-  >>> batch_x, batch_y = next(iter(train_iter))
-  >>> text, lengths = batch_x.text
+  >>> batch = next(iter(train_iter))
+  >>> text, lengths = batch.text
   >>> print(text, lengths, sep='\n')
   [[  14 1144    9 2955    8   27    4 2956 3752   10  149   62 5067   64
-         5   11   93   10  264    8   85    7 5068   72 3753   38 2048 2957
-         3 7565 3754 7566   49  778 7567    2    1]
+     5   11   93   10  264    8   85    7 5068   72 3753   38 2048 2957
+     3 7565 3754 7566   49  778 7567    2    1]
    [  14 2958 2420 5069    6   62   14 3755    6    4 5070   64 5071    9
-        48  830   11    7 5072    6  639   68   37 2959 2049 7568 1058  730
-        10 7569  568    6 7570 5073   10 7571    2]]
+      48  830   11    7 5072    6  639   68   37 2959 2049 7568 1058  730
+      10 7569  568    6 7570 5073   10 7571    2]]
   [36 37]
 
 When setting the ``include_lengths=True`` for a Field, its batch component will be a tuple containing the numericalized batch and the lengths of each instance in the batch. When using recurrent cells, it is often the case we want to sort the instances within the batch according to length, e.g. in order for them to be used with :class:`torch.nn.utils.rnn.PackedSequence` objects.
@@ -474,12 +473,12 @@ Since datasets can contain multiple input Fields, it is not trivial to determine
   ...     return -len(tokens)
 
   >>> train_iter = Iterator(sst_train, batch_size=2, shuffle=False, sort_key=text_len_sort_key)
-  >>> batch_x, batch_y = next(iter(train_iter))
-  >>> text, lengths = batch_x.text
+  >>> batch = next(iter(train_iter))
+  >>> text, lengths = batch.text
   >>> print(text, lengths, sep="\n")
   [[  14 2958 2420 5069    6   62   14 3755    6    4 5070   64 5071    9
-        48  830   11    7 5072    6  639   68   37 2959 2049 7568 1058  730
-        10 7569  568    6 7570 5073   10 7571    2]
+    48  830   11    7 5072    6  639   68   37 2959 2049 7568 1058  730
+    10 7569  568    6 7570 5073   10 7571    2]
    [  14 1144    9 2955    8   27    4 2956 3752   10  149   62 5067   64
        5   11   93   10  264    8   85    7 5068   72 3753   38 2048 2957
        3 7565 3754 7566   49  778 7567    2    1]]
@@ -550,8 +549,8 @@ Now our vectorizer has seen the dataset as well as the vocabulary and has all th
   :options: +NORMALIZE_WHITESPACE
 
   >>> # Obtain the whole dataset as a batch
-  >>> x, y = sst_train.batch()
-  >>> tfidf_batch = tfidf_vectorizer.transform(x.text)
+  >>> dataset_batch = sst_train.batch()
+  >>> tfidf_batch = tfidf_vectorizer.transform(dataset_batch.text)
   >>>
   >>> print(type(tfidf_batch), tfidf_batch.shape)
   <class 'scipy.sparse.csr.csr_matrix'> (6920, 4998)
