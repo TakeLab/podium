@@ -1,6 +1,6 @@
 # TakeLab Podium
 
-Polishing for public release [1.4.] still in progress :)
+Polishing for public release [2.4.] still in progress :)
 
 ## What is Podium?
 
@@ -21,7 +21,7 @@ The main source of inspiration for Podium is an old version of [torchtext](https
 
 ### Installing from pip
 
-You can install `podium` using pip [not yet but after public release on the 1st of April]
+You can install `podium` using pip [not yet but after public release on the 2nd of April]
 
 ```bash
 pip install podium-nlp
