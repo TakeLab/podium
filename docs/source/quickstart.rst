@@ -69,9 +69,9 @@ You might wonder, why not simply use the input column names from the header to s
   >>> dataset_with_chars.finalize_fields()
   >>> print(dataset_with_chars[1])
   Example({
-    input_text: (None, ['Amazingly', 'lame', '.']),
-    input_chars: (None, ['A', 'm', 'a', 'z', 'i', 'n', 'g', 'l', 'y', ' ', 'l', 'a', 'm', 'e', ' ', '.']),
-    target: (None, 'negative')
+      input_text: (None, ['Amazingly', 'lame', '.']),
+      input_chars: (None, ['A', 'm', 'a', 'z', 'i', 'n', 'g', 'l', 'y', ' ', 'l', 'a', 'm', 'e', ' ', '.']),
+      target: (None, 'negative')
   })
 
 You might wonder what the ``None``\s we've been seeing represent. For each Field, we store raw and processed data as a tuple. The first element of the tuple is reserved for raw data, by default blank to preserve memory. For a detailed overview of the Field constructor arguments and how to use them, check :ref:`fields`.

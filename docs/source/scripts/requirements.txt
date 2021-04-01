@@ -1,0 +1,4 @@
+ipykernel
+nbformat
+nbconvert
+multiprocess

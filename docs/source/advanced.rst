@@ -379,7 +379,9 @@ For a simple example, we will take a look at the built-in SST and IMDB datasets:
   >>> from podium import Field, LabelField, Vocab
   >>> # Load the datasets
   >>> imdb_train, imdb_test = IMDB.get_dataset_splits()
+  >>> imdb_train.finalize_fields()
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits()
+  >>> sst_train.finalize_fields()
   >>>
   >>> # Luckily, both label vocabularies are already equal
   >>> print(imdb_train.field('label').vocab.itos)
@@ -415,7 +417,8 @@ For this reason, usage of :class:`podium.datasets.BucketIterator` is recommended
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
   >>>
-  >>> train, valid, test = SST.get_dataset_splits(fields=fields)
+  >>> sst_train, sst_valid, sst_test = SST.get_dataset_splits(fields=fields)
+  >>> sst_train.finalize_fields()
   >>>
   >>> # Define the iterators and our sort key
   >>> from podium import Iterator, BucketIterator
@@ -423,14 +426,14 @@ For this reason, usage of :class:`podium.datasets.BucketIterator` is recommended
   >>>     # Use the text Field
   >>>     raw, tokenized = instance.text
   >>>     return len(tokenized)
-  >>> bucket_iter = BucketIterator(train, batch_size=32, bucket_sort_key=instance_length)
+  >>> bucket_iter = BucketIterator(sst_train, batch_size=32, bucket_sort_key=instance_length)
 
 The ``bucket_sort_key`` function defines how the instances in the dataset should be sorted. The method accepts an instance of the dataset, and should return a value which will be used as a sort key in the ``BucketIterator``. It might be interesting (and surprising) to see how much space (and time) do we earn by bucketing. We will define a naive iterator on the same dataset and measure the total amount of padding used when iterating over a dataset.
 
 .. code-block:: python
 
   >>> import numpy as np
-  >>> vanilla_iter = Iterator(train, batch_size=32)
+  >>> vanilla_iter = Iterator(sst_train, batch_size=32)
   >>>
   >>> def count_padding(batch, padding_idx):
   >>>     return np.count_nonzero(batch == padding_idx)
@@ -518,7 +521,7 @@ Each ``Dataset`` instance in the SST dataset splits contains ``Field``\s and a `
   >>> import pickle
   >>>
   >>> cache_dir = Path('cache')
-  >>> cache_dir.mkdir()
+  >>> cache_dir.mkdir(exist_ok=True)
   >>>
   >>> dataset_store_path = cache_dir.joinpath('sst_preprocessed.pkl')
   >>>
