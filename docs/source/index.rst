@@ -42,6 +42,7 @@ The documentation is organized in five parts:
     :caption: Full examples
 
     examples/tfidf_example.rst
+    examples/pytorch_rnn_example.rst
 
 .. toctree::
     :maxdepth: 2

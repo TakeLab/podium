@@ -307,13 +307,15 @@ class Iterator(IteratorBase):
             self._shuffler_state = self.get_internal_random_state()
             self._shuffler.shuffle(indices)
 
-        data = self._dataset[indices]
+        # This is extremely memory intensive for each iteration
+        # data = self._dataset[indices]
 
         # If iteration was stopped, continue where we left off
         start = self.iterations * self.batch_size
 
         for i in range(start, len(data), self.batch_size):
-            batch_instances = data[i : i + self.batch_size]
+            batch_indices = indices[i : i + self.batch_size]
+            batch_instances = data[batch_indices]
 
             if self._sort_key is not None:
                 batch_instances = batch_instances.sorted(key=self._sort_key)

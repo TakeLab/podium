@@ -113,7 +113,7 @@ Datasets from 🤗 need to either (1) be wrapped them in :class:`podium.datasets
   })}
 
 .. note::
-  Conversion from features to Fields is **automatically inferred** by default. This is a process which can be error prone, many assumptions have to be made. Nevertheless, it will work for basic use-cases.
+  Conversion from 🤗 dataset features to Fields is **automatically inferred** by default. This is a process which can be error prone. Nevertheless, it will work for basic use-cases.
   In general, we recommend you set the ``fields`` argument of ``from_dataset_dict``.
 
 When we load a 🤗 dataset, we internally perform automatic Field type inference and create Fields. While we expect these Fields to work in most cases, we recommend you try constructing your own.
