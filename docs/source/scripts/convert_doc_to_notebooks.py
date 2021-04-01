@@ -20,8 +20,8 @@ TUTORIAL_FILES = [
     "advanced.rst",
     "preprocessing.rst",
     "walkthrough.rst",
-    "pytorch_rnn_example.rst",
-    "tfidf_example.rst",
+    "examples/pytorch_rnn_example.rst",
+    "examples/tfidf_example.rst",
 ]
 
 _re_label = re.compile(r"\.\.\s+_([^:]*):")
