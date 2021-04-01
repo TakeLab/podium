@@ -486,6 +486,8 @@ Since datasets can contain multiple input Fields, it is not trivial to determine
 
 And here we can see, that even for our small, two-instance batch, the elements in the batch are now properly sorted according to length.
 
+.. _pretrained:
+
 Loading pretrained word vectors
 -------------------------------
 

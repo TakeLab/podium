@@ -496,7 +496,7 @@ class SingleBatchIterator(Iterator):
 
         batch_size = 0
         if dataset is not None:
-            batch_size=len(dataset)
+            batch_size = len(dataset)
 
         super().__init__(
             dataset=dataset,
