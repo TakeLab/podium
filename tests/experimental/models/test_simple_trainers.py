@@ -43,15 +43,15 @@ def mock_label_transform_fun(y):
 @pytest.mark.usefixtures("tabular_dataset", "mocker", "model")  # noqa
 def test_simple_trainer_batch_transform_call(tabular_dataset, mocker, model):  # noqa
     iterator = Iterator(tabular_dataset, batch_size=len(tabular_dataset))
-    x, y = next(iter(iterator))
+    batch = next(iter(iterator))
 
     mocker.patch(
         "tests.experimental.models.test_simple_trainers.mock_feature_transform_fun",
-        return_value=x,
+        return_value=batch["text"],
     )
     mocker.patch(
         "tests.experimental.models.test_simple_trainers.mock_label_transform_fun",
-        return_value=y,
+        return_value=batch["rating"],
     )
 
     feature_transformer = FeatureTransformer(mock_feature_transform_fun)

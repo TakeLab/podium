@@ -24,8 +24,8 @@ def get_fields():
     return {"Name": name_field, "Score": score_field, "Age": age_field}
 
 
-def mock_feature_transform(x_batch):
-    return np.hstack((x_batch.Name, x_batch.Score))
+def mock_feature_transform(batch):
+    return np.hstack((batch.Name, batch.Score))
 
 
 class MockFeatureTransformer(FeatureTransformer):
@@ -109,10 +109,8 @@ def test_pipeline_fit_raw():
             self, model, dataset, feature_transformer, label_transform_fun, **kwargs
         ):
             #  Using single batch iterator so only one batch
-            x_batch, y_batch = dataset.batch()
-            model.fit(
-                feature_transformer.transform(x_batch), label_transform_fun(y_batch)
-            )
+            batch = dataset.batch()
+            model.fit(feature_transformer.transform(batch), label_transform_fun(batch))
 
     # Test for list format
     fields_list = [fields["Name"], fields["Score"], fields["Age"]]
