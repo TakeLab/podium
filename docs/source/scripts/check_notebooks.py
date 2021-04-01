@@ -155,7 +155,7 @@ if __name__ == "__main__":
         with multiprocess.Pool(num_proc) as pool:
             reports = pool.map(partial(check_notebook_output, env=args.env, ignore_whitespace=args.ignore_whitespace), notebook_paths)
 
-    if args.keep_artefacts is False:
+    if args.keep_artifacts is False:
         snap_after_exec = list(Path(NOTEBOOKS_PATH).iterdir())
         cleanup(snap_before_exec, snap_after_exec)
 
