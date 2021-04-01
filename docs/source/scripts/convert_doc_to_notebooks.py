@@ -20,6 +20,8 @@ TUTORIAL_FILES = [
     "advanced.rst",
     "preprocessing.rst",
     "walkthrough.rst",
+    "pytorch_rnn_example.rst",
+    "tfidf_example.rst",
 ]
 
 _re_label = re.compile(r"\.\.\s+_([^:]*):")
@@ -556,6 +558,8 @@ def convert_all_tutorials(path_to_docs=None, path_to_dest=None):
     for file in TUTORIAL_FILES:
         notebook_name = os.path.splitext(file)[0] + ".ipynb"
         doc_file = os.path.join(path_to_docs, file)
+        print(doc_file)
+        print(os.path.exists(doc_file))
         notebook_file = os.path.join(path_to_dest, notebook_name)
         convert_rst_file_to_notebook(doc_file, notebook_file, origin_folder=path_to_docs, dest_folder=path_to_dest, additional_deps=ADDITIONAL_DEPS.get(file))
 

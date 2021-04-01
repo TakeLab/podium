@@ -21,7 +21,7 @@ First, we will implement a minimalistic example without much additional preproce
 We have now loaded our dataset, finalized its Fields and obtained it as a batch of input and target data. What we need to do next is define the TF-IDF vectorization for each instance in the dataset. This is done by using our :class:`podium.vectorizers.TfIdfVectorizer`, which adapts the ``scikit-learn`` vectorizer to the Podium input data.
 
 .. code-block:: python
-  
+
   >>> from podium.vectorizers import TfIdfVectorizer
   >>> tfidf_vectorizer = TFIdfVectorizer()
   >>> tfidf_vectorizer.fit(train, field=train.field('text'))

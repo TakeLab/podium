@@ -16,6 +16,8 @@ const hasNotebook = [
     "advanced",
     "preprocessing",
     "walkthrough",
+    "tfidf_example",
+    "pytorch_rnn_example"
 ]
 
 function addIcon() {
