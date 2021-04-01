@@ -11,8 +11,8 @@ As we have covered in :ref:`hf-loading`, we have implemented wrappers around ðŸ¤
 
 .. code-block:: python
 
-  >>> import datasets
-  >>> imdb = datasets.load_dataset('imdb')
+  >>> from datasets import load_dataset
+  >>> imdb = load_dataset('imdb')
   >>> print(imdb)
   DatasetDict({
       train: Dataset({
@@ -106,18 +106,17 @@ We will instead define our own Fields for the corresponding features, add postto
       dataset_name: imdb,
       size: 25000,
       fields: [
-              Field({
-                  name: 'text',
-                  keep_raw: False,
-                  is_target: False,
-                  vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 10000})
-              }),
-              LabelField({
-                  name: 'label',
-                  keep_raw: False,
-                  is_target: True
-              })
-      
+          Field({
+              name: 'text',
+              keep_raw: False,
+              is_target: False,
+              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 10000})
+          }),
+          LabelField({
+              name: 'label',
+              keep_raw: False,
+              is_target: True
+          })
       ]
   })
   >>> print(imdb_train[0])
@@ -194,7 +193,7 @@ In this section, we will implement a very simple neural classification model -- 
   ...         h = torch.cat([h[-1], h[-2]], dim=-1) # [B x 2H]
   ...         return self.decoder(h)
 
-There. We will now define the prerequisites for pytorch model training, where we will use a GPU for speed, however running the model for one epoch will is possible albeit time-consuing even without a GPU.
+We will now define the prerequisites for pytorch model training.
 
 .. code-block:: python
 
@@ -205,7 +204,7 @@ There. We will now define the prerequisites for pytorch model training, where we
   >>> # Copy the pretrained GloVe word embeddings
   >>> embedding_matrix.weight.data.copy_(torch.from_numpy(embeddings))
   >>>
-  >>> device = torch.device("cuda:0")
+  >>> device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
   >>> model = RNNClassifier(embedding_matrix)
   >>> model = model.to(device)
   >>> criterion = nn.CrossEntropyLoss()
@@ -256,10 +255,10 @@ We have covered batching data in :ref:`minibatching` and advanced batching throu
 
   >>> from podium import Iterator
   >>> # Closure for converting data to given device
-  >>> def gpu_tensor(data):
+  >>> def device_tensor(data):
   ...     return torch.tensor(data).to(device)
   >>> # Initialize our iterator
-  >>> train_iter = Iterator(imdb_train, batch_size=32, matrix_class=gpu_tensor)
+  >>> train_iter = Iterator(imdb_train, batch_size=32, matrix_class=device_tensor)
   >>>
   >>> epochs = 5
   >>> for epoch in range(epochs):

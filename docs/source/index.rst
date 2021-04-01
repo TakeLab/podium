@@ -15,7 +15,7 @@ Contents
 ---------------------------------
 The documentation is organized in five parts:
 
-- **Quickstart**: an quick preview of the library,
+- **Quickstart**: a quick preview of the library,
 - **Walkthrough**: a description of how the basics work,
 - **In-depth overview**: advanced usage options,
 - **Examples**: full stand-alone examples of NLP models using Podium,
@@ -39,7 +39,7 @@ The documentation is organized in five parts:
 
 .. toctree::
     :maxdepth: 2
-    :caption: Full examples
+    :caption: Examples
 
     examples/tfidf_example.rst
     examples/pytorch_rnn_example.rst

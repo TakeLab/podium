@@ -73,7 +73,7 @@ We will do two things: (1) implement a pre-tokenization hook to lowercase our da
 And then implement flexible ngram extraction where the ``n`` is an interval using ``nltk``\s ``ngrams`` function:
 
 .. code-block:: python
-  
+
   >>> from ntlk import ngrams
   >>> class NGramHook:
   ...   # Transforms a sequence of unigrams into a sequence of
