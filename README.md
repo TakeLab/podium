@@ -56,13 +56,13 @@ SST({
             name: text,
             keep_raw: False,
             is_target: False,
-            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 16284})
+            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 16284})
         }),
         LabelField({
             name: label,
             keep_raw: False,
             is_target: True,
-            vocab: Vocab({specials: (), eager: False, finalized: True, size: 2})
+            vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 2})
         })
     ]
 })
@@ -94,7 +94,7 @@ HFDatasetConverter({
             name: 'text',
             keep_raw: False,
             is_target: False,
-            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 280619})
+            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 280619})
         }),
         LabelField({
             name: 'label',
@@ -105,7 +105,7 @@ HFDatasetConverter({
 })
 ```
 
-Load your own dataset from a standardized tabular format (e.g. `csv`, `tsv`, `jsonl`):
+Load your own dataset from a standardized tabular format (e.g. `csv`, `tsv`, `jsonl`, ...):
 
 ```python
 >>> from podium.datasets import TabularDataset
@@ -121,24 +121,27 @@ TabularDataset({
     fields: [
         Field({
             name: 'premise',
+            keep_raw: False,
             is_target: False, 
-            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 19})
+            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 15})
         }),
         Field({
             name: 'hypothesis',
+            keep_raw: False,
             is_target: False, 
-            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 19})
+            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 6})
         }),
         LabelField({
             name: 'label',
+            keep_raw: False,
             is_target: True, 
-            vocab: Vocab({specials: (), eager: False, finalized: True, size: 1})
+            vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 1})
         })
     ]
 })
 ```
 
-Or define your own `Dataset` subclass (tutorial coming soon).
+Also check our documentation to see how you can load a dataset from [Pandas](https://pandas.pydata.org/), the CoNLL format, or define your own `Dataset` subclass (tutorial coming soon).
 
 ### Define your preprocessing
 
@@ -151,6 +154,7 @@ We wrap dataset pre-processing in customizable `Field` classes. Each `Field` has
 >>> label = LabelField(name='label')
 >>> fields = {'text': text, 'label': label}
 >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+>>> sst_train.finalize_fields()
 >>> print(vocab)
 Vocab({specials: ('<UNK>', '<PAD>'), eager: True, finalized: True, size: 5000})
 ```
@@ -175,6 +179,7 @@ You could decide to lowercase all the characters and filter out all non-alphanum
 >>> text.add_posttokenize_hook(filter_alnum)
 >>> fields = {'text': text, 'label': label}
 >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+>>> sst_train.finalize_fields()
 >>> print(sst_train[222])
 Example({
     text: (None, ['a', 'slick', 'engrossing', 'melodrama']),
@@ -201,9 +206,11 @@ A common use-case is to incorporate existing components of pretrained language m
 ...                       numericalizer=tokenizer.convert_tokens_to_ids)
 >>> fields = {'text': subword_field, 'label': label}
 >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+>>> # No need to finalize since we're not using a vocab!
 >>> print(sst_train[222])
 Example({
-    subword: (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.']),label: (None, 'positive')
+    subword: (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.']),
+    label: (None, 'positive')
 })
 ```
 
