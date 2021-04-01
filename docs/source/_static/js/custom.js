@@ -16,8 +16,8 @@ const hasNotebook = [
     "advanced",
     "preprocessing",
     "walkthrough",
-    "tfidf_example",
-    "pytorch_rnn_example"
+    "examples/tfidf_example",
+    "examples/pytorch_rnn_example"
 ]
 
 function addIcon() {
@@ -51,12 +51,11 @@ function addGithubButton() {
 }
 
 function addColabLink() {
-    if (location.toString().indexOf("package_reference") !== -1) {
-        return; 
+    if (location.protocol === "file:") {
+        const pageName = location.pathname.split("/html/")[1].split(".")[0]
+    } else {
+        const pageName = location.pathname.split("/podium/")[1].split(".")[0]
     }
-
-    const parts = location.toString().split('/');
-    const pageName = parts[parts.length - 1].split(".")[0];
 
     if (hasNotebook.includes(pageName)) {
         const colabLink = `<a href="https://colab.research.google.com/github/TakeLab/podium/blob/master/docs/source/notebooks/${pageName}.ipynb">
