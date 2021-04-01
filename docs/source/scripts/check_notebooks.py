@@ -1,7 +1,10 @@
 import argparse
 import copy
 import multiprocess
+import os
+import shutil
 import string
+import subprocess
 import textwrap
 from functools import partial
 from pathlib import Path
@@ -13,7 +16,28 @@ from nbconvert.preprocessors import ExecutePreprocessor
 NOTEBOOKS_PATH = "../notebooks"
 INSTALL_RELEASE_VERSION_COMMAND = "! pip install podium-nlp"
 INSTALL_SOURCE_VERSION_COMMAND = "# ! pip install git+https://github.com/TakeLab/podium.git"
+INSTALL_SST_COMMAND = "python -c \"from podium.datasets import SST; SST.get_dataset_splits()\""
 TRANS_TABLE = str.maketrans(dict.fromkeys(string.whitespace))
+
+
+def inject_sst():
+    delim = "&" if os.name == "nt" else ";"
+    subprocess.call(
+        delim.join([INSTALL_SOURCE_VERSION_COMMAND[4:], INSTALL_SST_COMMAND]),
+        shell=True,
+        cwd=Path(NOTEBOOKS_PATH).absolute(),
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.STDOUT,
+    )
+
+
+def cleanup(snap_before_exec, snap_after_exec):
+    created_paths = set(snap_after_exec) - set(snap_before_exec)
+    for path in created_paths:
+        if path.is_dir():
+            shutil.rmtree(path)
+        else:
+            path.unlink()
 
 
 def print_notebook_name_with_error(func):
@@ -101,6 +125,7 @@ if __name__ == "__main__":
     parser.add_argument("--env", default="python3", help="kernel that executes the notebook")
     parser.add_argument("--num_proc", help="number of processes for parallel execution")
     parser.add_argument("--ignore_whitespace", action="store_true", help="ignore whitespace when comparing cell outputs")
+    parser.add_argument("--keep_artifacts", action="store_true", help="save files/directories created during execution")
     args = parser.parse_args()
 
     if args.num_proc is None:
@@ -116,6 +141,8 @@ if __name__ == "__main__":
         if not notebook_path.name.endswith("-checkpoint.ipynb")
     ]
 
+    snap_before_exec = list(Path(NOTEBOOKS_PATH).iterdir())
+
     num_proc = min(min(num_proc, multiprocess.cpu_count()), len(notebook_paths))
     if num_proc == 1:
         reports = []
@@ -123,8 +150,14 @@ if __name__ == "__main__":
             report = check_notebook_output(notebook_path, env=args.env, ignore_whitespace=args.ignore_whitespace)
             reports.append(report)
     else:
+        # inject the SST dataset to prevent parallel download
+        inject_sst()
         with multiprocess.Pool(num_proc) as pool:
             reports = pool.map(partial(check_notebook_output, env=args.env, ignore_whitespace=args.ignore_whitespace), notebook_paths)
+
+    if args.keep_artefacts is False:
+        snap_after_exec = list(Path(NOTEBOOKS_PATH).iterdir())
+        cleanup(snap_before_exec, snap_after_exec)
 
     if any(report for _, report in reports):
         reports_str = "\n\n".join([

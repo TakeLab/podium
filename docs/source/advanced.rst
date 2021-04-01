@@ -417,8 +417,8 @@ For this reason, usage of :class:`podium.datasets.BucketIterator` is recommended
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
   >>>
-  >>> sst_train, sst_valid, sst_test = SST.get_dataset_splits(fields=fields)
-  >>> sst_train.finalize_fields()
+  >>> train, valid, test = SST.get_dataset_splits(fields=fields)
+  >>> train.finalize_fields()
   >>>
   >>> # Define the iterators and our sort key
   >>> from podium import Iterator, BucketIterator

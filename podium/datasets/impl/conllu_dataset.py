@@ -2,6 +2,7 @@
 Module contains the CoNLL-U dataset.
 """
 import collections
+import os
 
 from podium.datasets import Dataset
 from podium.datasets.example_factory import ExampleFactory
@@ -87,7 +88,7 @@ class CoNLLUDataset(Dataset):
         example_factory = ExampleFactory(fields)
 
         examples = []
-        with open(file_path, encoding="utf-8") as in_file:
+        with open(os.path.expanduser(file_path), encoding="utf-8") as in_file:
             for tokenlist in safe_conllu_parse(in_file):
                 example_dict = collections.defaultdict(lambda: [])
                 for token in tokenlist:
