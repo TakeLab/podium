@@ -51,11 +51,7 @@ function addGithubButton() {
 }
 
 function addColabLink() {
-    if (location.protocol === "file:") {
-        const pageName = location.pathname.split("/html/")[1].split(".")[0]
-    } else {
-        const pageName = location.pathname.split("/podium/")[1].split(".")[0]
-    }
+    const pageName = location.protocol === "file:" ? location.pathname.split("/html/")[1].split(".")[0] : location.pathname.split("/podium/")[1].split(".")[0]
 
     if (hasNotebook.includes(pageName)) {
         const colabLink = `<a href="https://colab.research.google.com/github/TakeLab/podium/blob/master/docs/source/notebooks/${pageName}.ipynb">
