@@ -73,11 +73,16 @@ Converting a dataset from 🤗 datasets into Podium requires some work from your
 
 .. code-block:: python
 
-  >>> import datasets
+  >>> from datasets import load_dataset
+  >>> from contextlib import redirect_stdout
   >>> from pprint import pprint
-  >>> # Loading a huggingface dataset returns an instance of DatasetDict
-  >>> # which contains the dataset splits (usually: train, valid, test) 
-  >>> imdb = datasets.load_dataset('imdb')
+  >>>
+  >>> # Silence download logs
+  >>> with redirect_stdout(None):
+  >>>     # Loading a huggingface dataset returns an instance of DatasetDict
+  >>>     # which contains the dataset splits (usually: train, valid, test) 
+  >>>     imdb = load_dataset('imdb')
+  >>>
   >>> print(imdb.keys())
   dict_keys(['train', 'test', 'unsupervised'])
   >>> 
