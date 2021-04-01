@@ -5,7 +5,8 @@ Polishing for public release [1.4.] still in progress :)
 ## What is Podium?
 
 Podium is a framework agnostic Python natural language processing library which standardizes data loading and preprocessing.
-Our goal is to accelerate users' development of NLP models whichever aspect of the library they decide to use.
+Our goal is to accelerate users' development of NLP models whichever aspect of the library they decide to use. Check out our [documentation](http://takelab.fer.hr/podium/) for more details. 
+The main source of inspiration for Podium is an old version of [torchtext](https://github.com/pytorch/text).
 
 ### Contents
 
@@ -20,7 +21,7 @@ Our goal is to accelerate users' development of NLP models whichever aspect of t
 
 ### Installing from pip
 
-You can also install `podium` using pip
+You can install `podium` using pip [not yet but after public release on the 1st of April]
 
 ```bash
 pip install podium-nlp
@@ -31,11 +32,11 @@ pip install podium-nlp
 Commands to install `podium` from source
 
 ```bash
-git clone git@github.com:mttk/podium.git && cd podium
+git clone git@github.com:TakeLab/podium.git && cd podium
 pip install .
 ```
 
-For more detailed installation instructions, check the [installation page](http://takelab.fer.hr/podium/installation.html) in the documentation.
+For more detailed installation instructions, check the [installation page](https://takelab.fer.hr/podium/installation.html) in the documentation.
 
 ## Usage
 
@@ -46,6 +47,7 @@ Use some of our pre-defined datasets:
 ```python
 >>> from podium.datasets import SST
 >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits()
+>>> sst_train.finalize_fields() # Trigger vocab construction
 >>> print(sst_train)
 SST({
     size: 6920,
@@ -112,6 +114,7 @@ Load your own dataset from a standardized tabular format (e.g. `csv`, `tsv`, `js
 ...           'hypothesis':Field('hypothesis', numericalizer=Vocab()),
 ...           'label':     LabelField('label')}
 >>> dataset = TabularDataset('my_dataset.csv', format='csv', fields=fields)
+>>> dataset.finalize_fields() # Trigger vocab construction
 >>> print(dataset)
 TabularDataset({
     size: 1,
@@ -152,7 +155,7 @@ We wrap dataset pre-processing in customizable `Field` classes. Each `Field` has
 Vocab({specials: ('<UNK>', '<PAD>'), eager: True, finalized: True, size: 5000})
 ```
 
-Each `Field` allows the user full flexibility modify the data in multiple stages:
+Each `Field` allows the user full flexibility to modify the data in multiple stages:
 - Prior to tokenization (by using pre-tokenization `hooks`)
 - During tokenization (by using your own `tokenizer`)
 - Post tokenization (by using post-tokenization `hooks`)
@@ -179,8 +182,8 @@ Example({
 })
 ```
 
-**Pre-tokenization** hooks do not see the tokenized data and are applied (and modify) only `raw` data. 
-**Post-tokenization** hooks have access to tokenized data, and can be applied to either `raw` or `tokenized` data.
+**Pre-tokenization** hooks accept and modify only on `raw` data.
+**Post-tokenization** hooks accept and modify `raw` and `tokenized` data.
 
 ### Use preprocessing from other libraries
 
@@ -204,14 +207,13 @@ Example({
 })
 ```
 
-For a more interactive introduction check out the tutorial on Google Colab: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/takelab/podium/blob/master/docs/source/notebooks/walkthrough.ipynb)
+For a more interactive introduction, check out the quickstart on Google Colab: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/takelab/podium/blob/master/docs/source/notebooks/quickstart.ipynb)
 
 More complex examples can be found in our [examples folder](./examples).
 
-
 ## Contributing
 
-To learn more about making a contribution to Podium, please see our [Contribution page](CONTRIBUTING.md).
+We welcome contributions! To learn more about making a contribution to Podium, please see our [Contribution page](CONTRIBUTING.md).
 
 ## Versioning
 
@@ -219,8 +221,8 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Authors
 
-* Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Mario Šaško](https://github.com/mariosasko), [Filip Boltužić](https://github.com/FilipBolt) and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list of collaborators needs to mention: [Silvije Skudar](https://github.com/sskudar), [Domagoj Pluščec](https://github.com/domi385), [Marin Kačan](https://github.com/mkacan), [Dunja Vesinger](https://github.com/dunja-v), [Mate Mijolović](https://github.com/matemijolovic).
-* Project made as part of [TakeLab](http://takelab.fer.hr) at Faculty of Electrical Engineering and Computing, University of Zagreb
+* Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Mario Šaško](https://github.com/mariosasko), [Filip Boltužić](https://github.com/FilipBolt), and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list of collaborators: [Silvije Skudar](https://github.com/sskudar), [Domagoj Pluščec](https://github.com/domi385), [Marin Kačan](https://github.com/mkacan), [Dunja Vesinger](https://github.com/dunja-v), [Mate Mijolović](https://github.com/matemijolovic).
+* Project made as part of [TakeLab](https://takelab.fer.hr) at Faculty of Electrical Engineering and Computing, University of Zagreb.
 
 See also the list of [contributors](../../graphs/contributors) who participated in this project.
 

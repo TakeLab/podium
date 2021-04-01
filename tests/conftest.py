@@ -164,4 +164,6 @@ def tabular_data_fixture():
 
 @pytest.mark.usefixtures("json_file_path")
 def create_tabular_dataset_from_json(fields, json_file_path):
-    return TabularDataset(json_file_path, fields, format="json", skip_header=False)
+    dataset = TabularDataset(json_file_path, fields, format="json", skip_header=False)
+    dataset.finalize_fields()
+    return dataset

@@ -7,7 +7,7 @@
 Podium data flow
 ====================
 
-In Podium, data exists in three states: **raw** (as read from the dataset), **processed** (once the tokenizer and additional postprocessing have been applied) and **numericalized** (converted to indices).
+In Podium, data exists in three states: **raw** (prior to tokenization), **processed** (once the tokenizer and additional postprocessing have been applied) and **numericalized** (converted to indices).
 
 The data is processed immediately when the instance is loaded from disk and then stored in the Example class. Each instance of an Example (a shallow wrapper of a python dictionary) contains one instance of the dataset. Both the `raw` and `processed` data are stored as a tuple attribute under the name of the Field in an Example. You can see this in the SST example:
 
@@ -16,6 +16,7 @@ The data is processed immediately when the instance is loaded from disk and then
 
   >>> from podium.datasets import SST
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits()
+  >>> sst_train.finalize_fields()
   >>> print(sst_train[222]) 
   Example({
       text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']),
@@ -43,19 +44,20 @@ What are the ``None`` s? This is the `raw` data, which by default isn't stored i
   >>> fields = {'text': text, 'label': label}
   >>>
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+  >>> sst_train.finalize_fields()
   >>> print(sst_train[222]['text'])
   ('A slick , engrossing melodrama .', ['A', 'slick', ',', 'engrossing', 'melodrama', '.'])
 
 We can see that now we also have the pre-tokenized text available to us. In the case of SST this is not very useful because the tokenizer is simply ``str.split``, an easyily reversible function. In the case of non-reversible tokenizers (e.g. the ones in ``spacy``), you might want to keep the raw instance for future reference.
 
-.. _fields:
+.. _interact_fields:
 
 How to interact with Fields
 ===========================
 
 In the previous section, we could see that text from the SST dataset is both in uppercase as well as lowercase. Apart from that, we might not want to keep punctuation tokens, which we can also see in the processed data. These are two cases for which we have designed pretokenization and post-tokenization **hooks**.
 
-As we said earlier, data in Podium exists in three states: raw, processed and numericalized. You can intervene and add a custom transformation between each of these three states. Functions which modify raw data prior to tokenization are called **pretokenization hooks**, while functions which modify processed data prior to numericalization are called **post-tokenization hooks**. We can see the Field process visualized for the text Field in the following image:
+As we mentioned earlier, data in Podium exists in three states: first raw, then processed and finally numericalized. You can intervene and add custom transformations inbetween any of these three states. Functions which modify raw data prior to tokenization are called **pre-tokenization hooks**, while functions which modify processed data prior to numericalization are called **post-tokenization hooks**. We can see the Field process visualized for the text Field in the following image:
 
 .. image:: _static/field_internals.png
     :alt: Field visualisation
@@ -136,6 +138,7 @@ Putting it all together
   >>> fields = {'text': text, 'label': label}
   >>>
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+  >>> sst_train.finalize_fields()
   >>> print(sst_train[222]['text'])
   ('a slick , engrossing melodrama .', ['a', 'slick', 'engrossing', 'melodrama'])
 
@@ -197,7 +200,9 @@ To see the effect of the ``apply`` method, we will once again take a look at the
   >>> text = Field(name='text', numericalizer=vocab)
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
+  >>> 
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+  >>> sst_train.finalize_fields()
   >>> print(sst_train[222]['text'])
   (None, ['<BOS>', 'A', 'slick', ',', 'engrossing', 'melodrama', '.'])
 
@@ -205,6 +210,8 @@ Where we can see that the special token was indeed added to the beginning of the
 
 Finally, it is important to note that there is an implicit distinction between special tokens. The unknown (:class:`podium.vocab.UNK`) and padding (:class:`podium.vocab.PAD`) special tokens are something we refer to as **core** special tokens, whose functionality is hardcoded in the implementation of the ``Vocab`` due to them being deeply integrated with the way iterators and numericalization work.
 The only difference between normal and core specials is that core specials are added to the sequence by other Podium classes (their behavior is hardcoded) instead of by their apply method.
+
+.. _custom_numericalization:
 
 Custom numericalization functions
 ===========================================
@@ -228,6 +235,7 @@ To do that, you should pass your own callable function as the ``numericalizer`` 
   >>> fields = {'text': subword_field, 'label': label}
   >>>
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+  >>> sst_train.finalize_fields()
   >>> print(sst_train[222]['text'])
   (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.'])
 
@@ -253,8 +261,8 @@ We have so far covered the case where you have a single input column, tokenize a
 
 You can pass a tuple of Fields under the same input data column key, and all of the Fields will use data from input column with that name. If your output Fields share the (potentially expensive) tokenizer, we have implemented a class that optimized that part of preprocessing for you: the :class:`podium.MultioutputField`.
 
-Multioutput Field
----------------------
+The Multioutput Field
+----------------------
 
 Multioutput Fields are `fake` Fields which simply handle the shared pretokenization and tokenization part of the Field processing pipeline and then forward the data to the respective output Fields.
 
@@ -353,6 +361,8 @@ As we can see, the sizes of our splits are the same, but in this case the label 
   {'negative': 0.47832369942196534, 'positive': 0.5216763005780347}
   {'negative': 0.47832369942196534, 'positive': 0.5216763005780347}
 
+.. _dataset_concat:
+
 Dataset concatenation
 ---------------------
 
@@ -387,6 +397,7 @@ For a simple example, we will take a look at the built-in SST and IMDB datasets:
 There are a few important takeaways here: (1) the concatenated dataset will **only** contain the intersection of Fields from the sub-datasets. The intersection is determined by the **name** of each Field. If one dataset has Fields named ``text`` and ``label``, while the other has Fields named ``text``, ``label`` and ``meta``, the concatenated dataset will only contain the ``text`` and ``label`` Fields. (2) the Vocabularies for the Fields with the same name **have to be equal**. This is, of course, to avoid the issue where the same word maps to different indices between vocabularies. This is achieveable either by using a shared vocabulary in same Fields of the datasets from the beginning or by defining a ``field_override`` map, which directs data from the sub-datasets through the new Field.
 In the latter case, you can use each sub-dataset on their own with independent vocabularies, while the concatenation will have its own, merged vocabulary.
 
+.. _bucketing:
 
 Bucketing instances when iterating
 ==================================
@@ -429,26 +440,26 @@ The ``bucket_sort_key`` function defines how the instances in the dataset should
   >>>     total_padding = 0
   >>>     total_size = 0
   >>>
-  >>>     for batch_x, batch_y in iterator:
-  >>>         total_padding += count_padding(batch_x.text, padding_index)
-  >>>         total_size += batch_x.text.size
+  >>>     for batch in iterator:
+  >>>         total_padding += count_padding(batch.text, padding_index)
+  >>>         total_size += batch.text.size
   >>>     print(f"For {iterator.__class__.__name__}, padding = {total_padding}"
   >>>           f" out of {total_size} = {total_padding/total_size:.2%}")
   For Iterator, padding = 148141 out of 281696 = 52.588961149608096%
   For BucketIterator, padding = 2125 out of 135680 = 1.5661851415094339%
 
-As we can see, the difference between using a regular Iterator and a BucketIterator is massive. Not only do we reduce the amount of padding, we have reduced the total amount of tokens processed by about 50%. The SST dataset, however, is a relatively small dataset so this experiment might be a bit biased. Let's take a look at the same statistics for the :class:`podium.datasets.impl.IMDB` dataset. After changing the highligted data loading line in the first snippet to:
+As we can see, the difference between using a regular Iterator and a BucketIterator is massive. Not only do we reduce the amount of padding, we have reduced the total amount of tokens processed by about 50%. The SST dataset, however, is a relatively small dataset so this experiment might be a bit biased. Let's take a look at the same statistics for the :class:`podium.datasets.impl.IMDB` dataset. After changing the data loading line in the first snippet to:
 
 .. code-block:: rest
 
-  train, test = IMDB.get_dataset_splits(fields=fields)
+  >>> train, test = IMDB.get_dataset_splits(fields=fields)
 
 And re-running the code, we obtain the following, still significant improvement:
 
 .. code-block:: rest
 
-  For Iterator, padding = 13569936 out of 19414616 = 69.89546432440385%
-  For BucketIterator, padding = 259800 out of 6104480 = 4.255890755641758%
+  For Iterator, padding = 13569936 out of 19414616 = 69.89%
+  For BucketIterator, padding = 259800 out of 6104480 = 4.25%
 
 Generally, using bucketing when iterating over your NLP dataset is preferred and will save you quite a bit of processing time.
 
@@ -472,6 +483,7 @@ As an example, we will again turn to the SST dataset and some of our previously 
   >>> 
   >>> fields = {'text': text, 'label': label}
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+  >>> sst_train.finalize_fields()
   >>>
   >>> print(sst_train)
   SST({
@@ -481,16 +493,16 @@ As an example, we will again turn to the SST dataset and some of our previously 
               name: 'text',
               keep_raw: False,
               is_target: False,
-              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, is_finalized: True, size: 5000})
+              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 5000})
           }),
           LabelField({
               name: 'label',
               keep_raw: False,
               is_target: True,
-              vocab: Vocab({specials: (), eager: True, is_finalized: True, size: 3})
+              vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 2})
           })
       ]
-    })
+  })
   >>> print(sst_train[222])
   Example({
       text: (None, ['A', 'slick', ',', 'engrossing', 'melodrama', '.']),
@@ -533,11 +545,11 @@ In case you don't want this behavior and would rather your unpickled iterator st
   >>> # Disable shuffling for consistency
   >>> train_iter = Iterator(sst_train, batch_size=1, shuffle=False)
   >>>
-  >>> batch_input, batch_target = next(iter(train_iter))
-  >>> print(batch_input.text)
-  [[  14 1057   10 2580    8   28    4 3334 3335    9  154   68    0   67
-         5   11   81    9  274    8   83    6 4683   74 2901   38 1410 2581
-         3    0 2102    0   49  870    0    2]]
+  >>> batch = next(iter(train_iter))
+  >>> print(batch.text)
+  [[  14 1144    9 2955    8   27    4 2956 3752   10  149   62    0   64
+       5   11   93   10  264    8   85    7    0   72 3753   38 2048 2957
+       3    0 3754    0   49  778    0    2]]
   >>> iterator_store_path = cache_dir.joinpath('sst_train_iter.pkl')
   >>> with open(iterator_store_path, 'wb') as outfile:
   ...     pickle.dump((train_iter), outfile)
@@ -549,13 +561,13 @@ Now that we have loaded our Iterator, we can validate whether the loaded version
 
 .. doctest:: saveload
 
-  >>> restored_batch_input, restored_batch_target = next(iter(train_iter_restore))
-  >>> batch_input, batch_target = next(iter(train_iter))
+  >>> restored_batch = next(iter(train_iter_restore))
+  >>> batch = next(iter(train_iter))
   >>>
   >>> import numpy as np
-  >>> print(np.array_equal(batch_input.text, restored_batch_input.text))
+  >>> print(np.array_equal(batch.text, restored_batch.text))
   True
-  >>> print(np.array_equal(batch_target.label, restored_batch_target.label))
+  >>> print(np.array_equal(batch.label, restored_batch.label))
   True
 
 Of course, in case you want to start over, just call ``Iterator.reset()`` and the iteration will start from the beginning.

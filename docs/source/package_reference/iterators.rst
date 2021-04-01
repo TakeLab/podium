@@ -6,6 +6,7 @@ Iterator
 .. autoclass:: podium.datasets.Iterator
    :members:
    :no-undoc-members:
+   :member-order: groupwise
 
 BucketIterator
 -----------------

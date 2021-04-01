@@ -3,25 +3,25 @@
 
 // These two things need to be updated at each release for the version selector.
 // Last stable version
-const stableVersion = "v1.1.0"
+const stableVersion = "master"
 // Dictionary doc folder to label
 const versionMapping = {
     "master": "master",
-    "v1.1.0": "v1.1.0",
-    "v1.0.1": "v1.0.1",
-    "v1.0.0": "v1.0.0",
 }
 
 const navigationBckgColor = "#2980b9"
 
 const hasNotebook = [
+    "quickstart",
     "advanced",
     "preprocessing",
     "walkthrough",
+    "tfidf_example",
+    "pytorch_rnn_example"
 ]
 
 function addIcon() {
-    const podiumLogo = "http://takelab.fer.hr/podium/_static/podium_text_logo.png";
+    const podiumLogo = "https://takelab.fer.hr/podium/_static/podium_text_logo.png";
     const image = document.createElement("img");
     image.setAttribute("src", podiumLogo);
     image.style.width = '124px';
@@ -42,7 +42,7 @@ function addGithubButton() {
         <div class="github-repo">
             <a 
                 class="github-button"
-                href="https://github.com/mttk/podium" data-size="large" data-show-count="true" aria-label="Star mttk/podium on GitHub">
+                href="https://github.com/TakeLab/podium" data-size="large" data-show-count="true" aria-label="Star TakeLab/podium on GitHub">
                 Star
             </a>
         </div>
@@ -59,7 +59,7 @@ function addColabLink() {
     const pageName = parts[parts.length - 1].split(".")[0];
 
     if (hasNotebook.includes(pageName)) {
-        const colabLink = `<a href="https://colab.research.google.com/github/mttk/podium/blob/master/docs/source/notebooks/${pageName}.ipynb">
+        const colabLink = `<a href="https://colab.research.google.com/github/TakeLab/podium/blob/master/docs/source/notebooks/${pageName}.ipynb">
             <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
         </a>`;
         const leftMenu = document.querySelector(".wy-breadcrumbs-aside");
