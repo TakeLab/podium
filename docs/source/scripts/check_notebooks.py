@@ -1,6 +1,7 @@
 import argparse
 import copy
 import os
+import re
 import shutil
 import string
 import subprocess
@@ -19,11 +20,21 @@ INSTALL_SOURCE_VERSION_COMMAND = "# ! pip install git+https://github.com/TakeLab
 INSTALL_SST_COMMAND = "python -c \"from podium.datasets import SST; SST.get_dataset_splits()\""
 TRANS_TABLE = str.maketrans(dict.fromkeys(string.whitespace))
 
+_re_pip_install = re.compile(r"!\s*(pip\s+install\s+[^\\\"]*)")
+_re_python = re.compile(r"!\s*(python[^\\\"]*)")
 
-def inject_shared_download():
+
+def init(notebook_paths):
+    all_commands = []
+    for notebook_path in notebook_paths:
+        with open(notebook_path, encoding="utf-8") as f:
+            notebook_raw = f.read()
+            commands = _re_pip_install.findall(notebook_raw) + _re_python.findall(notebook_raw)
+        all_commands.extend(commands)
+
     delim = "&" if os.name == "nt" else ";"
     subprocess.call(
-        delim.join([INSTALL_SOURCE_VERSION_COMMAND[4:], INSTALL_SST_COMMAND]),
+        delim.join([*all_commands, INSTALL_SOURCE_VERSION_COMMAND[4:], INSTALL_SST_COMMAND]),
         shell=True,
         cwd=Path(NOTEBOOKS_PATH).absolute(),
         stdout=subprocess.DEVNULL,
@@ -138,7 +149,7 @@ if __name__ == "__main__":
     notebook_paths = [
         notebook_path
         for notebook_path in Path(NOTEBOOKS_PATH).rglob("*.ipynb")
-        if not notebook_path.name.endswith("-checkpoint.ipynb")
+        if not (notebook_path.name.endswith("-checkpoint.ipynb") or notebook_path.parts[-2] == "examples")
     ]
 
     snap_before_exec = list(Path(NOTEBOOKS_PATH).iterdir())
@@ -150,8 +161,8 @@ if __name__ == "__main__":
             report = check_notebook_output(notebook_path, env=args.env, ignore_whitespace=args.ignore_whitespace)
             reports.append(report)
     else:
-        # predownload datasets/vectorizers to prevent parallel download
-        inject_shared_download()
+        # install packages and predownload datasets/vectorizers to prevent parallel download
+        init(notebook_paths)
         with multiprocess.Pool(num_proc) as pool:
             reports = pool.map(partial(check_notebook_output, env=args.env, ignore_whitespace=args.ignore_whitespace), notebook_paths)
 

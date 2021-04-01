@@ -74,24 +74,22 @@ Converting a dataset from 🤗 datasets into Podium requires some work from your
 .. code-block:: python
 
   >>> import os
-  >>> from contextlib import redirect_stdout
   >>> from pprint import pprint
   >>>
   >>> from datasets import load_dataset
   >>>
-  >>> # Silence download logs
-  >>> with redirect_stdout(open(os.devnull, "w")):
-  >>>     # Loading a huggingface dataset returns an instance of DatasetDict
-  >>>     # which contains the dataset splits (usually: train, valid, test) 
-  >>>     imdb = load_dataset('imdb')
+  >>> # Loading a huggingface dataset returns an instance of DatasetDict
+  >>> # which contains the dataset splits (usually: train, valid, test) 
+  >>> imdb = load_dataset('imdb')
   >>>
   >>> print(imdb.keys())
   dict_keys(['train', 'test', 'unsupervised'])
   >>> 
   >>> # Each dataset has a set of features which need to be mapped
   >>> # to Podium Fields.
-  >>> print(imdb['train'].features)
-  {'text': Value(dtype='string', id=None), 'label': ClassLabel(num_classes=2, names=['neg', 'pos'], names_file=None, id=None)}
+  >>> pprint(imdb['train'].features)
+  {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], names_file=None, id=None),
+   'text': Value(dtype='string', id=None)}
 
 As is the case with loading your custom dataset, ``features`` of 🤗 datasets need to be mapped to Podium Fields in order to direct the data flow for preprocessing.
 
