@@ -53,8 +53,6 @@ def check_notebook_output(notebook_path, env="python3", ignore_whitespace=False)
     replace_install_release_with_source(new_nb)
 
     ep = ExecutePreprocessor(kernel_name=env)
-
-    print(str(Path(notebook_path).parent))
     ep.preprocess(new_nb, {"metadata": {"path": str(Path(notebook_path).parent)}})
 
     assert len(original_nb["cells"]) == len(new_nb["cells"])
@@ -117,10 +115,7 @@ if __name__ == "__main__":
         for notebook_path in Path(NOTEBOOKS_PATH).rglob("*.ipynb")
         if not notebook_path.name.endswith("-checkpoint.ipynb")
     ]
-    # print(notebook_paths)
-    # exit()
-    # notebook_paths = [notebook_paths[2]]
-    # print(notebook_paths)
+
     num_proc = min(min(num_proc, multiprocess.cpu_count()), len(notebook_paths))
     if num_proc == 1:
         reports = []
