@@ -62,9 +62,3 @@ Cornell Movie Dialogs
    :members:
    :no-undoc-members:
 
-Iris
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. autoclass:: podium.datasets.impl.Iris
-   :members:
-   :no-undoc-members:
-

@@ -11,7 +11,11 @@
 ## What is Podium?
 
 Podium is a framework agnostic Python natural language processing library which standardizes data loading and preprocessing.
-Our goal is to accelerate users' development of NLP models whichever aspect of the library they decide to use. Check out our [documentation](http://takelab.fer.hr/podium/) for more details. 
+Our goal is to accelerate users' development of NLP models whichever aspect of the library they decide to use. 
+
+We desire Podium to be **lightweight**, in terms of code and dependencies, **flexible**, to cover most common use-cases and easily adapt to more specific ones and **clearly defined**, so new users can quickly understand the sequence of operations and how to inject their custom functionality.
+
+Check out our [documentation](http://takelab.fer.hr/podium/) for more details. 
 The main source of inspiration for Podium is an old version of [torchtext](https://github.com/pytorch/text).
 
 ### Contents
