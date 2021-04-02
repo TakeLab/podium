@@ -1,6 +1,7 @@
-<img style="float: left;" width="80" src="https://takelab.fer.hr/podium/_static/podium_logo.svg">
+<h1> <img style="float: left;" width="80" src="https://takelab.fer.hr/podium/_static/podium_logo.svg">
 
-# TakeLab Podium
+# TakeLab Podium 
+</h1>
 
 ![Continuous integration](https://github.com/TakeLab/podium/workflows/Continuous%20integration/badge.svg)
 ![License](https://img.shields.io/github/license/TakeLab/podium.svg?color=blue&cachedrop)
