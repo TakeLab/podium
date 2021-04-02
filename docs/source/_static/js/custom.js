@@ -3,10 +3,11 @@
 
 // These two things need to be updated at each release for the version selector.
 // Last stable version
-const stableVersion = "master"
+const stableVersion = "0.1.0"
 // Dictionary doc folder to label
 const versionMapping = {
     "master": "master",
+    "0.1.0": "0.1.0"
 }
 
 const navigationBckgColor = "#2980b9"
