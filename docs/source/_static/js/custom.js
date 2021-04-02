@@ -21,7 +21,7 @@ const hasNotebook = [
 ]
 
 function addIcon() {
-    const podiumLogo = "https://takelab.fer.hr/podium/_static/podium_text_logo.png";
+    const podiumLogo = "https://takelab.fer.hr/podium/_static/podium_logo.svg";
     const image = document.createElement("img");
     image.setAttribute("src", podiumLogo);
     image.style.width = '124px';

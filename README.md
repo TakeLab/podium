@@ -1,6 +1,12 @@
-# TakeLab Podium
+<h1>
+<img align="right" width="70" src="https://takelab.fer.hr/podium/_static/podium_logo.svg">
+ TakeLab Podium 
+</h1>
 
-Polishing for public release [2.4.] still in progress :)
+![Continuous integration](https://github.com/TakeLab/podium/workflows/Continuous%20integration/badge.svg)
+![License](https://img.shields.io/github/license/TakeLab/podium.svg?color=blue&cachedrop)
+![Website](https://img.shields.io/website?down_color=red&down_message=offline&up_message=online&url=http%3A%2F%2Ftakelab.fer.hr%2Fpodium%2Findex.html)
+![Release](https://img.shields.io/github/release/TakeLab/podium.svg)
 
 ## What is Podium?
 
@@ -21,7 +27,7 @@ The main source of inspiration for Podium is an old version of [torchtext](https
 
 ### Installing from pip
 
-You can install `podium` using pip [not yet but after public release on the 2nd of April]
+You can install `podium` using pip
 
 ```bash
 pip install podium-nlp
@@ -229,6 +235,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 ## Authors
 
 * Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Mario Šaško](https://github.com/mariosasko), [Filip Boltužić](https://github.com/FilipBolt), and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list of collaborators: [Silvije Skudar](https://github.com/sskudar), [Domagoj Pluščec](https://github.com/domi385), [Marin Kačan](https://github.com/mkacan), [Dunja Vesinger](https://github.com/dunja-v), [Mate Mijolović](https://github.com/matemijolovic).
+* Thanks to the amazing [Mihaela Bošnjak](https://github.com/Bmikaella) for the logo!
 * Project made as part of [TakeLab](https://takelab.fer.hr) at Faculty of Electrical Engineering and Computing, University of Zagreb.
 
 See also the list of [contributors](../../graphs/contributors) who participated in this project.
