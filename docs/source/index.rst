@@ -13,11 +13,12 @@ The goal of Podium is to be **lightweight**, in terms of code and dependencies, 
 
 Contents
 ---------------------------------
-The documentation is organized in four parts:
+The documentation is organized in five parts:
 
-- **Quickstart**: an quick preview of the library,
+- **Quickstart**: a quick preview of the library,
 - **Walkthrough**: a description of how the basics work,
-- **In-depth overview**: examples of advanced usage of Podium,
+- **In-depth overview**: advanced usage options,
+- **Examples**: full stand-alone examples of NLP models using Podium,
 - **Core package Reference**: the documentation of methods and classes in Podium.
 
 
@@ -35,6 +36,13 @@ The documentation is organized in four parts:
 
     advanced
     coming_soon
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Examples
+
+    examples/tfidf_example.rst
+    examples/pytorch_rnn_example.rst
 
 .. toctree::
     :maxdepth: 2

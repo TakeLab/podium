@@ -189,6 +189,7 @@ Since our example dataset is small, we can set ``add_padding=True``, which cause
   When obtaining larger datasets as a single batch, we recommend leaving ``add_padding=False`` (default) or your entire dataset will be padded to the length of the longest instance, causing memory issues.
   When set to ``False``, the output of each Field will be a list instead of a matrix.
 
+.. _minibatching:
 
 Minibatching data
 -----------------------

@@ -954,7 +954,7 @@ class MultioutputField:
 
     def __repr__(self):
         fields_str = ",\n".join(
-            textwrap.indent(repr(f), " " * 8) for f in self._output_fields
+            textwrap.indent(repr(f), " " * 4) for f in self._output_fields
         )
         fields_str = f"[\n{fields_str}\n    \n]"
         attrs = {"fields": fields_str}

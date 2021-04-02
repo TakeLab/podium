@@ -1,10 +1,10 @@
 import os
 
 from podium.storage import LargeResource
-from podium.vectorizers.vectorizer import BasicVectorStorage, random_normal_default_vector
+from podium.vectorizers.vectorizer import WordVectors, random_normal_default_vector
 
 
-class GloVe(BasicVectorStorage):
+class GloVe(WordVectors):
     """
     Class represents concrete vector storage for GloVe vectors described in
     https://nlp.stanford.edu/projects/glove/ . Class contains a Large resource

@@ -310,13 +310,12 @@ class Iterator(IteratorBase):
             self._shuffler_state = self.get_internal_random_state()
             self._shuffler.shuffle(indices)
 
-        data = self._dataset[indices]
-
         # If iteration was stopped, continue where we left off
         start = self.iterations * self.batch_size
 
-        for i in range(start, len(data), self.batch_size):
-            batch_instances = data[i : i + self.batch_size]
+        for i in range(start, len(self._dataset), self.batch_size):
+            batch_indices = indices[i : i + self.batch_size]
+            batch_instances = self._dataset[batch_indices]
 
             if self._sort_key is not None:
                 batch_instances = batch_instances.sorted(key=self._sort_key)
@@ -494,9 +493,12 @@ class SingleBatchIterator(Iterator):
             iterator. If set to ``False``, numericalized Fields will be
             returned as python lists of ``matrix_class`` instances.
         """
+
+        batch_size = len(dataset) if dataset else None
+
         super().__init__(
             dataset=dataset,
-            batch_size=len(dataset),
+            batch_size=batch_size,
             shuffle=shuffle,
             disable_batch_matrix=not add_padding,
         )

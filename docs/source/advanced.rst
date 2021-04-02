@@ -448,18 +448,18 @@ The ``bucket_sort_key`` function defines how the instances in the dataset should
   For Iterator, padding = 148141 out of 281696 = 52.588961149608096%
   For BucketIterator, padding = 2125 out of 135680 = 1.5661851415094339%
 
-As we can see, the difference between using a regular Iterator and a BucketIterator is massive. Not only do we reduce the amount of padding, we have reduced the total amount of tokens processed by about 50%. The SST dataset, however, is a relatively small dataset so this experiment might be a bit biased. Let's take a look at the same statistics for the :class:`podium.datasets.impl.IMDB` dataset. After changing the highligted data loading line in the first snippet to:
+As we can see, the difference between using a regular Iterator and a BucketIterator is massive. Not only do we reduce the amount of padding, we have reduced the total amount of tokens processed by about 50%. The SST dataset, however, is a relatively small dataset so this experiment might be a bit biased. Let's take a look at the same statistics for the :class:`podium.datasets.impl.IMDB` dataset. After changing the data loading line in the first snippet to:
 
 .. code-block:: rest
 
-  train, test = IMDB.get_dataset_splits(fields=fields)
+  >>> train, test = IMDB.get_dataset_splits(fields=fields)
 
 And re-running the code, we obtain the following, still significant improvement:
 
 .. code-block:: rest
 
-  For Iterator, padding = 13569936 out of 19414616 = 69.89546432440385%
-  For BucketIterator, padding = 259800 out of 6104480 = 4.255890755641758%
+  For Iterator, padding = 13569936 out of 19414616 = 69.89%
+  For BucketIterator, padding = 259800 out of 6104480 = 4.25%
 
 Generally, using bucketing when iterating over your NLP dataset is preferred and will save you quite a bit of processing time.
 

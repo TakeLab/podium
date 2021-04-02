@@ -227,7 +227,7 @@ class VectorStorage(ABC):
         return repr_type_and_attrs(self, attrs)
 
 
-class BasicVectorStorage(VectorStorage):
+class WordVectors(VectorStorage):
     """
     Basic implementation of VectorStorage that handles loading vectors from
     system storage.
