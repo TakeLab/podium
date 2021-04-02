@@ -1,4 +1,5 @@
-<h1> <img style="float: left;" width="80" src="https://takelab.fer.hr/podium/_static/podium_logo.svg">
+<h1>
+<img align="left" width="80" src="https://takelab.fer.hr/podium/_static/podium_logo.svg">
 
 # TakeLab Podium 
 </h1>
