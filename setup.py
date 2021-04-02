@@ -16,10 +16,9 @@ def _get_version():
         version = re.search(r'__version__ = \"(.*)\"', f.read()).group(1)
     return version
 
-
+DISTNAME = 'podium-nlp'
 VERSION = _get_version()
 DOCLINES = __doc__.split('\n')
-
 
 INSTALL_REQUIRES = [
     # for numericalization in batching
@@ -114,7 +113,7 @@ EXTRAS_REQUIRE["dev"] = EXTRAS_REQUIRE["tests"] + QUALITY_REQUIRE
 
 
 setup(
-    name="podium",
+    name=DISTNAME,
     version=VERSION,
     description=DOCLINES[0],
     long_description='\n'.join(DOCLINES),
