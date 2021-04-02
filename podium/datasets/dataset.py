@@ -278,7 +278,7 @@ class DatasetBase(ABC):
         return self[shuffled_indices]
 
     def __repr__(self):
-        fields_str = ",\n".join(textwrap.indent(repr(f), " " * 8) for f in self.fields)
+        fields_str = ",\n".join(textwrap.indent(repr(f), " " * 4) for f in self.fields)
         fields_str = f"[\n{fields_str}\n    \n]"
         attrs = {"size": len(self), "fields": fields_str}
         return repr_type_and_attrs(self, attrs, with_newlines=True, repr_values=False)

@@ -494,7 +494,7 @@ class SingleBatchIterator(Iterator):
             returned as python lists of ``matrix_class`` instances.
         """
 
-        batch_size = len(dataset) if dataset else 0
+        batch_size = len(dataset) if dataset else None
 
         super().__init__(
             dataset=dataset,

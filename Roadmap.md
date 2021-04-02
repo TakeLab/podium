@@ -39,6 +39,7 @@ Order does not reflect importance.
   - Lowercase, truncate, extract POS, ...
 - Populate pretrained vectors
   - Word2vec
+  - Interface with e.g. gensim
 - Improve Dataset coverage
   - Data wrappers / abstract loaders for other source libraries and input formats
 - BucketIterator modifications
