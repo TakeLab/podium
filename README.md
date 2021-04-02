@@ -5,17 +5,16 @@
 ![Website](https://img.shields.io/website?down_color=red&down_message=offline&up_message=online&url=http%3A%2F%2Ftakelab.fer.hr%2Fpodium%2Findex.html)
 ![Release](https://img.shields.io/github/release/TakeLab/podium.svg)
 
-Polishing for public release [1.4.] still in progress :)
-
 ## What is Podium?
 
 Podium is a framework agnostic Python natural language processing library which standardizes data loading and preprocessing.
-Our goal is to accelerate users' development of NLP models whichever aspect of the library they decide to use.
+Our goal is to accelerate users' development of NLP models whichever aspect of the library they decide to use. Check out our [documentation](http://takelab.fer.hr/podium/) for more details. 
+The main source of inspiration for Podium is an old version of [torchtext](https://github.com/pytorch/text).
 
 ### Contents
 
 - [Installation](#installation)
-- [Usage examples](#usage-examples)
+- [Usage examples](#usage)
 - [Contributing](#contributing)
 - [Versioning](#versioning)
 - [Authors](#authors)
@@ -25,7 +24,7 @@ Our goal is to accelerate users' development of NLP models whichever aspect of t
 
 ### Installing from pip
 
-You can also install `podium` using pip
+You can install `podium` using pip
 
 ```bash
 pip install podium-nlp
@@ -36,11 +35,11 @@ pip install podium-nlp
 Commands to install `podium` from source
 
 ```bash
-git clone git@github.com:mttk/podium.git && cd podium
+git clone git@github.com:TakeLab/podium.git && cd podium
 pip install .
 ```
 
-For more detailed installation instructions, check the [installation page](http://takelab.fer.hr/podium/installation.html) in the documentation.
+For more detailed installation instructions, check the [installation page](https://takelab.fer.hr/podium/installation.html) in the documentation.
 
 ## Usage
 
@@ -51,6 +50,7 @@ Use some of our pre-defined datasets:
 ```python
 >>> from podium.datasets import SST
 >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits()
+>>> sst_train.finalize_fields() # Trigger vocab construction
 >>> print(sst_train)
 SST({
     size: 6920,
@@ -59,13 +59,13 @@ SST({
             name: text,
             keep_raw: False,
             is_target: False,
-            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 16284})
+            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 16284})
         }),
         LabelField({
             name: label,
             keep_raw: False,
             is_target: True,
-            vocab: Vocab({specials: (), eager: False, finalized: True, size: 2})
+            vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 2})
         })
     ]
 })
@@ -97,7 +97,7 @@ HFDatasetConverter({
             name: 'text',
             keep_raw: False,
             is_target: False,
-            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 280619})
+            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 280619})
         }),
         LabelField({
             name: 'label',
@@ -108,7 +108,7 @@ HFDatasetConverter({
 })
 ```
 
-Load your own dataset from a standardized tabular format (e.g. `csv`, `tsv`, `jsonl`):
+Load your own dataset from a standardized tabular format (e.g. `csv`, `tsv`, `jsonl`, ...):
 
 ```python
 >>> from podium.datasets import TabularDataset
@@ -117,30 +117,34 @@ Load your own dataset from a standardized tabular format (e.g. `csv`, `tsv`, `js
 ...           'hypothesis':Field('hypothesis', numericalizer=Vocab()),
 ...           'label':     LabelField('label')}
 >>> dataset = TabularDataset('my_dataset.csv', format='csv', fields=fields)
+>>> dataset.finalize_fields() # Trigger vocab construction
 >>> print(dataset)
 TabularDataset({
     size: 1,
     fields: [
         Field({
             name: 'premise',
+            keep_raw: False,
             is_target: False, 
-            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 19})
+            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 15})
         }),
         Field({
             name: 'hypothesis',
+            keep_raw: False,
             is_target: False, 
-            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 19})
+            vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 6})
         }),
         LabelField({
             name: 'label',
+            keep_raw: False,
             is_target: True, 
-            vocab: Vocab({specials: (), eager: False, finalized: True, size: 1})
+            vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 1})
         })
     ]
 })
 ```
 
-Or define your own `Dataset` subclass (tutorial coming soon).
+Also check our documentation to see how you can load a dataset from [Pandas](https://pandas.pydata.org/), the CoNLL format, or define your own `Dataset` subclass (tutorial coming soon).
 
 ### Define your preprocessing
 
@@ -153,11 +157,12 @@ We wrap dataset pre-processing in customizable `Field` classes. Each `Field` has
 >>> label = LabelField(name='label')
 >>> fields = {'text': text, 'label': label}
 >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+>>> sst_train.finalize_fields()
 >>> print(vocab)
 Vocab({specials: ('<UNK>', '<PAD>'), eager: True, finalized: True, size: 5000})
 ```
 
-Each `Field` allows the user full flexibility modify the data in multiple stages:
+Each `Field` allows the user full flexibility to modify the data in multiple stages:
 - Prior to tokenization (by using pre-tokenization `hooks`)
 - During tokenization (by using your own `tokenizer`)
 - Post tokenization (by using post-tokenization `hooks`)
@@ -177,6 +182,7 @@ You could decide to lowercase all the characters and filter out all non-alphanum
 >>> text.add_posttokenize_hook(filter_alnum)
 >>> fields = {'text': text, 'label': label}
 >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+>>> sst_train.finalize_fields()
 >>> print(sst_train[222])
 Example({
     text: (None, ['a', 'slick', 'engrossing', 'melodrama']),
@@ -184,8 +190,8 @@ Example({
 })
 ```
 
-**Pre-tokenization** hooks do not see the tokenized data and are applied (and modify) only `raw` data. 
-**Post-tokenization** hooks have access to tokenized data, and can be applied to either `raw` or `tokenized` data.
+**Pre-tokenization** hooks accept and modify only on `raw` data.
+**Post-tokenization** hooks accept and modify `raw` and `tokenized` data.
 
 ### Use preprocessing from other libraries
 
@@ -203,20 +209,21 @@ A common use-case is to incorporate existing components of pretrained language m
 ...                       numericalizer=tokenizer.convert_tokens_to_ids)
 >>> fields = {'text': subword_field, 'label': label}
 >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+>>> # No need to finalize since we're not using a vocab!
 >>> print(sst_train[222])
 Example({
-    subword: (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.']),label: (None, 'positive')
+    subword: (None, ['a', 'slick', ',', 'eng', '##ross', '##ing', 'mel', '##od', '##rama', '.']),
+    label: (None, 'positive')
 })
 ```
 
-For a more interactive introduction check out the tutorial on Google Colab: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/takelab/podium/blob/master/docs/source/notebooks/walkthrough.ipynb)
+For a more interactive introduction, check out the quickstart on Google Colab: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/takelab/podium/blob/master/docs/source/notebooks/quickstart.ipynb)
 
-More complex examples can be found in our [examples folder](./examples).
-
+Full usage examples can be found in our [docs](https://takelab.fer.hr/podium/examples).
 
 ## Contributing
 
-To learn more about making a contribution to Podium, please see our [Contribution page](CONTRIBUTING.md).
+We welcome contributions! To learn more about making a contribution to Podium, please see our [Contribution page](CONTRIBUTING.md) and our [Roadmap](Roadmap.md).
 
 ## Versioning
 
@@ -224,8 +231,8 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Authors
 
-* Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Mario Šaško](https://github.com/mariosasko), [Filip Boltužić](https://github.com/FilipBolt) and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list of collaborators needs to mention: [Silvije Skudar](https://github.com/sskudar), [Domagoj Pluščec](https://github.com/domi385), [Marin Kačan](https://github.com/mkacan), [Dunja Vesinger](https://github.com/dunja-v), [Mate Mijolović](https://github.com/matemijolovic).
-* Project made as part of [TakeLab](http://takelab.fer.hr) at Faculty of Electrical Engineering and Computing, University of Zagreb
+* Podium is currently maintained by [Ivan Smoković](https://github.com/ivansmokovic), [Mario Šaško](https://github.com/mariosasko), [Filip Boltužić](https://github.com/FilipBolt), and [Martin Tutek](https://github.com/mttk). A non-exhaustive but growing list of collaborators: [Silvije Skudar](https://github.com/sskudar), [Domagoj Pluščec](https://github.com/domi385), [Marin Kačan](https://github.com/mkacan), [Dunja Vesinger](https://github.com/dunja-v), [Mate Mijolović](https://github.com/matemijolovic).
+* Project made as part of [TakeLab](https://takelab.fer.hr) at Faculty of Electrical Engineering and Computing, University of Zagreb.
 
 See also the list of [contributors](../../graphs/contributors) who participated in this project.
 

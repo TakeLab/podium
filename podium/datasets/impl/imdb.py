@@ -187,7 +187,6 @@ class IMDB(Dataset):
             dir_path=os.path.join(data_location, IMDB.TEST_DIR), fields=fields
         )
 
-        train_dataset.finalize_fields()
         return (train_dataset, test_dataset)
 
     @staticmethod
@@ -204,7 +203,6 @@ class IMDB(Dataset):
             name=IMDB.TEXT_FIELD_NAME,
             numericalizer=Vocab(),
             tokenizer="spacy",
-            keep_raw=False,
         )
         label = LabelField(name=IMDB.LABEL_FIELD_NAME, numericalizer=Vocab(specials=()))
         return {IMDB.TEXT_FIELD_NAME: text, IMDB.LABEL_FIELD_NAME: label}

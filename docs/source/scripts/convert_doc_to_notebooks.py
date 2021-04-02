@@ -16,9 +16,12 @@ DOC_BASE_URL = "http://takelab.fer.hr/podium/"
 # These are the doc files converted, add any new tutorial to this list if you want it handled by the conversion
 # script.
 TUTORIAL_FILES = [
+    "quickstart.rst",
     "advanced.rst",
     "preprocessing.rst",
     "walkthrough.rst",
+    "examples/pytorch_rnn_example.rst",
+    "examples/tfidf_example.rst",
 ]
 
 _re_label = re.compile(r"\.\.\s+_([^:]*):")
@@ -272,7 +275,7 @@ def convert_math(text):
 def convert_anchor(text):
     """ Convert text to an anchor that can be used in the notebook."""
     anchor_name = _re_anchor_section.search(text).groups()[0]
-    return f"<a id='{anchor_name}'></a>"
+    return f"<a name='{anchor_name}' id='{anchor_name}'></a>"
 
 
 ###################################
@@ -448,7 +451,12 @@ ADDITIONAL_DEPS = {
         ! pip install datasets spacy
         ! python -m spacy download en_core_web_sm
         """
-    )
+    ),
+    "examples/pytorch_rnn_example.rst": textwrap.dedent(
+        """\
+        ! pip install torch
+        """
+    ),
 }
 ADDITIONAL_DEPS = {k: "# Additional dependencies required to run this notebook:\n" + v for k, v in ADDITIONAL_DEPS.items()}
 
@@ -491,8 +499,14 @@ def convert_rst_file_to_notebook(
     deps = INSTALL_CODE + "\n" + additional_deps if additional_deps else INSTALL_CODE
     cells = [code_cell(deps.strip())]
     for block, block_type in blocks:
-        if block_type.startswith('test'):
+
+        # Add test setup blocks  (import, dataset construction)
+        # skip all other test blocks
+        if block_type.startswith('testsetup'):
+            block_type = "code-block python"
+        elif block_type.startswith('test'):
             continue
+
         if block_type.startswith('doctest'):
             block_type = "code-block python"
 
@@ -550,6 +564,7 @@ def convert_all_tutorials(path_to_docs=None, path_to_dest=None):
         notebook_name = os.path.splitext(file)[0] + ".ipynb"
         doc_file = os.path.join(path_to_docs, file)
         notebook_file = os.path.join(path_to_dest, notebook_name)
+        Path(notebook_file).parent.mkdir(exist_ok=True)
         convert_rst_file_to_notebook(doc_file, notebook_file, origin_folder=path_to_docs, dest_folder=path_to_dest, additional_deps=ADDITIONAL_DEPS.get(file))
 
 

@@ -1,10 +1,10 @@
 import os
 
 from podium.storage import LargeResource
-from podium.vectorizers.vectorizer import BasicVectorStorage, zeros_default_vector
+from podium.vectorizers.vectorizer import WordVectors, zeros_default_vector
 
 
-class NlplVectorizer(BasicVectorStorage):
+class NlplVectorizer(WordVectors):
     NAME = "nlpl_vectors"
     URL = "http://vectors.nlpl.eu/repository/11/36.zip"
     ARCHIVE_TYPE = "zip"

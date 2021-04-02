@@ -8,24 +8,24 @@ if "%1"!="" goto error
 
 :quality
     echo Checking code quality.
-    echo black --check --line-length 90 --target-version py36 podium tests examples
-    black --check --line-length 90 --target-version py36 podium tests examples
-    echo isort --check-only podium tests examples
-    isort --check-only podium tests examples
-    echo docformatter podium tests examples --check --recursive --wrap-descriptions 80 --wrap-summaries 80 --pre-summary-newline --make-summary-multi-line
-    docformatter podium tests examples --check --recursive --wrap-descriptions 80 --wrap-summaries 80 --pre-summary-newline --make-summary-multi-line
-    echo flake8 podium tests examples
-    flake8 podium tests examples
+    echo black --check --line-length 90 --target-version py36 podium tests
+    black --check --line-length 90 --target-version py36 podium tests
+    echo isort --check-only podium tests
+    isort --check-only podium tests
+    echo docformatter podium tests --check --recursive --wrap-descriptions 80 --wrap-summaries 80 --pre-summary-newline --make-summary-multi-line
+    docformatter podium tests --check --recursive --wrap-descriptions 80 --wrap-summaries 80 --pre-summary-newline --make-summary-multi-line
+    echo flake8 podium tests
+    flake8 podium tests
     goto :EOF
 
 :style
     echo Applying code style changes.
-    echo black --line-length 90 --target-version py36 podium tests examples
-    black --line-length 90 --target-version py36 podium tests examples
-    echo isort podium tests examples
-    isort podium tests examples
-    echo docformatter podium tests examples -i --recursive --wrap-descriptions 80 --wrap-summaries 80 --pre-summary-newline --make-summary-multi-line
-    docformatter podium tests examples -i --recursive --wrap-descriptions 80 --wrap-summaries 80 --pre-summary-newline --make-summary-multi-line
+    echo black --line-length 90 --target-version py36 podium tests
+    black --line-length 90 --target-version py36 podium tests
+    echo isort podium tests
+    isort podium tests
+    echo docformatter podium tests -i --recursive --wrap-descriptions 80 --wrap-summaries 80 --pre-summary-newline --make-summary-multi-line
+    docformatter podium tests -i --recursive --wrap-descriptions 80 --wrap-summaries 80 --pre-summary-newline --make-summary-multi-line
     goto :EOF
 
 :test

@@ -48,7 +48,7 @@ def test_basic_not_initialized():
     with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
     ) as vect_file_path:
-        vect = vectorizer.BasicVectorStorage(path=vect_file_path)
+        vect = vectorizer.WordVectors(path=vect_file_path)
         with pytest.raises(RuntimeError):
             vect["."]
         with pytest.raises(RuntimeError):
@@ -59,7 +59,7 @@ def test_basic_load_all_vectors():
     with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
     ) as vect_file_path:
-        vect = vectorizer.BasicVectorStorage(path=vect_file_path)
+        vect = vectorizer.WordVectors(path=vect_file_path)
         vect.load_all()
         assert len(vect._vectors) == 4
         assert vect["."].shape == (3,)
@@ -74,7 +74,7 @@ def test_get_vector_dimension():
     with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
     ) as vect_file_path:
-        vect = vectorizer.BasicVectorStorage(path=vect_file_path)
+        vect = vectorizer.WordVectors(path=vect_file_path)
         vect.load_all()
         assert vect.get_vector_dim() == vect["."].shape[0]
         assert vect.get_vector_dim() == 3
@@ -84,7 +84,7 @@ def test_get_vector_dim_not_initialized_vector_storage():
     with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
     ) as vect_file_path:
-        vect = vectorizer.BasicVectorStorage(path=vect_file_path)
+        vect = vectorizer.WordVectors(path=vect_file_path)
         with pytest.raises(RuntimeError):
             vect.get_vector_dim()
 
@@ -93,7 +93,7 @@ def test_basic_load_with_header():
     with create_temp_vect_file(
         vect_file_name="vect1", file_header=BASIC_VECT_HEADING, file_data=BASIC_VECT_DATA
     ) as vect_file_path:
-        vect = vectorizer.BasicVectorStorage(path=vect_file_path)
+        vect = vectorizer.WordVectors(path=vect_file_path)
         vect.load_all()
         assert len(vect._vectors) == 4
         assert vect["."].shape == (3,)
@@ -108,9 +108,7 @@ def test_basic_no_token():
     with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
     ) as vect_file_path:
-        vect = vectorizer.BasicVectorStorage(
-            path=vect_file_path, default_vector_function=None
-        )
+        vect = vectorizer.WordVectors(path=vect_file_path, default_vector_function=None)
         vect.load_all()
         with pytest.raises(KeyError):
             print(vect["a"])
@@ -122,9 +120,7 @@ def test_basic_token_none():
     with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
     ) as vect_file_path:
-        vect = vectorizer.BasicVectorStorage(
-            path=vect_file_path, default_vector_function=None
-        )
+        vect = vectorizer.WordVectors(path=vect_file_path, default_vector_function=None)
         vect.load_all()
         with pytest.raises(ValueError):
             vect[None]
@@ -136,7 +132,7 @@ def test_basic_token_default():
     with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
     ) as vect_file_path:
-        vect = vectorizer.BasicVectorStorage(
+        vect = vectorizer.WordVectors(
             path=vect_file_path, default_vector_function=vectorizer.zeros_default_vector
         )
         vect.load_all()
@@ -151,9 +147,7 @@ def test_basic_load_vocab():
     with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
     ) as vect_file_path:
-        vect = vectorizer.BasicVectorStorage(
-            path=vect_file_path, default_vector_function=None
-        )
+        vect = vectorizer.WordVectors(path=vect_file_path, default_vector_function=None)
         vocab = [".", ":"]
         vect.load_vocab(vocab=vocab)
         assert len(vect._vectors) == 2
@@ -174,7 +168,7 @@ def test_basic_load_vocab_none():
     with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
     ) as vect_file_path:
-        vect = vectorizer.BasicVectorStorage(path=vect_file_path)
+        vect = vectorizer.WordVectors(path=vect_file_path)
         with pytest.raises(ValueError):
             vect.load_vocab(vocab=None)
 
@@ -201,7 +195,7 @@ def test_get_embedding_matrix(tokens, expected_matrix, expected_shape):
     with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
     ) as vect_file_path:
-        vect = vectorizer.BasicVectorStorage(path=vect_file_path)
+        vect = vectorizer.WordVectors(path=vect_file_path)
         vect.load_all()
 
         embedding_matrix = vect.get_embedding_matrix(vocab=tokens)
@@ -213,7 +207,7 @@ def test_basic_diff_dimensions():
     with create_temp_vect_file(
         vect_file_name="vect1", file_data=DIFF_DIM_VECT_DATA
     ) as vect_file_path:
-        vect = vectorizer.BasicVectorStorage(path=vect_file_path)
+        vect = vectorizer.WordVectors(path=vect_file_path)
         with pytest.raises(RuntimeError):
             vect.load_all()
 
@@ -236,7 +230,7 @@ def test_basic_max_vectors_less_than_num_lines():
     with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
     ) as vect_file_path:
-        vect = vectorizer.BasicVectorStorage(path=vect_file_path, max_vectors=2)
+        vect = vectorizer.WordVectors(path=vect_file_path, max_vectors=2)
         vect.load_all()
         assert len(vect._vectors) == 2
         contained_elements = [".", "'"]
@@ -249,7 +243,7 @@ def test_basic_max_vectors_vocab():
     with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
     ) as vect_file_path:
-        vect = vectorizer.BasicVectorStorage(path=vect_file_path, max_vectors=2)
+        vect = vectorizer.WordVectors(path=vect_file_path, max_vectors=2)
         vocab = [".", ":", ","]
         vect.load_vocab(vocab)
         assert len(vect._vectors) == 2
@@ -263,7 +257,7 @@ def test_basic_max_vectors_bigger_than_num_lines():
     with create_temp_vect_file(
         vect_file_name="vect1", file_data=BASIC_VECT_DATA
     ) as vect_file_path:
-        vect = vectorizer.BasicVectorStorage(path=vect_file_path, max_vectors=20)
+        vect = vectorizer.WordVectors(path=vect_file_path, max_vectors=20)
         vect.load_all()
         assert len(vect._vectors) == 4
         contained_elements = [".", "'", ":", ","]
@@ -271,7 +265,7 @@ def test_basic_max_vectors_bigger_than_num_lines():
 
 
 def test_basic_both_paths_none():
-    vect = vectorizer.BasicVectorStorage(path=None, cache_path=None)
+    vect = vectorizer.WordVectors(path=None, cache_path=None)
     with pytest.raises(ValueError):
         vect.load_all()
 
@@ -284,7 +278,7 @@ def test_basic_both_paths_doesnt_exist(tmpdir):
     cache_path = os.path.join(base, "cache.t")
     assert not os.path.exists(cache_path)
 
-    vect = vectorizer.BasicVectorStorage(path=file_path, cache_path=cache_path)
+    vect = vectorizer.WordVectors(path=file_path, cache_path=cache_path)
     with pytest.raises(ValueError):
         vect.load_all()
 
@@ -295,7 +289,7 @@ def test_basic_path_none_cache_doesnt_exist(tmpdir):
     cache_path = os.path.join(base, "cache.t")
     assert not os.path.exists(cache_path)
 
-    vect = vectorizer.BasicVectorStorage(path=None, cache_path=cache_path)
+    vect = vectorizer.WordVectors(path=None, cache_path=cache_path)
     with pytest.raises(ValueError):
         vect.load_all()
 
@@ -307,7 +301,7 @@ def test_basic_cache_max_vectors(tmpdir):
         assert os.path.exists(vect_file_path)
         cache_path = os.path.join(tmpdir, "cache.t")
         assert not os.path.exists(cache_path)
-        vect = vectorizer.BasicVectorStorage(
+        vect = vectorizer.WordVectors(
             path=vect_file_path, max_vectors=2, cache_path=cache_path
         )
         vect.load_all()
@@ -329,9 +323,7 @@ def test_basic_cache_vocab():
             assert os.path.exists(vect_file_path)
             cache_path = os.path.join(base, "cache.t")
             assert not os.path.exists(cache_path)
-            vect = vectorizer.BasicVectorStorage(
-                path=vect_file_path, cache_path=cache_path
-            )
+            vect = vectorizer.WordVectors(path=vect_file_path, cache_path=cache_path)
 
             vocab = [".", ":", ","]
             vect.load_vocab(vocab)
@@ -351,7 +343,7 @@ def test_load_plain_text():
             assert os.path.exists(file_path)
             file.writelines(BASIC_VECT_DATA_PLAIN)
 
-        vec_storage = vectorizer.BasicVectorStorage(file_path, binary=False)
+        vec_storage = vectorizer.WordVectors(file_path, binary=False)
         vec_storage.load_all()
 
     assert len(vec_storage) == 4

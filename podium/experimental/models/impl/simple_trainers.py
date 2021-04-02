@@ -31,9 +31,9 @@ class SimpleTrainer(AbstractTrainer):
             iterator = Iterator()
 
         for _ in range(max_epoch):
-            for x_batch, y_batch in iterator(dataset):
-                x = feature_transformer.transform(x_batch)
-                y = label_transform_fun(y_batch)
+            for batch in iterator(dataset):
+                x = feature_transformer.transform(batch)
+                y = label_transform_fun(batch)
                 model.fit(X=x, y=y)
 
     def _check_kwargs(self, **kwargs):

@@ -9,6 +9,9 @@
 Walkthrough
 ============
 
+Loading datasets
+-----------------
+
 The core component of Podium is the :class:`podium.Dataset` class, a shallow wrapper which contains instances of a machine learning dataset and the preprocessing pipeline for each data field. 
 
 Podium datasets come in three flavors:
@@ -21,8 +24,8 @@ Podium datasets come in three flavors:
 
 .. _builtin-loading:
 
-Loading built-in datasets
-----------------------------
+Built-in datasets
+^^^^^^^^^^^^^^^^^^
 
 One built-in dataset available in Podium is the `Stanford Sentiment Treebank <https://nlp.stanford.edu/sentiment/treebank.html>`__. In order to load the dataset, it is enough to call the :func:`get_dataset_splits` method.
 
@@ -31,6 +34,7 @@ One built-in dataset available in Podium is the `Stanford Sentiment Treebank <ht
 
   >>> from podium.datasets import SST
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits() # doctest:+ELLIPSIS
+  >>> sst_train.finalize_fields()
   >>> print(sst_train)
   SST({
       size: 6920,
@@ -56,12 +60,194 @@ One built-in dataset available in Podium is the `Stanford Sentiment Treebank <ht
   })
 
 
-Each built-in Podium dataset has a :func:`get_dataset_splits` method, which returns the `train`, `test` and `validation` split of that dataset, if available.
+Each built-in Podium dataset has a :func:`get_dataset_splits` method, which returns the `train`, `test` and `validation` splits of that dataset, if available.
+
+.. _hf-loading:
+
+Loading 🤗 datasets
+^^^^^^^^^^^^^^^^^^^^
+
+The popular `🤗 datasets <https://github.com/huggingface/datasets>`__ library implements a large number of NLP datasets. For simplicity, we have created a wrapper for 🤗 datasets, which allows you to map all of the 600+ datasets directly to your Podium pipeline.
+
+Converting a dataset from 🤗 datasets into Podium requires some work from your side, although we have automated it as much as possible. We will first take a look at one example 🤗 dataset:
+
+.. code-block:: python
+
+  >>> import datasets
+  >>> from pprint import pprint
+  >>> # Loading a huggingface dataset returns an instance of DatasetDict
+  >>> # which contains the dataset splits (usually: train, valid, test) 
+  >>> imdb = datasets.load_dataset('imdb')
+  >>> print(imdb.keys())
+  dict_keys(['train', 'test', 'unsupervised'])
+  >>> 
+  >>> # Each dataset has a set of features which need to be mapped
+  >>> # to Podium Fields.
+  >>> print(imdb['train'].features)
+  {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], names_file=None, id=None),
+   'text': Value(dtype='string', id=None)}
+
+As is the case with loading your custom dataset, ``features`` of 🤗 datasets need to be mapped to Podium Fields in order to direct the data flow for preprocessing.
+
+Datasets from 🤗 need to either (1) be wrapped them in :class:`podium.datasets.hf.HFDatasetConverter`, in which case they remain as `pyarrow <https://arrow.apache.org/docs/python/>`__ disk-backed datasets or (2) cast into a Podium :class:`podium.datasets.Dataset`, making them concrete and loading them in memory. The latter operation can be memory intensive for some datasets. We will first take a look at using disk-backed 🤗 datasets.
+
+.. code-block:: python
+
+  >>> from podium.datasets.hf import HFDatasetConverter as HF
+  >>> # We create an adapter for huggingface dataset schema to podium Fields,
+  >>> # allowing you to use wrapped 🤗 datasets as Podium ones
+  >>> imdb_train, imdb_test, imdb_unsupervised = HF.from_dataset_dict(imdb).values()
+  >>> imdb_train.finalize_fields()
+  >>>
+  >>> print(imdb_train.field_dict())
+  {'label': LabelField({
+      name: 'label',
+      keep_raw: False,
+      is_target: True
+  }),
+   'text': Field({
+      name: 'text',
+      keep_raw: False,
+      is_target: False,
+      vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 280619})
+  })}
+
+.. note::
+  Conversion from 🤗 dataset features to Fields is **automatically inferred** by default. This is a process which can be error prone. Nevertheless, it will work for basic use-cases.
+  In general, we recommend you set the ``fields`` argument of ``from_dataset_dict``.
+
+When we load a 🤗 dataset, we internally perform automatic Field type inference and create Fields. While we expect these Fields to work in most cases, we recommend you try constructing your own.
+
+Once the ``Field`` s are constructed, we can use the dataset as if it was part of Podium:
+
+.. code-block:: python
+
+  >>> from podium import Iterator
+  >>> it = Iterator(imdb_train, batch_size=2)
+  >>>
+  >>> text, label = next(iter(it))
+  >>> print(text, label, sep="\n")
+  [[    49     24      7    172   1671    156     22  11976      5   1757
+    3409   7124    202      ...     1]
+  [   523     64     28    353     10      3    227     21      7  73941
+      52     28    186    ...  8668]]
+  [[0]
+   [0]]
+
+.. _custom-loading:
+
+Loading your custom dataset
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We have covered loading built-in datasets. However, it is often the case that you want to work on a dataset that you either constructed or we have not yet implemented the loading function for. If that dataset is in a simple tabular format (one row = one instance), you can use :class:`podium.datasets.TabularDataset`.
+
+Let's take an example of a natural language inference (NLI) dataset. In NLI, datasets have two input fields: the `premise` and the `hypothesis` and a single, multi-class label. The first two rows of such a dataset written in comma-separated-values (`csv`) format could look as follows:
+
+.. code-block:: rest
+
+  premise,hypothesis,label
+  A man inspects the uniform of a figure in some East Asian country.,The man is sleeping,contradiction
+
+.. testsetup:: tabular
+
+  import csv
+  dataset_path = 'my_dataset.csv'
+  field_names = ('premise', 'hypothesis', 'label')
+  with open(dataset_path, 'w', newline='') as csv_file:
+      writer = csv.DictWriter(csv_file, fieldnames=field_names)
+      writer.writeheader()
+      writer.writerow({
+          'premise': 'A man inspects the uniform of a figure in some East Asian country .',
+          'hypothesis': 'The man is sleeping ',
+          'label': 'contradiction',
+      })
+
+For this dataset, we need to define three Fields. We also might want the fields for `premise` and `hypothesis` to share their Vocab.
+
+.. doctest:: tabular
+  :options: +NORMALIZE_WHITESPACE
+
+  >>> from podium import TabularDataset, Vocab, Field, LabelField
+  >>> shared_vocab = Vocab()
+  >>> fields = {'premise':   Field('premise', numericalizer=shared_vocab),
+  ...           'hypothesis':Field('hypothesis', numericalizer=shared_vocab),
+  ...           'label':     LabelField('label')}
+  >>>
+  >>> dataset = TabularDataset(dataset_path, format='csv', fields=fields)
+  >>> dataset.finalize_fields()
+  >>> print(dataset)
+  TabularDataset({
+      size: 1,
+      fields: [
+              Field({
+                  name: 'premise',
+                  keep_raw: False,
+                  is_target: False,
+                  vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 19})
+              }),
+              Field({
+                  name: 'hypothesis',
+                  keep_raw: False,
+                  is_target: False,
+                  vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 19})
+              }),
+              LabelField({
+                  name: 'label',
+                  keep_raw: False,
+                  is_target: True,
+                  vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 1})
+              })
+      ]
+  })
+  >>> print(shared_vocab.itos)
+  ['<UNK>', '<PAD>', 'man', 'A', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.', 'The', 'is', 'sleeping']
+
+
+Our ``TabularDataset`` supports three keyword formats out-of-the-box:
+
+1. **csv**: the comma-separated values format, which uses python's ``csv.reader`` to read comma delimited files. Pass additional arguments to the reader via the ``csv_reader_params`` argument,
+2. **tsv**: the tab-separated values format, handled similarly to csv except that the delimiter is ``"\t"``,
+3. **json**: the line-json format, where each line of the input file in in json format.
+
+Since these formats are not exhaustive, we also support loading other custom line-dataset formats through using the ``line2example`` argument of ``TabularDataset``.
+The ``line2example`` function should accept a single line of the dataset file as its argument and output a sequence of input data which will be mapped to the Fields. An example definition of a function which splits a csv dataset line into its components is below:
+
+.. doctest:: tabular
+
+  >>> def custom_split(line):
+  ...     line_parts = line.strip().split(",")
+  ...     return line_parts
+  >>> 
+  >>> dataset = TabularDataset(dataset_path, fields=fields, line2example=custom_split)
+  >>> print(dataset[0])
+  Example({
+      premise: (None, ['A', 'man', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.']),
+      hypothesis: (None, ['The', 'man', 'is', 'sleeping']),
+      label: (None, 'contradiction')
+  })
+
+.. testcleanup:: tabular
+
+  import os
+  try:
+    os.remove(dataset_path)
+  except OSError:
+    pass
+
+
+Here, for simplicity, we (naively) assume that the content of the Field data will not contain commas. 
+Please note that the line which we pass to the ``line2example`` function will contain the newline symbol which you need to strip.
+
+When the ``line2example`` argument is not ``None``, the ``format`` argument will be ignored.
+
+In addition to datasets in the standard tabular format, we also support loading datasets from `pandas <https://pandas.pydata.org/>`__ with :meth:`podium.Dataset.from_pandas` or the CoNLL column-based data format :class:`podium.datasets.CoNLLUDataset`.
+
+.. _vocab:
 
 The Vocabulary
 ---------------
 
-We saw earlier that our dataset has two Fields: text and label. We will touch on what exactly Fields are later, but for now let's retrieve and print them out.
+We saw earlier that our dataset has two Fields: text and label. We will go into detail on what exactly Fields are later, but for now let's just retrieve and print them out.
 
 .. doctest:: sst
 
@@ -80,16 +266,46 @@ We saw earlier that our dataset has two Fields: text and label. We will touch on
       vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 2})
   })
 
-Inside each of these two fields we can see a :class:`podium.Vocab` class, used for numericalization (converting token strings to indices). A Vocab is defined by two maps: the string-to-index mapping :attr:`podium.Vocab.stoi` and the index-to-string mapping :attr:`podium.Vocab.itos`.
+Inside each of these two fields we can see a :class:`podium.Vocab` class, used for numericalization (converting tokens to indices). A Vocab is defined by two maps: the string-to-index mapping :attr:`podium.Vocab.stoi` and the index-to-string mapping :attr:`podium.Vocab.itos`.
 
-Vocabularies are built automatically for built-in datasets by counting the frequencies of tokens in the **train** set and then converting these frequences to the ``itos`` and ``stoi`` dictionaries. We can see that a ``Vocab`` is built by the ``is_finalized=True`` keyword in the printout.
-If you are constructing your own dataset or loading a dataset from 🤗 (:ref:`hf-loading`), you will need to call the :func:`podium.Dataset.finalize_fields()` method to signal that the vocabularies should be constructed.
+After loading all the datasets you wish to build your vocabularies on, you need to call the :func:`podium.Dataset.finalize_fields()` method to signal that the vocabularies should be constructed.
+
+.. _finalizing_vocab:
+
+
+Finalizing vocabularies
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+We will now briefly explain the reasoning behind the required boilerplate ``finalize_fields`` call and why it is important. The main reason is that manually calling this line gives users more control over which dataset splits, or datasets, are the vocabularies constructed.
+
+For an example, we might want to either construct the vocabulary on **all** dataset splits:
+
+.. doctest:: vocab_finalize
+
+  >>> train, dev, test = SST.get_dataset_splits()
+  >>> train.finalize_fields(train, dev, test)
+  >>> print(train.field('text').vocab)
+  Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 19425})
+
+We did this by passing any number of Datasets as the argument of ``finalize_fields``, indicating  the frequencies for the Vocabularies should be counted on all of those datasets. Once ``finalize_fields`` is called on a ``Dataset`` instance, the ``Dataset`` iterates over all of its ``Fields``, updates frequency counts of their ``Vocab`` instances (if they are used) on all given datasets.
+
+In case the argument is left as ``None`` (default), the vocabularies will only be built on the dataset on which ``finalize_fields`` is called:
+
+.. doctest:: vocab_finalize
+
+  >>> train, dev, test = SST.get_dataset_splits()
+  >>> train.finalize_fields()
+  >>> print(train.field('text').vocab)
+  Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 16284})
+
+In this case, the ``Vocab`` was not built in the ``dev`` and ``test`` splits, preventing information leakage in some types of models. Another case where manual finalization of Fields is useful is :ref:`dataset_concat`. All in all, this line of boilerplate code allows a higher degree of control to the user.
+
+.. note::
+  If your Dataset doesn't use a Podium ``Vocab``, you are not required to call ``finalize_fields``. 
 
 Customizing Vocabs
 ^^^^^^^^^^^^^^^^^^
-We can customize Podium Vocabularies in one of two ways -- by controlling their constructor parameters and by defining a Vocabulary manually. 
-
-For the latter approach, the :class:`podium.Vocab` class has two static constructors: :func:`podium.Vocab.from_itos` and :func:`podium.Vocab.from_stoi`.
+We can customize Podium Vocabularies in one of two ways -- by controlling their constructor parameters and by defining a Vocabulary manually. For the latter approach, the :class:`podium.Vocab` class has two static constructors: :func:`podium.Vocab.from_itos` and :func:`podium.Vocab.from_stoi`.
 
 .. doctest:: custom_vocab
 
@@ -97,7 +313,7 @@ For the latter approach, the :class:`podium.Vocab` class has two static construc
   >>> custom_stoi = {'This':0, 'is':1, 'a':2, 'sample':3}
   >>> vocab = Vocab.from_stoi(custom_stoi)
   >>> print(vocab)
-  Vocab({specials: (), eager: True, is_finalized: True, size: 4})
+  Vocab({specials: (), eager: False, is_finalized: True, size: 4})
 
 This way, we can define a static dictionary which we might have obtained on another dataset to use for our current task. Similarly, it is possible to define a ``Vocab`` by a sequence of strings -- an ``itos``:
 
@@ -107,7 +323,7 @@ This way, we can define a static dictionary which we might have obtained on anot
   >>> custom_itos = [UNK(), 'this', 'is', 'a', 'sample']
   >>> vocab = Vocab.from_itos(custom_itos)
   >>> print(vocab)
-  Vocab({specials: ('<UNK>',), eager: True, is_finalized: True, size: 5})
+  Vocab({specials: ('<UNK>',), eager: False, is_finalized: True, size: 5})
 
 In this example we have also defined a Special token (:ref:`specials`) to use in our vocabulary. Both of these static constructors are equivalent and can produce the same ``Vocab`` mapping.
 
@@ -125,6 +341,7 @@ You might want to limit the size of your Vocab for larger datasets. To do so, de
 
 In order to use this new Vocab with a dataset, we first need to get familiar with Fields.
 
+.. _fields:
 
 Customizing the preprocessing pipeline with Fields
 --------------------------------------------------
@@ -144,7 +361,6 @@ Fields have a number of constructor arguments, only some of which we will enumer
   - :obj:`name` (str): The name under which the Field's data will be stored in the dataset's Examples.
   - :obj:`tokenizer` (str | callable | optional): The tokenizer for sequential data. You can pass a string to use a predefined tokenizer or pass a python callable which performs tokenization (e.g. a function or a class which implements ``__call__``). For predefined tokenizers, you should follow the ``name-args`` argument formatting convention. You can use ``'split'`` for the ``str.split`` tokenizer (has no additional args) or ``'spacy-en_core_web_sm'`` for the spacy english tokenizer. If the data Field should not be tokenized, this argument should be None. Defaults to ``'split'``.
   - :obj:`numericalizer` (Vocab | callable | optional): The method to convert tokens to indices. Traditionally, this argument should be a Vocab instance but users can define their own numericalization function and pass it as an argument. Custom numericalization can be used when you want to ensure that a certain token has a certain index for consistency with other work. If ``None``, numericalization won't be attempted.
-  - :obj:`is_target` (bool): Whether this data Field is a target field (will be used as a label during prediction). This flag serves merely as a convenience, to separate batches into input and target data during iteration.
   - :obj:`fixed_length`: (int, optional): Usually, text batches are padded to the maximum length of an instance in batch (default behavior). However, if you are using a fixed-size model (e.g. CNN without pooling) you can use this argument to force each instance of this Field to be of ``fixed_length``. Longer instances will be right-truncated, shorter instances will be padded.
 
 The SST dataset has two textual data columns (fields): (1) the input text of the movie review and (2) the label. We need to define a ``Field`` for each of these.
@@ -159,13 +375,13 @@ The SST dataset has two textual data columns (fields): (1) the input text of the
       name: 'text',
       keep_raw: False,
       is_target: False,
-      vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, is_finalized: False, size: 0})
+      vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: False, size: 0})
   })
   LabelField({
       name: 'label',
       keep_raw: False,
       is_target: True,
-      vocab: Vocab({specials: (), eager: True, is_finalized: False, size: 0})
+      vocab: Vocab({specials: (), eager: False, is_finalized: False, size: 0})
   })
 
 That's it! We have defined our Fields. In order for them to be initialized, we need to `show` them a dataset. For built-in datasets, this is done behind the scenes in the ``get_dataset_splits`` method. We will elaborate how to do this yourself in :ref:`custom-loading`.
@@ -174,8 +390,9 @@ That's it! We have defined our Fields. In order for them to be initialized, we n
 
   >>> fields = {'text': text, 'label': label}
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+  >>> sst_train.finalize_fields()
   >>> print(small_vocabulary)
-  Vocab({specials: ('<UNK>', '<PAD>'), eager: True, is_finalized: True, size: 5000})
+  Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 5000})
 
 Our new Vocab has been limited to the 5000 most frequent words. If your `Vocab` contains the unknown special token :class:`podium.vocab.UNK`, the words not present in the vocabulary will be set to the value of the unknown token. The unknown token is one of the default `special` tokens in the Vocab, alongside the padding token :class:`podium.vocab.PAD`. You can read more about these in :ref:`specials`.
 
@@ -189,6 +406,8 @@ A common case in datasets is a data Field which contains a label, represented as
 
 For convenience, ``LabelField`` sets the required defaults for you, and all you need to define is its name. LabelFields always have a ``fixed_length`` of 1, are not tokenized and are by default set as the target for batching.
 
+.. _iterating:
+
 Iterating over datasets
 ------------------------
 
@@ -198,23 +417,23 @@ Podium contains methods to iterate over data. Let's take a look at :class:`podiu
   :options: +NORMALIZE_WHITESPACE
 
   >>> from podium import Iterator
-  >>> train_iter = Iterator(sst_train, batch_size=2)
-  >>> batch_x, batch_y = next(iter(train_iter))
-  >>> print(batch_x, batch_y, sep='\n')
-  {'text': array([[ 1390,   193,  3035,    12,     4,   652, 13874,   310,    11,
-              101, 13875,    12,    31,    14,   729,  1733,     5,     9,
-              144,  7287,     8,  3656,   193,  7357,   700,     2,     1,
-                1,     1,     1],
-           [   29,  1659,   827,     8,    27,     7,  6115,     3,  4635,
-               63,     3,    19,     4,    55, 15634,   231,   170,     9,
-              128,    48,   123,   656,   130,   190,  2047,     8,   803,
-               74,    79,     2]])}
-  {'label': array([[1],
-           [1]])}
+  >>> train_iter = Iterator(sst_train, batch_size=2, shuffle=False)
+  >>> batch = next(iter(train_iter))
+  >>> print(batch)
+  Batch({
+        text: [[  14 1144    9 2955    8   27    4 2956 3752   10  149   62 5067   64
+             5   11   93   10  264    8   85    7 5068   72 3753   38 2048 2957
+             3 7565 3754 7566   49  778 7567    2    1]
+         [  14 2958 2420 5069    6   62   14 3755    6    4 5070   64 5071    9
+            48  830   11    7 5072    6  639   68   37 2959 2049 7568 1058  730
+            10 7569  568    6 7570 5073   10 7571    2]],
+        label: [[0]
+         [0]]
+    })
 
 
 There are a couple of things we need to unpack here. Firstly, our textual input data and class labels were converted to indices. This happened without our intervention -- built-in datasets have a default preprocessing pipeline, which handles text tokenization and numericalization.
-Secondly, while iterating we obtained two `Batch` instances. `Batch` is a special dictionary that also acts as a `namedtuple` by supporting tuple unpacking and attribute lookup. By default, Podium Iterators group input and target data Fields during iteration. If your dataset contains multiple input or target fields, they will also be present as attributes of the namedtuples.
+Secondly, while iterating we obtained a `Batch` instance. A `Batch` is a special dictionary that also acts as a `namedtuple` by supporting tuple unpacking and attribute lookup.
 
 Traditionally, when using a neural model, whether it is a RNN or a transformer variant, you require lengths of each instance in the dataset to create packed sequences or compute the attention mask, respectively. 
 
@@ -225,19 +444,18 @@ Traditionally, when using a neural model, whether it is a RNN or a transformer v
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+  >>> sst_train.finalize_fields()
   >>>
   >>> train_iter = Iterator(sst_train, batch_size=2, shuffle=False)
-  >>> batch_x, batch_y = next(iter(train_iter))
-  >>> text, lengths = batch_x.text
+  >>> batch = next(iter(train_iter))
+  >>> text, lengths = batch.text
   >>> print(text, lengths, sep='\n')
-  [[   14  1057    10  2580     8    28     4  3334  3335     9   154    68
-     7451    67     5    11    81     9   274     8    83     6  4683    74
-     2901    38  1410  2581     3 10747  2102  7452    49   870 10748     2
-        1]
-   [   14  3336  2314  7453     7    68    14  4684     7     4  7454    67
-     4685    10    48  1058    11     6  7455     7   772    65    32  4686
-     2582 10749  1112   830     9  5715   649     7 10750  5716     9 10751
-        2]]
+  [[  14 1144    9 2955    8   27    4 2956 3752   10  149   62 5067   64
+     5   11   93   10  264    8   85    7 5068   72 3753   38 2048 2957
+     3 7565 3754 7566   49  778 7567    2    1]
+   [  14 2958 2420 5069    6   62   14 3755    6    4 5070   64 5071    9
+      48  830   11    7 5072    6  639   68   37 2959 2049 7568 1058  730
+      10 7569  568    6 7570 5073   10 7571    2]]
   [36 37]
 
 When setting the ``include_lengths=True`` for a Field, its batch component will be a tuple containing the numericalized batch and the lengths of each instance in the batch. When using recurrent cells, it is often the case we want to sort the instances within the batch according to length, e.g. in order for them to be used with :class:`torch.nn.utils.rnn.PackedSequence` objects.
@@ -255,27 +473,27 @@ Since datasets can contain multiple input Fields, it is not trivial to determine
   ...     return -len(tokens)
 
   >>> train_iter = Iterator(sst_train, batch_size=2, shuffle=False, sort_key=text_len_sort_key)
-  >>> batch_x, batch_y = next(iter(train_iter))
-  >>> text, lengths = batch_x.text
+  >>> batch = next(iter(train_iter))
+  >>> text, lengths = batch.text
   >>> print(text, lengths, sep="\n")
-  [[   14  3336  2314  7453     7    68    14  4684     7     4  7454    67
-     4685    10    48  1058    11     6  7455     7   772    65    32  4686
-     2582 10749  1112   830     9  5715   649     7 10750  5716     9 10751
-        2]
-   [   14  1057    10  2580     8    28     4  3334  3335     9   154    68
-     7451    67     5    11    81     9   274     8    83     6  4683    74
-     2901    38  1410  2581     3 10747  2102  7452    49   870 10748     2
-        1]]
+  [[  14 2958 2420 5069    6   62   14 3755    6    4 5070   64 5071    9
+    48  830   11    7 5072    6  639   68   37 2959 2049 7568 1058  730
+    10 7569  568    6 7570 5073   10 7571    2]
+   [  14 1144    9 2955    8   27    4 2956 3752   10  149   62 5067   64
+       5   11   93   10  264    8   85    7 5068   72 3753   38 2048 2957
+       3 7565 3754 7566   49  778 7567    2    1]]
   [37 36]
 
 And here we can see, that even for our small, two-instance batch, the elements in the batch are now properly sorted according to length.
+
+.. _pretrained:
 
 Loading pretrained word vectors
 -------------------------------
 
 With most deep learning models, we want to use pre-trained word embeddings. In Podium, this process is very simple. If your field uses a vocabulary, it has already built an inventory of tokens for your dataset.
 
-A number of predefined vectorizers are available (:class:`podium.vectorizers.GloVe`, :class:`podium.vectorizers.NlplVectorizer`, :class:`podium.vectorizers.TfIdfVectorizer`), as well as a standardized loader :class:`podium.vectorizers.BasicVectorStorage` for loading word2vec-style format of word embeddings from disk.
+A number of predefined vectorizers are available (:class:`podium.vectorizers.GloVe` and :class:`podium.vectorizers.NlplVectorizer`), as well as a standardized loader :class:`podium.vectorizers.BasicVectorStorage` for loading word2vec-style format of word embeddings from disk.
 
 For example, we will use the `GloVe <https://nlp.stanford.edu/projects/glove/>`__ vectors. The procedure to load these vectors has two steps:
 
@@ -293,11 +511,10 @@ The output of the function call is a numpy matrix of word embeddings which you c
   >>> glove = GloVe()
   >>> embeddings = glove.load_vocab(vocab)
   >>> print(f"For vocabulary of size: {len(vocab)} loaded embedding matrix of shape: {embeddings.shape}")
-  >>>
+  For vocabulary of size: 21701 loaded embedding matrix of shape: (21701, 300)
   >>> # We can obtain vectors for a single word (given the word is loaded) like this:
   >>> word = "sport"
   >>> print(f"Vector for {word}: {glove.token_to_vector(word)}")
-  For vocabulary of size: 21701 loaded embedding matrix of shape: (21701, 300)
   Vector for sport: [ 0.34566    0.15934    0.48444   -0.13693    0.18737    0.2678
    -0.39159    0.4931    -0.76111   -1.4586     0.41475    0.55837
    ...
@@ -318,6 +535,7 @@ As we intend to use the whole dataset at once, we will also set ``disable_batch_
   >>> label = LabelField(name='label')
   >>> fields = {'text': text, 'label': label}
   >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
+  >>> sst_train.finalize_fields()
 
 Since the Tf-Idf vectorizer needs information from the dataset to compute the inverse document frequency, we first need to fit it on the dataset.
 
@@ -333,174 +551,20 @@ Now our vectorizer has seen the dataset as well as the vocabulary and has all th
   :options: +NORMALIZE_WHITESPACE
 
   >>> # Obtain the whole dataset as a batch
-  >>> x, y = sst_train.batch()
-  >>> tfidf_batch = tfidf_vectorizer.transform(x.text)
+  >>> dataset_batch = sst_train.batch()
+  >>> tfidf_batch = tfidf_vectorizer.transform(dataset_batch.text)
   >>>
   >>> print(type(tfidf_batch), tfidf_batch.shape)
   <class 'scipy.sparse.csr.csr_matrix'> (6920, 4998)
   >>> print(tfidf_batch[222])
-  (0, 1658) 0.617113703893198
-  (0, 654)  0.5208201737884445
-  (0, 450)  0.5116152860290002
-  (0, 20) 0.2515101839877878
+  (0, 2111) 0.617113703893198
+  (0, 549)  0.5208201737884445
+  (0, 499)  0.5116152860290002
+  (0, 19) 0.2515101839877878
   (0, 1)  0.12681755258500052
   (0, 0)  0.08262419651916046
 
 The Tf-Idf counts are highly sparse since not all words from the vocabulary are present in every instance. To reduce the memory footprint of count-based numericalization, we store the values in a `SciPy <https://www.scipy.org/>`__ `sparse matrix <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix>`__, which can be used in various `scikit-learn <https://scikit-learn.org/stable/>`__ models.
-
-.. _custom-loading:
-
-Loading your custom dataset
-----------------------------
-
-We have covered loading built-in datasets. However, it is often the case that you want to work on a dataset that you either constructed or we have not yet implemented the loading function for. If that dataset is in a simple tabular format, you can use :class:`podium.datasets.TabularDataset`.
-
-Let's take an example of a natural language inference (NLI) dataset. In NLI, datasets have two input fields: the `premise` and the `hypothesis` and a single, multi-class label. The first two rows of such a dataset written in comma-separated-values (`csv`) format could look as follows:
-
-.. code-block:: rest
-
-  premise,hypothesis,label
-  A man inspects the uniform of a figure in some East Asian country.,The man is sleeping,contradiction
-
-For this dataset, we need to define three Fields. We also might want the fields for `premise` and `hypothesis` to share their Vocab.
-
-
-.. code-block::
-
-  >>> import csv
-  >>> from pathlib import Path
-  >>> from podium import TabularDataset, Vocab, Field, LabelField
-  >>> shared_vocab = Vocab()
-  >>> fields = {'premise':   Field('premise', numericalizer=shared_vocab, tokenizer="spacy-en_core_web_sm"),
-  ...           'hypothesis':Field('hypothesis', numericalizer=shared_vocab, tokenizer="spacy-en_core_web_sm"),
-  ...           'label':     LabelField('label')}
-  >>>
-  >>>
-  >>> csv_file_path = Path('my_dataset.csv')
-  >>> with open(csv_file_path, 'w', newline='') as csv_file:
-  >>>     writer = csv.DictWriter(csv_file, fieldnames=fields.keys())
-  >>>     writer.writeheader()
-  >>>     writer.writerow({
-  >>>         'premise': 'A man inspects the uniform of a figure in some East Asian country.',
-  >>>         'hypothesis': 'The man is sleeping',
-  >>>         'label': 'contradiction',
-  >>>     })
-  >>>
-  >>> dataset = TabularDataset('my_dataset.csv', format='csv', fields=fields)
-  >>> print(dataset)
-  TabularDataset({
-      size: 1,
-      fields: [
-          Field({
-              name: 'premise',
-              is_target: False, 
-              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 19})
-          }),
-          Field({
-              name: 'hypothesis',
-              is_target: False, 
-              vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 19})
-          }),
-          LabelField({
-              name: 'label',
-              is_target: True, 
-              vocab: Vocab({specials: (), eager: False, is_finalized: True, size: 1})
-          })
-      ]
-  })
-  >>> print(shared_vocab.itos)
-  ['<UNK>', '<PAD>', 'man', 'A', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.', 'The', 'is', 'sleeping']
-
-
-Our ``TabularDataset`` supports three keyword formats out-of-the-box:
-
-1. **csv**: the comma-separated values format, which uses python's ``csv.reader`` to read comma delimited files. Additional arguments to the reader can be passed via the ``csv_reader_params`` argument.
-2. **tsv**: the tab-separated values format, handled similarly to csv except that the delimiter is ``"\t"``.
-3. **json**: the line-json format, where each line of the input file in in json format.
-
-Since we are aware that these formats are not exhaustive, we have also added support for loading other custom file formats by setting the ``line2example`` argument of ``TabularDataset``.
-The ``line2example`` function should accept a single line of the dataset file as its argument and output a sequence of input data which will be mapped to the Fields. An example definition of a function which splits a csv dataset line into its components is below:
-
-.. code-block::
-
-  >>> def custom_split(line):
-  >>>     line_parts = line.strip().split(",")
-  >>>     return line_parts
-  >>> 
-  >>> dataset = TabularDataset('my_dataset.csv', fields=fields, line2example=custom_split)
-  >>> print(dataset[0])
-  Example({
-      premise: (None, ['A', 'man', 'inspects', 'the', 'uniform', 'of', 'a', 'figure', 'in', 'some', 'East', 'Asian', 'country', '.']),
-      hypothesis: (None, ['The', 'man', 'is', 'sleeping']); label: (None, 'contradiction')
-  })
-
-
-Here, for simplicity, we (naively) assume that the content of the Field data will not contain commas. 
-Please note that the line which we pass to the ``line2example`` function still contains the newline symbol which you need to strip.
-
-When the ``line2example`` argument is not ``None``, the ``format`` argument will be ignored.
-
-
-.. _hf-loading:
-
-Loading 🤗 datasets
---------------------
-
-The recently released `🤗 datasets <https://github.com/huggingface/datasets>`__ library implements a large number of NLP datasets. For your convenience (and not to reimplement data loading for each one of them), we have created a wrapper for 🤗 datasets, which allows you to map all of the 600+ datasets directly to your Podium pipeline.
-
-You can load a dataset in 🤗 datasets and then convert it to a Podium dataset as follows:
-
-.. code-block:: python
-
-  >>> from podium.datasets.hf import HFDatasetConverter
-  >>> import datasets
-  >>> # Loading a huggingface dataset returns an instance of DatasetDict
-  >>> # which contains the dataset splits (usually: train, valid, test, 
-  >>> # but other splits can also be contained such as in the case of IMDB)
-  >>> imdb = datasets.load_dataset('imdb')
-  >>> print(imdb.keys())
-  dict_keys(['train', 'test', 'unsupervised'])
-
-Datasets from 🤗 can be used with other Podium components by wrapping them in the :class:`podium.datasets.hf.HFDatasetConverter`, in which case they remain as disk-backed datasets backed by `pyarrow <https://arrow.apache.org/docs/python/>`__ or by casting them into a Podium :class:`podium.datasets.Dataset`, making them concrete and loading them in memory. This operation can be memory intensive for some datasets. We will first take a look at using disk-backed 🤗 datasets.
-
-.. code-block:: python
-
-  >>> # We create an adapter for huggingface dataset schema to podium Fields.
-  >>> # These are not yet Podium datasets, but behave as such (you can iterate
-  >>> # over them as if they were).
-  >>> imdb_train, imdb_test, imdb_unsupervised = HFDatasetConverter.from_dataset_dict(imdb).values()
-  >>> imdb_train.finalize_fields()
-  >>>
-  >>> imdb_train.as_dataset().fields
-  (Field({
-      name: 'text',
-      keep_raw: False,
-      is_target: False,
-      vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: True, is_finalized: False, size: 280617})
-  }), LabelField({
-      name: 'label',
-      keep_raw: False,
-      is_target: True
-  }))
-
-When we load a 🤗 dataset, we internally perform automatic Field type inference and create Fields. While we expect these Fields to work in most cases, we also recommend you try constructing your own (check :ref:`fields`).
-An important aspect to note when using ``Vocab`` with 🤗 datasets is that you **need to set** ``eager=False`` upon construction. Vocabularies in Podium are eager by default, which means that they construct frequency counts upon dataset loading. Since 🤗 datasets are not loaded as part of Podium, vocabulary construction needs to be triggered manually by using non-eager ``Vocab`` s and calling ``Dataset.finalize_fields()`` to indicate that the vocabularies should be built.
-
-Once the ``Field`` s are constructed, we can use the dataset as if it was part of Podium:
-
-.. code-block:: python
-
-  >>> from podium import Iterator
-  >>> it = Iterator(imdb_train, batch_size=2)
-  >>>
-  >>> text_batch, label_batch = next(iter(it))
-  >>> print(text_batch.text, label_batch.label, sep="\n")
-  [[    49     24      7    172   1671    156     22  11976      5   1757
-    3409   7124    202      ...     1]
-  [   523     64     28    353     10      3    227     21      7  73941
-      52     28    186    ...  8668]]
-  [[0]
-   [0]]
 
 .. testcleanup::
 
