@@ -1,6 +1,6 @@
 <h1>
 <img align="left" width="80" src="https://takelab.fer.hr/podium/_static/podium_logo.svg">
-# TakeLab Podium 
+ TakeLab Podium 
 </h1>
 
 ![Continuous integration](https://github.com/TakeLab/podium/workflows/Continuous%20integration/badge.svg)
