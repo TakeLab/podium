@@ -151,7 +151,7 @@ TabularDataset({
 })
 ```
 
-Also check our documentation to see how you can load a dataset from [Pandas](https://pandas.pydata.org/), the CoNLL format, or define your own `Dataset` subclass (tutorial coming soon).
+Check our documentation to see how you can load a dataset from [Pandas](https://pandas.pydata.org/), the CoNLL format, or define your own `Dataset` subclass (tutorial coming soon).
 
 ### Define your preprocessing
 
@@ -226,7 +226,7 @@ Example({
 
 For a more interactive introduction, check out the quickstart on Google Colab: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/takelab/podium/blob/master/docs/source/notebooks/quickstart.ipynb)
 
-Full usage examples can be found in our [docs](https://takelab.fer.hr/podium/examples).
+Full usage examples can be found in our [docs](https://takelab.fer.hr/podium/) under the **Examples** heading.
 
 ## Contributing
 
