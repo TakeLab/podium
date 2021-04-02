@@ -86,18 +86,19 @@ Example({
 Load datasets from [🤗 datasets](https://github.com/huggingface/datasets):
 
 ```python
->>> from podium.datasets.hf import HFDatasetConverter
+>>> from podium.datasets.hf import HFDatasetConverter as HF
 >>> import datasets
 >>> # Load the huggingface dataset
 >>> imdb = datasets.load_dataset('imdb')
 >>> print(imdb.keys())
 dict_keys(['train', 'test', 'unsupervised'])
 >>> # Wrap it so it can be used in Podium (without being loaded in memory!)
->>> imdb_train, imdb_test, imdb_unsupervised = HFDatasetConverter.from_dataset_dict(imdb).values()
+>>> imdb_train, imdb_test, imdb_unsupervised = HF.from_dataset_dict(imdb).values()
 >>> # We need to trigger Vocab construction
 >>> imdb_train.finalize_fields()
 >>> print(imdb_train)
 HFDatasetConverter({
+    dataset_name: imdb,
     size: 25000,
     fields: [
         Field({
@@ -166,7 +167,7 @@ We wrap dataset pre-processing in customizable `Field` classes. Each `Field` has
 >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits(fields=fields)
 >>> sst_train.finalize_fields()
 >>> print(vocab)
-Vocab({specials: ('<UNK>', '<PAD>'), eager: True, finalized: True, size: 5000})
+Vocab({specials: ('<UNK>', '<PAD>'), eager: False, finalized: True, size: 5000})
 ```
 
 Each `Field` allows the user full flexibility to modify the data in multiple stages:

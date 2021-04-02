@@ -455,6 +455,7 @@ ADDITIONAL_DEPS = {
     "examples/pytorch_rnn_example.rst": textwrap.dedent(
         """\
         ! pip install torch
+        ! pip install datasets
         """
     ),
 }

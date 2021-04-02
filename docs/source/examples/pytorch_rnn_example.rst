@@ -165,7 +165,7 @@ In this section, we will implement a very simple neural classification model -- 
   >>> 
   >>> class RNNClassifier(nn.Module):
   ...     def __init__(self, embedding, embed_dim=300, hidden_dim=300, num_labels=2):
-  ...       super(NLIModel, self).__init__()
+  ...       super(RNNClassifier, self).__init__()
   ...       self.embedding = embedding
   ...       self.encoder = nn.GRU(
   ...             input_size=embed_dim,
@@ -233,11 +233,12 @@ and now the training loop for the model:
   ...     model.train()
   ...     accuracy, confusion_matrix = 0, np.zeros((num_labels, num_labels), dtype=int)
   ...     for batch_num, batch in tqdm.tqdm(enumerate(data), total=len(data)):
+  ...         model.zero_grad()
   ...         x, lens = batch.text
-  ...         y = batch.label
+  ...         y = batch.label.squeeze()
   ...         logits = model(x, lens)
   ...         accuracy, confusion_matrix = update_stats(accuracy, confusion_matrix, logits, y)
-  ...         loss = criterion(logits, y.squeeze())
+  ...         loss = criterion(logits, y)
   ...         loss.backward()
   ...         optimizer.step()
   ...     print("[Accuracy]: {}/{} : {:.3f}%".format(
