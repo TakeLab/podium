@@ -11,7 +11,7 @@ The main source of inspiration for Podium is an old version of [torchtext](https
 ### Contents
 
 - [Installation](#installation)
-- [Usage examples](#usage-examples)
+- [Usage examples](#usage)
 - [Contributing](#contributing)
 - [Versioning](#versioning)
 - [Authors](#authors)
@@ -216,11 +216,11 @@ Example({
 
 For a more interactive introduction, check out the quickstart on Google Colab: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/takelab/podium/blob/master/docs/source/notebooks/quickstart.ipynb)
 
-More complex examples can be found in our [examples folder](./examples).
+Full usage examples can be found in our [docs](https://takelab.fer.hr/podium/examples).
 
 ## Contributing
 
-We welcome contributions! To learn more about making a contribution to Podium, please see our [Contribution page](CONTRIBUTING.md).
+We welcome contributions! To learn more about making a contribution to Podium, please see our [Contribution page](CONTRIBUTING.md) and our [Roadmap](ROADMAP.md).
 
 ## Versioning
 
