@@ -1,3 +1,4 @@
+<img style="float: right;" width="124" src="https://takelab.fer.hr/podium/_static/podium_logo.svg">
 # TakeLab Podium
 
 ![Continuous integration](https://github.com/TakeLab/podium/workflows/Continuous%20integration/badge.svg)
