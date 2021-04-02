@@ -87,8 +87,6 @@ PREPROC_REQUIRE = [
     "truecase",
     # for keyword extraction
     "rake-nltk",
-    # for keyword extraction
-    "yake @ https://github.com/LIAAD/yake/archive/v0.4.4.tar.gz",
 ]
 
 
