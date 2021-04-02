@@ -150,6 +150,7 @@ def test_keyword_extractor(alg, alg_pkg_name):
     text_ = TEXT.lower()
     assert all(kw in text_ for kws in example["data"][1] for kw in kws.lower().split())
 
+
 @pytest.mark.require_package("yake")
 @pytest.mark.require_package("spacy")
 @pytest.mark.require_spacy_model("en_core_web_sm")
