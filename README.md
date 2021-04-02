@@ -1,5 +1,5 @@
 <h1>
-<img align="left" width="70" src="https://takelab.fer.hr/podium/_static/podium_logo.svg">
+<img align="right" width="70" src="https://takelab.fer.hr/podium/_static/podium_logo.svg">
  TakeLab Podium 
 </h1>
 
