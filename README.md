@@ -220,7 +220,7 @@ Full usage examples can be found in our [docs](https://takelab.fer.hr/podium/exa
 
 ## Contributing
 
-We welcome contributions! To learn more about making a contribution to Podium, please see our [Contribution page](CONTRIBUTING.md) and our [Roadmap](ROADMAP.md).
+We welcome contributions! To learn more about making a contribution to Podium, please see our [Contribution page](CONTRIBUTING.md) and our [Roadmap](Roadmap.md).
 
 ## Versioning
 
