@@ -1,7 +1,11 @@
+.wy-side-nav-search {
+    background-color: #fff;
+}
+
 /* Version control */
 
 .version-button {
-    color: white;
+    color: 3498DB;
     border: none;
     padding: 5px;
     font-size: 15px;
@@ -36,17 +40,8 @@
     display: block;
 }
 
-a.icon.icon-home {
-    margin: 10 auto;
-}
-
 .footer {
     margin-top: 20px;
-}
-
-/*Home icon hover*/
-a.icon.icon-home:hover {
-    background-color: #3498DB;
 }
 
 /* To keep the logo centered */
