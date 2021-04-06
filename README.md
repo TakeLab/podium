@@ -1,6 +1,6 @@
 <div align="center">
     <br>
-    <img alt="TakeLab Podium" src="docs/source/_static/podium_logo.svg" width="400"/>
+    <img alt="TakeLab Podium" src="docs/source/_static/podium_logo.svg" width="350"/>
     <p>
     A framework agnostic Python NLP library for data loading and preprocessing.
     <br>
