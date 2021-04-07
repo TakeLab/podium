@@ -27,7 +27,7 @@ INSTALL_REQUIRES = [
     # for improved dataset pickling
     "dill",
     # for tokenization and data encoded in tree structure
-    "nltk>=3.0",
+    "nltk>=3.0,<3.6",
     # for improved csv parsing
     "pandas;python_version>='3.7'",
     "pandas<1.2.0;python_version<'3.7'",
