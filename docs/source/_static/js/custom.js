@@ -10,7 +10,7 @@ const versionMapping = {
     "0.1.0": "0.1.0"
 }
 
-const navigationBckgColor = "#2980b9"
+const navigationBckgColor = "#fff"
 
 const hasNotebook = [
     "quickstart",
@@ -21,21 +21,33 @@ const hasNotebook = [
     "examples/pytorch_rnn_example"
 ]
 
+function removeElementsByClass(className){
+    var elements = document.getElementsByClassName(className);
+    while(elements.length > 0){
+        elements[0].parentNode.removeChild(elements[0]);
+    }
+}
+
 function addIcon() {
-    const podiumLogo = "https://takelab.fer.hr/podium/_static/podium_logo.svg";
+    const homeLink = document.createElement("a");
+    homeLink.setAttribute("href", document.getElementsByClassName("icon icon-home")[0].getAttribute("href"));
+    const podiumLogo = "https://raw.githubusercontent.com/TakeLab/podium/add-logo/docs/source/_static/podium_logo.svg";
     const image = document.createElement("img");
     image.setAttribute("src", podiumLogo);
     image.style.width = '124px';
     image.style.height = 'auto';
+    homeLink.appendChild(image);
 
     const div = document.createElement("div");
-    div.appendChild(image);
+    div.appendChild(homeLink);
     div.style.textAlign = 'center';
     div.style.paddingTop = '30px';
     div.style.backgroundColor = navigationBckgColor;
 
     const scrollDiv = document.querySelector(".wy-side-scroll");
     scrollDiv.prepend(div);
+
+    removeElementsByClass("icon icon-home");
 }
 
 function addGithubButton() {

@@ -1,12 +1,25 @@
-<h1>
-<img align="right" width="70" src="https://takelab.fer.hr/podium/_static/podium_logo.svg">
- TakeLab Podium 
-</h1>
-
-![Continuous integration](https://github.com/TakeLab/podium/workflows/Continuous%20integration/badge.svg)
-![License](https://img.shields.io/github/license/TakeLab/podium.svg?color=blue&cachedrop)
-![Website](https://img.shields.io/website?down_color=red&down_message=offline&up_message=online&url=http%3A%2F%2Ftakelab.fer.hr%2Fpodium%2Findex.html)
-![Release](https://img.shields.io/github/release/TakeLab/podium.svg)
+<div align="center">
+    <br>
+    <img alt="TakeLab Podium" src="docs/source/_static/podium_logo.svg" width="350"/>
+    <p>
+    A framework agnostic Python NLP library for data loading and preprocessing.
+    <br>
+</div>
+<p align="center">
+    <a href="https://github.com/TakeLab/podium/actions">
+        <img alt="Continuous integration" src="https://github.com/TakeLab/podium/actions/workflows/ci.yml/badge.svg">
+    </a>
+    <a href="https://github.com/TakeLab/podium/blob/master/LICENSE">
+        <img alt="License" src="https://img.shields.io/github/license/TakeLab/podium.svg?color=blue&cachedrop">
+    </a>
+    <a href="http://takelab.fer.hr/podium/">
+        <img alt="Documentation" src="https://img.shields.io/website?down_color=red&down_message=offline&up_message=online&url=http%3A%2F%2Ftakelab.fer.hr%2Fpodium%2Findex.html">
+    </a>
+    <a href="https://github.com/TakeLab/podium/releases">
+        <img alt="Release" src="https://img.shields.io/github/release/TakeLab/podium.svg">
+    </a>
+    <br>
+</p>
 
 ## What is Podium?
 
@@ -231,7 +244,7 @@ Full usage examples can be found in our [docs](https://takelab.fer.hr/podium/) u
 
 ## Contributing
 
-We welcome contributions! To learn more about making a contribution to Podium, please see our [Contribution page](CONTRIBUTING.md) and our [Roadmap](Roadmap.md).
+We welcome contributions! To learn more about making a contribution to Podium, please see our [Contribution page](CONTRIBUTING.md) and our [Roadmap](ROADMAP.md).
 
 ## Versioning
 
