@@ -31,7 +31,7 @@ function removeElementsByClass(className){
 function addIcon() {
     const homeLink = document.createElement("a");
     homeLink.setAttribute("href", document.getElementsByClassName("icon icon-home")[0].getAttribute("href"));
-    const podiumLogo = "https://raw.githubusercontent.com/TakeLab/podium/add-logo/docs/source/_static/podium_logo.svg";
+    const podiumLogo = "https://takelab.fer.hr/podium/_static/podium_logo_subtitle_text.svg";
     const image = document.createElement("img");
     image.setAttribute("src", podiumLogo);
     image.style.width = '124px';
