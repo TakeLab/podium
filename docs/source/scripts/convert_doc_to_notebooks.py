@@ -359,6 +359,8 @@ def split_frameworks(code):
 
 # Matches any doctest pattern.
 _re_doctest = re.compile(r"^(>>>|\.\.\.)")
+# Re pattern that matches doctest options in code blocks.
+_re_doctest_option = re.compile(r'#\s*doctest:\s*([^\n\'"]*)$', re.MULTILINE)
 
 
 def parse_code_and_output(code):
@@ -397,10 +399,16 @@ def code_cell(code, output=None):
     if output is None or len(output) == 0:
         outputs = []
     else:
+        metadata = {}
+        for m in _re_doctest_option.finditer(code):
+            group = m.group(1)
+            if group == "+ELIPPSIS":
+                metadata["elippsis"] = True
+            code.replace(group, "")
         outputs = [nbformat.notebooknode.NotebookNode({
             'data': {'text/plain': output},
             'execution_count': None,
-            'metadata': {},
+            'metadata': metadata,
             'output_type': 'execute_result'
         })]
     return nbformat.notebooknode.NotebookNode(
@@ -430,7 +438,7 @@ def rm_first_line(text):
 INSTALL_CODE = """# Podium installation
 ! pip install podium-nlp
 # To install from source instead of the last release, comment the command above and uncomment the following one.
-# ! pip install git+https://github.com/takelab/podium
+# ! pip install git+https://github.com/TakeLab/podium.git
 """
 
 ADDITIONAL_DEPS = {
@@ -442,8 +450,9 @@ ADDITIONAL_DEPS = {
     ),
     "preprocessing.rst": textwrap.dedent(
         """\
-        ! pip install sacremoses clean-text spacy truecase https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz
+        ! pip install sacremoses clean-text spacy spacy-lookups-data truecase https://github.com/LIAAD/yake/archive/v0.4.2.tar.gz
         ! python -m spacy download en_core_web_sm
+        ! python -m nltk.downloader stopwords
         """
     ),
     "walkthrough.rst": textwrap.dedent(

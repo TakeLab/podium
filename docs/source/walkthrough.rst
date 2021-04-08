@@ -33,7 +33,7 @@ One built-in dataset available in Podium is the `Stanford Sentiment Treebank <ht
   :options: +NORMALIZE_WHITESPACE
 
   >>> from podium.datasets import SST
-  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits() # doctest:+ELLIPSIS
+  >>> sst_train, sst_dev, sst_test = SST.get_dataset_splits()
   >>> sst_train.finalize_fields()
   >>> print(sst_train)
   SST({
@@ -73,17 +73,21 @@ Converting a dataset from 🤗 datasets into Podium requires some work from your
 
 .. code-block:: python
 
-  >>> import datasets
+  >>> import os
   >>> from pprint import pprint
+  >>>
+  >>> from datasets import load_dataset
+  >>>
   >>> # Loading a huggingface dataset returns an instance of DatasetDict
   >>> # which contains the dataset splits (usually: train, valid, test) 
-  >>> imdb = datasets.load_dataset('imdb')
+  >>> imdb = load_dataset('imdb')
+  >>>
   >>> print(imdb.keys())
   dict_keys(['train', 'test', 'unsupervised'])
   >>> 
   >>> # Each dataset has a set of features which need to be mapped
   >>> # to Podium Fields.
-  >>> print(imdb['train'].features)
+  >>> pprint(imdb['train'].features)
   {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], names_file=None, id=None),
    'text': Value(dtype='string', id=None)}
 
@@ -99,17 +103,16 @@ Datasets from 🤗 need to either (1) be wrapped them in :class:`podium.datasets
   >>> imdb_train, imdb_test, imdb_unsupervised = HF.from_dataset_dict(imdb).values()
   >>> imdb_train.finalize_fields()
   >>>
-  >>> print(imdb_train.field_dict())
-  {'label': LabelField({
-      name: 'label',
-      keep_raw: False,
-      is_target: True
-  }),
-   'text': Field({
-      name: 'text',
-      keep_raw: False,
-      is_target: False,
-      vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 280619})
+  >>> print(imdb_train.field_dict)
+  {'text': Field({
+        name: 'text',
+        keep_raw: False,
+        is_target: False,
+        vocab: Vocab({specials: ('<UNK>', '<PAD>'), eager: False, is_finalized: True, size: 280619})
+    }), 'label': LabelField({
+        name: 'label',
+        keep_raw: False,
+        is_target: True
   })}
 
 .. note::
@@ -511,7 +514,7 @@ The output of the function call is a numpy matrix of word embeddings which you c
   >>> glove = GloVe()
   >>> embeddings = glove.load_vocab(vocab)
   >>> print(f"For vocabulary of size: {len(vocab)} loaded embedding matrix of shape: {embeddings.shape}")
-  For vocabulary of size: 21701 loaded embedding matrix of shape: (21701, 300)
+  For vocabulary of size: 21701 loaded embedding matrix of shape: (16284, 300)
   >>> # We can obtain vectors for a single word (given the word is loaded) like this:
   >>> word = "sport"
   >>> print(f"Vector for {word}: {glove.token_to_vector(word)}")
@@ -557,12 +560,12 @@ Now our vectorizer has seen the dataset as well as the vocabulary and has all th
   >>> print(type(tfidf_batch), tfidf_batch.shape)
   <class 'scipy.sparse.csr.csr_matrix'> (6920, 4998)
   >>> print(tfidf_batch[222])
-  (0, 2111) 0.617113703893198
-  (0, 549)  0.5208201737884445
-  (0, 499)  0.5116152860290002
-  (0, 19) 0.2515101839877878
-  (0, 1)  0.12681755258500052
-  (0, 0)  0.08262419651916046
+    (0, 2111) 0.617113703893198
+    (0, 549)  0.5208201737884445
+    (0, 499)  0.5116152860290002
+    (0, 19) 0.2515101839877878
+    (0, 1)  0.12681755258500052
+    (0, 0)  0.08262419651916046
 
 The Tf-Idf counts are highly sparse since not all words from the vocabulary are present in every instance. To reduce the memory footprint of count-based numericalization, we store the values in a `SciPy <https://www.scipy.org/>`__ `sparse matrix <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix>`__, which can be used in various `scikit-learn <https://scikit-learn.org/stable/>`__ models.
 

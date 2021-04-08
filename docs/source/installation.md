@@ -23,5 +23,5 @@ Coming soon!
 ## Installing from source
 
 To install from source via terminal:
-1. Clone the repository: `git clone git@github.com:takelab/podium.git && cd podium`
+1. Clone the repository: `git clone git@github.com:TakeLab/podium.git && cd podium`
 2. Install podium: `pip install .`

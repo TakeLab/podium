@@ -299,7 +299,7 @@ class DiskBackedDataset(DatasetBase):
         format = format.lower()
         csv_reader_params = {} if csv_reader_params is None else csv_reader_params
 
-        with open(os.path.expanduser(path), encoding="utf8") as f:
+        with open(os.path.expanduser(path), encoding="utf-8") as f:
             if format in {"csv", "tsv"}:
                 delimiter = "," if format == "csv" else "\t"
                 reader = csv.reader(f, delimiter=delimiter, **csv_reader_params)
@@ -542,7 +542,7 @@ class DiskBackedDataset(DatasetBase):
         """
         # load fields
         fields_file_path = os.path.join(cache_path, CACHE_FIELDS_FILENAME)
-        with open(fields_file_path, "rb") as fields_cache_file:
+        with open(os.path.expanduser(fields_file_path), "rb") as fields_cache_file:
             fields = pickle.load(fields_cache_file)
 
         # load dataset as memory mapped arrow table
@@ -587,7 +587,7 @@ class DiskBackedDataset(DatasetBase):
 
         # pickle fields
         cache_fields_path = os.path.join(cache_path, CACHE_FIELDS_FILENAME)
-        with open(cache_fields_path, "wb") as fields_cache_file:
+        with open(os.path.expanduser(cache_fields_path), "wb") as fields_cache_file:
             pickle.dump(self.fields, fields_cache_file)
 
         # dump table

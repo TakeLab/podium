@@ -159,7 +159,7 @@ Stopword removal
    >>> raw_text = None
    >>> tokenized_text = ['in', 'my', 'opinion', 'an', 'exciting', 'and', 'funny', 'movie']
    >>> print(remove_stopwords_hook(raw_text, tokenized_text))
-   (None, [opinion', 'exciting', 'funny', 'movie'])
+   (None, ['opinion', 'exciting', 'funny', 'movie'])
 
 Keyword extraction
 ------------------

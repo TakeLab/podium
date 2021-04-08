@@ -298,7 +298,7 @@ class WordVectors(VectorStorage):
         """
         Method for caching loaded vectors to cache_dir.
         """
-        with open(self._cache_path, "wb") as cache_file:
+        with open(os.path.expanduser(self._cache_path), "wb") as cache_file:
             for word in self._vectors:
                 vector_values_string = " ".join(map(str, self._vectors[word]))
                 cache_file.write(f"{word} {vector_values_string}\n".encode("utf-8"))
@@ -362,7 +362,9 @@ class WordVectors(VectorStorage):
             vocab = set(vocab)
 
         open_mode, split_delimiter = ("rb", b" ") if self._binary else ("r", " ")
-        with open(curr_path, open_mode, encoding=self._encoding) as vector_file:
+        with open(
+            os.path.expanduser(curr_path), open_mode, encoding=self._encoding
+        ) as vector_file:
 
             vectors_loaded = 0
             header_lines = 0

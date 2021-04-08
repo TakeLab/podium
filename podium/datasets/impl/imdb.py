@@ -153,7 +153,9 @@ class IMDB(Dataset):
         ]
         examples = []
         for file_path in files_list:
-            with open(file=os.path.join(dir_path, file_path), encoding="utf8") as fpr:
+            with open(
+                os.path.expanduser(os.path.join(dir_path, file_path)), encoding="utf-8"
+            ) as fpr:
                 data = {IMDB.TEXT_FIELD_NAME: fpr.read(), IMDB.LABEL_FIELD_NAME: label}
                 examples.append(example_factory.from_dict(data))
         return examples
