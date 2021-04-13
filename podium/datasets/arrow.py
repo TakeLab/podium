@@ -318,7 +318,11 @@ class DiskBackedDataset(DatasetBase):
 
             if format in {"csv", "tsv"}:
                 delimiter = "," if format == "csv" else "\t"
-                reader = iter(pd.read_csv(f, delimiter=delimiter, header=None, **csv_reader_params).values.tolist())
+                reader = iter(
+                    pd.read_csv(
+                        f, delimiter=delimiter, header=None, **csv_reader_params
+                    ).values.tolist()
+                )
             elif format == "json":
                 reader = f
             else:
