@@ -1,4 +1,3 @@
-import csv
 import itertools
 import os
 import pickle
@@ -7,6 +6,8 @@ import tempfile
 import warnings
 from collections import defaultdict
 from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
+
+import pandas as pd
 
 from podium.field import Field, unpack_fields
 
@@ -277,19 +278,19 @@ class DiskBackedDataset(DatasetBase):
             file. Use lower number if memory usage is an issue while loading.
 
         skip_header : bool
-                Whether to skip the first line of the input file.
-                If format is CSV/TSV and 'fields' is a dict, then skip_header
-                must be False and the data file must have a header.
-                Default is False.
+            Whether to skip the first line of the input file.
+            If format is CSV/TSV and 'fields' is a dict, then skip_header
+            must be False and the data file must have a header.
+            Default is False.
         delimiter: str
             Delimiter used to separate columns in a row.
             If set to None, the default delimiter for the given format will
             be used.
         csv_reader_params : Dict
-                Parameters to pass to the csv reader. Only relevant when
-                format is csv or tsv.
-                See https://docs.python.org/3/library/csv.html#csv.reader
-                for more details.
+            Parameters to pass to the csv reader. Only relevant when
+            format is csv or tsv.
+            See https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html
+            for more details.
 
         Returns
         -------
@@ -300,14 +301,6 @@ class DiskBackedDataset(DatasetBase):
         csv_reader_params = {} if csv_reader_params is None else csv_reader_params
 
         with open(os.path.expanduser(path), encoding="utf8") as f:
-            if format in {"csv", "tsv"}:
-                delimiter = "," if format == "csv" else "\t"
-                reader = csv.reader(f, delimiter=delimiter, **csv_reader_params)
-            elif format == "json":
-                reader = f
-            else:
-                raise ValueError(f"Invalid format: {format}")
-
             if skip_header:
                 if format == "json":
                     raise ValueError(
@@ -321,7 +314,15 @@ class DiskBackedDataset(DatasetBase):
                     )
 
                 # skipping the header
-                next(reader)
+                next(f)
+
+            if format in {"csv", "tsv"}:
+                delimiter = "," if format == "csv" else "\t"
+                reader = iter(pd.read_csv(f, delimiter=delimiter, header=None, **csv_reader_params).values.tolist())
+            elif format == "json":
+                reader = f
+            else:
+                raise ValueError(f"Invalid format: {format}")
 
             # if format is CSV/TSV and fields is a dict, transform it to a list
             if format in {"csv", "tsv"} and isinstance(fields, dict):
