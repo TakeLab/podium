@@ -3,11 +3,13 @@ Module containing the Example Factory method used to dynamically create example
 classes used for storage in Dataset classes.
 """
 
-import csv
 import json
 import xml.etree.ElementTree as ET
 from enum import Enum
+from io import StringIO
 from typing import Union
+
+import pandas as pd
 
 from podium.utils.general_utils import repr_type_and_attrs
 
@@ -231,7 +233,8 @@ class ExampleFactory:
             An Example whose attributes are the given Fields created with the
             given column values. These Fields can be accessed by their names.
         """
-        elements = next(csv.reader([data], delimiter=delimiter))
+        elements = pd.read_csv(StringIO(data), delimiter=delimiter, header=None)
+        elements = elements.values.tolist()[0]
 
         if isinstance(self.fields, list):
             return self.from_list(elements)

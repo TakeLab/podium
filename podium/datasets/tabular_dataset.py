@@ -1,5 +1,6 @@
-import csv
 import os
+
+import pandas as pd
 
 from podium.datasets.dataset import Dataset
 
@@ -19,7 +20,7 @@ class TabularDataset(Dataset):
         format="csv",
         line2example=None,
         skip_header=False,
-        csv_reader_params={},
+        csv_reader_params=None,
         **kwargs,
     ):
         """
@@ -71,7 +72,7 @@ class TabularDataset(Dataset):
         csv_reader_params : dict
             Parameters to pass to the csv reader. Only relevant when
             format is csv or tsv.
-            See https://docs.python.org/3/library/csv.html#csv.reader
+            See https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html
             for more details.
 
         Raises
@@ -84,6 +85,7 @@ class TabularDataset(Dataset):
         """
 
         format = format.lower()
+        csv_reader_params = {} if csv_reader_params is None else csv_reader_params
 
         with open(os.path.expanduser(path), encoding="utf8") as f:
 
@@ -93,8 +95,7 @@ class TabularDataset(Dataset):
             if skip_header:
                 if format == "json":
                     raise ValueError(
-                        f"When using a {format} file, skip_header \
-                                       must be False."
+                        f"When using a {format} file, skip_header must be False."
                     )
                 elif format in {"csv", "tsv", "custom"} and isinstance(fields, dict):
                     raise ValueError(
@@ -111,7 +112,11 @@ class TabularDataset(Dataset):
                 format = "custom"
             elif format in {"csv", "tsv"}:
                 delimiter = "," if format == "csv" else "\t"
-                reader = csv.reader(f, delimiter=delimiter, **csv_reader_params)
+                reader = iter(
+                    pd.read_csv(
+                        f, delimiter=delimiter, header=None, **csv_reader_params
+                    ).values.tolist()
+                )
             elif format == "json":
                 reader = f
             else:
