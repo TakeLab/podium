@@ -258,6 +258,22 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 See also the list of [contributors](../../graphs/contributors) who participated in this project.
 
+## Citation
+
+If you are using Podium, please cite the following entry in your work:
+
+```
+@misc{tutek-etal-2021-podium,
+  author = {Martin Tutek and Filip Boltužić and Ivan Smoković and Mario Šaško and Silvije Škudar and Domagoj Pluščec and Marin Kačan and Dunja Vesinger and Mate Mijolović and Jan Šnajder},
+  title = {Podium: a framework-agnostic NLP preprocessing toolkit},
+  year = {2021},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/TakeLab/podium}},
+  commit = {4fed78b8d8366768df10454b8368f416a3305cc4}
+}
+```
+
 ## License
 
 This project is licensed under the BSD 3-Clause - see the [LICENSE](LICENSE) file for details.
