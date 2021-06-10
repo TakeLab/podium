@@ -11,14 +11,15 @@ from setuptools import find_packages, setup
 
 
 def _get_version():
-    project_root_init = Path(__file__).parent / "podium" / "__init__.py"
-    with open(project_root_init, "r") as f:
+    with open(Path(__file__).parent / "podium" / "__init__.py", "r", encoding="utf-8") as f:
         version = re.search(r'__version__ = \"(.*)\"', f.read()).group(1)
     return version
+
 
 DISTNAME = 'podium-nlp'
 VERSION = _get_version()
 DOCLINES = __doc__.split('\n')
+
 
 INSTALL_REQUIRES = [
     # for numericalization in batching
@@ -132,6 +133,7 @@ setup(
             "examples.*",
         ]
     ),
+    package_data={"podium": ["py.typed"]},
     install_requires=INSTALL_REQUIRES,
     extras_require=EXTRAS_REQUIRE,
     python_requires=">=3.6",
@@ -157,4 +159,5 @@ setup(
         "Topic :: Text Processing",
     ],
     keywords="podium nlp natural-language-processing machine learning",
+    zip_safe=False,
 )
