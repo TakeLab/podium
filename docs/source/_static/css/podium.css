@@ -12,7 +12,8 @@
     cursor: pointer;
 }
 
-/*Focus & hover color change on the version dropdown */
+/* Focus & hover color change on the version dropdown */
+
 .version-button:hover, .version-button:focus {
     background-color: #3498DB;
 }
@@ -45,10 +46,15 @@
 }
 
 /* To keep the logo centered */
+
 .wy-side-scroll {
     width: auto;
 }
 
 .wy-side-nav-search {
     width: auto;
+}
+
+.github-repo {
+    margin-bottom: 10px;
 }
