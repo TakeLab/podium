@@ -60,7 +60,7 @@ function addGithubButton() {
             </a>
         </div>
     `;
-    document.querySelector(".wy-side-nav-search .icon-home").insertAdjacentHTML('afterend', div);
+    document.querySelector('.wy-side-nav-search').insertAdjacentHTML('afterbegin', div);
 }
 
 function addColabLink() {
@@ -158,11 +158,10 @@ function parseGithubButtons (){"use strict";var e=window.document,t=e.location,o
 function onLoad() {
     addIcon();
     addVersionControl();
-    addColabLink();
     addCustomFooter();
-// Uncomment when public
-    //addGithubButton();
-    //parseGithubButtons();
+    addGithubButton();
+    parseGithubButtons();
+    addColabLink();
 }
 
 window.addEventListener("load", onLoad);
