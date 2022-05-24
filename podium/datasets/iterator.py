@@ -583,14 +583,13 @@ class BucketIterator(Iterator):
         step = self.batch_size * self.look_ahead_multiplier
         dataset = self._dataset
 
-
         # Fix: Shuffle dataset if the shuffle is turned on, only IF sort key is not none
         if self._shuffle and self._sort_key is None:
-            indices = list(range(len(dataset)))
+            # indices = list(range(len(dataset)))
             # Cache state prior to shuffle so we can use it when unpickling
             self._shuffler_state = self.get_internal_random_state()
-            self._shuffler.shuffle(indices)
-            dataset = dataset[indices]
+            # self._shuffler.shuffle(indices)
+            dataset = dataset.shuffle_examples(random_state=_shuffler_state)
 
         # Determine the step where iteration was stopped for lookahead & within bucket
         lookahead_start = (
