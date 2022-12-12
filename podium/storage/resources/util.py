@@ -78,4 +78,23 @@ def extract_tar_file(archive_file, destination_dir, encoding="uft-8"):
     if not os.path.exists(archive_file):
         raise ValueError(f"Given archive file doesn't exist. Given {archive_file}.")
     with tarfile.open(name=archive_file, mode="r") as tar_ref:
-        tar_ref.extractall(path=destination_dir)
+        def is_within_directory(directory, target):
+            
+            abs_directory = os.path.abspath(directory)
+            abs_target = os.path.abspath(target)
+        
+            prefix = os.path.commonprefix([abs_directory, abs_target])
+            
+            return prefix == abs_directory
+        
+        def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+        
+            for member in tar.getmembers():
+                member_path = os.path.join(path, member.name)
+                if not is_within_directory(path, member_path):
+                    raise Exception("Attempted Path Traversal in Tar File")
+        
+            tar.extractall(path, members, numeric_owner=numeric_owner) 
+            
+        
+        safe_extract(tar_ref, path=destination_dir)
